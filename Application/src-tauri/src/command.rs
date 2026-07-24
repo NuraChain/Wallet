@@ -10,7 +10,9 @@ pub fn password_hash(password: &str) -> String {
 
     let mut hash = [0u8; 32];
 
-    argon2.hash_password_into(password.as_bytes(), APP_SALT, &mut hash).unwrap();
+    argon2
+        .hash_password_into(password.as_bytes(), APP_SALT, &mut hash)
+        .unwrap();
 
     hash.iter().map(|b| format!("{:02x}", b)).collect()
 }

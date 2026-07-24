@@ -32,31 +32,34 @@
         },
         "Create": "Create New Wallet",
         "Import": "Import Existing Wallet",
-        "Version": "Version 1.0.0"
-    },
-    "ImportWallet": {
-        "Title": "Import Existing Wallet",
-        "Subtitle": "Restore your wallet from a seed phrase or private key",
-        "PhraseTab": "Seed Phrase",
-        "KeyTab": "Private Key",
-        "Phrase": "Seed Phrase",
-        "PhrasePlaceholder": "Paste your 12 or 24 word seed phrase here...",
-        "PrivateKey": "Private Key",
-        "PrivateKeyPlaceholder": "Paste your private key (64 hex chars)...",
-        "Import": "Import Wallet"
-    },
-    "CreateWallet": {
-        "Title": "Create New Wallet",
-        "Subtitle": "Set up your secure wallet to get started",
-        "Name": "Wallet Name",
-        "Password": "Password",
-        "Confirm": "Confirm Password",
-        "Agreement": "I agree to the terms and conditions",
-        "Submit": "Create Wallet",
-        "ErrorMismatch": "Passwords do not match",
-        "ErrorLength": "Password must be between 6 and 32 characters",
-        "ErrorGenerate": "Failed to generate wallet. Please try again",
-        "ErrorSave": "Failed to save wallet. Please try again"
+        "Version": "Version 1.0.0",
+        "ImportWallet": {
+            "Title": "Import Existing Wallet",
+            "Subtitle": "Restore your wallet from a seed phrase",
+            "Password": "Password",
+            "Confirm": "Confirm Password",
+            "Agreement": "I understand my password cannot be recovered",
+            "Submit1": "Next Step",
+            "Submit2": "Import Wallet",
+            "Message": "Enter your seed phrase",
+            "ErrorMismatch": "Passwords do not match",
+            "ErrorLength": "Password must be between 6 and 32 characters",
+            "ErrorInvalidLength": "Seed phrase is not valid",
+            "ErrorGenerate": "Failed to import wallet. Please try again"
+        },
+        "CreateWallet": {
+            "Title": "Create New Wallet",
+            "Subtitle": "Set up your secure wallet to get started",
+            "Name": "Wallet Name",
+            "Password": "Password",
+            "Confirm": "Confirm Password",
+            "Agreement": "I understand my password cannot be recovered",
+            "Submit": "Create Wallet",
+            "ErrorMismatch": "Passwords do not match",
+            "ErrorLength": "Password must be between 6 and 32 characters",
+            "ErrorGenerate": "Failed to generate wallet. Please try again",
+            "ErrorSave": "Failed to save wallet. Please try again"
+        }
     },
     "Unlock": {
         "Title": "Unlock Wallet",

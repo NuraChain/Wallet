@@ -33,7 +33,7 @@ const resolve = (name: string): string | undefined =>
     {
         if (typeof result[key] === 'undefined')
         {
-            continue;
+            return undefined;
         }
 
         result = result[key];
@@ -55,14 +55,14 @@ const resolve = (name: string): string | undefined =>
  */
 export const setLanguage = async(lang: LanguageType) =>
 {
-    languageCurrent = lang;
-
     await setValue('App.Language', lang);
-
-    document.documentElement.lang = lang;
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
     languageMap = (await import(`../assets/lang/${ lang }.json`)).default;
+
+    languageCurrent = lang;
+
+    document.documentElement.lang = lang;
 
     document.documentElement.dir = [ 'fa', 'ar' ].includes(lang) ? 'rtl' : 'ltr';
 };
