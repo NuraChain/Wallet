@@ -1,6 +1,48 @@
 import { ethers } from 'ethers';
 
 /**
+ * Parameters describing a single outgoing transfer.
+ *
+ * When `token` is omitted the transfer is of the network's native coin; otherwise it is an ERC20 `transfer` on the given contract.
+ */
+export interface SendParams
+{
+    to: string;
+    amount: string;
+    token?: { address: string; decimals: number };
+}
+
+/**
+ * Minimal ERC20 write surface used for outgoing transfers.
+ */
+const transferAbi = [ 'function transfer(address to, uint256 amount) returns (bool)' ];
+
+/**
+ * Broadcast a signed transfer from an already-connected signer.
+ *
+ * Handles native transfers and ERC20 transfers behind one call so both wallet types share it.
+ * @param {ethers.Wallet | ethers.HDNodeWallet} signer Signer connected to a provider.
+ * @param {SendParams} params Recipient, amount, and optional token.
+ * @returns {Promise<string>} The broadcast transaction hash.
+ */
+const broadcast = async(signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParams) =>
+{
+    if (params.token === undefined)
+    {
+        const transaction = await signer.sendTransaction({ to: params.to, value: ethers.parseEther(params.amount) });
+
+        return transaction.hash;
+    }
+
+    const contract = new ethers.Contract(params.token.address, transferAbi, signer);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const transaction = await contract.transfer(params.to, ethers.parseUnits(params.amount, params.token.decimals)) as ethers.TransactionResponse;
+
+    return transaction.hash;
+};
+
+/**
  * PrivateKeyWalletManager - Wrapper for wallets imported via raw private key.
  * Exposes the same public API surface as WalletManager.
  */
@@ -26,6 +68,17 @@ class PrivateKeyWalletManager
     public verify(message: string, signature: string)
     {
         return ethers.verifyMessage(message, signature) === this.WalletSigner.address;
+    }
+
+    /**
+     * send - Broadcasts a native or ERC20 transfer signed by this wallet.
+     * @param {ethers.Provider} provider - The provider to broadcast through
+     * @param {SendParams} params - Recipient, amount, and optional token
+     * @returns {Promise<string>} The broadcast transaction hash
+     */
+    public async send(provider: ethers.Provider, params: SendParams)
+    {
+        return broadcast(this.WalletSigner.connect(provider), params);
     }
 
     public toString()
@@ -82,6 +135,17 @@ class WalletManager
     public verify(message: string, signature: string)
     {
         return ethers.verifyMessage(message, signature) === this.WalletAddress;
+    }
+
+    /**
+     * send - Broadcasts a native or ERC20 transfer signed by the derived wallet
+     * @param {ethers.Provider} provider - The provider to broadcast through
+     * @param {SendParams} params - Recipient, amount, and optional token
+     * @returns {Promise<string>} The broadcast transaction hash
+     */
+    public async send(provider: ethers.Provider, params: SendParams)
+    {
+        return broadcast(this.WalletDerive.connect(provider), params);
     }
 
     /**

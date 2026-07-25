@@ -1,6 +1,37 @@
 {
     "$schema": "https://schema.tauri.app/config/2",
     "identifier": "io.gwallet.android",
+    "app": {
+        "withGlobalTauri": false,
+        "security": {
+            "csp": null,
+            "capabilities": [
+                {
+                    "identifier": "main-capability",
+                    "windows": [
+                        "main"
+                    ],
+                    "permissions": [
+                        "core:event:allow-listen",
+                        "core:event:allow-unlisten",
+
+                        "store:allow-load",
+                        "store:allow-save",
+                        "store:allow-get",
+                        "store:allow-set",
+
+                        "os:allow-hostname",
+                        "os:allow-platform",
+                        "os:allow-os-type",
+                        "os:allow-version",
+                        "os:allow-family",
+                        "os:allow-locale",
+                        "os:allow-arch"
+                    ]
+                }
+            ]
+        }
+    },
     "bundle": {
         "active": true,
         "android": {

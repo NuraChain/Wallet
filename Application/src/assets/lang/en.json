@@ -77,24 +77,91 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Wallet",
-            "Activity": "Activity",
+            "Browser": "Browser",
             "Settings": "Settings"
         },
         "Empty": "Nothing to show yet.",
-        "Title": "Wallet Ready",
-        "Subtitle": "Your wallet is unlocked and ready to use",
+        "Account": "Account",
         "Address": "Address",
         "Copy": "Copy Address",
         "Copied": "Address copied to clipboard",
         "CopyFailed": "Unable to copy address",
         "Lock": "Lock",
-        "Message": "Sign a Message",
-        "SignPlaceholder": "Type a message you want to sign",
-        "Sign": "Sign Message",
-        "Signature": "Signature",
-        "EmptySignature": "Your signature will appear here after you sign a message",
-        "Signed": "Message signed successfully",
-        "SignHint": "Please enter a message before signing",
-        "SignFailed": "Unable to sign message"
+        "Tokens": {
+            "Title": "Tokens",
+            "Empty": "No tokens on this network"
+        },
+        "Network": {
+            "Title": "Network",
+            "Add": "Add Custom Network",
+            "Name": "Network name",
+            "Rpc": "RPC URL",
+            "ChainId": "Chain ID",
+            "Symbol": "Symbol",
+            "Explorer": "Explorer URL (optional)",
+            "Save": "Save",
+            "Back": "Back",
+            "Invalid": "Please fill in the network name and symbol",
+            "InvalidRpc": "RPC URL must start with http",
+            "InvalidChainId": "Chain ID must be a positive number"
+        },
+        "Send": {
+            "Title": "Send",
+            "Recipient": "Recipient",
+            "Amount": "Amount",
+            "Max": "Max: %s",
+            "Review": "Review",
+            "To": "To",
+            "Back": "Back",
+            "Confirm": "Confirm & Send",
+            "Pending": "Broadcasting transaction…",
+            "Success": "Transaction sent",
+            "Done": "Done",
+            "Error": "Transaction failed. Please try again",
+            "InvalidAddress": "Recipient address is not valid",
+            "InvalidAmount": "Enter a valid amount",
+            "Insufficient": "Amount exceeds your balance"
+        },
+        "Receive": {
+            "Title": "Receive",
+            "Scan": "Scan to receive %s on this network"
+        },
+        "Activity": {
+            "Title": "Transaction History",
+            "Empty": "No transactions yet",
+            "NeedsApi": "Live history needs an explorer API key. Connect one to see past transactions.",
+            "Received": "Received",
+            "Sent": "Sent"
+        },
+        "Browser": {
+            "Title": "Browser",
+            "Placeholder": "Search or enter address",
+            "Shortcuts": "Shortcuts",
+            "Explorer": "Explorer",
+            "Back": "Back",
+            "Forward": "Forward",
+            "Reload": "Reload",
+            "Home": "Home",
+            "Loading": "Loading…",
+            "Hint": "This build cannot embed a real browser, so websites that refuse framing will stay blank."
+        },
+        "Settings": {
+            "WalletName": "Wallet name",
+            "Save": "Save",
+            "Theme": "Theme",
+            "ThemeLight": "Light",
+            "ThemeDark": "Dark",
+            "Logout": "Log out"
+        },
+        "Logout": {
+            "Title": "Log out",
+            "Message": "This removes the wallet from this device. You can only restore it with your seed phrase.",
+            "Password": "Password",
+            "Confirm": "Log out",
+            "Cancel": "Cancel",
+            "Pending": "Logging out…",
+            "ErrorRequired": "Please enter your password",
+            "ErrorInvalid": "Password is incorrect"
+        }
     }
 }

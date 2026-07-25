@@ -12,6 +12,7 @@ import IntroPage from './page/intro';
 import UnlockPage from './page/unlock';
 
 import { initTheme } from './utility/theme';
+import { initNetwork } from './core/network';
 import { getValue } from './utility/storage';
 import { openPage } from './utility/context';
 import { useIsWindows } from './hook/platform';
@@ -137,6 +138,7 @@ if (rootElement)
 {
     await initTheme();
     await initLanguage();
+    await initNetwork();
 
     createRoot(rootElement).render(<Application />);
 }

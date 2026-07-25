@@ -1,96 +1,94 @@
 import type { IconType } from 'react-icons';
 import type { Swiper as SwiperType } from 'swiper';
 
-import { motion } from 'motion/react';
-import { useMemo, useRef, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { HiOutlineArrowsRightLeft, HiOutlineCog6Tooth, HiOutlineLockClosed, HiOutlineSquare2Stack, HiOutlineWallet } from 'react-icons/hi2';
+import { motion, AnimatePresence } from 'motion/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { HiOutlineCog6Tooth, HiOutlineGlobeAlt, HiOutlineWallet } from 'react-icons/hi2';
 
 import UnlockPage from './unlock';
 
 import WalletManager from '../core/wallet';
 
+import DashboardSend from '../components/dashboard.send';
+import DashboardWallet from '../components/dashboard.wallet';
+import IntroLanguage from '../components/intro.language';
+import DashboardLogout from '../components/dashboard.logout';
+import DashboardNetwork from '../components/dashboard.network';
+import DashboardReceive from '../components/dashboard.receive';
+import DashboardBrowser from '../components/dashboard.browser';
+import DashboardSettings from '../components/dashboard.settings';
+
+import { getNetwork } from '../core/network';
 import { openPage } from '../utility/context';
+import { getValue, setValue } from '../utility/storage';
+import { useBalance, useTokens } from '../hook/balance';
 import { getDirection, getLanguage, T } from '../utility/language';
 
 import 'swiper/css';
 
-const navMap: { key: string; icon: IconType } [ ] =
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout';
+
+const navMap: { key: string; icon: IconType }[] =
 [
     { key: 'Wallet', icon: HiOutlineWallet },
-    { key: 'Activity', icon: HiOutlineArrowsRightLeft },
+    { key: 'Browser', icon: HiOutlineGlobeAlt },
     { key: 'Settings', icon: HiOutlineCog6Tooth }
 ];
 
+/**
+ * DashboardPage - The unlocked wallet home.
+ *
+ * Owns the account address (derived once from the mnemonic), the account label, the active network, and the live balances, then feeds them to the three tabs and the transfer modals so every surface reads the same state.
+ * @param {object} props Component props.
+ * @param {string} props.mnemonic The unlocked mnemonic.
+ * @returns {JSX.Element} The dashboard page.
+ */
 export default function DashboardPage({ mnemonic }: { mnemonic: string })
 {
-    const [ active, setActive ] = useState(0);
-
     const swiperRef = useRef<SwiperType>(undefined);
 
-    const renderBody = (key: string) =>
+    const address = useMemo(() => new WalletManager(mnemonic, 0).retrieve().Public, [ mnemonic ]);
+
+    const [ active, setActive ] = useState(0);
+    const [ modal, setModal ] = useState<Modal>('none');
+    const [ network, setNetworkState ] = useState(getNetwork());
+    const [ name, setName ] = useState(`${ T('Dashboard.Account') } 1`);
+
+    const native = useBalance(address, network);
+    const tokens = useTokens(address, network);
+
+    useEffect(() =>
     {
-        if (key === 'Wallet')
+        const run = async() =>
         {
-            return (
-                <>
-                    <div className='text-tiny text-txt-muted'>
+            const stored = await getValue('Wallet.Name');
 
-                        { T('Dashboard.Address') }
+            if (stored !== undefined && stored.length > 0)
+            {
+                setName(stored);
+            }
+        };
 
-                    </div>
+        void run();
+    }, []);
 
-                    <div className='glass-panel rounded-xl p-3 font-mono text-tiny break-all text-txt-normal select-text!'>
+    const onRename = (value: string) =>
+    {
+        setName(value);
 
-                        address
+        void setValue('Wallet.Name', value);
+    };
 
-                    </div>
+    const onNetworkChange = () =>
+    {
+        setNetworkState(getNetwork());
+    };
 
-                    <button
-                        type='button'
-                        className='btn-muted flex h-10 w-fit items-center gap-2 rounded-xl px-4 text-tiny'>
-
-                        <HiOutlineSquare2Stack size={ 16 } />
-
-                        { T('Dashboard.Copy') }
-
-                    </button>
-
-                </>
-            );
-        }
-
-        if (key === 'Settings')
-        {
-            return (
-                <>
-                    <div className='text-tiny text-txt-muted'>
-
-                        { T('Dashboard.Empty') }
-
-                    </div>
-
-                    <button
-                        type='button'
-                        onClick={ () => { openPage(UnlockPage); } }
-                        className='btn-primary flex h-10 w-fit items-center gap-2 rounded-xl px-4 text-tiny'>
-
-                        <HiOutlineLockClosed size={ 16 } />
-
-                        { T('Dashboard.Lock') }
-
-                    </button>
-                </>
-            );
-        }
-
-        return (
-            <div className='text-tiny text-txt-muted'>
-
-                { T('Dashboard.Empty') }
-
-            </div>
-        );
+    const onSent = () =>
+    {
+        native.refresh();
+        tokens.refresh();
     };
 
     return (
@@ -100,25 +98,123 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
             transition={ { type: 'tween' } }
             className='relative size-full bg-base-1'>
 
+            <AnimatePresence>
+
+                {
+                    modal === 'send' &&
+                    (
+                        <DashboardSend
+                            key='send'
+                            mnemonic={ mnemonic }
+                            network={ network }
+                            nativeValue={ native.value }
+                            nativeFormatted={ native.formatted }
+                            tokens={ tokens.tokens }
+                            onSent={ onSent }
+                            onClose={ () => { setModal('none'); } } />
+                    )
+                }
+
+                {
+                    modal === 'receive' &&
+                    (
+                        <DashboardReceive
+                            key='receive'
+                            address={ address }
+                            network={ network }
+                            onClose={ () => { setModal('none'); } } />
+                    )
+                }
+
+                {
+                    modal === 'network' &&
+                    (
+                        <DashboardNetwork
+                            key='network'
+                            network={ network }
+                            onChange={ onNetworkChange }
+                            onClose={ () => { setModal('none'); } } />
+                    )
+                }
+
+                {
+                    modal === 'language' &&
+                    (
+                        <IntroLanguage
+                            key='language'
+                            onClose={ () => { setModal('none'); } } />
+                    )
+                }
+
+                {
+                    modal === 'logout' &&
+                    (
+                        <DashboardLogout
+                            key='logout'
+                            onClose={ () => { setModal('none'); } } />
+                    )
+                }
+
+            </AnimatePresence>
+
             <Swiper
-                speed={ 350 }
-                className='size-full'
+                key={ getLanguage().code }
                 dir={ getDirection() }
+                speed={ 350 }
                 simulateTouch={ false }
                 initialSlide={ active }
-                key={ getLanguage().code }
                 onSwiper={ (swiper) => { swiperRef.current = swiper; } }
-                onSlideChange={ (swiper) => { setActive(swiper.activeIndex); } }>
+                onSlideChange={ (swiper) => { setActive(swiper.activeIndex); } }
+                className='size-full'>
 
                 {
                     navMap.map((item, index) => (
                         <SwiperSlide key={ item.key }>
 
                             <div
-                                className='flex size-full flex-col gap-2 overflow-y-auto p-4'>
+                                role='tabpanel'
+                                id={ `dashboard-panel-${ item.key }` }
+                                aria-hidden={ index !== active }
+                                aria-labelledby={ `dashboard-tab-${ item.key }` }
+                                className='flex size-full flex-col overflow-y-auto p-4 pb-[calc(7rem+env(safe-area-inset-bottom))]'>
 
                                 {
-                                    renderBody(item.key)
+                                    item.key === 'Wallet' &&
+                                    (
+                                        <DashboardWallet
+                                            address={ address }
+                                            name={ name }
+                                            network={ network }
+                                            nativeFormatted={ native.formatted }
+                                            nativeLoading={ native.loading }
+                                            tokens={ tokens.tokens }
+                                            tokensLoading={ tokens.loading }
+                                            onSend={ () => { setModal('send'); } }
+                                            onReceive={ () => { setModal('receive'); } }
+                                            onNetwork={ () => { setModal('network'); } } />
+                                    )
+                                }
+
+                                {
+                                    item.key === 'Browser' &&
+                                    (
+                                        <DashboardBrowser
+                                            address={ address }
+                                            network={ network }
+                                            enabled={ index === active && modal === 'none' } />
+                                    )
+                                }
+
+                                {
+                                    item.key === 'Settings' &&
+                                    (
+                                        <DashboardSettings
+                                            name={ name }
+                                            onRename={ onRename }
+                                            onLanguage={ () => { setModal('language'); } }
+                                            onLock={ () => { openPage(UnlockPage); } }
+                                            onLogout={ () => { setModal('logout'); } } />
+                                    )
                                 }
 
                             </div>
@@ -129,7 +225,9 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
 
             </Swiper>
 
-            <div className='glass-panel absolute inset-x-0 bottom-4 z-20 mx-auto flex w-fit gap-1 rounded-full p-1'>
+            <div
+                role='tablist'
+                className='glass-panel absolute inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-auto flex w-fit gap-1 rounded-full p-1'>
 
                 {
                     navMap.map((item, index) =>
@@ -139,7 +237,11 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                         return (
                             <button
                                 type='button'
+                                role='tab'
                                 key={ item.key }
+                                id={ `dashboard-tab-${ item.key }` }
+                                aria-selected={ isActive }
+                                aria-controls={ `dashboard-panel-${ item.key }` }
                                 onClick={ () => { swiperRef.current?.slideTo(index); } }
                                 className={ `group relative flex h-12 w-20 cursor-pointer items-center justify-center rounded-full duration-300 ${ isActive ? '' : 'hover:bg-btn-muted-hover' }` }>
 

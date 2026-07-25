@@ -2,7 +2,7 @@ import { load } from '@tauri-apps/plugin-store';
 
 interface EncryptedPayload { salt: string; iv: string; cipher: string }
 
-type StorageKey = 'App.Language' | 'App.Theme' | 'Wallet.Mnemonic' | 'Wallet.Password';
+type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name';
 
 const storage = await load('application.bin');
 
@@ -38,6 +38,18 @@ export const setValue = async(key: StorageKey, value: string) =>
  * @returns {Promise<string | undefined>} Stored string or undefined if not set
  */
 export const getValue = async(key: StorageKey) => storage.get<string>(key);
+
+/**
+ * removeValue - Deletes a value from persistent storage.
+ * @param {StorageKey} key - The storage key name
+ * @returns {Promise<void>} Resolves after the key is removed
+ */
+export const removeValue = async(key: StorageKey) =>
+{
+    await storage.delete(key);
+
+    await storage.save();
+};
 
 /**
  * setValueEncrypted - Encrypts a value with a fresh salt/IV and a passphrase-derived AES-GCM key, then stores it.
