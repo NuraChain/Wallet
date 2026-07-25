@@ -68,6 +68,11 @@
     --base-2: oklch(100% 0 0 / 0.6);
     --base-3: oklch(100% 0 0 / 0.4);
 
+    --titlebar-bg: oklch(100% 0 0 / 0.2);
+
+    --scrollbar-thumb: oklch(45% 0.02 260 / 0.3);
+    --scrollbar-thumb-hover: oklch(45% 0.02 260 / 0.5);
+
     --glass-border: oklch(100% 0 0 / 0.6);
     --glass-highlight: oklch(100% 0 0 / 0.5);
     --glass-shadow: oklch(30% 0.03 260 / 0.12);
@@ -117,6 +122,11 @@
     --base-1: oklch(25% 0.02 260 / 0.25);
     --base-2: oklch(28% 0.02 260 / 0.55);
     --base-3: oklch(30% 0.02 260 / 0.4);
+
+    --titlebar-bg: oklch(30% 0.02 260 / 0.2);
+
+    --scrollbar-thumb: oklch(100% 0 0 / 0.22);
+    --scrollbar-thumb-hover: oklch(100% 0 0 / 0.4);
 
     --glass-border: oklch(100% 0 0 / 0.14);
     --glass-highlight: oklch(100% 0 0 / 0.12);
@@ -170,6 +180,38 @@ html:lang(fa) body {
     font-family: "Vazirmatn", sans-serif;
 }
 
+/*
+ * Replace the platform scrollbar with a thin Android-style one: no track, no arrow buttons, just a rounded translucent thumb.
+ *
+ * The thumb is inset with a transparent border and `background-clip: padding-box` so it reads as a floating pill instead of a full-height bar.
+ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+::-webkit-scrollbar-button {
+    display: none;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    background-color: var(--scrollbar-thumb);
+    transition: background-color 300ms;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+}
+
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
     display: none;
@@ -202,6 +244,15 @@ input[type="password"]::-webkit-textfield-decoration-container {
     backdrop-filter: blur(24px) saturate(180%);
     box-shadow: 0 16px 48px var(--glass-shadow);
     transition: background-color 300ms, border-color 300ms;
+}
+
+/*
+ * The Windows title bar sits on top of the page content, so it is kept mostly transparent (20% opacity) and relies on the blur to stay readable.
+ */
+.glass-titlebar {
+    background: var(--titlebar-bg);
+    backdrop-filter: blur(24px) saturate(180%);
+    transition: background-color 300ms;
 }
 
 .glass-input {

@@ -18,7 +18,7 @@ import { openPage } from './utility/context';
 import { useIsWindows } from './hook/platform';
 import { T, initLanguage } from './utility/language';
 
-import './style.css';
+import './assets/style.css';
 
 /**
  * Root application.

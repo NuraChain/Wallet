@@ -39,6 +39,12 @@
                         "core:window:allow-hide",
                         "core:window:allow-show",
 
+                        "core:webview:allow-create-webview",
+                        "core:webview:allow-webview-close",
+                        "core:webview:allow-set-webview-position",
+                        "core:webview:allow-set-webview-size",
+                        "core:webview:allow-get-all-webviews",
+
                         "core:event:allow-listen",
                         "core:event:allow-unlisten",
 
@@ -46,6 +52,7 @@
 
                         "core:tray:allow-new",
 
+                        "store:allow-delete",
                         "store:allow-load",
                         "store:allow-save",
                         "store:allow-get",

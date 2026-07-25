@@ -78,7 +78,7 @@
         "Nav": {
             "Wallet": "Wallet",
             "Browser": "Browser",
-            "Settings": "Settings"
+            "Apps": "Apps"
         },
         "Empty": "Nothing to show yet.",
         "Account": "Account",
@@ -145,7 +145,12 @@
             "Loading": "Loading…",
             "Hint": "This build cannot embed a real browser, so websites that refuse framing will stay blank."
         },
+        "Apps": {
+            "Title": "Apps",
+            "Soon": "The dApp catalogue is not ready yet. It will land here in a future update."
+        },
         "Settings": {
+            "Title": "Settings",
             "WalletName": "Wallet name",
             "Save": "Save",
             "Theme": "Theme",

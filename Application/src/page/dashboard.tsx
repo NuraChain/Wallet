@@ -4,12 +4,13 @@ import type { Swiper as SwiperType } from 'swiper';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { HiOutlineCog6Tooth, HiOutlineGlobeAlt, HiOutlineWallet } from 'react-icons/hi2';
+import { HiOutlineGlobeAlt, HiOutlineSquares2X2, HiOutlineWallet } from 'react-icons/hi2';
 
 import UnlockPage from './unlock';
 
 import WalletManager from '../core/wallet';
 
+import DashboardApps from '../components/dashboard.apps';
 import DashboardSend from '../components/dashboard.send';
 import DashboardWallet from '../components/dashboard.wallet';
 import IntroLanguage from '../components/intro.language';
@@ -27,13 +28,13 @@ import { getDirection, getLanguage, T } from '../utility/language';
 
 import 'swiper/css';
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout';
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings';
 
 const navMap: { key: string; icon: IconType }[] =
 [
     { key: 'Wallet', icon: HiOutlineWallet },
     { key: 'Browser', icon: HiOutlineGlobeAlt },
-    { key: 'Settings', icon: HiOutlineCog6Tooth }
+    { key: 'Apps', icon: HiOutlineSquares2X2 }
 ];
 
 /**
@@ -142,7 +143,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <IntroLanguage
                             key='language'
-                            onClose={ () => { setModal('none'); } } />
+                            onClose={ () => { setModal('settings'); } } />
                     )
                 }
 
@@ -151,6 +152,20 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <DashboardLogout
                             key='logout'
+                            onClose={ () => { setModal('settings'); } } />
+                    )
+                }
+
+                {
+                    modal === 'settings' &&
+                    (
+                        <DashboardSettings
+                            key='settings'
+                            name={ name }
+                            onRename={ onRename }
+                            onLanguage={ () => { setModal('language'); } }
+                            onLock={ () => { openPage(UnlockPage); } }
+                            onLogout={ () => { setModal('logout'); } }
                             onClose={ () => { setModal('none'); } } />
                     )
                 }
@@ -191,7 +206,8 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                             tokensLoading={ tokens.loading }
                                             onSend={ () => { setModal('send'); } }
                                             onReceive={ () => { setModal('receive'); } }
-                                            onNetwork={ () => { setModal('network'); } } />
+                                            onNetwork={ () => { setModal('network'); } }
+                                            onSettings={ () => { setModal('settings'); } } />
                                     )
                                 }
 
@@ -206,15 +222,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                 }
 
                                 {
-                                    item.key === 'Settings' &&
-                                    (
-                                        <DashboardSettings
-                                            name={ name }
-                                            onRename={ onRename }
-                                            onLanguage={ () => { setModal('language'); } }
-                                            onLock={ () => { openPage(UnlockPage); } }
-                                            onLogout={ () => { setModal('logout'); } } />
-                                    )
+                                    item.key === 'Apps' && <DashboardApps />
                                 }
 
                             </div>

@@ -3,7 +3,7 @@ import type { TokenBalance } from '../core/token';
 
 import { useState } from 'react';
 import { IoChevronDown } from 'react-icons/io5';
-import { HiOutlineSquare2Stack } from 'react-icons/hi2';
+import { HiOutlineCog6Tooth, HiOutlineSquare2Stack } from 'react-icons/hi2';
 import { FiArrowDownLeft, FiArrowUpRight } from 'react-icons/fi';
 
 import DashboardActivity from './dashboard.activity';
@@ -26,9 +26,10 @@ import { shortAddress, trimAmount } from '../utility/format';
  * @param {() => void} props.onSend Opens the send modal.
  * @param {() => void} props.onReceive Opens the receive modal.
  * @param {() => void} props.onNetwork Opens the network modal.
+ * @param {() => void} props.onSettings Opens the settings modal.
  * @returns {JSX.Element} The wallet tab.
  */
-export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, tokensLoading, onSend, onReceive, onNetwork }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; tokensLoading: boolean; onSend: () => void; onReceive: () => void; onNetwork: () => void })
+export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, tokensLoading, onSend, onReceive, onNetwork, onSettings }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; tokensLoading: boolean; onSend: () => void; onReceive: () => void; onNetwork: () => void; onSettings: () => void })
 {
     const [ notice, setNotice ] = useState('');
 
@@ -57,22 +58,36 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                 </div>
 
-                <button
-                    type='button'
-                    onClick={ onNetwork }
-                    className='btn-muted flex h-9 items-center gap-2 rounded-full px-3 text-tiny'>
+                <div className='flex items-center gap-2'>
 
-                    <div className='flex size-5 items-center justify-center rounded-full bg-btn-primary text-txt-reverse'>
+                    <button
+                        type='button'
+                        onClick={ onNetwork }
+                        className='btn-muted flex h-9 items-center gap-2 rounded-full px-3 text-tiny'>
 
-                        { network.symbol.slice(0, 1) }
+                        <div className='flex size-5 items-center justify-center rounded-full bg-btn-primary text-txt-reverse'>
 
-                    </div>
+                            { network.symbol.slice(0, 1) }
 
-                    { network.name }
+                        </div>
 
-                    <IoChevronDown size={ 14 } />
+                        { network.name }
 
-                </button>
+                        <IoChevronDown size={ 14 } />
+
+                    </button>
+
+                    <button
+                        type='button'
+                        onClick={ onSettings }
+                        aria-label={ T('Dashboard.Settings.Title') }
+                        className='btn-muted flex size-9 shrink-0 items-center justify-center rounded-full text-txt-normal'>
+
+                        <HiOutlineCog6Tooth size={ 18 } />
+
+                    </button>
+
+                </div>
 
             </div>
 

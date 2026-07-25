@@ -18,8 +18,6 @@ import Logo from '../assets/image/logo.png';
  */
 export default function TitleBar()
 {
-    const [ maximized, setMaximized ] = useState(false);
-
     const onMinimize = useCallback(() =>
     {
         void getCurrentWindow().minimize();
@@ -35,54 +33,10 @@ export default function TitleBar()
         void getCurrentWindow().hide();
     }, [ ]);
 
-    useEffect(() =>
-    {
-        const appWindow = getCurrentWindow();
-
-        let mounted = true;
-        let unlisten: UnlistenFn | undefined;
-
-        /**
-         * Pull the current maximized state from the window so the toggle icon matches reality.
-         *
-         * The window can also be maximized outside of this component (snap gestures, double-click on the drag region), which is why the state is read back instead of being tracked locally.
-         */
-        const sync = async() =>
-        {
-            const state = await appWindow.isMaximized();
-
-            if (mounted)
-            {
-                setMaximized(state);
-            }
-        };
-
-        void sync();
-
-        void appWindow.onResized(() => { void sync(); }).then((handler) =>
-        {
-            if (mounted)
-            {
-                unlisten = handler;
-
-                return;
-            }
-
-            handler();
-        });
-
-        return () =>
-        {
-            mounted = false;
-
-            unlisten?.();
-        };
-    }, [ ]);
-
     return (
         <div
             data-tauri-drag-region
-            className='z-20 flex h-8 shrink-0 cursor-pointer items-center justify-between bg-base-3 backdrop-blur-xl backdrop-saturate-180'>
+            className='z-20 flex h-8 shrink-0 cursor-pointer items-center justify-between'>
 
             <div className='flex items-center gap-2 px-2'>
 
@@ -116,9 +70,7 @@ export default function TitleBar()
                     onClick={ onToggleMaximize }
                     className={ 'flex h-full w-11.5 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-btn-muted-hover active:bg-btn-muted-active' }>
 
-                    {
-                        maximized ? <VscChromeRestore size={ 14 } /> : <VscChromeMaximize size={ 14 } />
-                    }
+                    <VscChromeMaximize size={ 14 } />
 
                 </button>
 
