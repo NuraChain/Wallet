@@ -92,17 +92,11 @@ function Application()
     }, [ ]);
 
     return (
-        <div className='flex size-full flex-col'>
+        <div className='relative flex size-full'>
 
-            {
-                isWindows && <TitleBar />
-            }
+            <TitleBar />
 
-            <div className='relative min-h-0 flex-1'>
-
-                <PageLayout />
-
-            </div>
+            <PageLayout />
 
         </div>
     );

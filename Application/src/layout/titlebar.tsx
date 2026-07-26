@@ -1,8 +1,9 @@
-import type { UnlistenFn } from '@tauri-apps/api/event';
-
-import { useCallback, useEffect, useState } from 'react';
-import { getCurrentWindow } from '@tauri-apps/api/window';
-import { VscChromeClose, VscChromeMaximize, VscChromeMinimize, VscChromeRestore } from 'react-icons/vsc';
+import { useCallback } from 'react';
+import { LuTvMinimal } from "react-icons/lu";
+import { useIsWindows } from '../hook/platform';
+import { AiOutlineMobile } from "react-icons/ai";
+import { VscChromeClose, VscChromeMinimize } from 'react-icons/vsc';
+import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
 import { T } from '../utility/language';
 
@@ -18,14 +19,31 @@ import Logo from '../assets/image/logo.png';
  */
 export default function TitleBar()
 {
+    const isWindows = useIsWindows();
+
+    if (!isWindows)
+    {
+        return;
+    }
+
     const onMinimize = useCallback(() =>
     {
         void getCurrentWindow().minimize();
     }, [ ]);
 
+    const onMaximize = useCallback(() =>
+    {
+        void getCurrentWindow().maximize();
+    }, [ ]);
+
     const onToggleMaximize = useCallback(() =>
     {
         void getCurrentWindow().toggleMaximize();
+    }, [ ]);
+
+    const onMobileView = useCallback(() =>
+    {
+        void getCurrentWindow().setSize(new LogicalSize(360, 640));
     }, [ ]);
 
     const onClose = useCallback(() =>
@@ -36,7 +54,8 @@ export default function TitleBar()
     return (
         <div
             data-tauri-drag-region
-            className='z-20 flex h-8 shrink-0 cursor-pointer items-center justify-between'>
+            onDoubleClick={ onToggleMaximize }
+            className='absolute z-20 flex h-8 cursor-pointer items-center justify-between left-0 right-0'>
 
             <div className='flex items-center gap-2 px-2'>
 
@@ -59,27 +78,36 @@ export default function TitleBar()
                 <button
                     type='button'
                     onClick={ onMinimize }
-                    className={ 'flex h-full w-11.5 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-btn-muted-hover active:bg-btn-muted-active' }>
+                    className={ 'flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-btn-muted-hover active:bg-btn-muted-active' }>
 
-                    <VscChromeMinimize size={ 14 } />
+                    <VscChromeMinimize size={ 16 } />
 
                 </button>
 
                 <button
                     type='button'
-                    onClick={ onToggleMaximize }
-                    className={ 'flex h-full w-11.5 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-btn-muted-hover active:bg-btn-muted-active' }>
+                    onClick={ onMobileView }
+                    className={ 'flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-btn-muted-hover active:bg-btn-muted-active' }>
 
-                    <VscChromeMaximize size={ 14 } />
+                    <AiOutlineMobile size={ 16 } />
+
+                </button>
+
+                <button
+                    type='button'
+                    onClick={ onMaximize }
+                    className={ 'flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-btn-muted-hover active:bg-btn-muted-active' }>
+
+                    <LuTvMinimal size={ 16 } />
 
                 </button>
 
                 <button
                     type='button'
                     onClick={ onClose }
-                    className={ 'flex h-full w-11.5 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-[oklch(55%_0.21_25)] hover:text-txt-reverse active:bg-[oklch(55%_0.21_25)] active:text-txt-reverse' }>
+                    className={ 'flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-btn-muted-hover active:bg-btn-muted-active' }>
 
-                    <VscChromeClose size={ 14 } />
+                    <VscChromeClose size={ 16 } />
 
                 </button>
 

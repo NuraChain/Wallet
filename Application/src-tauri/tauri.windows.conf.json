@@ -45,9 +45,6 @@
                         "core:webview:allow-set-webview-size",
                         "core:webview:allow-get-all-webviews",
 
-                        "core:event:allow-listen",
-                        "core:event:allow-unlisten",
-
                         "core:menu:allow-new",
 
                         "core:tray:allow-new",

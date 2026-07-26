@@ -2,6 +2,7 @@ import type { Swiper as SwiperType } from 'swiper';
 
 import { LuImport } from 'react-icons/lu';
 import { FaPlusCircle } from 'react-icons/fa';
+import { useIsWindows } from '../hook/platform';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { motion, AnimatePresence } from 'motion/react';
@@ -43,6 +44,7 @@ const slideMap =
 
 export default function IntroPage()
 {
+    const isWindows = useIsWindows();
     const swiperRef = useRef<SwiperType>(undefined);
 
     const [ subPage, setSubPage ] = useState<ReactNode>();
@@ -77,7 +79,7 @@ export default function IntroPage()
 
             </AnimatePresence>
 
-            <div className='flex size-full flex-col bg-base-1 px-4'>
+            <div className={ `flex size-full flex-col bg-base-1 px-4 ${ isWindows && 'pt-10' }` }>
 
                 <div className='mt-4 flex items-center justify-between'>
 
