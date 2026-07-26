@@ -16,9 +16,7 @@ import IntroLanguage from '../components/intro.language';
 
 import { getDirection, getLanguage, T } from '../utility/language';
 import { getTheme, setTheme } from '../utility/theme';
-
-import IntroConnect from '../assets/image/intro_connect.png';
-import IntroDecentralized from '../assets/image/intro_decentralized.png';
+import { IntroArtConnect, IntroArtDecentralized, IntroArtSecure } from '../components/intro.art';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
@@ -26,17 +24,17 @@ import 'swiper/css/pagination';
 const slideMap =
 [
     {
-        image: IntroConnect,
+        art: IntroArtConnect,
         header: 'Intro.Connect.Header',
         message: 'Intro.Connect.Message'
     },
     {
-        image: IntroDecentralized,
+        art: IntroArtDecentralized,
         header: 'Intro.Decentralized.Header',
         message: 'Intro.Decentralized.Message'
     },
     {
-        image: IntroConnect,
+        art: IntroArtSecure,
         header: 'Intro.Secure.Header',
         message: 'Intro.Secure.Message'
     }
@@ -133,9 +131,7 @@ export default function IntroPage()
 
                                     <div className='flex h-full cursor-pointer flex-col items-center justify-center gap-2 px-2 pb-10'>
 
-                                        <img
-                                            src={ slide.image }
-                                            className='h-32 max-h-[40%] w-auto max-w-full object-contain sm:h-44 md:h-56' />
+                                        <slide.art className='h-32 max-h-[40%] w-auto max-w-full sm:h-44 md:h-56' />
 
                                         <h1 className='text-center text-medium font-bold text-txt-normal sm:text-large'>
 
