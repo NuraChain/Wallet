@@ -79,127 +79,131 @@ export default function IntroPage()
 
             </AnimatePresence>
 
-            <div className={ `flex size-full flex-col bg-base-1 px-4 ${ isWindows && 'pt-10' }` }>
+            <div className={ `flex size-full flex-col bg-base-1 px-4 pb-4 sm:px-6 sm:pb-6 ${ isWindows ? 'pt-10' : '' }` }>
 
-                <div className='mt-4 flex items-center justify-between'>
+                <div className='mx-auto flex size-full max-w-lg flex-col'>
 
-                    <button
-                        onClick={ () => { setSubPage(<IntroLanguage onClose={ () => { setSubPage(undefined); } } />); } }
-                        type='button'
-                        className='btn-normal flex h-10 w-fit items-center gap-2 rounded-lg p-2'>
+                    <div className='mt-3 flex shrink-0 items-center justify-between gap-2 sm:mt-4'>
 
-                        <FiGlobe size={ 16 } />
+                        <button
+                            onClick={ () => { setSubPage(<IntroLanguage onClose={ () => { setSubPage(undefined); } } />); } }
+                            type='button'
+                            className='btn-normal flex h-10 w-fit shrink items-center gap-2 rounded-lg p-2'>
 
-                        <div className='text-small'>
+                            <FiGlobe size={ 16 } className='shrink-0' />
+
+                            <div className='truncate text-small'>
+
+                                {
+                                    T('Intro.Language')
+                                }
+
+                            </div>
+
+                            <IoIosArrowDown size={ 16 } className='shrink-0' />
+
+                        </button>
+
+                        <button
+                            onClick={ toggleTheme }
+                            type='button'
+                            className='btn-normal flex size-10 shrink-0 items-center justify-center rounded-lg text-txt-normal outline-0'>
 
                             {
-                                T('Intro.Language')
+                                theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } />
                             }
 
-                        </div>
+                        </button>
 
-                        <IoIosArrowDown size={ 16 } />
+                    </div>
 
-                    </button>
-
-                    <button
-                        onClick={ toggleTheme }
-                        type='button'
-                        className='btn-normal flex size-10 items-center justify-center rounded-lg text-txt-normal outline-0'>
+                    <Swiper
+                        key={ getLanguage().code }
+                        dir={ getDirection() }
+                        modules={ [ Autoplay, Pagination ] }
+                        onSwiper={ onSwiper }
+                        loop={ true }
+                        autoplay={ { disableOnInteraction: false, pauseOnMouseEnter: true, delay: 8000 } }
+                        pagination={ { clickable: true } }
+                        className='mt-4 min-h-0 w-full flex-1 sm:mt-8'>
 
                         {
-                            theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } />
+                            slideMap.map((slide) => (
+                                <SwiperSlide key={ slide.header }>
+
+                                    <div className='flex h-full cursor-pointer flex-col items-center justify-center gap-2 px-2 pb-10'>
+
+                                        <img
+                                            src={ slide.image }
+                                            className='h-32 max-h-[40%] w-auto max-w-full object-contain sm:h-44 md:h-56' />
+
+                                        <h1 className='text-center text-medium font-bold text-txt-normal sm:text-large'>
+
+                                            { T(slide.header) }
+
+                                        </h1>
+
+                                        <p className='max-w-sm text-center text-tiny text-txt-normal/75 sm:text-small'>
+
+                                            { T(slide.message) }
+
+                                        </p>
+
+                                    </div>
+
+                                </SwiperSlide>
+                            ))
                         }
 
-                    </button>
+                    </Swiper>
 
-                </div>
+                    <div className='flex shrink-0 flex-col gap-2'>
 
-                <Swiper
-                    key={ getLanguage().code }
-                    dir={ getDirection() }
-                    modules={ [ Autoplay, Pagination ] }
-                    onSwiper={ onSwiper }
-                    loop={ true }
-                    autoplay={ { disableOnInteraction: false, pauseOnMouseEnter: true, delay: 8000 } }
-                    pagination={ { clickable: true } }
-                    className='mt-8 size-full'>
+                        <button
+                            onClick={ () => { setSubPage(<IntroWallet onClose={ () => { setSubPage(undefined); } } />); } }
+                            type='button'
+                            className='btn-primary flex h-12 items-center gap-2 rounded-lg p-2 outline-0'>
 
-                    {
-                        slideMap.map((slide) => (
-                            <SwiperSlide key={ slide.header }>
+                            <FaPlusCircle size={ 32 } className='shrink-0 p-1.5' />
 
-                                <div className='flex h-full cursor-pointer flex-col items-center'>
+                            <div className='flex-1 truncate text-start text-small sm:text-medium'>
 
-                                    <img
-                                        src={ slide.image }
-                                        className='size-60' />
+                                {
+                                    T('Intro.Create')
+                                }
 
-                                    <h1 className='text-large font-bold text-txt-normal'>
+                            </div>
 
-                                        { T(slide.header) }
+                            <IoIosArrowForward size={ 16 } className={ `shrink-0 ${ getDirection() === 'rtl' ? 'rotate-180' : '' }` } />
 
-                                    </h1>
+                        </button>
 
-                                    <p className='text-center text-small text-txt-normal/75'>
+                        <button
+                            onClick={ () => { setSubPage(<IntroImport onClose={ () => { setSubPage(undefined); } } />); } }
+                            type='button'
+                            className='btn-normal flex h-12 items-center gap-2 rounded-lg p-2 outline-0'>
 
-                                        { T(slide.message) }
+                            <LuImport size={ 32 } className='shrink-0 p-1.5' />
 
-                                    </p>
+                            <div className='flex-1 truncate text-start text-small sm:text-medium'>
 
-                                </div>
+                                {
+                                    T('Intro.Import')
+                                }
 
-                            </SwiperSlide>
-                        ))
-                    }
+                            </div>
 
-                </Swiper>
+                            <IoIosArrowForward size={ 16 } className={ `shrink-0 ${ getDirection() === 'rtl' ? 'rotate-180' : '' }` } />
 
-                <div className='flex flex-col gap-2'>
+                        </button>
 
-                    <button
-                        onClick={ () => { setSubPage(<IntroWallet onClose={ () => { setSubPage(undefined); } } />); } }
-                        type='button'
-                        className='btn-primary flex h-12 items-center gap-2 rounded-lg p-2 outline-0'>
-
-                        <FaPlusCircle size={ 32 } className='p-1.5' />
-
-                        <div className='flex-1 text-start'>
+                        <div className='mt-2 text-center text-tiny text-txt-muted'>
 
                             {
-                                T('Intro.Create')
+                                T('Intro.Version')
                             }
 
                         </div>
-
-                        <IoIosArrowForward size={ 16 } className={ getDirection() === 'rtl' ? 'rotate-180' : '' } />
-
-                    </button>
-
-                    <button
-                        onClick={ () => { setSubPage(<IntroImport onClose={ () => { setSubPage(undefined); } } />); } }
-                        type='button'
-                        className='btn-normal flex h-12 items-center gap-2 rounded-lg p-2 outline-0'>
-
-                        <LuImport size={ 32 } className='p-1.5' />
-
-                        <div className='flex-1 text-start'>
-
-                            {
-                                T('Intro.Import')
-                            }
-
-                        </div>
-
-                        <IoIosArrowForward size={ 16 } className={ getDirection() === 'rtl' ? 'rotate-180' : '' } />
-
-                    </button>
-
-                    <div className='mt-2 text-center text-tiny text-txt-muted'>
-
-                        {
-                            T('Intro.Version')
-                        }
 
                     </div>
 

@@ -89,12 +89,12 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
                 animate={ { y: '0%' } }
                 exit={ { y: '-100%' } }
                 transition={ { type: 'tween' } }
-                className='glass-panel absolute inset-0 z-20 mx-2 flex h-fit flex-col gap-2 rounded-b-3xl px-4'>
+                className='glass-panel absolute inset-x-0 top-0 z-20 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-3xl px-4 pb-4 sm:mx-auto sm:px-6 sm:pb-6'>
 
                 <button
                     type='button'
                     onClick={ onClose }
-                    className='btn-muted mt-4 flex size-10 items-center justify-center rounded-lg'>
+                    className='btn-muted mt-4 flex size-10 shrink-0 items-center justify-center rounded-lg'>
 
                     <IoClose size={ 24 } />
 
@@ -102,7 +102,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
                 <div className='flex flex-col'>
 
-                    <div className='text-center text-large font-bold text-txt-normal'>
+                    <div className='text-center text-medium font-bold text-txt-normal sm:text-large'>
 
                         {
                             T('Intro.CreateWallet.Title')
@@ -110,7 +110,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
                     </div>
 
-                    <div className='text-center text-small text-txt-muted'>
+                    <div className='text-center text-tiny text-txt-muted sm:text-small'>
 
                         {
                             T('Intro.CreateWallet.Subtitle')
@@ -203,12 +203,12 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
                 </label>
 
-                <label className='flex h-10 cursor-pointer items-center gap-2'>
+                <label className='flex min-h-10 cursor-pointer items-center gap-2 py-1'>
 
                     <button
                         type='button'
                         onClick={ () => { setAgree(!agree); } }
-                        className='glass-input flex size-5 cursor-pointer items-center justify-center rounded-sm'>
+                        className='glass-input flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm'>
 
                         {
                             agree && <FiCheck size={ 16 } className='text-txt-muted' />
@@ -216,7 +216,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
                     </button>
 
-                    <div className='text-tiny text-txt-muted'>
+                    <div className='text-tiny leading-snug text-txt-muted'>
 
                         {
                             T('Intro.CreateWallet.Agreement')
@@ -230,7 +230,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
                     type='button'
                     disabled={ !agree }
                     onClick={ () => { void onCreateWallet(); } }
-                    className={ `btn-primary mx-auto mb-4 h-12 w-fit rounded-lg px-4 py-2 ${ !agree ? 'cursor-not-allowed! opacity-50' : '' }` }>
+                    className={ `btn-primary mx-auto flex h-12 w-full shrink-0 items-center justify-center rounded-lg px-4 py-2 sm:w-fit sm:px-8 ${ !agree ? 'cursor-not-allowed! opacity-50' : '' }` }>
 
                     {
                         !loading ? T('Intro.CreateWallet.Submit') : <AiOutlineLoading3Quarters size={ 24 } className='animate-spin' />
