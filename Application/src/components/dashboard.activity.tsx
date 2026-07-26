@@ -9,7 +9,7 @@ import { shortAddress, trimAmount } from '../utility/format';
 /**
  * DashboardActivity - Transaction history section of the wallet tab.
  *
- * Sits directly under the token list so holdings and the movements that produced them read as one column. Renders live transactions when an indexer is wired into `useHistory`; until then it shows a clear empty state noting that history needs an API key rather than inventing data.
+ * Sits directly under the token list so holdings and the movements that produced them read as one column. Renders live transactions when an indexer is wired into `useHistory`; until then it shows a plain empty state rather than inventing data.
  * @param {object} props Component props.
  * @param {string} props.address The account address.
  * @param {Network} props.network The active network.
@@ -78,12 +78,6 @@ export default function DashboardActivity({ address, network }: { address: strin
                         <div className='text-small text-txt-muted'>
 
                             { T('Dashboard.Activity.Empty') }
-
-                        </div>
-
-                        <div className='max-w-60 text-tiny text-txt-muted/70'>
-
-                            { T('Dashboard.Activity.NeedsApi') }
 
                         </div>
 

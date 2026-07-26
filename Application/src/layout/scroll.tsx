@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
  *
  * The native scrollbar is hidden (`.scroll-hidden`) and replaced by an absolutely positioned thumb, so the bar floats over the content instead of reserving a column of layout width — the content keeps the same width whether it scrolls or not.
  *
- * The thumb rests at 30% opacity and only reaches full opacity while hovered or dragged, so it stays out of the way of the glass surfaces underneath.
+ * The thumb rests at 10% opacity and only reaches full opacity while hovered or dragged, so it stays out of the way of the glass surfaces underneath.
  * @param {object} props Component props.
  * @param {string} [props.className] Extra classes for the outer (positioned) wrapper.
  * @param {ReactNode} props.children The scrollable content.
@@ -147,7 +147,7 @@ export default function ScrollArea({ className = '', children, onScrollChange }:
                         onPointerMove={ onPointerMove }
                         onPointerCancel={ onPointerUp }
                         style={ { height: `${ thumb.size }px`, transform: `translateY(${ thumb.top }px)` } }
-                        className={ `absolute inset-e-1 top-0 z-30 w-1.5 cursor-pointer rounded-full bg-txt-muted transition-opacity duration-200 hover:opacity-100 ${ dragging ? 'opacity-100' : 'opacity-30' }` } />
+                        className={ `absolute inset-e-1 top-0 z-30 w-1.5 cursor-pointer rounded-full bg-txt-muted transition-opacity duration-200 hover:opacity-100 ${ dragging ? 'opacity-100' : 'opacity-10' }` } />
                 )
             }
 

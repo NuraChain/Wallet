@@ -18,6 +18,13 @@ export const shortAddress = (address: string, lead = 6, tail = 4) =>
 };
 
 /**
+ * Format a USD amount for display, always in `en-US` so the currency symbol and grouping stay stable across UI languages.
+ * @param {number} value Amount in USD.
+ * @returns {string} Formatted amount, e.g. `$2,000.00`.
+ */
+export const formatUsd = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
+
+/**
  * Trim a decimal string to at most `max` fraction digits without rounding, dropping trailing zeros.
  *
  * Used for display only — never for amounts that get parsed back into wei.

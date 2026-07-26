@@ -8,23 +8,20 @@ import { getTheme, setTheme } from '../utility/theme';
 import { getDirection, T } from '../utility/language';
 
 /**
- * DashboardSettings - Account and app settings: name, language, theme, lock, and logout.
+ * DashboardSettings - App settings: language, theme, lock, and logout.
  *
  * Reached from the gear button on the wallet tab rather than the navigation bar, so the bar stays reserved for the three primary surfaces.
  *
- * Network selection deliberately lives on the wallet tab only — it belongs next to the balance it changes.
+ * Account labels are not edited here — they belong to the account switcher, next to the account they rename. Network selection likewise lives on the wallet tab, next to the balance it changes.
  * @param {object} props Component props.
- * @param {string} props.name The current account label.
- * @param {(name: string) => void} props.onRename Persists a new account label.
  * @param {() => void} props.onLanguage Opens the language modal.
  * @param {() => void} props.onLock Locks the wallet and returns to the unlock screen.
  * @param {() => void} props.onLogout Opens the logout confirmation modal.
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The settings modal.
  */
-export default function DashboardSettings({ name, onRename, onLanguage, onLock, onLogout, onClose }: { name: string; onRename: (name: string) => void; onLanguage: () => void; onLock: () => void; onLogout: () => void; onClose: () => void })
+export default function DashboardSettings({ onLanguage, onLock, onLogout, onClose }: { onLanguage: () => void; onLock: () => void; onLogout: () => void; onClose: () => void })
 {
-    const [ draft, setDraft ] = useState(name);
     const [ theme, setThemeState ] = useState(getTheme());
 
     const onToggleTheme = () =>
@@ -34,16 +31,6 @@ export default function DashboardSettings({ name, onRename, onLanguage, onLock, 
         setThemeState(next);
 
         void setTheme(next);
-    };
-
-    const onSaveName = () =>
-    {
-        const trimmed = draft.trim();
-
-        if (trimmed.length > 0)
-        {
-            onRename(trimmed);
-        }
     };
 
     return (
@@ -79,36 +66,6 @@ export default function DashboardSettings({ name, onRename, onLanguage, onLock, 
                             <IoClose size={ 20 } />
 
                         </button>
-
-                    </div>
-
-                    <div className='flex flex-col gap-2'>
-
-                        <div className='text-tiny text-txt-muted'>
-
-                            { T('Dashboard.Settings.WalletName') }
-
-                        </div>
-
-                        <div className='flex gap-2'>
-
-                            <input
-                                value={ draft }
-                                placeholder={ T('Dashboard.Settings.WalletName') }
-                                onChange={ (event) => { setDraft(event.target.value); } }
-                                onBlur={ onSaveName }
-                                className='glass-input h-11 flex-1 rounded-xl px-3 text-small' />
-
-                            <button
-                                type='button'
-                                onClick={ onSaveName }
-                                className='btn-primary h-11 rounded-xl px-4 text-small'>
-
-                                { T('Dashboard.Settings.Save') }
-
-                            </button>
-
-                        </div>
 
                     </div>
 

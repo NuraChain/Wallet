@@ -13,6 +13,7 @@ import WalletManager from '../core/wallet';
 import ScrollArea from '../layout/scroll';
 import DashboardApps from '../components/dashboard.apps';
 import DashboardSend from '../components/dashboard.send';
+import DashboardTokens from '../components/dashboard.tokens';
 import DashboardWallet from '../components/dashboard.wallet';
 import IntroLanguage from '../components/intro.language';
 import DashboardLogout from '../components/dashboard.logout';
@@ -24,14 +25,16 @@ import DashboardSettings from '../components/dashboard.settings';
 
 import { getNetwork } from '../core/network';
 import { openPage } from '../utility/context';
+import { usePrices } from '../hook/price';
 import { useIsWindows } from '../hook/platform';
 import { useBalance, useTokens } from '../hook/balance';
 import { getDirection, getLanguage, T } from '../utility/language';
+import { loadHiddenTokens, saveHiddenTokens, type HiddenTokens } from '../core/token';
 import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
 
 import 'swiper/css';
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings' | 'accounts';
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings' | 'accounts' | 'tokens';
 
 const navMap: { key: string; icon: IconType }[] =
 [
@@ -58,6 +61,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
     const [ navHidden, setNavHidden ] = useState(false);
     const [ modal, setModal ] = useState<Modal>('none');
     const [ network, setNetworkState ] = useState(getNetwork());
+    const [ hidden, setHidden ] = useState<HiddenTokens>({});
     const [ accounts, setAccounts ] = useState<Account[]>([ { index: 0, name: defaultAccountName(0) } ]);
 
     const address = useMemo(() => new WalletManager(mnemonic, account).retrieve().Public, [ mnemonic, account ]);
@@ -66,6 +70,10 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
 
     const native = useBalance(address, network);
     const tokens = useTokens(address, network);
+    const prices = usePrices(network, native.formatted, tokens.tokens);
+
+    const hiddenHere = hidden[network.chainId] ?? [];
+    const visibleTokens = tokens.tokens.filter((item) => !hiddenHere.includes(item.token.address));
 
     useEffect(() =>
     {
@@ -75,10 +83,21 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
 
             setAccounts(stored.accounts);
             setAccount(stored.active);
+
+            setHidden(await loadHiddenTokens());
         };
 
         void run();
     }, []);
+
+    const onToggleToken = (contract: string) =>
+    {
+        const next = { ...hidden, [network.chainId]: hiddenHere.includes(contract) ? hiddenHere.filter((item) => item !== contract) : [ ...hiddenHere, contract ] };
+
+        setHidden(next);
+
+        void saveHiddenTokens(next);
+    };
 
     const onSelectAccount = (index: number) =>
     {
@@ -105,11 +124,6 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
         setAccounts(next);
 
         void saveAccounts(next);
-    };
-
-    const onRename = (value: string) =>
-    {
-        onRenameAccount(account, value);
     };
 
     /**
@@ -205,6 +219,19 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                 }
 
                 {
+                    modal === 'tokens' &&
+                    (
+                        <DashboardTokens
+                            key='tokens'
+                            network={ network }
+                            tokens={ tokens.tokens }
+                            hidden={ hiddenHere }
+                            onToggle={ onToggleToken }
+                            onClose={ () => { setModal('none'); } } />
+                    )
+                }
+
+                {
                     modal === 'network' &&
                     (
                         <DashboardNetwork
@@ -238,8 +265,6 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <DashboardSettings
                             key='settings'
-                            name={ name }
-                            onRename={ onRename }
                             onLanguage={ () => { setModal('language'); } }
                             onLock={ () => { openPage(UnlockPage); } }
                             onLogout={ () => { setModal('logout'); } }
@@ -272,7 +297,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                     id={ `dashboard-panel-${ item.key }` }
                                     aria-hidden={ index !== active }
                                     aria-labelledby={ `dashboard-tab-${ item.key }` }
-                                    className={ `flex min-h-full flex-col px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] ${ isWindows ? 'pt-8' : 'pt-4' }` }>
+                                    className={ `flex min-h-full flex-col px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] ${ isWindows ? 'pt-8' : 'pt-4' }` }>
 
                                     {
                                         item.key === 'Wallet' &&
@@ -283,12 +308,15 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                                 network={ network }
                                                 nativeFormatted={ native.formatted }
                                                 nativeLoading={ native.loading }
-                                                tokens={ tokens.tokens }
+                                                tokens={ visibleTokens }
                                                 tokensLoading={ tokens.loading }
+                                                total={ prices.total }
+                                                totalLoading={ prices.loading }
                                                 onSend={ () => { setModal('send'); } }
                                                 onReceive={ () => { setModal('receive'); } }
                                                 onNetwork={ () => { setModal('network'); } }
                                                 onAccounts={ () => { setModal('accounts'); } }
+                                                onTokens={ () => { setModal('tokens'); } }
                                                 onSettings={ () => { setModal('settings'); } } />
                                         )
                                     }

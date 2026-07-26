@@ -96,6 +96,9 @@
         "Lock": "Lock",
         "Tokens": {
             "Title": "Tokens",
+            "Manage": "Manage",
+            "Show": "Show token",
+            "Hide": "Hide token",
             "Empty": "No tokens on this network"
         },
         "Network": {
@@ -136,7 +139,6 @@
         "Activity": {
             "Title": "Transaction History",
             "Empty": "No transactions yet",
-            "NeedsApi": "Live history needs an explorer API key. Connect one to see past transactions.",
             "Received": "Received",
             "Sent": "Sent"
         },
@@ -158,8 +160,6 @@
         },
         "Settings": {
             "Title": "Settings",
-            "WalletName": "Wallet name",
-            "Save": "Save",
             "Theme": "Theme",
             "ThemeLight": "Light",
             "ThemeDark": "Dark",
