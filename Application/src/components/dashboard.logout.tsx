@@ -63,6 +63,8 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
             await removeValue('Wallet.Mnemonic');
             await removeValue('Wallet.Password');
             await removeValue('Wallet.Name');
+            await removeValue('Wallet.Accounts');
+            await removeValue('Wallet.Active');
 
             openPage(IntroPage);
         }

@@ -26,10 +26,11 @@ import { shortAddress, trimAmount } from '../utility/format';
  * @param {() => void} props.onSend Opens the send modal.
  * @param {() => void} props.onReceive Opens the receive modal.
  * @param {() => void} props.onNetwork Opens the network modal.
+ * @param {() => void} props.onAccounts Opens the account switcher.
  * @param {() => void} props.onSettings Opens the settings modal.
  * @returns {JSX.Element} The wallet tab.
  */
-export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, tokensLoading, onSend, onReceive, onNetwork, onSettings }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; tokensLoading: boolean; onSend: () => void; onReceive: () => void; onNetwork: () => void; onSettings: () => void })
+export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, tokensLoading, onSend, onReceive, onNetwork, onAccounts, onSettings }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; tokensLoading: boolean; onSend: () => void; onReceive: () => void; onNetwork: () => void; onAccounts: () => void; onSettings: () => void })
 {
     const [ notice, setNotice ] = useState('');
 
@@ -52,11 +53,21 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
             <div className='flex items-center justify-between'>
 
-                <div className='text-medium font-semibold text-txt-normal'>
+                <button
+                    type='button'
+                    onClick={ onAccounts }
+                    aria-label={ T('Dashboard.Accounts.Title') }
+                    className='flex min-w-0 cursor-pointer items-center gap-1 text-medium font-semibold text-txt-normal'>
 
-                    { name }
+                    <span className='truncate'>
 
-                </div>
+                        { name }
+
+                    </span>
+
+                    <IoChevronDown size={ 16 } className='shrink-0 text-txt-muted' />
+
+                </button>
 
                 <div className='flex items-center gap-2'>
 

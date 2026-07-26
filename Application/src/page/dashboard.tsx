@@ -10,11 +10,13 @@ import UnlockPage from './unlock';
 
 import WalletManager from '../core/wallet';
 
+import ScrollArea from '../layout/scroll';
 import DashboardApps from '../components/dashboard.apps';
 import DashboardSend from '../components/dashboard.send';
 import DashboardWallet from '../components/dashboard.wallet';
 import IntroLanguage from '../components/intro.language';
 import DashboardLogout from '../components/dashboard.logout';
+import DashboardAccount from '../components/dashboard.account';
 import DashboardNetwork from '../components/dashboard.network';
 import DashboardReceive from '../components/dashboard.receive';
 import DashboardBrowser from '../components/dashboard.browser';
@@ -22,13 +24,14 @@ import DashboardSettings from '../components/dashboard.settings';
 
 import { getNetwork } from '../core/network';
 import { openPage } from '../utility/context';
-import { getValue, setValue } from '../utility/storage';
+import { useIsWindows } from '../hook/platform';
 import { useBalance, useTokens } from '../hook/balance';
 import { getDirection, getLanguage, T } from '../utility/language';
+import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
 
 import 'swiper/css';
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings';
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings' | 'accounts';
 
 const navMap: { key: string; icon: IconType }[] =
 [
@@ -40,21 +43,26 @@ const navMap: { key: string; icon: IconType }[] =
 /**
  * DashboardPage - The unlocked wallet home.
  *
- * Owns the account address (derived once from the mnemonic), the account label, the active network, and the live balances, then feeds them to the three tabs and the transfer modals so every surface reads the same state.
+ * Owns the active account (a derivation index on the one mnemonic), the account list, the active network, and the live balances, then feeds them to the three tabs and the transfer modals so every surface reads the same state.
  * @param {object} props Component props.
  * @param {string} props.mnemonic The unlocked mnemonic.
  * @returns {JSX.Element} The dashboard page.
  */
 export default function DashboardPage({ mnemonic }: { mnemonic: string })
 {
+    const isWindows = useIsWindows();
     const swiperRef = useRef<SwiperType>(undefined);
 
-    const address = useMemo(() => new WalletManager(mnemonic, 0).retrieve().Public, [ mnemonic ]);
-
     const [ active, setActive ] = useState(0);
+    const [ account, setAccount ] = useState(0);
+    const [ navHidden, setNavHidden ] = useState(false);
     const [ modal, setModal ] = useState<Modal>('none');
     const [ network, setNetworkState ] = useState(getNetwork());
-    const [ name, setName ] = useState(`${ T('Dashboard.Account') } 1`);
+    const [ accounts, setAccounts ] = useState<Account[]>([ { index: 0, name: defaultAccountName(0) } ]);
+
+    const address = useMemo(() => new WalletManager(mnemonic, account).retrieve().Public, [ mnemonic, account ]);
+
+    const name = accounts.find((item) => item.index === account)?.name ?? defaultAccountName(account);
 
     const native = useBalance(address, network);
     const tokens = useTokens(address, network);
@@ -63,22 +71,76 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
     {
         const run = async() =>
         {
-            const stored = await getValue('Wallet.Name');
+            const stored = await loadAccounts();
 
-            if (stored !== undefined && stored.length > 0)
-            {
-                setName(stored);
-            }
+            setAccounts(stored.accounts);
+            setAccount(stored.active);
         };
 
         void run();
     }, []);
 
+    const onSelectAccount = (index: number) =>
+    {
+        if (!accounts.some((item) => item.index === index))
+        {
+            const next = [ ...accounts, { index, name: defaultAccountName(index) } ].sort((left, right) => left.index - right.index);
+
+            setAccounts(next);
+
+            void saveAccounts(next);
+        }
+
+        setAccount(index);
+
+        void saveActiveAccount(index);
+    };
+
+    const onRenameAccount = (index: number, value: string) =>
+    {
+        const next = accounts.some((item) => item.index === index) ?
+            accounts.map((item) => (item.index === index ? { ...item, name: value } : item)) :
+            [ ...accounts, { index, name: value } ].sort((left, right) => left.index - right.index);
+
+        setAccounts(next);
+
+        void saveAccounts(next);
+    };
+
     const onRename = (value: string) =>
     {
-        setName(value);
+        onRenameAccount(account, value);
+    };
 
-        void setValue('Wallet.Name', value);
+    /**
+     * onPanelScroll - Drives the navigation bar from the active panel's scroll offset.
+     *
+     * Scrolling down tucks the bar away so it stops covering the content, scrolling back up (or reaching the top) brings it in. Only the panel the user is looking at may move it.
+     * @param {number} index The panel that emitted the event.
+     * @returns {(top: number, delta: number) => void} The scroll handler for that panel.
+     */
+    const onPanelScroll = (index: number) => (top: number, delta: number) =>
+    {
+        if (index !== active)
+        {
+            return;
+        }
+
+        if (top <= 24)
+        {
+            setNavHidden(false);
+
+            return;
+        }
+
+        if (delta > 6)
+        {
+            setNavHidden(true);
+        }
+        else if (delta < -6)
+        {
+            setNavHidden(false);
+        }
     };
 
     const onNetworkChange = () =>
@@ -107,6 +169,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                         <DashboardSend
                             key='send'
                             mnemonic={ mnemonic }
+                            index={ account }
                             network={ network }
                             nativeValue={ native.value }
                             nativeFormatted={ native.formatted }
@@ -123,6 +186,20 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             key='receive'
                             address={ address }
                             network={ network }
+                            onClose={ () => { setModal('none'); } } />
+                    )
+                }
+
+                {
+                    modal === 'accounts' &&
+                    (
+                        <DashboardAccount
+                            key='accounts'
+                            mnemonic={ mnemonic }
+                            accounts={ accounts }
+                            active={ account }
+                            onSelect={ onSelectAccount }
+                            onRename={ onRenameAccount }
                             onClose={ () => { setModal('none'); } } />
                     )
                 }
@@ -179,53 +256,60 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                 simulateTouch={ false }
                 initialSlide={ active }
                 onSwiper={ (swiper) => { swiperRef.current = swiper; } }
-                onSlideChange={ (swiper) => { setActive(swiper.activeIndex); } }
+                onSlideChange={ (swiper) => { setActive(swiper.activeIndex); setNavHidden(false); } }
                 className='size-full'>
 
                 {
                     navMap.map((item, index) => (
                         <SwiperSlide key={ item.key }>
 
-                            <div
-                                role='tabpanel'
-                                id={ `dashboard-panel-${ item.key }` }
-                                aria-hidden={ index !== active }
-                                aria-labelledby={ `dashboard-tab-${ item.key }` }
-                                className='flex size-full flex-col overflow-y-auto p-4 pb-[calc(7rem+env(safe-area-inset-bottom))]'>
+                            <ScrollArea
+                                className='size-full'
+                                onScrollChange={ onPanelScroll(index) }>
 
-                                {
-                                    item.key === 'Wallet' &&
-                                    (
-                                        <DashboardWallet
-                                            address={ address }
-                                            name={ name }
-                                            network={ network }
-                                            nativeFormatted={ native.formatted }
-                                            nativeLoading={ native.loading }
-                                            tokens={ tokens.tokens }
-                                            tokensLoading={ tokens.loading }
-                                            onSend={ () => { setModal('send'); } }
-                                            onReceive={ () => { setModal('receive'); } }
-                                            onNetwork={ () => { setModal('network'); } }
-                                            onSettings={ () => { setModal('settings'); } } />
-                                    )
-                                }
+                                <div
+                                    role='tabpanel'
+                                    id={ `dashboard-panel-${ item.key }` }
+                                    aria-hidden={ index !== active }
+                                    aria-labelledby={ `dashboard-tab-${ item.key }` }
+                                    className={ `flex min-h-full flex-col px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] ${ isWindows ? 'pt-8' : 'pt-4' }` }>
 
-                                {
-                                    item.key === 'Browser' &&
-                                    (
-                                        <DashboardBrowser
-                                            address={ address }
-                                            network={ network }
-                                            enabled={ index === active && modal === 'none' } />
-                                    )
-                                }
+                                    {
+                                        item.key === 'Wallet' &&
+                                        (
+                                            <DashboardWallet
+                                                address={ address }
+                                                name={ name }
+                                                network={ network }
+                                                nativeFormatted={ native.formatted }
+                                                nativeLoading={ native.loading }
+                                                tokens={ tokens.tokens }
+                                                tokensLoading={ tokens.loading }
+                                                onSend={ () => { setModal('send'); } }
+                                                onReceive={ () => { setModal('receive'); } }
+                                                onNetwork={ () => { setModal('network'); } }
+                                                onAccounts={ () => { setModal('accounts'); } }
+                                                onSettings={ () => { setModal('settings'); } } />
+                                        )
+                                    }
 
-                                {
-                                    item.key === 'Apps' && <DashboardApps />
-                                }
+                                    {
+                                        item.key === 'Browser' &&
+                                        (
+                                            <DashboardBrowser
+                                                address={ address }
+                                                network={ network }
+                                                enabled={ index === active && modal === 'none' } />
+                                        )
+                                    }
 
-                            </div>
+                                    {
+                                        item.key === 'Apps' && <DashboardApps />
+                                    }
+
+                                </div>
+
+                            </ScrollArea>
 
                         </SwiperSlide>
                     ))
@@ -233,9 +317,11 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
 
             </Swiper>
 
-            <div
+            <motion.div
                 role='tablist'
-                className='glass-panel absolute inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-auto flex w-fit gap-1 rounded-full p-1'>
+                animate={ { y: navHidden ? '150%' : '0%', opacity: navHidden ? 0 : 1 } }
+                transition={ { type: 'tween', duration: 0.25 } }
+                className={ `glass-panel absolute inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-auto flex w-fit gap-1 rounded-full p-1 ${ navHidden ? 'pointer-events-none' : '' }` }>
 
                 {
                     navMap.map((item, index) =>
@@ -280,7 +366,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     })
                 }
 
-            </div>
+            </motion.div>
 
         </motion.div>
     );

@@ -214,6 +214,17 @@ input[type="password"]::-webkit-textfield-decoration-container {
 }
 
 /*
+ * Opt out of the native scrollbar entirely. Used by `ScrollArea`, which draws its own overlay thumb so the bar never takes layout width.
+ */
+.scroll-hidden {
+    scrollbar-width: none;
+}
+
+.scroll-hidden::-webkit-scrollbar {
+    display: none;
+}
+
+/*
  * Application specific below.
  */
 

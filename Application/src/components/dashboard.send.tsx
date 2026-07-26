@@ -31,6 +31,7 @@ interface Asset
  * The signing/broadcast step is reached only after an explicit review screen showing the recipient, amount, asset, and network. The wallet is derived from the mnemonic in-memory for the single send and never persisted.
  * @param {object} props Component props.
  * @param {string} props.mnemonic The unlocked mnemonic used to derive the signer.
+ * @param {number} props.index The active account's derivation index, so the transfer is signed by the account the user is looking at.
  * @param {Network} props.network The active network.
  * @param {bigint} props.nativeValue Native balance in wei.
  * @param {string} props.nativeFormatted Native balance as a decimal string.
@@ -39,7 +40,7 @@ interface Asset
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The send modal.
  */
-export default function DashboardSend({ mnemonic, network, nativeValue, nativeFormatted, tokens, onSent, onClose }: { mnemonic: string; network: Network; nativeValue: bigint; nativeFormatted: string; tokens: TokenBalance[]; onSent: () => void; onClose: () => void })
+export default function DashboardSend({ mnemonic, index, network, nativeValue, nativeFormatted, tokens, onSent, onClose }: { mnemonic: string; index: number; network: Network; nativeValue: bigint; nativeFormatted: string; tokens: TokenBalance[]; onSent: () => void; onClose: () => void })
 {
     const assets = useMemo<Asset[]>(() => [
         { key: 'native', symbol: network.symbol, decimals: network.decimals, value: nativeValue, formatted: nativeFormatted },
@@ -99,7 +100,7 @@ export default function DashboardSend({ mnemonic, network, nativeValue, nativeFo
 
         try
         {
-            const wallet = new WalletManager(mnemonic, 0);
+            const wallet = new WalletManager(mnemonic, index);
             const result = await wallet.send(getProvider(), { to, amount, token: asset.token });
 
             setHash(result);

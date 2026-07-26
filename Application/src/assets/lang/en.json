@@ -82,6 +82,13 @@
         },
         "Empty": "Nothing to show yet.",
         "Account": "Account",
+        "Accounts": {
+            "Title": "Accounts",
+            "Subtitle": "Switch between accounts of this wallet",
+            "Empty": "Not created yet",
+            "Rename": "Rename account",
+            "Save": "Save"
+        },
         "Address": "Address",
         "Copy": "Copy Address",
         "Copied": "Address copied to clipboard",
