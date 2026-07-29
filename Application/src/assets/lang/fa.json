@@ -1,9 +1,9 @@
 {
     "App": {
-        "Name": "GWallet",
+        "Name": "Nura Wallet",
         "Tray": {
-            "Open": "GWallet باز کردن",
-            "Quit": "GWallet خروج از"
+            "Open": "Nura Wallet باز کردن",
+            "Quit": "Nura Wallet خروج از"
         },
         "Window": {
             "Minimize": "کوچک کردن",
