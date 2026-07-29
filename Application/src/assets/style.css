@@ -230,6 +230,15 @@ input[type="password"]::-webkit-textfield-decoration-container {
  * Application specific below.
  */
 
+/*
+ * The system bars are transparent on Android, so whatever sits behind `#root` is visible inside the
+ * safe areas. Left unset that is the WebView's white default.
+ */
+html,
+body {
+    background: var(--base-bg);
+}
+
 #root {
     width: 100vw;
     height: 100vh;

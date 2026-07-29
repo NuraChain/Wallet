@@ -1,0 +1,6 @@
+<resources>
+
+    <!-- Mirrors the `base-bg` variable for `[data-theme='light']` in src/assets/style.css. -->
+    <color name="WindowBackground">#EDF2F8</color>
+
+</resources>

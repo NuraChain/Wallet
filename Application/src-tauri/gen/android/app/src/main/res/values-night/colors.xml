@@ -1,0 +1,6 @@
+<resources>
+
+    <!-- Mirrors the `base-bg` variable for `[data-theme='dark']` in src/assets/style.css. -->
+    <color name="WindowBackground">#0C121A</color>
+
+</resources>
