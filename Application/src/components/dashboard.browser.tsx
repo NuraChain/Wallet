@@ -173,7 +173,8 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     return (
         <div className='flex min-h-0 flex-1 flex-col'>
 
-            <div className='flex shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-2 px-2 py-2 backdrop-blur-xl'>
+            { /* `base-1` is the 0.25-alpha token in both themes; `base-2` sits at 0.6/0.55 and read as solid. */ }
+            <div className='flex shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 px-2 py-2 backdrop-blur-xl'>
 
                 <button
                     type='button'
