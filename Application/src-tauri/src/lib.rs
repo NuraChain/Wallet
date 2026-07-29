@@ -2,6 +2,22 @@
 pub fn run() {
     let mut builder = tauri::Builder::default();
 
+    // Registered before every other plugin, as the plugin requires: it has to claim the instance
+    // lock before the rest of the setup runs, otherwise a second launch races the first instance.
+    //
+    // Closing the window hides it rather than quitting (see the title bar and the tray), so a second
+    // launch nearly always means "give me back the window I hid" — unminimize, show, focus.
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(window) = tauri::Manager::get_webview_window(app, "main") {
+                let _ = window.unminimize();
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+        }));
+    }
+
     #[cfg(desktop)]
     {
         builder = builder.on_tray_icon_event(|app, event| match event {
