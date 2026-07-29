@@ -7,7 +7,7 @@ import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
 import { T } from '../utility/language';
 
-import Logo from '../assets/image/logo.png';
+import Logo from '../assets/image/logo.svg';
 
 /**
  * TitleBar - Custom window chrome for frameless desktop windows.

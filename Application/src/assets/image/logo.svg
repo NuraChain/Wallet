@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Nura Wallet">
+
+    <!--
+        512 canvas, 440 body inset 36, mark inside a 400 safe box.
+        Wallet 320x152 centred on x=256; card 168x152 rotated -8 about its own centre.
+        Three values only: navy ground, one blue for the shell, white-to-cyan for the light.
+        Radius family: 116 body / 40 shell / 24 card / 19 clasp.
+    -->
+
+    <defs>
+
+        <linearGradient id="nuraGround" x1="0.15" y1="0" x2="0.85" y2="1">
+            <stop offset="0" stop-color="#1D2F66" />
+            <stop offset="0.52" stop-color="#0C1740" />
+            <stop offset="1" stop-color="#04081A" />
+        </linearGradient>
+
+        <linearGradient id="nuraShell" x1="0.1" y1="0" x2="0.9" y2="1">
+            <stop offset="0" stop-color="#5C97FF" />
+            <stop offset="0.48" stop-color="#2563EB" />
+            <stop offset="1" stop-color="#12309B" />
+        </linearGradient>
+
+        <linearGradient id="nuraCard" x1="0.08" y1="0" x2="0.92" y2="1">
+            <stop offset="0" stop-color="#FFFFFF" />
+            <stop offset="0.42" stop-color="#E8FBFF" />
+            <stop offset="1" stop-color="#63DAF7" />
+        </linearGradient>
+
+        <linearGradient id="nuraSheen" x1="0" y1="0" x2="0.9" y2="1">
+            <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.85" />
+            <stop offset="0.6" stop-color="#FFFFFF" stop-opacity="0" />
+        </linearGradient>
+
+        <linearGradient id="nuraRim" x1="0.1" y1="0" x2="0.9" y2="1">
+            <stop offset="0" stop-color="#9DE8FF" stop-opacity="0.5" />
+            <stop offset="0.55" stop-color="#3B82F6" stop-opacity="0.1" />
+            <stop offset="1" stop-color="#22D3EE" stop-opacity="0.4" />
+        </linearGradient>
+
+        <!-- Spill from the slot: brightest at the lip, gone by the top of the card. -->
+        <linearGradient id="nuraSpill" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0" stop-color="#AFF1FF" stop-opacity="0.55" />
+            <stop offset="1" stop-color="#AFF1FF" stop-opacity="0" />
+        </linearGradient>
+
+        <filter id="nuraCardGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="6" result="b" />
+            <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+            </feMerge>
+        </filter>
+
+        <filter id="nuraSlotGlow" x="-120%" y="-600%" width="340%" height="1300%">
+            <feGaussianBlur stdDeviation="9" result="b" />
+            <feMerge>
+                <feMergeNode in="b" />
+                <feMergeNode in="b" />
+                <feMergeNode in="SourceGraphic" />
+            </feMerge>
+        </filter>
+
+        <filter id="nuraSpillBlur" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="16" />
+        </filter>
+
+        <clipPath id="nuraClip">
+            <rect x="36" y="36" width="440" height="440" rx="116" />
+        </clipPath>
+
+    </defs>
+
+    <rect x="36" y="36" width="440" height="440" rx="116" fill="url(#nuraGround)" />
+
+    <g clip-path="url(#nuraClip)">
+
+        <!-- Light spilling up out of the slot. -->
+        <path d="M132 274 L96 96 L416 96 L380 274 Z" fill="url(#nuraSpill)" filter="url(#nuraSpillBlur)" />
+
+        <!-- The card, rising out of the wallet. -->
+        <g transform="rotate(-8 244 208)" filter="url(#nuraCardGlow)">
+            <rect x="160" y="132" width="168" height="152" rx="24" fill="url(#nuraCard)" />
+            <path d="M160 222 v-66 a24 24 0 0 1 24 -24 h84 z" fill="url(#nuraSheen)" />
+        </g>
+
+        <!-- Shell, in front, so the card reads as held. -->
+        <rect x="96" y="272" width="320" height="152" rx="40" fill="url(#nuraShell)" />
+
+        <!-- The slot itself is the light source. -->
+        <rect x="124" y="270" width="264" height="5" rx="2.5" fill="#DFFAFF" filter="url(#nuraSlotGlow)" />
+
+        <!-- Clasp, aligned to the shell's vertical centre. -->
+        <rect x="332" y="330" width="68" height="38" rx="19" fill="#08102A" opacity="0.42" />
+        <circle cx="366" cy="349" r="11" fill="#C6F6FF" filter="url(#nuraCardGlow)" />
+
+    </g>
+
+    <rect x="36" y="36" width="440" height="440" rx="116" fill="none" stroke="url(#nuraRim)" stroke-width="4" />
+
+</svg>
