@@ -9,8 +9,11 @@ import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
 import WalletManager from '../core/wallet';
 
+import TokenIcon from './token.icon';
+
 import { T } from '../utility/language';
 import { getProvider, type Network } from '../core/network';
+import { getNativeLogo, getTokenLogo } from '../core/price';
 import { shortAddress, trimAmount } from '../utility/format';
 
 type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
@@ -55,6 +58,8 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
     const [ selected, setSelected ] = useState('native');
 
     const asset = assets.find((item) => item.key === selected) ?? assets[0];
+
+    const assetLogo = asset.token === undefined ? getNativeLogo(network.chainId) : getTokenLogo(network.chainId, asset.token.address);
 
     const onReview = () =>
     {
@@ -130,11 +135,22 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                     exit={ { opacity: 0, scale: 0.9 } }
                     className='glass-panel flex w-80 flex-col gap-3 rounded-2xl p-4'>
 
-                    <div className='flex items-center justify-between'>
+                    <div className='flex items-center justify-between gap-2'>
 
-                        <div className='text-medium font-bold text-txt-normal'>
+                        { /* Which asset is leaving is the thing to get wrong, so it leads the title. */ }
+                        <div className='flex min-w-0 items-center gap-2'>
 
-                            { T('Dashboard.Send.Title') }
+                            <TokenIcon
+                                primary
+                                src={ assetLogo }
+                                symbol={ asset.symbol }
+                                className='size-8 shrink-0 text-tiny' />
+
+                            <div className='min-w-0 truncate text-medium font-bold text-txt-normal'>
+
+                                { T('Dashboard.Send.Title') }
+
+                            </div>
 
                         </div>
 
@@ -213,7 +229,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                         <button
                                             type='button'
                                             onClick={ () => { setAmount(asset.formatted); } }
-                                            className='text-tiny text-txt-muted underline'>
+                                            className='btn-muted rounded-lg px-2 py-0.5 text-tiny text-txt-muted'>
 
                                             { T('Dashboard.Send.Max', trimAmount(asset.formatted)) }
 
