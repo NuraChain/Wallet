@@ -1,60 +1,22 @@
-import { argon2id } from 'hash-wasm';
 import { load } from '@tauri-apps/plugin-store';
 
-interface EncryptedPayload { salt: string; iv: string; cipher: string; kdf?: string }
+interface EncryptedPayload { salt: string; iv: string; cipher: string }
 
 type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name' | 'Wallet.Accounts' | 'Wallet.Active' | 'Wallet.Tokens';
 
 const storage = await load('application.bin');
 
 /**
- * Marks a payload whose key came from Argon2id. Absent means the original PBKDF2 format.
- */
-const kdfArgon2id = 'argon2id';
-
-/**
- * deriveKeyLegacy - The original PBKDF2-SHA256 derivation, kept only to read existing payloads.
- *
- * 102,400 iterations of PBKDF2-SHA256 is well under current guidance and, more to the point, it was
- * far cheaper to attack than the Argon2id the password verifier uses — so an attacker holding the
- * store would always have gone after this instead. New writes use `deriveKey`.
- * @param {string} passphrase - The passphrase to derive the key from
- * @param {Uint8Array<ArrayBuffer>} salt - The salt bytes used in derivation
- * @returns {Promise<CryptoKey>} The derived AES-GCM key
- */
-const deriveKeyLegacy = async(passphrase: string, salt: Uint8Array<ArrayBuffer>) =>
-{
-    const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, [ 'deriveKey' ]);
-
-    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 102400, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, [ 'encrypt', 'decrypt' ]);
-};
-
-/**
- * deriveKey - Derives a non-extractable AES-GCM 256 key from a passphrase via Argon2id.
- *
- * Memory-hard by design, so a GPU or ASIC gains far less against it than against PBKDF2. Parameters
- * match the password verifier (32 MiB, two passes) so neither path is the cheap way in — the point of
- * hardening the verifier is lost if the ciphertext next to it can be ground for less.
- *
- * The salt is per-payload and random, unlike the verifier's fixed application salt.
+ * deriveKey - Derives a non-extractable AES-GCM 256 key from a passphrase and salt via PBKDF2-SHA256
  * @param {string} passphrase - The passphrase to derive the key from
  * @param {Uint8Array<ArrayBuffer>} salt - The salt bytes used in derivation
  * @returns {Promise<CryptoKey>} The derived AES-GCM key
  */
 const deriveKey = async(passphrase: string, salt: Uint8Array<ArrayBuffer>) =>
 {
-    const derived = await argon2id({ password: passphrase, salt, memorySize: 32768, iterations: 2, parallelism: 1, hashLength: 32, outputType: 'binary' });
+    const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, [ 'deriveKey' ]);
 
-    const raw = new Uint8Array(derived);
-
-    const cryptoKey = await crypto.subtle.importKey('raw', raw, { name: 'AES-GCM', length: 256 }, false, [ 'encrypt', 'decrypt' ]);
-
-    // The imported key is non-extractable, but these plain copies of the key bytes are not. Wiping
-    // them keeps the window in which raw key material sits in the heap as short as possible.
-    raw.fill(0);
-    derived.fill(0);
-
-    return cryptoKey;
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 102400, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, [ 'encrypt', 'decrypt' ]);
 };
 
 /**
@@ -90,36 +52,6 @@ export const removeValue = async(key: StorageKey) =>
 };
 
 /**
- * isLegacyEncrypted - Whether a stored payload still uses the old PBKDF2 derivation.
- *
- * Lets a caller that already holds the passphrase re-write the value under Argon2id, so an install
- * created before the change does not stay on the weaker derivation forever.
- * @param {StorageKey} key - The storage key name
- * @returns {Promise<boolean>} True when the value exists and predates the Argon2id format.
- */
-export const isLegacyEncrypted = async(key: StorageKey) =>
-{
-    const stored = await getValue(key);
-
-    if (stored === undefined)
-    {
-        return false;
-    }
-
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const parsed = JSON.parse(stored) as EncryptedPayload;
-
-        return typeof parsed === 'object' && parsed.kdf !== kdfArgon2id;
-    }
-    catch
-    {
-        return false;
-    }
-};
-
-/**
  * setValueEncrypted - Encrypts a value with a fresh salt/IV and a passphrase-derived AES-GCM key, then stores it.
  *
  * The passphrase itself is never written to storage, only the salt, IV and ciphertext — so the
@@ -149,7 +81,7 @@ export const setValueEncrypted = async(key: StorageKey, value: string, passphras
         return btoa(binary);
     };
 
-    const payload: EncryptedPayload = { iv: toBase64(iv), salt: toBase64(salt), cipher: toBase64(new Uint8Array(cipher)), kdf: kdfArgon2id };
+    const payload: EncryptedPayload = { iv: toBase64(iv), salt: toBase64(salt), cipher: toBase64(new Uint8Array(cipher)) };
 
     await setValue(key, JSON.stringify(payload));
 };
@@ -187,10 +119,7 @@ export const getValueEncrypted = async(key: StorageKey, passphrase: string) =>
 
     const fromBase64 = (value: string) => Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
 
-    // Payloads written before the Argon2id switch carry no `kdf` and still open with PBKDF2.
-    const derive = parsed.kdf === kdfArgon2id ? deriveKey : deriveKeyLegacy;
-
-    const cryptoKey = await derive(passphrase, fromBase64(parsed.salt));
+    const cryptoKey = await deriveKey(passphrase, fromBase64(parsed.salt));
     const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBase64(parsed.iv) }, cryptoKey, fromBase64(parsed.cipher));
 
     return new TextDecoder().decode(plain);

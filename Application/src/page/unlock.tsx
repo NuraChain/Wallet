@@ -10,7 +10,7 @@ import DashboardPage from './dashboard';
 import { T } from '../utility/language';
 import { passwordVerify } from '../core/password';
 import { openPage } from '../utility/context';
-import { getValue, getValueEncrypted, isLegacyEncrypted, setValueEncrypted } from '../utility/storage';
+import { getValue, getValueEncrypted } from '../utility/storage';
 
 export default function UnlockPage()
 {
@@ -60,13 +60,6 @@ export default function UnlockPage()
                 setError(T('Unlock.ErrorMissing'));
 
                 return;
-            }
-
-            // An install predating the Argon2id switch is re-wrapped now, while the passphrase is
-            // in hand, rather than being left on the weaker derivation indefinitely.
-            if (await isLegacyEncrypted('Wallet.Mnemonic'))
-            {
-                await setValueEncrypted('Wallet.Mnemonic', mnemonic, password);
             }
 
             openPage(DashboardPage, { mnemonic });
