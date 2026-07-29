@@ -89,7 +89,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
                 animate={ { y: '0%' } }
                 exit={ { y: '-100%' } }
                 transition={ { type: 'tween' } }
-                className='glass-panel absolute inset-x-0 top-0 z-20 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-3xl px-4 pb-4 sm:mx-auto sm:px-6 sm:pb-6'>
+                className='glass-panel absolute inset-x-0 top-0 z-20 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-3xl px-4 pt-[env(safe-area-inset-top)] pb-4 sm:mx-auto sm:px-6 sm:pb-6'>
 
                 <button
                     type='button'

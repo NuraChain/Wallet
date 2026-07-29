@@ -77,7 +77,7 @@ export default function IntroPage()
 
             </AnimatePresence>
 
-            <div className={ `flex size-full flex-col bg-base-1 px-4 pb-4 sm:px-6 sm:pb-6 ${ isWindows ? 'pt-10' : '' }` }>
+            <div className={ `flex size-full flex-col bg-base-1 px-4 pb-4 sm:px-6 sm:pb-6 ${ isWindows ? 'pt-10' : 'pt-[env(safe-area-inset-top)]' }` }>
 
                 <div className='mx-auto flex size-full max-w-lg flex-col'>
 

@@ -70,7 +70,7 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
                 className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
                 onClick={ onClose } />
 
-            <div className='absolute inset-0 z-30 flex items-center justify-center p-4'>
+            <div className='absolute inset-0 z-30 flex items-center justify-center p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]'>
 
                 <motion.div
                     initial={ { opacity: 0, scale: 0.96 } }
