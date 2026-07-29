@@ -3,6 +3,12 @@
     "identifier": "io.gwallet.android",
     "app": {
         "withGlobalTauri": false,
+        "windows": [
+            {
+                "label": "main",
+                "title": "GWallet"
+            }
+        ],
         "security": {
             "csp": null,
             "capabilities": [
