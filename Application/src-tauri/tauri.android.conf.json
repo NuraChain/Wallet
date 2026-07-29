@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.tauri.app/config/2",
-    "identifier": "io.gwallet.android",
+    "identifier": "io.nurawallet.android",
     "app": {
         "withGlobalTauri": false,
         "windows": [

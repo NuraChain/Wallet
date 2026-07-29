@@ -11,7 +11,7 @@ import { getDirection, T } from '../utility/language';
 /**
  * Label of the child webview that renders the page. Only ever one exists at a time.
  */
-const frameLabel = 'gwallet-browser';
+const frameLabel = 'nura-browser';
 
 /**
  * Shortcuts shown on the browser start screen, next to the active network's explorer.

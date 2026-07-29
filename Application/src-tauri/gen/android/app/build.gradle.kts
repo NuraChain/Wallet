@@ -17,11 +17,11 @@ val tauriProperties = Properties().apply {
 android {
     compileSdk = 36
     ndkVersion = "29.0.13113456 rc1"
-    namespace = "io.gwallet.android"
+    namespace = "io.nurawallet.android"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
 
-        applicationId = "io.gwallet.android"
+        applicationId = "io.nurawallet.android"
         minSdk = 24
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()

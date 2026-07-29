@@ -1,4 +1,4 @@
-package io.gwallet.android
+package io.nurawallet.android
 
 import android.graphics.Color
 import android.os.Bundle
