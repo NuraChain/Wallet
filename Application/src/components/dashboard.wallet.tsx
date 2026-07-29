@@ -1,5 +1,6 @@
 import type { Network } from '../core/network';
 import type { TokenBalance } from '../core/token';
+import type { Transaction } from '../hook/history';
 
 import { useEffect, useState } from 'react';
 import { IoChevronDown } from 'react-icons/io5';
@@ -14,14 +15,11 @@ import { getNativeLogo, getTokenLogo } from '../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../utility/format';
 
 /**
- * How many token rows the wallet tab shows before sending the user to the token manager.
- */
-const tokenPreview = 4;
-
-/**
  * DashboardWallet - Primary account view: portfolio value, address, transfer actions, holdings, and history.
  *
  * Balances are fetched by the parent and passed in, so this tab and the send flow always read the same numbers. The headline figure is the whole portfolio in USD rather than the native coin alone, since the native balance is already the first row of the token list right below it.
+ *
+ * The native coin is the only asset shown out of the box. ERC20 rows appear once the user adds their contracts in the token manager, so the list stays exactly as long as the user made it.
  *
  * Transaction history is mounted here, under the token list, so the account's holdings and its movements live on one screen.
  * @param {object} props Component props.
@@ -30,8 +28,7 @@ const tokenPreview = 4;
  * @param {Network} props.network The active network.
  * @param {string} props.nativeFormatted Native balance as a decimal string.
  * @param {boolean} props.nativeLoading Whether the native balance is still loading.
- * @param {TokenBalance[]} props.tokens Token balances the user has not hidden.
- * @param {boolean} props.tokensLoading Whether token balances are still loading.
+ * @param {TokenBalance[]} props.tokens Balances of the tokens the user added.
  * @param {number} props.total Portfolio value in USD.
  * @param {boolean} props.totalLoading Whether prices are still loading.
  * @param {() => void} props.onSend Opens the send modal.
@@ -40,9 +37,12 @@ const tokenPreview = 4;
  * @param {() => void} props.onAccounts Opens the account switcher.
  * @param {() => void} props.onTokens Opens the token manager.
  * @param {() => void} props.onSettings Opens the settings modal.
+ * @param {{ items: Transaction[]; loading: boolean }} props.history The account's transaction history.
+ * @param {(hash: string) => void} props.onTransaction Opens one transaction on the explorer.
+ * @param {() => void} props.onOverview Opens the full history page.
  * @returns {JSX.Element} The wallet tab.
  */
-export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, tokensLoading, total, totalLoading, onSend, onReceive, onNetwork, onAccounts, onTokens, onSettings }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; tokensLoading: boolean; total: number; totalLoading: boolean; onSend: () => void; onReceive: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void })
+export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, history, onSend, onReceive, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
 {
     const [ notice, setNotice ] = useState('');
 
@@ -68,61 +68,61 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
     };
 
     return (
-        <div className='flex flex-col gap-4'>
+        <div className='flex flex-col gap-4 mt-2'>
 
-            <div className='flex items-center justify-between gap-2'>
+            <div className='flex items-center gap-2'>
 
                 <button
                     type='button'
                     onClick={ onAccounts }
-                    className='btn-muted flex h-9 min-w-0 cursor-pointer items-center gap-2 rounded-full px-3 text-tiny'>
+                    className='chip-control flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny'>
 
-                    <div className='flex size-5 shrink-0 items-center justify-center rounded-full bg-btn-primary text-txt-reverse'>
+                    <div className='flex size-7 shrink-0 items-center justify-center rounded-lg bg-btn-primary text-txt-reverse'>
 
-                        <HiOutlineUser size={ 12 } />
+                        <HiOutlineUser size={ 14 } />
 
                     </div>
 
-                    <span className='truncate'>
+                    <span className='truncate font-medium'>
 
                         { name }
 
                     </span>
 
-                    <IoChevronDown size={ 14 } className='shrink-0' />
+                    <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />
 
                 </button>
 
-                <div className='flex shrink-0 items-center gap-2'>
+                <button
+                    type='button'
+                    onClick={ onNetwork }
+                    className='chip-control flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny'>
 
-                    <button
-                        type='button'
-                        onClick={ onNetwork }
-                        className='btn-muted flex h-9 cursor-pointer items-center gap-2 rounded-full px-3 text-tiny'>
+                    <TokenIcon
+                        primary
+                        src={ getNativeLogo(network.chainId) }
+                        symbol={ network.symbol }
+                        className='size-7 shrink-0 text-tiny' />
 
-                        <TokenIcon
-                            primary
-                            src={ getNativeLogo(network.chainId) }
-                            symbol={ network.symbol }
-                            className='size-5 text-tiny' />
+                    <span className='truncate font-medium'>
 
                         { network.name }
 
-                        <IoChevronDown size={ 14 } />
+                    </span>
 
-                    </button>
+                    <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />
 
-                    <button
-                        type='button'
-                        onClick={ onSettings }
-                        aria-label={ T('Dashboard.Settings.Title') }
-                        className='btn-muted flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-txt-normal'>
+                </button>
 
-                        <HiOutlineCog6Tooth size={ 18 } />
+                <button
+                    type='button'
+                    onClick={ onSettings }
+                    aria-label={ T('Dashboard.Settings.Title') }
+                    className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl'>
 
-                    </button>
+                    <HiOutlineCog6Tooth size={ 17 } />
 
-                </div>
+                </button>
 
             </div>
 
@@ -154,7 +154,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                     {
                         notice.length > 0 &&
                         (
-                            <div className='pointer-events-none absolute inset-x-0 top-full z-10 mt-1 text-center text-tiny whitespace-nowrap text-txt-muted'>
+                            <div className='pointer-events-none absolute top-full left-1/2 z-10 mt-1 w-max -translate-x-1/2 text-center text-tiny whitespace-nowrap text-txt-muted'>
 
                                 { notice }
 
@@ -221,7 +221,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                     <button
                         type='button'
                         onClick={ onTokens }
-                        className='btn-muted flex h-8 cursor-pointer items-center gap-1 rounded-full px-3 text-tiny'>
+                        className='btn-muted flex h-8 cursor-pointer items-center gap-1 rounded-lg px-3 text-tiny'>
 
                         <HiOutlineSquares2X2 size={ 14 } />
 
@@ -263,7 +263,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                 </div>
 
                 {
-                    tokens.slice(0, tokenPreview).map((item) => (
+                    tokens.map((item) => (
                         <div
                             key={ item.token.address }
                             className='glass-panel flex items-center gap-3 rounded-xl p-3'>
@@ -298,22 +298,14 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                     ))
                 }
 
-                {
-                    !tokensLoading && tokens.length === 0 &&
-                    (
-                        <div className='py-2 text-center text-tiny text-txt-muted'>
-
-                            { T('Dashboard.Tokens.Empty') }
-
-                        </div>
-                    )
-                }
-
             </div>
 
             <DashboardActivity
-                address={ address }
-                network={ network } />
+                items={ history.items }
+                loading={ history.loading }
+                canOpen={ network.explorerUrl.length > 0 }
+                onOpen={ onTransaction }
+                onOverview={ onOverview } />
 
         </div>
     );

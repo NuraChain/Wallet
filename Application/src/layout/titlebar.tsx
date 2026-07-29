@@ -21,11 +21,6 @@ export default function TitleBar()
 {
     const isWindows = useIsWindows();
 
-    if (!isWindows)
-    {
-        return;
-    }
-
     const onMinimize = useCallback(() =>
     {
         void getCurrentWindow().minimize();
@@ -50,6 +45,11 @@ export default function TitleBar()
     {
         void getCurrentWindow().hide();
     }, [ ]);
+
+    if (!isWindows)
+    {
+        return;
+    }
 
     return (
         <div

@@ -1,3 +1,5 @@
+import { getLanguage } from './language';
+
 /**
  * Shorten an address to a `0x1234…abcd` form for compact display.
  *
@@ -23,6 +25,23 @@ export const shortAddress = (address: string, lead = 6, tail = 4) =>
  * @returns {string} Formatted amount, e.g. `$2,000.00`.
  */
 export const formatUsd = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
+
+/**
+ * Format a unix timestamp as a short calendar date in the active UI language.
+ *
+ * Unlike `formatUsd` this follows the user's language rather than a fixed locale, so a Persian UI reads dates on the Persian calendar. A missing or zero timestamp renders as an empty string.
+ * @param {number} timestamp Seconds since the unix epoch.
+ * @returns {string} Localized short date, or an empty string.
+ */
+export const formatDate = (timestamp: number) =>
+{
+    if (!Number.isFinite(timestamp) || timestamp <= 0)
+    {
+        return '';
+    }
+
+    return new Intl.DateTimeFormat(getLanguage().code, { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(timestamp * 1000));
+};
 
 /**
  * Trim a decimal string to at most `max` fraction digits without rounding, dropping trailing zeros.

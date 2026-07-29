@@ -9,6 +9,8 @@
     --color-base-2: var(--base-2);
     --color-base-3: var(--base-3);
 
+    --color-glass-line: var(--glass-border);
+
     --color-btn-muted: var(--btn-muted);
     --color-btn-muted-hover: var(--btn-muted-hover);
     --color-btn-muted-active: var(--btn-muted-active);
@@ -260,6 +262,40 @@ input[type="password"]::-webkit-textfield-decoration-container {
 }
 
 .glass-input:focus {
+    outline-color: var(--color-btn-muted-outline);
+}
+
+/*
+ * Apple-style control capsule.
+ *
+ * Where `.btn-*` announces itself with a fill, a shadow and a lift on hover, this stays quiet: a
+ * hairline over blurred material, no elevation, and a press that scales down into the surface rather
+ * than jumping off it. Used for the dashboard's account / network / settings row, where three
+ * controls sit side by side and none of them is the action the user came for.
+ */
+.chip-control {
+    cursor: pointer;
+    outline-width: 2px;
+    outline-offset: 2px;
+    outline-style: double;
+    outline-color: transparent;
+    color: var(--color-txt-normal);
+    background: var(--base-3);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(20px) saturate(180%);
+    transition: background-color 200ms, transform 200ms, opacity 200ms;
+}
+
+.chip-control:hover {
+    background: var(--base-2);
+}
+
+.chip-control:active {
+    transform: scale(0.95);
+    background: var(--base-2);
+}
+
+.chip-control:focus {
     outline-color: var(--color-btn-muted-outline);
 }
 

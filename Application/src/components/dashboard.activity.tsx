@@ -1,40 +1,67 @@
-import type { Network } from '../core/network';
+import type { Transaction } from '../hook/history';
 
 import { FiArrowDownLeft, FiArrowUpRight, FiInbox } from 'react-icons/fi';
+import { HiOutlineListBullet } from 'react-icons/hi2';
 
-import { useHistory } from '../hook/history';
 import { T } from '../utility/language';
-import { shortAddress, trimAmount } from '../utility/format';
+import { formatDate, shortAddress, trimAmount } from '../utility/format';
+
+/**
+ * How many transactions the wallet tab shows before sending the user to the overview.
+ */
+const preview = 5;
 
 /**
  * DashboardActivity - Transaction history section of the wallet tab.
  *
- * Sits directly under the token list so holdings and the movements that produced them read as one column. Renders live transactions when an indexer is wired into `useHistory`; until then it shows a plain empty state rather than inventing data.
+ * Sits directly under the token list so holdings and the movements that produced them read as one column. Only the most recent handful are shown here: the wallet tab is a glance, and the overview page next to the heading holds the full, searchable list.
+ *
+ * A row opens that transaction's explorer page in the in-app browser, so following a transfer never costs the user their place.
  * @param {object} props Component props.
- * @param {string} props.address The account address.
- * @param {Network} props.network The active network.
+ * @param {Transaction[]} props.items Every transaction fetched for the account.
+ * @param {boolean} props.loading Whether the history is still being fetched.
+ * @param {boolean} props.canOpen Whether the network has an explorer to open rows on.
+ * @param {(hash: string) => void} props.onOpen Opens one transaction on the explorer.
+ * @param {() => void} props.onOverview Opens the full history page.
  * @returns {JSX.Element} The activity section.
  */
-export default function DashboardActivity({ address, network }: { address: string; network: Network })
+export default function DashboardActivity({ items, loading, canOpen, onOpen, onOverview }: { items: Transaction[]; loading: boolean; canOpen: boolean; onOpen: (hash: string) => void; onOverview: () => void })
 {
-    const { items, loading } = useHistory(address, network);
-
     return (
         <div className='flex flex-col gap-2'>
 
-            <div className='text-tiny text-txt-muted'>
+            <div className='flex items-center justify-between gap-2'>
 
-                { T('Dashboard.Activity.Title') }
+                <div className='text-tiny text-txt-muted'>
+
+                    { T('Dashboard.Activity.Title') }
+
+                </div>
+
+                <button
+                    type='button'
+                    onClick={ onOverview }
+                    className='chip-control flex h-8 items-center gap-1 rounded-lg px-3 text-tiny'>
+
+                    <HiOutlineListBullet size={ 14 } />
+
+                    { T('Dashboard.Activity.Overview') }
+
+                </button>
 
             </div>
 
             {
-                items.map((item) => (
-                    <div
-                        key={ item.hash }
-                        className='glass-panel flex items-center gap-3 rounded-xl p-3'>
+                items.slice(0, preview).map((item) => (
+                    <button
+                        type='button'
+                        key={ item.id }
+                        disabled={ !canOpen }
+                        aria-label={ T('Dashboard.Activity.Open') }
+                        onClick={ () => { onOpen(item.hash); } }
+                        className='glass-panel flex items-center gap-3 rounded-xl p-3 text-start not-disabled:cursor-pointer'>
 
-                        <div className='flex size-9 items-center justify-center rounded-full bg-btn-muted text-txt-normal'>
+                        <div className='flex size-9 shrink-0 items-center justify-center rounded-lg bg-btn-muted text-txt-normal'>
 
                             {
                                 item.incoming ? <FiArrowDownLeft size={ 18 } /> : <FiArrowUpRight size={ 18 } />
@@ -42,7 +69,7 @@ export default function DashboardActivity({ address, network }: { address: strin
 
                         </div>
 
-                        <div className='flex-1'>
+                        <div className='flex min-w-0 flex-1 flex-col'>
 
                             <div className='text-small text-txt-normal'>
 
@@ -50,7 +77,7 @@ export default function DashboardActivity({ address, network }: { address: strin
 
                             </div>
 
-                            <div dir='ltr' className='font-mono text-tiny text-txt-muted'>
+                            <div dir='ltr' className='truncate font-mono text-tiny text-txt-muted'>
 
                                 { item.incoming ? shortAddress(item.from) : shortAddress(item.to) }
 
@@ -58,14 +85,35 @@ export default function DashboardActivity({ address, network }: { address: strin
 
                         </div>
 
-                        <div dir='ltr' className='font-mono text-small text-txt-normal'>
+                        <div className='flex shrink-0 flex-col items-end'>
 
-                            { `${ trimAmount(item.value) } ${ item.symbol }` }
+                            <div dir='ltr' className='font-mono text-small text-txt-normal'>
+
+                                { `${ item.incoming ? '+' : '-' }${ trimAmount(item.value) } ${ item.symbol }` }
+
+                            </div>
+
+                            <div className='text-tiny text-txt-muted'>
+
+                                { formatDate(item.timestamp) }
+
+                            </div>
 
                         </div>
 
-                    </div>
+                    </button>
                 ))
+            }
+
+            {
+                loading && items.length === 0 &&
+                (
+                    <div className='py-4 text-center text-tiny text-txt-muted'>
+
+                        { T('Dashboard.Activity.Loading') }
+
+                    </div>
+                )
             }
 
             {

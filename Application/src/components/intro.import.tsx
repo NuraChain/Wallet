@@ -262,7 +262,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                                 type='button'
                                 disabled={ !agree }
                                 onClick={ () => { void onSubmit1(); } }
-                                className={ `btn-primary mx-auto flex h-12 w-full items-center justify-center rounded-lg px-4 py-2 sm:w-fit sm:px-8 ${ !agree ? 'cursor-not-allowed! opacity-50' : '' }` }>
+                                className={ `btn-primary mx-auto flex h-12 w-full mb-2 items-center justify-center rounded-lg px-4 py-2 sm:w-fit sm:px-8 ${ !agree ? 'cursor-not-allowed! opacity-50' : '' }` }>
 
                                 {
                                     !loading ? T('Intro.ImportWallet.Submit1') : <AiOutlineLoading3Quarters size={ 24 } className='animate-spin' />

@@ -199,7 +199,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                         onClick={ () => { void onSelect(item.id); } }
                                                         className={ `btn-muted flex h-12 flex-1 items-center gap-2 rounded-xl px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
 
-                                                        <div className='flex size-7 items-center justify-center rounded-full bg-btn-primary text-tiny text-txt-reverse'>
+                                                        <div className='flex size-7 items-center justify-center rounded-lg bg-btn-primary text-tiny text-txt-reverse'>
 
                                                             { item.symbol.slice(0, 1) }
 

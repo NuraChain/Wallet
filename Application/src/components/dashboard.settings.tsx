@@ -74,7 +74,7 @@ export default function DashboardSettings({ onLanguage, onLock, onLogout, onClos
                         onClick={ onLanguage }
                         className='btn-muted flex h-14 items-center gap-3 rounded-xl px-3'>
 
-                        <div className='flex size-8 items-center justify-center rounded-full bg-btn-muted text-txt-normal'>
+                        <div className='flex size-8 items-center justify-center rounded-lg bg-btn-muted text-txt-normal'>
 
                             <FiGlobe size={ 16 } />
 
@@ -95,7 +95,7 @@ export default function DashboardSettings({ onLanguage, onLock, onLogout, onClos
                         onClick={ onToggleTheme }
                         className='btn-muted flex h-14 items-center gap-3 rounded-xl px-3'>
 
-                        <div className='flex size-8 items-center justify-center rounded-full bg-btn-muted text-txt-normal'>
+                        <div className='flex size-8 items-center justify-center rounded-lg bg-btn-muted text-txt-normal'>
 
                             {
                                 theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } />

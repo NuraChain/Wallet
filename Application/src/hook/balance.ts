@@ -2,7 +2,7 @@ import { formatEther } from 'ethers';
 import { useCallback, useEffect, useState } from 'react';
 
 import { getProvider, type Network } from '../core/network';
-import { readTokenBalances, type TokenBalance } from '../core/token';
+import { readTokenBalances, type Token, type TokenBalance } from '../core/token';
 
 /**
  * Read the native-coin balance of an account on a network.
@@ -70,19 +70,22 @@ export const useBalance = (address: string, network: Network) =>
 };
 
 /**
- * Read every curated ERC20 balance for an account on a network.
+ * Read the balances of the tokens the user added on a network.
  *
- * Refetches whenever the address or network changes, and exposes a manual `refresh`.
+ * The list is passed in rather than looked up, because nothing is tracked by default — the dashboard owns the added-token state and this hook only turns it into balances. Refetches whenever the address, network or list changes, and exposes a manual `refresh`.
  * @param {string} address Account address to query.
  * @param {Network} network Active network.
+ * @param {Token[]} list Tokens the user added on this network.
  * @returns {{ tokens: TokenBalance[]; loading: boolean; error: boolean; refresh: () => void }} Token balance state.
  */
-export const useTokens = (address: string, network: Network) =>
+export const useTokens = (address: string, network: Network, list: Token[]) =>
 {
     const [ tokens, setTokens ] = useState<TokenBalance[]>([]);
     const [ loading, setLoading ] = useState(true);
     const [ error, setError ] = useState(false);
     const [ nonce, setNonce ] = useState(0);
+
+    const key = list.map((item) => item.address).join(',');
 
     const refresh = useCallback(() =>
     {
@@ -100,7 +103,7 @@ export const useTokens = (address: string, network: Network) =>
 
             try
             {
-                const result = await readTokenBalances(address, network);
+                const result = await readTokenBalances(address, list);
 
                 if (active)
                 {
@@ -129,7 +132,7 @@ export const useTokens = (address: string, network: Network) =>
         {
             active = false;
         };
-    }, [ address, network.id, nonce ]);
+    }, [ address, network.id, key, nonce ]);
 
     return { tokens, loading, error, refresh };
 };

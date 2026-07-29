@@ -173,7 +173,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                                 key={ item.key }
                                                 type='button'
                                                 onClick={ () => { setSelected(item.key); } }
-                                                className={ `flex h-9 items-center rounded-full px-3 text-tiny duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : 'btn-muted' }` }>
+                                                className={ `flex h-9 items-center rounded-xl px-3 text-tiny duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : 'btn-muted' }` }>
 
                                                 { item.symbol }
 

@@ -1,10 +1,12 @@
-import { Contract, formatUnits, getAddress } from 'ethers';
+import { Contract, formatUnits, getAddress, isAddress } from 'ethers';
 
-import { getProvider, type Network } from './network';
+import { getProvider } from './network';
 import { getValue, setValue } from '../utility/storage';
 
 /**
  * An ERC20 token tracked for a given chain.
+ *
+ * `coinId` is the CoinGecko id used for pricing. Most user-added contracts have none, in which case the token still shows its balance but contributes nothing to the portfolio total.
  */
 export interface Token
 {
@@ -26,55 +28,59 @@ export interface TokenBalance
 }
 
 /**
- * Minimal ERC20 read surface used for balance lookups.
+ * Tokens the user added, keyed by chain id. The list is per chain because the same symbol is a different contract on another chain.
+ */
+export type TokenMap = Record<number, Token[]>;
+
+/**
+ * Minimal ERC20 read surface used for balance lookups and contract discovery.
  */
 export const erc20Abi =
 [
     'function balanceOf(address owner) view returns (uint256)',
     'function decimals() view returns (uint8)',
-    'function symbol() view returns (string)'
+    'function symbol() view returns (string)',
+    'function name() view returns (string)'
 ];
 
 /**
- * Curated ERC20 lists keyed by chain id. Only well-known contracts ship by default.
+ * CoinGecko ids for well-known contracts, keyed by chain id then lowercased address.
+ *
+ * These are not tokens the wallet shows by default — nothing is shown until the user adds it. The map only exists so that adding a familiar stablecoin still yields a USD value instead of a blank price.
  */
-const tokenRegistry: Record<number, Token[]> =
+const coinIds: Record<number, Record<string, string | undefined> | undefined> =
 {
     1:
-    [
-        { address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', symbol: 'USDC', name: 'USD Coin', decimals: 6, coinId: 'usd-coin' },
-        { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', name: 'Tether USD', decimals: 6, coinId: 'tether' },
-        { address: '0x6B175474E89094C44Da98b954EedeAC495271d0F', symbol: 'DAI', name: 'Dai Stablecoin', decimals: 18, coinId: 'dai' },
-        { address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', symbol: 'WETH', name: 'Wrapped Ether', decimals: 18, coinId: 'weth' }
-    ],
+    {
+        '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': 'usd-coin',
+        '0xdac17f958d2ee523a2206206994597c13d831ec7': 'tether',
+        '0x6b175474e89094c44da98b954eedeac495271d0f': 'dai',
+        '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2': 'weth'
+    },
     56:
-    [
-        { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', name: 'Tether USD', decimals: 18, coinId: 'tether' },
-        { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', name: 'USD Coin', decimals: 18, coinId: 'usd-coin' },
-        { address: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56', symbol: 'BUSD', name: 'Binance USD', decimals: 18, coinId: 'binance-usd' },
-        { address: '0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c', symbol: 'WBNB', name: 'Wrapped BNB', decimals: 18, coinId: 'wbnb' }
-    ]
+    {
+        '0x55d398326f99059ff775485246999027b3197955': 'tether',
+        '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d': 'usd-coin',
+        '0xe9e7cea3dedca5984780bafc599bd69add087d56': 'binance-usd',
+        '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c': 'wbnb'
+    }
 };
 
 /**
- * Return the curated token list for a network's chain, or an empty list when none is known.
- * @param {number} chainId Chain id to look up.
- * @returns {Token[]} Tokens tracked for the chain.
+ * getCoinId - CoinGecko id for a contract, or an empty string when it is not a known asset.
+ * @param {number} chainId Chain the contract lives on.
+ * @param {string} address Contract address.
+ * @returns {string} The coin id, or an empty string.
  */
-export const getTokens = (chainId: number) => tokenRegistry[chainId] ?? [];
+const getCoinId = (chainId: number, address: string) => coinIds[chainId]?.[address.toLowerCase()] ?? '';
 
 /**
- * Contracts the user chose to hide, keyed by chain id. Hiding is per chain because the same symbol can be a different contract on another chain.
- */
-export type HiddenTokens = Record<number, string[]>;
-
-/**
- * loadHiddenTokens - Reads the per-chain hidden contract list.
+ * loadTokens - Reads the per-chain list of user-added tokens.
  *
- * A malformed entry is dropped rather than thrown on, so corrupted storage degrades to "nothing hidden" instead of an empty token list.
- * @returns {Promise<HiddenTokens>} Hidden contracts per chain id.
+ * A malformed entry is dropped rather than thrown on, so corrupted storage degrades to "no tokens added" instead of crashing the dashboard.
+ * @returns {Promise<TokenMap>} Added tokens per chain id.
  */
-export const loadHiddenTokens = async(): Promise<HiddenTokens> =>
+export const loadTokens = async(): Promise<TokenMap> =>
 {
     const stored = await getValue('Wallet.Tokens');
 
@@ -83,7 +89,7 @@ export const loadHiddenTokens = async(): Promise<HiddenTokens> =>
         return {};
     }
 
-    const hidden: HiddenTokens = {};
+    const tokens: TokenMap = {};
 
     try
     {
@@ -100,7 +106,13 @@ export const loadHiddenTokens = async(): Promise<HiddenTokens> =>
 
             if (Number.isInteger(chainId) && Array.isArray(list))
             {
-                hidden[chainId] = list.filter((item): item is string => typeof item === 'string');
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const entries = list.filter((item): item is Token => typeof item === 'object' && item !== null && typeof (item as Token).address === 'string' && typeof (item as Token).decimals === 'number');
+
+                if (entries.length > 0)
+                {
+                    tokens[chainId] = entries;
+                }
             }
         }
     }
@@ -109,31 +121,64 @@ export const loadHiddenTokens = async(): Promise<HiddenTokens> =>
         return {};
     }
 
-    return hidden;
+    return tokens;
 };
 
 /**
- * saveHiddenTokens - Persists the per-chain hidden contract list.
- * @param {HiddenTokens} hidden Hidden contracts per chain id.
+ * saveTokens - Persists the per-chain list of user-added tokens.
+ * @param {TokenMap} tokens Added tokens per chain id.
  * @returns {Promise<void>} Resolves once written.
  */
-export const saveHiddenTokens = async(hidden: HiddenTokens) =>
+export const saveTokens = async(tokens: TokenMap) =>
 {
-    await setValue('Wallet.Tokens', JSON.stringify(hidden));
+    await setValue('Wallet.Tokens', JSON.stringify(tokens));
 };
 
 /**
- * Read the account balances for every curated token on the active network.
+ * Read a contract's ERC20 metadata straight off the active network.
+ *
+ * The user only supplies an address, so symbol, name and decimals come from the chain itself. `name` is optional in practice — a contract that does not expose it falls back to its symbol rather than failing the whole add.
+ * @param {number} chainId Chain the contract lives on, used to look up a price id.
+ * @param {string} address Contract address supplied by the user.
+ * @returns {Promise<Token>} The resolved token.
+ * @throws {Error} When the address is malformed or the contract is not a readable ERC20.
+ */
+export const readToken = async(chainId: number, address: string): Promise<Token> =>
+{
+    if (!isAddress(address))
+    {
+        throw new Error('invalid contract address');
+    }
+
+    const contract = new Contract(getAddress(address), erc20Abi, getProvider());
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const symbol = await contract.symbol() as string;
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const decimals = Number(await contract.decimals() as bigint | number);
+
+    const name = await contract.name().then((value: unknown) => (typeof value === 'string' && value.length > 0 ? value : symbol)).catch(() => symbol);
+
+    if (typeof symbol !== 'string' || symbol.length === 0 || !Number.isInteger(decimals))
+    {
+        throw new Error('contract is not an ERC20 token');
+    }
+
+    return { address: getAddress(address), symbol, name, decimals, coinId: getCoinId(chainId, address) };
+};
+
+/**
+ * Read the account balances for a list of tokens on the active network.
  *
  * Each token is queried independently; a failing contract call resolves to a zero balance rather than rejecting the whole batch, so one bad RPC response cannot blank the list.
  * @param {string} address Account address to query.
- * @param {Network} network Active network (selects the token list).
- * @returns {Promise<TokenBalance[]>} Balances in the same order as `getTokens`.
+ * @param {Token[]} tokens Tokens to read.
+ * @returns {Promise<TokenBalance[]>} Balances in the same order as `tokens`.
  */
-export const readTokenBalances = async(address: string, network: Network): Promise<TokenBalance[]> =>
+export const readTokenBalances = async(address: string, tokens: Token[]): Promise<TokenBalance[]> =>
 {
     const provider = getProvider();
-    const tokens = getTokens(network.chainId);
 
     const reads = tokens.map(async(token): Promise<TokenBalance> =>
     {

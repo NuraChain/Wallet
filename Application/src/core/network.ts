@@ -5,7 +5,7 @@ import { setValue, getValue } from '../utility/storage';
 /**
  * A single EVM network the wallet can talk to.
  *
- * `custom` marks user-added networks, which are the only ones that can be removed.
+ * `custom` marks user-added networks, which are the only ones that can be removed. `explorerApi` is the Etherscan-compatible endpoint used for transaction history; when it is absent the explorer's own `/api` path is assumed.
  */
 export interface Network
 {
@@ -15,15 +15,29 @@ export interface Network
     symbol: string;
     rpcUrl: string;
     explorerUrl: string;
+    explorerApi?: string;
     decimals: number;
     custom: boolean;
 }
 
 /**
  * Built-in networks shipped with the app. These can never be removed.
+ *
+ * Nura Chain leads the list, which also makes it the network a fresh install starts on.
  */
 export const defaultNetworks: Network[] =
 [
+    {
+        id: 'nura',
+        name: 'Nura Chain',
+        chainId: 1010,
+        symbol: 'NC',
+        rpcUrl: 'https://rpc.ashbringer.org/',
+        explorerUrl: 'https://nura-chain.cloud.blockscout.com',
+        explorerApi: 'https://nura-chain.cloud.blockscout.com/api',
+        decimals: 18,
+        custom: false
+    },
     {
         id: 'ethereum',
         name: 'Ethereum',
@@ -31,6 +45,7 @@ export const defaultNetworks: Network[] =
         symbol: 'ETH',
         rpcUrl: 'https://eth.llamarpc.com',
         explorerUrl: 'https://etherscan.io',
+        explorerApi: 'https://eth.blockscout.com/api',
         decimals: 18,
         custom: false
     },
@@ -61,6 +76,23 @@ export const getNetworks = () => [ ...defaultNetworks, ...customNetworks ];
  * @returns {Network} The active network.
  */
 export const getNetwork = () => getNetworks().find((item) => item.id === networkCurrentId) ?? defaultNetworks[0];
+
+/**
+ * Resolve the Etherscan-compatible API base for a network.
+ *
+ * Built-in networks carry an explicit endpoint. For a custom network the explorer's own `/api` path is assumed, which is what a Blockscout instance exposes — if the guess is wrong the history lookup simply comes back empty instead of failing loudly.
+ * @param {Network} network The network to resolve.
+ * @returns {string} The API base URL, or an empty string when none can be derived.
+ */
+export const getExplorerApi = (network: Network) =>
+{
+    if (network.explorerApi !== undefined && network.explorerApi.length > 0)
+    {
+        return network.explorerApi;
+    }
+
+    return network.explorerUrl.length === 0 ? '' : `${ network.explorerUrl.replace(/\/+$/, '') }/api`;
+};
 
 /**
  * Build (and memoize) a static `JsonRpcProvider` for the active network.

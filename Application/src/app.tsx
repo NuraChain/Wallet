@@ -130,9 +130,19 @@ const rootElement = document.querySelector('#root');
 
 if (rootElement)
 {
-    await initTheme();
-    await initLanguage();
-    await initNetwork();
+    try
+    {
+        await initTheme();
+        await initLanguage();
+        await initNetwork();
+    }
+    catch (error)
+    {
+        // Without this the module simply rejects and the app shows a blank white screen with no clue as to why.
+        rootElement.textContent = `Startup failed: ${ error instanceof Error ? error.message : String(error) }`;
+
+        throw error;
+    }
 
     createRoot(rootElement).render(<Application />);
 }

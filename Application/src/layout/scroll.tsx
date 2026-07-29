@@ -9,10 +9,10 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
  * @param {object} props Component props.
  * @param {string} [props.className] Extra classes for the outer (positioned) wrapper.
  * @param {ReactNode} props.children The scrollable content.
- * @param {(top: number, delta: number) => void} [props.onScrollChange] Receives the scroll offset and the signed distance since the previous event.
+ * @param {(top: number, delta: number, bottom: number) => void} [props.onScrollChange] Receives the scroll offset, the signed distance since the previous event, and how much scrollable content is still left below.
  * @returns {JSX.Element} The scroll container.
  */
-export default function ScrollArea({ className = '', children, onScrollChange }: { className?: string; children: ReactNode; onScrollChange?: (top: number, delta: number) => void })
+export default function ScrollArea({ className = '', children, onScrollChange }: { className?: string; children: ReactNode; onScrollChange?: (top: number, delta: number, bottom: number) => void })
 {
     const lastRef = useRef(0);
     const viewportRef = useRef<HTMLDivElement>(null);
@@ -66,14 +66,15 @@ export default function ScrollArea({ className = '', children, onScrollChange }:
 
     const onScroll = (event: UIEvent<HTMLDivElement>) =>
     {
-        const top = event.currentTarget.scrollTop;
+        const element = event.currentTarget;
+        const top = element.scrollTop;
         const delta = top - lastRef.current;
 
         lastRef.current = top;
 
         measure();
 
-        onScrollChange?.(top, delta);
+        onScrollChange?.(top, delta, Math.max(element.scrollHeight - element.clientHeight - top, 0));
     };
 
     const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) =>

@@ -66,7 +66,7 @@
         "Subtitle": "Enter your password to open your wallet",
         "Password": "Password",
         "Submit": "Unlock Wallet",
-        "Loading": "Unlocking...",
+        "Loading": "Unlocking ...",
         "Hint": "Your wallet data stays on this device and is decrypted locally.",
         "Recovery": "If you forget your password, you will not be able to recover it.",
         "ErrorRequired": "Please enter your password",
@@ -97,9 +97,17 @@
         "Tokens": {
             "Title": "Tokens",
             "Manage": "Manage",
-            "Show": "Show token",
-            "Hide": "Hide token",
-            "Empty": "No tokens on this network"
+            "ManageTitle": "Manage Token",
+            "Add": "Add Token",
+            "Remove": "Remove token",
+            "Save": "Add",
+            "Back": "Back",
+            "Checking": "Checking…",
+            "ContractHint": "Paste the token contract address. Its symbol and decimals are read from the contract.",
+            "InvalidAddress": "Enter a valid contract address",
+            "NotFound": "No ERC20 token found at this address on this network",
+            "Exists": "This token is already in your list",
+            "Empty": "No tokens added yet"
         },
         "Network": {
             "Title": "Network",
@@ -138,9 +146,19 @@
         },
         "Activity": {
             "Title": "Transaction History",
+            "Loading": "Loading transactions…",
             "Empty": "No transactions yet",
             "Received": "Received",
-            "Sent": "Sent"
+            "Sent": "Sent",
+            "Overview": "Overview",
+            "Open": "View on explorer",
+            "Close": "Close history",
+            "Search": "Search hash, address or asset",
+            "Count": "%s transactions",
+            "FilterAll": "All",
+            "FilterSent": "Sent",
+            "FilterReceived": "Received",
+            "NoMatch": "No transactions match your search"
         },
         "Browser": {
             "Title": "Browser",
@@ -151,6 +169,7 @@
             "Forward": "Forward",
             "Reload": "Reload",
             "Home": "Home",
+            "Exit": "Close browser",
             "Loading": "Loading…",
             "Hint": "This build cannot embed a real browser, so websites that refuse framing will stay blank."
         },

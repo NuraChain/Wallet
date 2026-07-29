@@ -140,7 +140,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                         onClick={ () => { onSelect(index); } }
                                         className='flex flex-1 cursor-pointer items-center gap-3 text-start'>
 
-                                        <div className={ `flex size-9 shrink-0 items-center justify-center rounded-full text-small ${ isActive ? 'bg-btn-primary text-txt-reverse' : 'bg-btn-secondary text-txt-reverse' }` }>
+                                        <div className={ `flex size-9 shrink-0 items-center justify-center rounded-lg text-small ${ isActive ? 'bg-btn-primary text-txt-reverse' : 'bg-btn-secondary text-txt-reverse' }` }>
 
                                             { index + 1 }
 
