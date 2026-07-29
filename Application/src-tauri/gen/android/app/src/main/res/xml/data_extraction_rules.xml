@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+    `allowBackup="false"` alone stops cloud backup below Android 12; from 12 onwards these rules are
+    what govern both cloud backup and device-to-device transfer. Everything is excluded: the app's
+    private storage holds the encrypted mnemonic and the password verifier, and neither should ever
+    leave the device in a form somebody could grind offline.
+-->
+<data-extraction-rules>
+
+    <cloud-backup>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </cloud-backup>
+
+    <device-transfer>
+        <exclude domain="root" />
+        <exclude domain="file" />
+        <exclude domain="database" />
+        <exclude domain="sharedpref" />
+        <exclude domain="external" />
+    </device-transfer>
+
+</data-extraction-rules>
