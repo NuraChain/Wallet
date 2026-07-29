@@ -191,11 +191,11 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                         (
                             <button
                                 type='button'
-                                aria-label={ T('Dashboard.Browser.Home') }
-                                onClick={ onHome }
+                                aria-label={ T('Dashboard.Browser.Reload') }
+                                onClick={ () => { setCounter((value) => value + 1); } }
                                 className='absolute inset-e-2.5 cursor-pointer text-txt-muted'>
 
-                                <FiHome size={ 14 } />
+                                <FiRotateCw size={ 14 } />
 
                             </button>
                         )
@@ -206,11 +206,11 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                 <button
                     type='button'
                     disabled={ current.length === 0 }
-                    aria-label={ T('Dashboard.Browser.Reload') }
-                    onClick={ () => { setCounter((value) => value + 1); } }
+                    aria-label={ T('Dashboard.Browser.Home') }
+                    onClick={ onHome }
                     className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl disabled:cursor-not-allowed! disabled:opacity-40'>
 
-                    <FiRotateCw size={ 16 } />
+                    <FiHome size={ 16 } />
 
                 </button>
 
