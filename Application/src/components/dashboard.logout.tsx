@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { IoClose } from 'react-icons/io5';
 import { FiAlertTriangle } from 'react-icons/fi';
-import { invoke } from '@tauri-apps/api/core';
 import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 
 import IntroPage from '../page/intro';
 
 import { T } from '../utility/language';
+import { passwordVerify } from '../core/password';
 import { openPage } from '../utility/context';
 import { getValue, removeValue } from '../utility/storage';
 
@@ -51,7 +51,7 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                 return;
             }
 
-            const isValid = await invoke<boolean>('password_verify', { password, expectedHash: storedHash });
+            const isValid = await passwordVerify(password, storedHash);
 
             if (!isValid)
             {

@@ -4,7 +4,6 @@ import { Mnemonic } from 'ethers';
 import { motion } from 'motion/react';
 import { FiCheck } from 'react-icons/fi';
 import { IoClose } from 'react-icons/io5';
-import { invoke } from '@tauri-apps/api/core';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useCallback, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
@@ -13,6 +12,7 @@ import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 import DashboardPage from '../page/dashboard';
 
 import { T } from '../utility/language';
+import { passwordHash } from '../core/password';
 import { openPage } from '../utility/context';
 import { setValue, setValueEncrypted } from '../utility/storage';
 
@@ -60,16 +60,13 @@ export default function IntroImport({ onClose }: { onClose: () => void })
         setError('');
         setLoading(true);
 
-        const passwordHash = await invoke('password_hash', { password });
+        const hash = await passwordHash(password);
 
-        if (typeof passwordHash === 'string')
-        {
-            swiperRef.current?.slideTo(1);
+        swiperRef.current?.slideTo(1);
 
-            setHash(passwordHash);
+        setHash(hash);
 
-            setProceed(true);
-        }
+        setProceed(true);
 
         setLoading(false);
     };

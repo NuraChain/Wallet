@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { FaQuestion } from 'react-icons/fa';
-import { invoke } from '@tauri-apps/api/core';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { motion, AnimatePresence } from 'motion/react';
 import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 
@@ -8,6 +8,7 @@ import IntroPage from './intro';
 import DashboardPage from './dashboard';
 
 import { T } from '../utility/language';
+import { passwordVerify } from '../core/password';
 import { openPage } from '../utility/context';
 import { getValue, getValueEncrypted } from '../utility/storage';
 
@@ -43,7 +44,7 @@ export default function UnlockPage()
                 return;
             }
 
-            const isValid = await invoke<boolean>('password_verify', { password, expectedHash: storedHash });
+            const isValid = await passwordVerify(password, storedHash);
 
             if (!isValid)
             {
@@ -191,7 +192,13 @@ export default function UnlockPage()
                     type='button'
                     disabled={ isLoading }
                     onClick={ () => { void onUnlock(); } }
-                    className='btn-primary mx-auto flex h-12 w-fit items-center justify-center rounded-xl px-8 py-2 disabled:cursor-not-allowed! disabled:opacity-60'>
+                    className='btn-primary mx-auto flex h-12 w-fit items-center justify-center gap-2 rounded-xl px-8 py-2 disabled:cursor-not-allowed! disabled:opacity-60'>
+
+                    {
+                        // Argon2id runs 32 MiB over two passes, which is a visible pause on a phone.
+                        // Without a moving indicator the button just looks dead while it works.
+                        isLoading && <AiOutlineLoading3Quarters size={ 16 } className='shrink-0 animate-spin' />
+                    }
 
                     {
                         isLoading ? T('Unlock.Loading') : T('Unlock.Submit')

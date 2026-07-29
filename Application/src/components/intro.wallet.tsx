@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { FiCheck } from 'react-icons/fi';
 import { IoClose } from 'react-icons/io5';
-import { invoke } from '@tauri-apps/api/core';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 
@@ -11,6 +10,7 @@ import WalletManager from '../core/wallet';
 import DashboardPage from '../page/dashboard';
 
 import { T } from '../utility/language';
+import { passwordHash } from '../core/password';
 import { openPage } from '../utility/context';
 import { setValue, setValueEncrypted } from '../utility/storage';
 
@@ -58,16 +58,13 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
                 return;
             }
 
-            const passwordHash = await invoke('password_hash', { password });
+            const hash = await passwordHash(password);
 
-            if (typeof passwordHash === 'string')
-            {
-                await setValueEncrypted('Wallet.Mnemonic', mnemonic, password);
+            await setValueEncrypted('Wallet.Mnemonic', mnemonic, password);
 
-                await setValue('Wallet.Password', passwordHash);
+            await setValue('Wallet.Password', hash);
 
-                openPage(DashboardPage, { mnemonic });
-            }
+            openPage(DashboardPage, { mnemonic });
         }
         finally
         {

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Nura Wallet — a cross-platform (Windows desktop + Android) Ethereum wallet built with **Tauri 2** (Rust shell) and a **React 19 + TypeScript + Tailwind CSS 4** frontend. Keys never leave the device: mnemonics are AES-GCM encrypted in the browser before being persisted, and the passphrase is hashed with Argon2id in Rust.
+Nura Wallet — a cross-platform (Windows desktop + Android) Ethereum wallet built with **Tauri 2** (Rust shell) and a **React 19 + TypeScript + Tailwind CSS 4** frontend. Keys never leave the device: mnemonics are AES-GCM encrypted in the browser before being persisted, and the passphrase is hashed with Argon2id in the browser via WebAssembly.
 
 ## Commands
 
@@ -23,7 +23,7 @@ There is no test suite. `npm run build` runs `tsc` as the typecheck gate. Prefer
 ## Architecture
 
 ### Two halves, thin native surface
-The Rust backend ([src-tauri/src/](src-tauri/src/)) is deliberately minimal. It exposes exactly two commands ([command.rs](src-tauri/src/command.rs)): `password_hash` and `password_verify`, both Argon2id over a **fixed app-wide salt** (`APP_SALT`). Everything else — wallet derivation, encryption, UI — lives in the frontend. New native capability means: add a `#[tauri::command]`, register it in the `invoke_handler` in [lib.rs](src-tauri/src/lib.rs), and add the matching permission in the per-platform capabilities block (see below).
+The Rust backend ([src-tauri/src/](src-tauri/src/)) is deliberately minimal — it exposes **no commands at all**. [lib.rs](src-tauri/src/lib.rs) only wires up the store and os plugins plus the desktop tray handler. Everything — wallet derivation, password hashing, encryption, UI — lives in the frontend. New native capability means: add a `#[tauri::command]`, register it in an `invoke_handler` in [lib.rs](src-tauri/src/lib.rs), and add the matching permission in the per-platform capabilities block (see below).
 
 ### Frontend entry & the page bus
 [src/app.tsx](src/app.tsx) is the root. `initTheme()` and `initLanguage()` run **before** `createRoot`, then `Application` decides the first page: if `Wallet.Mnemonic` + `Wallet.Password` exist in storage → `UnlockPage`, else `IntroPage`.
@@ -38,7 +38,7 @@ Navigation is **not** a router. It's a custom event bus ([src/utility/event.ts](
 - `setValue`/`getValue` — plaintext (used for theme, language, and the Argon2 password *hash*).
 - `setValueEncrypted`/`getValueEncrypted` — AES-GCM 256 with a PBKDF2-SHA256 (102400 iters) key derived from a passphrase; fresh random salt+IV per write, stored as base64 `{salt,iv,cipher}`. The passphrase is never persisted; a wrong passphrase surfaces as a thrown error (GCM auth tag).
 
-The auth flow (see [src/page/unlock.tsx](src/page/unlock.tsx) and [src/components/intro.wallet.tsx](src/components/intro.wallet.tsx)): the password is Argon2-hashed via `invoke('password_hash')` and that hash is stored plaintext for verification, while the mnemonic is stored encrypted under the raw password. Unlock verifies the hash, then decrypts the mnemonic.
+The auth flow (see [src/page/unlock.tsx](src/page/unlock.tsx) and [src/components/intro.wallet.tsx](src/components/intro.wallet.tsx)): the password is Argon2id-hashed by [src/core/password.ts](src/core/password.ts) — `hash-wasm`, m=32768 KiB / t=2 / p=1 / 32 bytes over a **fixed app-wide salt**, hex-encoded — and that hash is stored plaintext for verification, while the mnemonic is stored encrypted under the raw password. Unlock verifies the hash, then decrypts the mnemonic. The parameters and salt are byte-compatible with the Rust `APP_SALT` implementation they replaced, so hashes written by older builds still verify; changing any of them invalidates every stored hash.
 
 ### i18n & theming (module singletons, not React context)
 Both are plain modules holding mutable state, applied to `<html>` attributes, and persisted via storage:
