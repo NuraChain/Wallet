@@ -415,6 +415,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                                             tokens={ tokens.tokens }
                                                             total={ prices.total }
                                                             totalLoading={ prices.loading }
+                                                            prices={ prices.prices }
                                                             history={ history }
                                                             onSend={ () => { setModal('send'); } }
                                                             onReceive={ () => { setModal('receive'); } }

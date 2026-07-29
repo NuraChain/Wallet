@@ -11,7 +11,7 @@ import TokenIcon from './token.icon';
 import DashboardActivity from './dashboard.activity';
 
 import { T } from '../utility/language';
-import { getNativeLogo, getTokenLogo } from '../core/price';
+import { getNativeCoinId, getNativeLogo, getTokenLogo, type PriceMap } from '../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../utility/format';
 
 /**
@@ -31,6 +31,7 @@ import { formatUsd, shortAddress, trimAmount } from '../utility/format';
  * @param {TokenBalance[]} props.tokens Balances of the tokens the user added.
  * @param {number} props.total Portfolio value in USD.
  * @param {boolean} props.totalLoading Whether prices are still loading.
+ * @param {PriceMap} props.prices USD price per CoinGecko coin id, used for the per-row value.
  * @param {() => void} props.onSend Opens the send modal.
  * @param {() => void} props.onReceive Opens the receive modal.
  * @param {() => void} props.onNetwork Opens the network modal.
@@ -42,9 +43,30 @@ import { formatUsd, shortAddress, trimAmount } from '../utility/format';
  * @param {() => void} props.onOverview Opens the full history page.
  * @returns {JSX.Element} The wallet tab.
  */
-export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, history, onSend, onReceive, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
+export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
 {
     const [ notice, setNotice ] = useState('');
+
+    /**
+     * RowValue - USD worth of one holding.
+     *
+     * A coin with no CoinGecko id, or one whose price has not landed yet, resolves to `undefined` so
+     * the caller can leave the line out entirely rather than print a misleading `$0.00`.
+     * @param {string} coinId The CoinGecko coin id.
+     * @param {string} formatted The balance as a decimal string.
+     * @returns {string | undefined} The formatted USD value, or `undefined` when it cannot be priced.
+     */
+    const RowValue = (coinId: string, formatted: string) =>
+    {
+        const price = prices[coinId];
+
+        if (price === undefined)
+        {
+            return undefined;
+        }
+
+        return formatUsd(Number(formatted) * price);
+    };
 
     useEffect(() =>
     {
@@ -83,7 +105,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                     </div>
 
-                    <span className='truncate font-medium'>
+                    <span className='min-w-0 flex-1 truncate text-start font-medium'>
 
                         { name }
 
@@ -104,7 +126,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                         symbol={ network.symbol }
                         className='size-7 shrink-0 text-tiny' />
 
-                    <span className='truncate font-medium'>
+                    <span className='min-w-0 flex-1 truncate text-start font-medium'>
 
                         { network.name }
 
@@ -254,9 +276,23 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                     </div>
 
-                    <div dir='ltr' className='font-mono text-small text-txt-normal'>
+                    <div dir='ltr' className='flex shrink-0 flex-col items-center'>
 
-                        { nativeLoading ? '…' : trimAmount(nativeFormatted) }
+                        <div className='font-mono text-small text-txt-normal'>
+
+                            { nativeLoading ? '…' : trimAmount(nativeFormatted) }
+
+                        </div>
+
+                        {
+                            !nativeLoading && RowValue(getNativeCoinId(network.chainId), nativeFormatted) !== undefined && (
+                                <div className='font-mono text-tiny text-txt-muted'>
+
+                                    { RowValue(getNativeCoinId(network.chainId), nativeFormatted) }
+
+                                </div>
+                            )
+                        }
 
                     </div>
 
@@ -288,9 +324,23 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                             </div>
 
-                            <div dir='ltr' className='font-mono text-small text-txt-normal'>
+                            <div dir='ltr' className='flex shrink-0 flex-col items-center'>
 
-                                { trimAmount(item.formatted) }
+                                <div className='font-mono text-small text-txt-normal'>
+
+                                    { trimAmount(item.formatted) }
+
+                                </div>
+
+                                {
+                                    RowValue(item.token.coinId, item.formatted) !== undefined && (
+                                        <div className='font-mono text-tiny text-txt-muted'>
+
+                                            { RowValue(item.token.coinId, item.formatted) }
+
+                                        </div>
+                                    )
+                                }
 
                             </div>
 
