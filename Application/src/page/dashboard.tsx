@@ -358,7 +358,10 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                 key={ getLanguage().code }
                 dir={ getDirection() }
                 speed={ 350 }
-                simulateTouch={ false }
+                // `simulateTouch` only governs mouse-drag emulation, so touch swipes still went
+                // through on a phone. `allowTouchMove` is the one that covers both, leaving the nav
+                // bar's `slideTo` as the only way to change tab.
+                allowTouchMove={ false }
                 initialSlide={ active }
                 onSwiper={ (swiper) => { swiperRef.current = swiper; } }
                 onSlideChange={ (swiper) => { setActive(swiper.activeIndex); setNavHidden(false); } }
