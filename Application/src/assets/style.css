@@ -251,11 +251,17 @@ body {
         var(--base-bg);
 }
 
+/*
+ * Blur radius and shadow spread are the two dominant per-frame GPU costs here: a `backdrop-filter`
+ * forces the compositor to re-read and re-blur everything behind the element every time any pixel
+ * under it moves. With ~20 of these on screen a mid-range GPU cannot hold a frame budget, so the
+ * radii are kept to the smallest value that still reads as glass.
+ */
 .glass-panel {
     background: var(--base-2);
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(24px) saturate(180%);
-    box-shadow: 0 16px 48px var(--glass-shadow);
+    backdrop-filter: blur(12px) saturate(150%);
+    box-shadow: 0 8px 24px var(--glass-shadow);
     transition: background-color 300ms, border-color 300ms;
 }
 
@@ -266,7 +272,7 @@ body {
     outline-color: transparent;
     background: var(--input-bg);
     border: 1px solid var(--input-normal);
-    backdrop-filter: blur(12px) saturate(150%);
+    backdrop-filter: blur(8px) saturate(140%);
     transition: background-color 300ms, border-color 300ms;
 }
 
@@ -291,7 +297,7 @@ body {
     color: var(--color-txt-normal);
     background: var(--base-3);
     border: 1px solid var(--glass-border);
-    backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(10px) saturate(150%);
     transition: background-color 200ms, transform 200ms, opacity 200ms;
 }
 
@@ -317,13 +323,17 @@ body {
     outline-offset: 2px;
     outline-style: double;
     outline-color: transparent;
+    /*
+     * A bare `transition-duration` leaves `transition-property` at `all`, which animates
+     * `backdrop-filter` and `box-shadow` too — re-blurring the backdrop on every press. Only the
+     * properties that actually change are transitioned.
+     */
+    transition-property: background-color, border-color, transform, box-shadow;
     transition-duration: 300ms;
-    backdrop-filter: blur(16px) saturate(160%);
-    box-shadow: 0 8px 24px var(--glass-shadow);
+    box-shadow: 0 4px 12px var(--glass-shadow);
 }
 
 .btn-muted {
-    backdrop-filter: none;
     color: var(--color-txt-muted);
     background: var(--color-btn-muted);
     border: 1px solid var(--color-btn-muted-border);
@@ -343,10 +353,15 @@ body {
     outline-color: var(--color-btn-muted-outline);
 }
 
+/*
+ * The only button fill translucent enough for the blur to actually read (8% white in dark). The
+ * primary and secondary fills sit at 90% and 60%, so blurring behind them is invisible work.
+ */
 .btn-normal {
     color: var(--color-txt-normal);
     background: var(--color-btn-normal);
     border: 1px solid var(--color-btn-normal-border);
+    backdrop-filter: blur(10px) saturate(150%);
 }
 
 .btn-normal:hover {
