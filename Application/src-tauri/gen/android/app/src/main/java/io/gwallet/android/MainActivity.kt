@@ -18,4 +18,17 @@ class MainActivity : TauriActivity() {
     super.onCreate(savedInstanceState)
   }
 
+  override fun onAttachedToWindow() {
+    super.onAttachedToWindow()
+
+    // A window that never states a preference is left on the panel's base 60Hz mode by the display
+    // manager, so a 120Hz screen renders the app at half rate. Ask for the fastest mode the panel
+    // reports; the system still overrides this under thermal or battery-saver pressure.
+    val fastest = window.decorView.display
+      ?.supportedModes
+      ?.maxByOrNull { it.refreshRate }
+      ?: return
+
+    window.attributes = window.attributes.apply { preferredDisplayModeId = fastest.modeId }
+  }
 }
