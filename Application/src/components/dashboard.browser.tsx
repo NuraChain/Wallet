@@ -7,6 +7,7 @@ import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch } from 'react-i
 import WebFrame from '../layout/webview';
 
 import { getDirection, T } from '../utility/language';
+import { getNativeBrowser, onNativeBrowserState, type BrowserState } from '../core/browser';
 
 /**
  * Label of the child webview that renders the page. Only ever one exists at a time.
@@ -79,9 +80,29 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     const [ counter, setCounter ] = useState(0);
     const [ notice, setNotice ] = useState('');
     const [ entries, setEntries ] = useState<string[]>([]);
+    const [ live, setLive ] = useState<BrowserState | undefined>(undefined);
 
     const isRtl = getDirection() === 'rtl';
     const current = index < 0 ? '' : entries[index];
+
+    const native = getNativeBrowser() !== undefined;
+
+    // The native view keeps its own history, so links followed inside a page are navigable too — the
+    // component's stack only ever sees what was typed or handed over. Off Android there is no such
+    // view and the stack is all there is.
+    const canBack = native ? live?.canBack === true : index >= 0;
+    const canForward = native ? live?.canForward === true : index < entries.length - 1;
+
+    useEffect(() => onNativeBrowserState(setLive), []);
+
+    // A page reached by following links is not on the stack, so its address has to come from the view.
+    useEffect(() =>
+    {
+        if (live !== undefined && live.url.length > 0)
+        {
+            setDraft(live.url);
+        }
+    }, [ live?.url ]);
 
     const links = network.explorerUrl.length > 0 ?
         [ { name: T('Dashboard.Browser.Explorer'), url: `${ network.explorerUrl }/address/${ address }` }, ...bookmarks ] :
@@ -116,6 +137,22 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
     const onStep = (offset: number) =>
     {
+        const view = getNativeBrowser();
+
+        if (view !== undefined)
+        {
+            if (offset < 0)
+            {
+                view.back();
+            }
+            else
+            {
+                view.forward();
+            }
+
+            return;
+        }
+
         const next = index + offset;
 
         if (next < 0 || next >= entries.length)
@@ -150,7 +187,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                 <button
                     type='button'
-                    disabled={ index < 0 }
+                    disabled={ !canBack }
                     aria-label={ T('Dashboard.Browser.Back') }
                     onClick={ () => { onStep(-1); } }
                     className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl disabled:cursor-not-allowed! disabled:opacity-40'>
@@ -163,7 +200,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                 <button
                     type='button'
-                    disabled={ index >= entries.length - 1 }
+                    disabled={ !canForward }
                     aria-label={ T('Dashboard.Browser.Forward') }
                     onClick={ () => { onStep(1); } }
                     className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl disabled:cursor-not-allowed! disabled:opacity-40'>

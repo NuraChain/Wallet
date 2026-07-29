@@ -4,6 +4,7 @@ import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { T } from '../utility/language';
+import { getNativeBrowser } from '../core/browser';
 
 /**
  * WebFrame - A rectangle of the layout that a real browser view is painted into.
@@ -45,8 +46,83 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
         setEmbedded(true);
     }, [ url ]);
 
+    // Android: a real `android.webkit.WebView` driven from Kotlin. Tauri's child webview does not
+    // exist on Android, and the iframe fallback is refused by anything sending `X-Frame-Options`.
     useEffect(() =>
     {
+        const native = getNativeBrowser();
+
+        if (native === undefined)
+        {
+            return undefined;
+        }
+
+        if (!enabled || url.length === 0)
+        {
+            native.close();
+
+            return undefined;
+        }
+
+        const rect = () => frameRef.current?.getBoundingClientRect();
+
+        const start = rect();
+
+        if (start === undefined || start.width < 1 || start.height < 1)
+        {
+            return undefined;
+        }
+
+        native.open(url, start.x, start.y, start.width, start.height);
+
+        // Resizes only move the view. Routing them through `open` would reload the page every time
+        // the keyboard or the nav bar changed the frame's height.
+        const move = () =>
+        {
+            const next = rect();
+
+            if (next !== undefined && next.width >= 1 && next.height >= 1)
+            {
+                native.setBounds(next.x, next.y, next.width, next.height);
+            }
+        };
+
+        const observer = new ResizeObserver(move);
+
+        if (frameRef.current !== null)
+        {
+            observer.observe(frameRef.current);
+        }
+
+        window.addEventListener('resize', move);
+
+        return () =>
+        {
+            observer.disconnect();
+
+            window.removeEventListener('resize', move);
+
+            native.close();
+        };
+    }, [ enabled, url ]);
+
+    // A `reload` bump recreates the desktop child webview, but the native view is long-lived and has
+    // a real reload of its own.
+    useEffect(() =>
+    {
+        if (reload > 0)
+        {
+            getNativeBrowser()?.reload();
+        }
+    }, [ reload ]);
+
+    useEffect(() =>
+    {
+        if (getNativeBrowser() !== undefined)
+        {
+            return undefined;
+        }
+
         const destroy = async() =>
         {
             try
@@ -127,7 +203,7 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
 
     useEffect(() =>
     {
-        if (!isNative)
+        if (!isNative || getNativeBrowser() !== undefined)
         {
             return undefined;
         }

@@ -1,7 +1,9 @@
 package io.nurawallet.android
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
+import android.webkit.WebView
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 
@@ -16,6 +18,13 @@ class MainActivity : TauriActivity() {
     )
 
     super.onCreate(savedInstanceState)
+  }
+
+  // Attached to the app's own webview only. The browser tab's page webview is a separate instance
+  // that never gets this interface, so a visited site cannot reach the bridge.
+  @SuppressLint("JavascriptInterface")
+  override fun onWebViewCreate(webView: WebView) {
+    webView.addJavascriptInterface(BrowserBridge(this, webView), "__nuraBrowser")
   }
 
   override fun onAttachedToWindow() {
