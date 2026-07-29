@@ -17,8 +17,6 @@ val tauriProperties = Properties().apply {
 android {
     compileSdk = 36
     ndkVersion = "29.0.13113456 rc1"
-    namespace = "io.gwallet"
-
     namespace = "io.gwallet.android"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
