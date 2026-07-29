@@ -37,6 +37,9 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
     private fun px(value: Double) = (value * density).toInt()
 
+    /** Only plain web schemes are ever loaded; see `shouldOverrideUrlLoading`. */
+    private fun isWeb(scheme: String?) = scheme?.lowercase() == "https" || scheme?.lowercase() == "http"
+
     /** Pushes navigation state back into the app so the toolbar can reflect it. */
     private fun publish(view: WebView, loading: Boolean) {
         val state = JSONObject()
@@ -76,13 +79,26 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         // Without a desktop-shaped UA some sites serve a stripped WebView experience.
         view.settings.userAgentString = view.settings.userAgentString?.replace("; wv", "")
 
+        // This view renders untrusted pages, and the app's private storage next door holds the
+        // encrypted mnemonic. Nothing here is allowed to touch the filesystem or content providers.
+        // These are the defaults at this targetSdk, but they are set explicitly so that lowering
+        // targetSdk later cannot silently re-enable them.
+        view.settings.allowFileAccess = false
+        view.settings.allowContentAccess = false
+        view.settings.allowFileAccessFromFileURLs = false
+        view.settings.allowUniversalAccessFromFileURLs = false
+        view.settings.setGeolocationEnabled(false)
+
         view.setBackgroundColor(Color.WHITE)
 
         CookieManager.getInstance().setAcceptThirdPartyCookies(view, true)
 
         view.webViewClient = object : WebViewClient() {
-            // Keep every navigation inside this view rather than handing it to the system browser.
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = false
+            // Plain web navigation stays in this view; anything else is refused outright. Returning
+            // `true` without acting cancels the load, so a page cannot use `intent://` to reach
+            // another app component, `file://` to read local storage, or a custom scheme to hand
+            // itself to some other installed app.
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !isWeb(request.url.scheme)
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
                 publish(view, true)
@@ -112,6 +128,11 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
     @JavascriptInterface
     fun open(url: String, x: Double, y: Double, width: Double, height: Double) {
+        // The very first load bypasses `shouldOverrideUrlLoading`, so the scheme is checked here too.
+        if (!isWeb(runCatching { android.net.Uri.parse(url).scheme }.getOrNull())) {
+            return
+        }
+
         activity.runOnUiThread {
             val root = activity.findViewById<ViewGroup>(android.R.id.content)
             val view = page ?: build().also {
