@@ -96,7 +96,7 @@
         "Lock": "Lock",
         "Tokens": {
             "Title": "Tokens",
-            "Manage": "Manage",
+            "Manage": "Manage Tokens",
             "ManageTitle": "Manage Token",
             "Add": "Add Token",
             "Remove": "Remove token",
@@ -150,7 +150,7 @@
             "Empty": "No transactions yet",
             "Received": "Received",
             "Sent": "Sent",
-            "Overview": "Overview",
+            "Overview": "Full History",
             "Open": "View on explorer",
             "Close": "Close history",
             "Search": "Search hash, address or asset",
