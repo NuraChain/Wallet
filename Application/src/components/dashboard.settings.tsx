@@ -117,27 +117,40 @@ export default function DashboardSettings({ onLanguage, onLock, onLogout, onClos
 
                     </button>
 
-                    <button
-                        type='button'
-                        onClick={ onLock }
-                        className='btn-primary mt-1 flex h-12 items-center justify-center gap-2 rounded-xl text-small'>
+                    { /* Both are session-ending actions, so they share one row rather than a line each. */ }
+                    <div className='mt-1 flex gap-2'>
 
-                        <HiOutlineLockClosed size={ 16 } />
+                        <button
+                            type='button'
+                            onClick={ onLock }
+                            className='btn-primary flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl text-small'>
 
-                        { T('Dashboard.Lock') }
+                            <HiOutlineLockClosed size={ 16 } className='shrink-0' />
 
-                    </button>
+                            <span className='truncate'>
 
-                    <button
-                        type='button'
-                        onClick={ onLogout }
-                        className='btn-muted flex h-12 items-center justify-center gap-2 rounded-xl text-small text-txt-error'>
+                                { T('Dashboard.Lock') }
 
-                        <FiLogOut size={ 16 } className={ getDirection() === 'rtl' ? 'rotate-180' : '' } />
+                            </span>
 
-                        { T('Dashboard.Settings.Logout') }
+                        </button>
 
-                    </button>
+                        <button
+                            type='button'
+                            onClick={ onLogout }
+                            className='btn-muted flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl text-small text-txt-error'>
+
+                            <FiLogOut size={ 16 } className={ `shrink-0 ${ getDirection() === 'rtl' ? 'rotate-180' : '' }` } />
+
+                            <span className='truncate'>
+
+                                { T('Dashboard.Settings.Logout') }
+
+                            </span>
+
+                        </button>
+
+                    </div>
 
                 </motion.div>
 
