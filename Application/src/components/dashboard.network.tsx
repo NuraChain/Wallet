@@ -132,14 +132,14 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
                                     <input
                                         value={ rpcUrl }
-                                        dir='ltr'
+                                        dir={ rpcUrl.length > 0 ? 'ltr' : undefined }
                                         placeholder={ T('Dashboard.Network.Rpc') }
                                         onChange={ (event) => { setRpcUrl(event.target.value); } }
                                         className='glass-input h-11 w-full rounded-xl px-3 text-small' />
 
                                     <input
                                         value={ chainId }
-                                        dir='ltr'
+                                        dir={ chainId.length > 0 ? 'ltr' : undefined }
                                         inputMode='numeric'
                                         placeholder={ T('Dashboard.Network.ChainId') }
                                         onChange={ (event) => { setChainId(event.target.value); } }
@@ -147,13 +147,14 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
                                     <input
                                         value={ symbol }
+                                        dir={ symbol.length > 0 ? 'ltr' : undefined }
                                         placeholder={ T('Dashboard.Network.Symbol') }
                                         onChange={ (event) => { setSymbol(event.target.value); } }
                                         className='glass-input h-11 w-full rounded-xl px-3 text-small' />
 
                                     <input
                                         value={ explorerUrl }
-                                        dir='ltr'
+                                        dir={ explorerUrl.length > 0 ? 'ltr' : undefined }
                                         placeholder={ T('Dashboard.Network.Explorer') }
                                         onChange={ (event) => { setExplorerUrl(event.target.value); } }
                                         className='glass-input h-11 w-full rounded-xl px-3 text-small' />
