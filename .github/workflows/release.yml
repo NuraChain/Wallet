@@ -101,6 +101,15 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
     steps:
+      # Checked before anything is built: an unsigned APK cannot be installed, so
+      # a tag that produces one is a wasted release. Failing here costs seconds
+      # rather than discovering it twenty minutes later in the collect step.
+      - name: Require a keystore for a tagged build
+        if: startsWith(github.ref, 'refs/tags/v') && env.ANDROID_KEYSTORE == ''
+        run: |
+          echo "::error::No ANDROID_KEYSTORE secret is set, so this release would ship an APK nobody can install. Add ANDROID_KEYSTORE, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD to the repository secrets."
+          exit 1
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -164,7 +173,8 @@ jobs:
         run: npm run tauri android build -- --apk
 
       # The keystore is deleted before anything else runs so it cannot reach an
-      # artifact, and the filename records whether the APK is actually installable.
+      # artifact. A tag that got this far with a broken keystore still fails here:
+      # the guard above only proves a secret was set, not that Gradle used it.
       - name: Collect the APK
         working-directory: ${{ env.APP_DIR }}
         run: |
@@ -175,6 +185,9 @@ jobs:
           mkdir -p dist
           if "$APKSIGNER" verify --print-certs "$APK"; then
             cp "$APK" dist/nura-wallet.apk
+          elif [ "${{ startsWith(github.ref, 'refs/tags/v') }}" = "true" ]; then
+            echo "::error::The build produced an unsigned APK despite a keystore being configured. Check that ANDROID_KEYSTORE is valid base64 and that the alias and passwords match it."
+            exit 1
           else
             cp "$APK" dist/nura-wallet-unsigned.apk
             echo "::warning::APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
