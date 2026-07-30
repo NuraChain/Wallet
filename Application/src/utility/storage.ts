@@ -1,6 +1,17 @@
+import { argon2id } from 'hash-wasm';
 import { load } from '@tauri-apps/plugin-store';
 
-interface EncryptedPayload { salt: string; iv: string; cipher: string }
+interface EncryptedPayload { salt: string; iv: string; cipher: string; kdf?: string }
+
+/**
+ * Marks a payload whose key came from Argon2id rather than PBKDF2.
+ *
+ * A build that derived storage keys with Argon2id shipped briefly and rewrote `Wallet.Mnemonic` into
+ * that format on unlock. Writes are PBKDF2 again, but anything already converted on a device still has
+ * to open — otherwise reverting the code strands the user's wallet. Reading both formats is cheap;
+ * losing access is not.
+ */
+const kdfArgon2id = 'argon2id';
 
 type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name' | 'Wallet.Accounts' | 'Wallet.Active' | 'Wallet.Tokens';
 
@@ -17,6 +28,52 @@ const deriveKey = async(passphrase: string, salt: Uint8Array<ArrayBuffer>) =>
     const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, [ 'deriveKey' ]);
 
     return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 102400, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, [ 'encrypt', 'decrypt' ]);
+};
+
+/**
+ * deriveKeyArgon2id - Read-only derivation for payloads written by the Argon2id build.
+ *
+ * Parameters have to match that build exactly (32 MiB, two passes, no parallelism, 32 bytes out) or the
+ * key comes out different and the GCM tag rejects it. Nothing writes this format any more.
+ * @param {string} passphrase - The passphrase to derive the key from
+ * @param {Uint8Array<ArrayBuffer>} salt - The salt bytes used in derivation
+ * @returns {Promise<CryptoKey>} The derived AES-GCM key
+ */
+const deriveKeyArgon2id = async(passphrase: string, salt: Uint8Array<ArrayBuffer>) =>
+{
+    const derived = await argon2id({ password: passphrase, salt, memorySize: 32768, iterations: 2, parallelism: 1, hashLength: 32, outputType: 'binary' });
+
+    return crypto.subtle.importKey('raw', new Uint8Array(derived), { name: 'AES-GCM', length: 256 }, false, [ 'encrypt', 'decrypt' ]);
+};
+
+/**
+ * isConvertedEncrypted - Whether a stored payload is in the short-lived Argon2id format.
+ *
+ * Lets a caller holding the passphrase rewrite it under the current PBKDF2 derivation, so a device
+ * that ran the Argon2id build converges back instead of depending on the compatibility path forever.
+ * @param {StorageKey} key - The storage key name
+ * @returns {Promise<boolean>} True when the value exists and was written by that build.
+ */
+export const isConvertedEncrypted = async(key: StorageKey) =>
+{
+    const stored = await getValue(key);
+
+    if (stored === undefined)
+    {
+        return false;
+    }
+
+    try
+    {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const parsed = JSON.parse(stored) as EncryptedPayload;
+
+        return typeof parsed === 'object' && parsed.kdf === kdfArgon2id;
+    }
+    catch
+    {
+        return false;
+    }
 };
 
 /**
@@ -119,7 +176,10 @@ export const getValueEncrypted = async(key: StorageKey, passphrase: string) =>
 
     const fromBase64 = (value: string) => Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
 
-    const cryptoKey = await deriveKey(passphrase, fromBase64(parsed.salt));
+    // A device that ran the Argon2id build has payloads only that derivation can open.
+    const derive = parsed.kdf === kdfArgon2id ? deriveKeyArgon2id : deriveKey;
+
+    const cryptoKey = await derive(passphrase, fromBase64(parsed.salt));
     const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBase64(parsed.iv) }, cryptoKey, fromBase64(parsed.cipher));
 
     return new TextDecoder().decode(plain);

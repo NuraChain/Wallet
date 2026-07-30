@@ -10,7 +10,7 @@ import DashboardPage from './dashboard';
 import { T } from '../utility/language';
 import { passwordVerify } from '../core/password';
 import { openPage } from '../utility/context';
-import { getValue, getValueEncrypted } from '../utility/storage';
+import { getValue, getValueEncrypted, isConvertedEncrypted, setValueEncrypted } from '../utility/storage';
 
 export default function UnlockPage()
 {
@@ -62,7 +62,20 @@ export default function UnlockPage()
                 return;
             }
 
+            // Converge a device that ran the Argon2id build back onto the current derivation, so the
+            // compatibility path in storage stops being load-bearing after one successful unlock.
+            if (await isConvertedEncrypted('Wallet.Mnemonic'))
+            {
+                await setValueEncrypted('Wallet.Mnemonic', mnemonic, password);
+            }
+
             openPage(DashboardPage, { mnemonic });
+        }
+        catch
+        {
+            // Decryption throws on a bad key or a corrupted payload. Without this the rejection went
+            // nowhere and the button simply re-enabled, which reads as the app ignoring the tap.
+            setError(T('Unlock.ErrorMissing'));
         }
         finally
         {
