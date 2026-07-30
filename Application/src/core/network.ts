@@ -13,6 +13,13 @@ export interface Network
     name: string;
     chainId: number;
     symbol: string;
+    /**
+     * Display name of the native coin, when it differs from the chain's own name.
+     *
+     * "Nura Chain" is the network; "Nura Coin" is the thing you hold on it. Left unset the chain name
+     * stands in, which is what the other built-ins want anyway.
+     */
+    coin?: string;
     rpcUrl: string;
     explorerUrl: string;
     explorerApi?: string;
@@ -32,6 +39,7 @@ export const defaultNetworks: Network[] =
         name: 'Nura Chain',
         chainId: 1010,
         symbol: 'NC',
+        coin: 'Nura Coin',
         rpcUrl: 'https://rpc.ashbringer.org/',
         explorerUrl: 'https://nura-chain.cloud.blockscout.com',
         explorerApi: 'https://nura-chain.cloud.blockscout.com/api',

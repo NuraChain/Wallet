@@ -323,7 +323,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                         <div className='text-tiny text-txt-muted truncate'>
 
-                            { network.name }
+                            { network.coin ?? network.name }
 
                         </div>
 
