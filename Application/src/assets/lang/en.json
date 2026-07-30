@@ -205,7 +205,16 @@
             "Reveal": "Tap to reveal",
             "ErrorRequired": "Enter your password",
             "ErrorInvalid": "Wrong password",
-            "ErrorMissing": "Could not read the recovery phrase"
+            "ErrorMissing": "Could not read the recovery phrase",
+            "SaveImage": "Save as image",
+            "SaveText": "Save as text file",
+            "ExportDanger": "Saving your phrase outside the app is dangerous. Photo galleries sync to the cloud and any app with media or storage access can read these files. Move the backup somewhere offline and delete the copy as soon as you have.",
+            "ExportSavedImage": "Saved to Pictures/Nura Wallet. Delete it once your backup is safe.",
+            "ExportSavedText": "Saved to Downloads. Delete it once your backup is safe.",
+            "ExportFailed": "Could not save the file",
+            "ExportUnsupported": "This device is too old to save files this way",
+            "ExportImageTitle": "Nura Wallet recovery phrase",
+            "ExportImageWarning": "Anyone with these words owns the wallet. Keep offline."
         },
         "Logout": {
             "Title": "Log out",

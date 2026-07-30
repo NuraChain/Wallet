@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { IoClose } from 'react-icons/io5';
-import { FiAlertTriangle, FiEye } from 'react-icons/fi';
+import { FiAlertTriangle, FiEye, FiFileText, FiImage } from 'react-icons/fi';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 
 import { T } from '../../utility/language';
+import { getExporter, phraseToPng } from '../../core/export';
 import { passwordVerify } from '../../core/password';
 import { getValue, getValueEncrypted } from '../../utility/storage';
 
@@ -31,6 +32,42 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
     const [ words, setWords ] = useState<string[]>([]);
     const [ password, setPassword ] = useState('');
     const [ revealed, setRevealed ] = useState(false);
+    const [ notice, setNotice ] = useState('');
+
+    // Off Android there is no MediaStore to write to, so the controls are simply absent.
+    const exporter = getExporter();
+
+    /**
+     * onExport - Hands the phrase to the platform as a picture or a text file.
+     *
+     * Only reachable once the words are revealed, so exporting always follows an explicit password
+     * check and an explicit tap.
+     * @param {'image' | 'text'} kind Which file to write.
+     */
+    const onExport = (kind: 'image' | 'text') =>
+    {
+        const bridge = getExporter();
+
+        if (bridge === undefined || words.length === 0)
+        {
+            return;
+        }
+
+        const stamp = new Date().toISOString().slice(0, 10);
+
+        const failure = kind === 'image' ?
+            bridge.saveImage(phraseToPng(words, T('Dashboard.Phrase.ExportImageTitle'), T('Dashboard.Phrase.ExportImageWarning')), `nura-recovery-phrase-${ stamp }.png`) :
+            bridge.saveText(words.map((word, index) => `${ index + 1 }. ${ word }`).join('\n'), `nura-recovery-phrase-${ stamp }.txt`);
+
+        if (failure.length === 0)
+        {
+            setNotice(kind === 'image' ? T('Dashboard.Phrase.ExportSavedImage') : T('Dashboard.Phrase.ExportSavedText'));
+
+            return;
+        }
+
+        setNotice(failure === 'unsupported' ? T('Dashboard.Phrase.ExportUnsupported') : T('Dashboard.Phrase.ExportFailed'));
+    };
     const [ isLoading, setIsLoading ] = useState(false);
     const [ showPassword, setShowPassword ] = useState(false);
 
@@ -243,6 +280,71 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                                 </span>
 
                                             </button>
+                                        )
+                                    }
+
+                                    {
+                                        revealed && exporter !== undefined &&
+                                        (
+                                            <div className='mt-3 flex flex-col gap-2'>
+
+                                                { /*
+                                                  * Spelled out every time rather than shown once: a file
+                                                  * on shared storage outlives the moment it was written,
+                                                  * and the gallery copy is the one people forget.
+                                                  */ }
+                                                <div className='bg-txt-error/10 text-tiny text-txt-error rounded-lg px-3 py-2'>
+
+                                                    { T('Dashboard.Phrase.ExportDanger') }
+
+                                                </div>
+
+                                                <div className='flex gap-2'>
+
+                                                    <button
+                                                        type='button'
+                                                        onClick={ () => { onExport('image'); } }
+                                                        className='btn-muted flex h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl text-tiny'>
+
+                                                        <FiImage size={ 14 } className='shrink-0' />
+
+                                                        <span className='truncate'>
+
+                                                            { T('Dashboard.Phrase.SaveImage') }
+
+                                                        </span>
+
+                                                    </button>
+
+                                                    <button
+                                                        type='button'
+                                                        onClick={ () => { onExport('text'); } }
+                                                        className='btn-muted flex h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl text-tiny'>
+
+                                                        <FiFileText size={ 14 } className='shrink-0' />
+
+                                                        <span className='truncate'>
+
+                                                            { T('Dashboard.Phrase.SaveText') }
+
+                                                        </span>
+
+                                                    </button>
+
+                                                </div>
+
+                                                {
+                                                    notice.length > 0 &&
+                                                    (
+                                                        <div className='text-tiny text-txt-muted text-center'>
+
+                                                            { notice }
+
+                                                        </div>
+                                                    )
+                                                }
+
+                                            </div>
                                         )
                                     }
 

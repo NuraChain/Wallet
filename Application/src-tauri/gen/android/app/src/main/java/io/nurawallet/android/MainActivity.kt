@@ -25,6 +25,7 @@ class MainActivity : TauriActivity() {
   @SuppressLint("JavascriptInterface")
   override fun onWebViewCreate(webView: WebView) {
     webView.addJavascriptInterface(BrowserBridge(this, webView), "__nuraBrowser")
+    webView.addJavascriptInterface(ExportBridge(this), "__nuraExport")
   }
 
   override fun onAttachedToWindow() {
