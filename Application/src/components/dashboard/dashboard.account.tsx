@@ -70,7 +70,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
                         <div className='flex flex-col'>
 
-                            <div className='text-medium font-bold text-txt-normal'>
+                            <div className='text-medium text-txt-normal font-bold'>
 
                                 { T('Dashboard.Accounts.Title') }
 
@@ -115,12 +115,12 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                             placeholder={ name }
                                             onChange={ (event) => { setDraft(event.target.value); } }
                                             onKeyDown={ (event) => { if (event.key === 'Enter') { onSave(); } } }
-                                            className='glass-input h-12 flex-1 rounded-xl px-3 text-small' />
+                                            className='glass-input text-small h-12 flex-1 rounded-xl px-3' />
 
                                         <button
                                             type='button'
                                             onClick={ onSave }
-                                            className='btn-primary h-12 rounded-xl px-4 text-small'>
+                                            className='btn-primary text-small h-12 rounded-xl px-4'>
 
                                             { T('Dashboard.Accounts.Save') }
 
@@ -140,7 +140,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                         onClick={ () => { onSelect(index); } }
                                         className='flex flex-1 cursor-pointer items-center gap-3 text-start'>
 
-                                        <div className={ `flex size-9 shrink-0 items-center justify-center rounded-lg text-small ${ isActive ? 'bg-btn-primary text-txt-reverse' : 'bg-btn-secondary text-txt-reverse' }` }>
+                                        <div className={ `text-small flex size-9 shrink-0 items-center justify-center rounded-lg ${ isActive ? 'bg-btn-primary text-txt-reverse' : 'bg-btn-secondary text-txt-reverse' }` }>
 
                                             { index + 1 }
 
@@ -148,13 +148,13 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
                                         <div className='flex min-w-0 flex-1 flex-col'>
 
-                                            <div className='truncate text-small text-txt-normal'>
+                                            <div className='text-small text-txt-normal truncate'>
 
                                                 { name }
 
                                             </div>
 
-                                            <div dir='ltr' className='font-mono text-tiny text-txt-muted'>
+                                            <div dir='ltr' className='text-tiny text-txt-muted font-mono'>
 
                                                 { account === undefined ? T('Dashboard.Accounts.Empty') : shortAddress(address) }
 
@@ -165,7 +165,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                         {
                                             isActive &&
                                             (
-                                                <FiCheck size={ 18 } className='shrink-0 text-txt-normal' />
+                                                <FiCheck size={ 18 } className='text-txt-normal shrink-0' />
                                             )
                                         }
 

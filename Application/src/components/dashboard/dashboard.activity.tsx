@@ -41,7 +41,7 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
                 <button
                     type='button'
                     onClick={ onOverview }
-                    className='chip-control flex h-8 items-center gap-1 rounded-lg px-3 text-tiny'>
+                    className='chip-control text-tiny flex h-8 items-center gap-1 rounded-lg px-3'>
 
                     <HiOutlineListBullet size={ 14 } />
 
@@ -61,7 +61,7 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
                         onClick={ () => { onOpen(item.hash); } }
                         className='glass-panel flex items-center gap-3 rounded-xl p-3 text-start not-disabled:cursor-pointer'>
 
-                        <div className='flex size-9 shrink-0 items-center justify-center rounded-lg bg-btn-muted text-txt-normal'>
+                        <div className='bg-btn-muted text-txt-normal flex size-9 shrink-0 items-center justify-center rounded-lg'>
 
                             {
                                 item.incoming ? <FiArrowDownLeft size={ 18 } /> : <FiArrowUpRight size={ 18 } />
@@ -77,7 +77,7 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
 
                             </div>
 
-                            <div dir='ltr' className='truncate font-mono text-tiny text-txt-muted'>
+                            <div dir='ltr' className='text-tiny text-txt-muted truncate font-mono'>
 
                                 { item.incoming ? shortAddress(item.from) : shortAddress(item.to) }
 
@@ -87,7 +87,7 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
 
                         <div className='flex shrink-0 flex-col items-end'>
 
-                            <div dir='ltr' className='font-mono text-small text-txt-normal'>
+                            <div dir='ltr' className='text-small text-txt-normal font-mono'>
 
                                 { `${ item.incoming ? '+' : '-' }${ trimAmount(item.value) } ${ item.symbol }` }
 
@@ -108,7 +108,7 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
             {
                 loading && items.length === 0 &&
                 (
-                    <div className='py-4 text-center text-tiny text-txt-muted'>
+                    <div className='text-tiny text-txt-muted py-4 text-center'>
 
                         { T('Dashboard.Activity.Loading') }
 

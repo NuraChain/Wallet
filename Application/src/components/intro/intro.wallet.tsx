@@ -99,7 +99,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
                 <div className='flex flex-col'>
 
-                    <div className='text-center text-medium font-bold text-txt-normal sm:text-large'>
+                    <div className='text-medium text-txt-normal sm:text-large text-center font-bold'>
 
                         {
                             T('Intro.CreateWallet.Title')
@@ -107,7 +107,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
                     </div>
 
-                    <div className='text-center text-tiny text-txt-muted sm:text-small'>
+                    <div className='text-tiny text-txt-muted sm:text-small text-center'>
 
                         {
                             T('Intro.CreateWallet.Subtitle')
@@ -120,7 +120,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
                 {
                     error.length > 0 &&
                     (
-                        <div className='mx-auto w-fit rounded-lg bg-txt-error/15 px-4 py-2 text-center text-small text-txt-error'>
+                        <div className='bg-txt-error/15 text-small text-txt-error mx-auto w-fit rounded-lg px-4 py-2 text-center'>
 
                             { error }
 
@@ -140,19 +140,19 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
                     <div className='relative flex items-center'>
 
-                        <HiOutlineLockClosed className='absolute left-4 text-txt-muted' size={ 20 } />
+                        <HiOutlineLockClosed className='text-txt-muted absolute left-4' size={ 20 } />
 
                         <input
                             type={ showPassword ? 'text' : 'password' }
                             value={ password }
                             placeholder={ T('Intro.CreateWallet.Password') }
                             onChange={ (e) => { setPassword(e.target.value); } }
-                            className='glass-input h-12 w-full rounded-lg px-12 text-small' />
+                            className='glass-input text-small h-12 w-full rounded-lg px-12' />
 
                         <button
                             type='button'
                             onClick={ () => { setShowPassword(!showPassword); } }
-                            className='absolute right-4 cursor-pointer rounded-lg text-txt-muted hover:text-txt-normal'>
+                            className='text-txt-muted hover:text-txt-normal absolute right-4 cursor-pointer rounded-lg'>
 
                             {
                                 showPassword ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
@@ -176,19 +176,19 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
                     <div className='relative flex items-center'>
 
-                        <HiOutlineLockClosed className='absolute left-4 text-txt-muted' size={ 20 } />
+                        <HiOutlineLockClosed className='text-txt-muted absolute left-4' size={ 20 } />
 
                         <input
                             type={ showPassword2 ? 'text' : 'password' }
                             value={ password2 }
                             placeholder={ T('Intro.CreateWallet.Confirm') }
                             onChange={ (e) => { setPassword2(e.target.value); } }
-                            className='glass-input h-12 w-full rounded-lg px-12 text-small' />
+                            className='glass-input text-small h-12 w-full rounded-lg px-12' />
 
                         <button
                             type='button'
                             onClick={ () => { setShowPassword2(!showPassword2); } }
-                            className='absolute right-4 cursor-pointer rounded-lg text-txt-muted hover:text-txt-normal'>
+                            className='text-txt-muted hover:text-txt-normal absolute right-4 cursor-pointer rounded-lg'>
 
                             {
                                 showPassword2 ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
@@ -213,7 +213,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
                     </button>
 
-                    <div className='text-tiny leading-snug text-txt-muted'>
+                    <div className='text-tiny text-txt-muted leading-snug'>
 
                         {
                             T('Intro.CreateWallet.Agreement')

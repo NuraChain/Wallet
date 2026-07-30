@@ -35,7 +35,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
 
                     <div className='flex items-center justify-between'>
 
-                        <div className='text-medium font-bold text-txt-normal'>
+                        <div className='text-medium text-txt-normal font-bold'>
 
                             {
                                 T('Intro.Select')

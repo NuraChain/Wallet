@@ -174,7 +174,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         <div className='flex min-h-0 flex-1 flex-col'>
 
             { /* `base-1` is the 0.25-alpha token in both themes; `base-2` sits at 0.6/0.55 and read as solid. */ }
-            <div className='flex shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 px-2 py-2 backdrop-blur-xl'>
+            <div className='border-glass-line bg-base-1 flex shrink-0 items-center gap-1.5 border-b p-2 backdrop-blur-xl'>
 
                 <button
                     type='button'
@@ -214,7 +214,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                 <div className='relative flex min-w-0 flex-1 items-center'>
 
-                    <FiSearch size={ 14 } className='pointer-events-none absolute inset-s-2.5 text-txt-muted' />
+                    <FiSearch size={ 14 } className='text-txt-muted pointer-events-none absolute inset-s-2.5' />
 
                     <input
                         dir={ draft.length > 0 ? 'ltr' : undefined }
@@ -222,7 +222,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                         placeholder={ T('Dashboard.Browser.Placeholder') }
                         onChange={ (event) => { setDraft(event.target.value); } }
                         onKeyDown={ (event) => { if (event.key === 'Enter') { onOpen(draft); } } }
-                        className='glass-input h-9 w-full truncate rounded-xl ps-8 pe-8 text-tiny' />
+                        className='glass-input text-tiny h-9 w-full truncate rounded-xl ps-8 pe-8' />
 
                     {
                         current.length > 0 &&
@@ -231,7 +231,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                 type='button'
                                 aria-label={ T('Dashboard.Browser.Reload') }
                                 onClick={ () => { setCounter((value) => value + 1); } }
-                                className='absolute inset-e-2.5 cursor-pointer text-txt-muted'>
+                                className='text-txt-muted absolute inset-e-2.5 cursor-pointer'>
 
                                 <FiRotateCw size={ 14 } />
 
@@ -261,7 +261,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                 reload={ counter }
                 title={ T('Dashboard.Browser.Title') }
                 onFallback={ (value) => { setNotice(value); } }
-                className='min-h-0 flex-1 overflow-hidden bg-base-1'>
+                className='bg-base-1 min-h-0 flex-1 overflow-hidden'>
 
                 <div className='flex size-full flex-col gap-3 overflow-y-auto p-4'>
 
@@ -281,13 +281,13 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                     onClick={ () => { onOpen(item.url); } }
                                     className='btn-muted flex h-14 items-center gap-2 rounded-xl px-3 text-start'>
 
-                                    <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-btn-primary text-tiny text-txt-reverse'>
+                                    <div className='bg-btn-primary text-tiny text-txt-reverse flex size-8 shrink-0 items-center justify-center rounded-lg'>
 
                                         { item.name.slice(0, 1) }
 
                                     </div>
 
-                                    <div className='flex-1 truncate text-small text-txt-normal'>
+                                    <div className='text-small text-txt-normal flex-1 truncate'>
 
                                         { item.name }
 
@@ -310,7 +310,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                                 </div>
 
-                                <div dir='ltr' className='rounded-lg bg-txt-error/10 px-2 py-1 text-start font-mono text-tiny text-txt-error'>
+                                <div dir='ltr' className='bg-txt-error/10 text-tiny text-txt-error rounded-lg px-2 py-1 text-start font-mono'>
 
                                     { notice }
 

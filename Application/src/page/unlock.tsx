@@ -88,7 +88,7 @@ export default function UnlockPage()
             initial={ { opacity: 0 } }
             animate={ { opacity: 1 } }
             transition={ { type: 'tween' } }
-            className='flex size-full items-center justify-center bg-base-1 px-4'>
+            className='bg-base-1 flex size-full items-center justify-center px-4'>
 
             <div className='glass-panel flex w-full max-w-md flex-col gap-4 rounded-3xl p-6'>
 
@@ -96,7 +96,7 @@ export default function UnlockPage()
 
                     <div>
 
-                        <div className='text-large font-semibold text-txt-normal'>
+                        <div className='text-large text-txt-normal font-semibold'>
 
                             { T('Unlock.Title') }
 
@@ -131,7 +131,7 @@ export default function UnlockPage()
                                         animate={ { opacity: 1, scale: 1, y: 0 } }
                                         exit={ { opacity: 0, scale: 0.95, y: -4 } }
                                         transition={ { duration: 0.15 } }
-                                        className='glass-panel absolute inset-e-0 top-12 w-56 origin-top rounded-xl p-3 text-start text-tiny text-txt-normal'>
+                                        className='glass-panel text-tiny text-txt-normal absolute inset-e-0 top-12 w-56 origin-top rounded-xl p-3 text-start'>
 
                                         { T('Unlock.Recovery') }
 
@@ -157,7 +157,7 @@ export default function UnlockPage()
                 {
                     error.length > 0 &&
                     (
-                        <div className='mt-2 rounded-xl bg-txt-error/10 px-3 py-2 text-center text-small text-txt-error'>
+                        <div className='bg-txt-error/10 text-small text-txt-error mt-2 rounded-xl px-3 py-2 text-center'>
 
                             { error }
 
@@ -175,7 +175,7 @@ export default function UnlockPage()
 
                     <div className='relative flex items-center'>
 
-                        <HiOutlineLockClosed className='absolute left-4 text-txt-muted' size={ 18 } />
+                        <HiOutlineLockClosed className='text-txt-muted absolute left-4' size={ 18 } />
 
                         <input
                             value={ password }
@@ -184,12 +184,12 @@ export default function UnlockPage()
                             onChange={ (event) => { setPassword(event.target.value); } }
                             // eslint-disable-next-line @typescript-eslint/strict-void-return
                             onKeyDown={ (event) => event.key === 'Enter' && void onUnlock() }
-                            className='glass-input h-12 w-full rounded-xl px-12 text-small' />
+                            className='glass-input text-small h-12 w-full rounded-xl px-12' />
 
                         <button
                             type='button'
                             onClick={ () => { setShowPassword((value) => !value); } }
-                            className='absolute right-4 rounded-lg text-txt-muted'>
+                            className='text-txt-muted absolute right-4 rounded-lg'>
 
                             {
                                 showPassword ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />

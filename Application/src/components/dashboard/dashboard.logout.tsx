@@ -93,7 +93,7 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
 
                     <div className='flex items-center justify-between'>
 
-                        <div className='text-medium font-bold text-txt-normal'>
+                        <div className='text-medium text-txt-normal font-bold'>
 
                             { T('Dashboard.Logout.Title') }
 
@@ -110,7 +110,7 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
 
                     </div>
 
-                    <div className='flex items-start gap-2 rounded-xl bg-txt-error/10 px-3 py-2 text-start text-tiny text-txt-error'>
+                    <div className='bg-txt-error/10 text-tiny text-txt-error flex items-start gap-2 rounded-xl px-3 py-2 text-start'>
 
                         <FiAlertTriangle size={ 16 } className='mt-0.5 shrink-0' />
 
@@ -125,7 +125,7 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                     {
                         error.length > 0 &&
                         (
-                            <div className='rounded-lg bg-txt-error/15 px-3 py-2 text-center text-tiny text-txt-error'>
+                            <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
 
                                 { error }
 
@@ -143,7 +143,7 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
 
                         <div className='relative flex items-center'>
 
-                            <HiOutlineLockClosed className='absolute left-3 text-txt-muted' size={ 18 } />
+                            <HiOutlineLockClosed className='text-txt-muted absolute left-3' size={ 18 } />
 
                             <input
                                 value={ password }
@@ -152,12 +152,12 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                                 onChange={ (event) => { setPassword(event.target.value); } }
                                 // eslint-disable-next-line @typescript-eslint/strict-void-return
                                 onKeyDown={ (event) => event.key === 'Enter' && void onConfirm() }
-                                className='glass-input h-11 w-full rounded-xl px-10 text-small' />
+                                className='glass-input text-small h-11 w-full rounded-xl px-10' />
 
                             <button
                                 type='button'
                                 onClick={ () => { setShowPassword((value) => !value); } }
-                                className='absolute right-3 rounded-lg text-txt-muted'>
+                                className='text-txt-muted absolute right-3 rounded-lg'>
 
                                 {
                                     showPassword ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
@@ -174,7 +174,7 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                         <button
                             type='button'
                             onClick={ onClose }
-                            className='btn-muted h-11 flex-1 rounded-xl text-small'>
+                            className='btn-muted text-small h-11 flex-1 rounded-xl'>
 
                             { T('Dashboard.Logout.Cancel') }
 
@@ -184,7 +184,7 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                             type='button'
                             disabled={ isLoading }
                             onClick={ () => { void onConfirm(); } }
-                            className='btn-normal h-11 flex-1 rounded-xl text-small text-txt-error disabled:cursor-not-allowed! disabled:opacity-60'>
+                            className='btn-normal text-small text-txt-error h-11 flex-1 rounded-xl disabled:cursor-not-allowed! disabled:opacity-60'>
 
                             {
                                 isLoading ? T('Dashboard.Logout.Pending') : T('Dashboard.Logout.Confirm')

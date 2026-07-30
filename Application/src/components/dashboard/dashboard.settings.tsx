@@ -53,7 +53,7 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
 
                     <div className='flex items-center justify-between'>
 
-                        <div className='text-medium font-bold text-txt-normal'>
+                        <div className='text-medium text-txt-normal font-bold'>
 
                             { T('Dashboard.Settings.Title') }
 
@@ -75,19 +75,19 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
                         onClick={ onLanguage }
                         className='btn-muted flex h-14 items-center gap-3 rounded-xl px-3'>
 
-                        <div className='flex size-8 items-center justify-center rounded-lg bg-btn-muted text-txt-normal'>
+                        <div className='bg-btn-muted text-txt-normal flex size-8 items-center justify-center rounded-lg'>
 
                             <FiGlobe size={ 16 } />
 
                         </div>
 
-                        <div className='flex-1 text-start text-small text-txt-normal'>
+                        <div className='text-small text-txt-normal flex-1 text-start'>
 
                             { T('Intro.Language') }
 
                         </div>
 
-                        <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'rotate-180 text-txt-muted' : 'text-txt-muted' } />
+                        <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'text-txt-muted rotate-180' : 'text-txt-muted' } />
 
                     </button>
 
@@ -96,7 +96,7 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
                         onClick={ onToggleTheme }
                         className='btn-muted flex h-14 items-center gap-3 rounded-xl px-3'>
 
-                        <div className='flex size-8 items-center justify-center rounded-lg bg-btn-muted text-txt-normal'>
+                        <div className='bg-btn-muted text-txt-normal flex size-8 items-center justify-center rounded-lg'>
 
                             {
                                 theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } />
@@ -104,7 +104,7 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
 
                         </div>
 
-                        <div className='flex-1 text-start text-small text-txt-normal'>
+                        <div className='text-small text-txt-normal flex-1 text-start'>
 
                             { T('Dashboard.Settings.Theme') }
 
@@ -123,19 +123,19 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
                         onClick={ onPhrase }
                         className='btn-muted flex h-14 items-center gap-3 rounded-xl px-3'>
 
-                        <div className='flex size-8 items-center justify-center rounded-lg bg-btn-muted text-txt-normal'>
+                        <div className='bg-btn-muted text-txt-normal flex size-8 items-center justify-center rounded-lg'>
 
                             <HiOutlineDocumentText size={ 16 } />
 
                         </div>
 
-                        <div className='flex-1 text-start text-small text-txt-normal'>
+                        <div className='text-small text-txt-normal flex-1 text-start'>
 
                             { T('Dashboard.Phrase.Title') }
 
                         </div>
 
-                        <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'rotate-180 text-txt-muted' : 'text-txt-muted' } />
+                        <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'text-txt-muted rotate-180' : 'text-txt-muted' } />
 
                     </button>
 
@@ -145,7 +145,7 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
                         <button
                             type='button'
                             onClick={ onLock }
-                            className='btn-primary flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl text-small'>
+                            className='btn-primary text-small flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl'>
 
                             <HiOutlineLockClosed size={ 16 } className='shrink-0' />
 
@@ -160,7 +160,7 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
                         <button
                             type='button'
                             onClick={ onLogout }
-                            className='btn-muted flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl text-small text-txt-error'>
+                            className='btn-muted text-small text-txt-error flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl'>
 
                             <FiLogOut size={ 16 } className={ `shrink-0 ${ getDirection() === 'rtl' ? 'rotate-180' : '' }` } />
 

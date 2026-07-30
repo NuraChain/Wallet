@@ -261,7 +261,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
             initial={ { opacity: 0 } }
             animate={ { opacity: 1 } }
             transition={ { type: 'tween' } }
-            className='relative size-full bg-base-1'>
+            className='bg-base-1 relative size-full'>
 
             <AnimatePresence>
 
@@ -518,7 +518,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                         <motion.div
                                             layoutId='dashboard-nav-active'
                                             transition={ { type: 'spring', stiffness: 420, damping: 35 } }
-                                            className='absolute inset-0 rounded-full bg-btn-primary-active' />
+                                            className='bg-btn-primary-active absolute inset-0 rounded-full' />
                                     )
                                 }
 

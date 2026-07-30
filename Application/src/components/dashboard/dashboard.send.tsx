@@ -144,9 +144,9 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 primary
                                 src={ assetLogo }
                                 symbol={ asset.symbol }
-                                className='size-8 shrink-0 text-tiny' />
+                                className='text-tiny size-8 shrink-0' />
 
-                            <div className='min-w-0 truncate text-medium font-bold text-txt-normal'>
+                            <div className='text-medium text-txt-normal min-w-0 truncate font-bold'>
 
                                 { T('Dashboard.Send.Title') }
 
@@ -173,7 +173,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 {
                                     error.length > 0 &&
                                     (
-                                        <div className='rounded-lg bg-txt-error/15 px-3 py-2 text-center text-tiny text-txt-error'>
+                                        <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
 
                                             { error }
 
@@ -189,7 +189,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                                 key={ item.key }
                                                 type='button'
                                                 onClick={ () => { setSelected(item.key); } }
-                                                className={ `flex h-9 items-center rounded-xl px-3 text-tiny duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : 'btn-muted' }` }>
+                                                className={ `text-tiny flex h-9 items-center rounded-xl px-3 duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : 'btn-muted' }` }>
 
                                                 { item.symbol }
 
@@ -212,7 +212,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                         dir='ltr'
                                         placeholder='0x…'
                                         onChange={ (event) => { setTo(event.target.value); } }
-                                        className='glass-input h-11 w-full rounded-xl px-3 font-mono text-small' />
+                                        className='glass-input text-small h-11 w-full rounded-xl px-3 font-mono' />
 
                                 </div>
 
@@ -229,7 +229,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                         <button
                                             type='button'
                                             onClick={ () => { setAmount(asset.formatted); } }
-                                            className='btn-muted rounded-lg px-2 py-0.5 text-tiny text-txt-muted'>
+                                            className='btn-muted text-tiny text-txt-muted rounded-lg px-2 py-0.5'>
 
                                             { T('Dashboard.Send.Max', trimAmount(asset.formatted)) }
 
@@ -243,14 +243,14 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                         inputMode='decimal'
                                         placeholder='0.0'
                                         onChange={ (event) => { setAmount(event.target.value); } }
-                                        className='glass-input h-11 w-full rounded-xl px-3 font-mono text-small' />
+                                        className='glass-input text-small h-11 w-full rounded-xl px-3 font-mono' />
 
                                 </div>
 
                                 <button
                                     type='button'
                                     onClick={ onReview }
-                                    className='btn-primary h-11 rounded-xl text-small'>
+                                    className='btn-primary text-small h-11 rounded-xl'>
 
                                     { T('Dashboard.Send.Review') }
 
@@ -267,7 +267,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                                 <div className='glass-panel flex flex-col gap-2 rounded-xl p-3'>
 
-                                    <div className='flex items-center justify-between gap-2 text-tiny'>
+                                    <div className='text-tiny flex items-center justify-between gap-2'>
 
                                         <span className='text-txt-muted'>
 
@@ -275,7 +275,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                                         </span>
 
-                                        <span dir='ltr' className='font-mono text-txt-normal'>
+                                        <span dir='ltr' className='text-txt-normal font-mono'>
 
                                             { `${ trimAmount(amount) } ${ asset.symbol }` }
 
@@ -283,7 +283,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                                     </div>
 
-                                    <div className='flex items-center justify-between gap-2 text-tiny'>
+                                    <div className='text-tiny flex items-center justify-between gap-2'>
 
                                         <span className='text-txt-muted'>
 
@@ -291,7 +291,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                                         </span>
 
-                                        <span dir='ltr' className='font-mono text-txt-normal'>
+                                        <span dir='ltr' className='text-txt-normal font-mono'>
 
                                             { shortAddress(to) }
 
@@ -299,7 +299,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                                     </div>
 
-                                    <div className='flex items-center justify-between gap-2 text-tiny'>
+                                    <div className='text-tiny flex items-center justify-between gap-2'>
 
                                         <span className='text-txt-muted'>
 
@@ -322,7 +322,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                     <button
                                         type='button'
                                         onClick={ () => { setStep('form'); } }
-                                        className='btn-muted flex h-11 flex-1 items-center justify-center gap-2 rounded-xl text-small'>
+                                        className='btn-muted text-small flex h-11 flex-1 items-center justify-center gap-2 rounded-xl'>
 
                                         <FiArrowLeft size={ 16 } />
 
@@ -333,7 +333,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                     <button
                                         type='button'
                                         onClick={ () => { void onConfirm(); } }
-                                        className='btn-primary h-11 flex-1 rounded-xl text-small'>
+                                        className='btn-primary text-small h-11 flex-1 rounded-xl'>
 
                                         { T('Dashboard.Send.Confirm') }
 
@@ -350,7 +350,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                         (
                             <div className='flex flex-col items-center gap-3 py-6'>
 
-                                <AiOutlineLoading3Quarters size={ 32 } className='animate-spin text-txt-muted' />
+                                <AiOutlineLoading3Quarters size={ 32 } className='text-txt-muted animate-spin' />
 
                                 <div className='text-small text-txt-muted'>
 
@@ -375,7 +375,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                                 </div>
 
-                                <div dir='ltr' className='w-full rounded-xl bg-base-3 p-2 text-center font-mono text-tiny break-all text-txt-muted select-text!'>
+                                <div dir='ltr' className='bg-base-3 text-tiny text-txt-muted w-full rounded-xl p-2 text-center font-mono break-all select-text!'>
 
                                     { hash }
 
@@ -384,7 +384,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 <button
                                     type='button'
                                     onClick={ onClose }
-                                    className='btn-primary h-11 w-full rounded-xl text-small'>
+                                    className='btn-primary text-small h-11 w-full rounded-xl'>
 
                                     { T('Dashboard.Send.Done') }
 
@@ -399,7 +399,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                         (
                             <div className='flex flex-col items-center gap-3 py-4'>
 
-                                <div className='text-center text-small text-txt-error'>
+                                <div className='text-small text-txt-error text-center'>
 
                                     { T('Dashboard.Send.Error') }
 
@@ -408,7 +408,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 <button
                                     type='button'
                                     onClick={ () => { setStep('form'); } }
-                                    className='btn-muted h-11 w-full rounded-xl text-small'>
+                                    className='btn-muted text-small h-11 w-full rounded-xl'>
 
                                     { T('Dashboard.Send.Back') }
 

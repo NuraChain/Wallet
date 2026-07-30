@@ -123,7 +123,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
                 <div className='flex flex-col'>
 
-                    <div className='text-center text-medium font-bold text-txt-normal sm:text-large'>
+                    <div className='text-medium text-txt-normal sm:text-large text-center font-bold'>
 
                         {
                             T('Intro.ImportWallet.Title')
@@ -131,7 +131,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
                     </div>
 
-                    <div className='text-center text-tiny text-txt-muted sm:text-small'>
+                    <div className='text-tiny text-txt-muted sm:text-small text-center'>
 
                         {
                             T('Intro.ImportWallet.Subtitle')
@@ -144,7 +144,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                 {
                     error.length > 0 &&
                     (
-                        <div className='mx-auto w-fit rounded-lg bg-txt-error/15 px-4 py-2 text-center text-small text-txt-error'>
+                        <div className='bg-txt-error/15 text-small text-txt-error mx-auto w-fit rounded-lg px-4 py-2 text-center'>
 
                             { error }
 
@@ -172,19 +172,19 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
                                 <div className='relative flex items-center'>
 
-                                    <HiOutlineLockClosed className='absolute left-4 text-txt-muted' size={ 20 } />
+                                    <HiOutlineLockClosed className='text-txt-muted absolute left-4' size={ 20 } />
 
                                     <input
                                         type={ showPassword ? 'text' : 'password' }
                                         value={ password }
                                         placeholder={ T('Intro.ImportWallet.Password') }
                                         onChange={ (e) => { setPassword(e.target.value); } }
-                                        className='glass-input h-12 w-full rounded-lg px-12 text-small' />
+                                        className='glass-input text-small h-12 w-full rounded-lg px-12' />
 
                                     <button
                                         type='button'
                                         onClick={ () => { setShowPassword(!showPassword); } }
-                                        className='absolute right-4 cursor-pointer rounded-lg text-txt-muted hover:text-txt-normal'>
+                                        className='text-txt-muted hover:text-txt-normal absolute right-4 cursor-pointer rounded-lg'>
 
                                         {
                                             showPassword ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
@@ -208,19 +208,19 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
                                 <div className='relative flex items-center'>
 
-                                    <HiOutlineLockClosed className='absolute left-4 text-txt-muted' size={ 20 } />
+                                    <HiOutlineLockClosed className='text-txt-muted absolute left-4' size={ 20 } />
 
                                     <input
                                         type={ showPassword2 ? 'text' : 'password' }
                                         value={ password2 }
                                         placeholder={ T('Intro.ImportWallet.Confirm') }
                                         onChange={ (e) => { setPassword2(e.target.value); } }
-                                        className='glass-input h-12 w-full rounded-lg px-12 text-small' />
+                                        className='glass-input text-small h-12 w-full rounded-lg px-12' />
 
                                     <button
                                         type='button'
                                         onClick={ () => { setShowPassword2(!showPassword2); } }
-                                        className='absolute right-4 cursor-pointer rounded-lg text-txt-muted hover:text-txt-normal'>
+                                        className='text-txt-muted hover:text-txt-normal absolute right-4 cursor-pointer rounded-lg'>
 
                                         {
                                             showPassword2 ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
@@ -245,7 +245,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
                                 </button>
 
-                                <div className='text-tiny leading-snug text-txt-muted'>
+                                <div className='text-tiny text-txt-muted leading-snug'>
 
                                     {
                                         T('Intro.ImportWallet.Agreement')
@@ -259,7 +259,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                                 type='button'
                                 disabled={ !agree }
                                 onClick={ () => { void onSubmit1(); } }
-                                className={ `btn-primary mx-auto flex h-12 w-full mb-2 items-center justify-center rounded-lg px-4 py-2 sm:w-fit sm:px-8 ${ !agree ? 'cursor-not-allowed! opacity-50' : '' }` }>
+                                className={ `btn-primary mx-auto mb-2 flex h-12 w-full items-center justify-center rounded-lg px-4 py-2 sm:w-fit sm:px-8 ${ !agree ? 'cursor-not-allowed! opacity-50' : '' }` }>
 
                                 {
                                     !loading ? T('Intro.ImportWallet.Submit1') : <AiOutlineLoading3Quarters size={ 24 } className='animate-spin' />
@@ -278,7 +278,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                             <textarea
                                 value={ mnemonic }
                                 onChange={ (e) => { setMnemonic(e.target.value); } }
-                                className='min-h-28 w-full resize-none rounded-xl bg-base-3 p-3 text-small outline-0 sm:min-h-36'
+                                className='bg-base-3 text-small min-h-28 w-full resize-none rounded-xl p-3 outline-0 sm:min-h-36'
                                 placeholder={ T('Intro.ImportWallet.Message') } />
 
                             <button

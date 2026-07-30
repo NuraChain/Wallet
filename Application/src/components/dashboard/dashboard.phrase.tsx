@@ -98,7 +98,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                     <div className='flex items-center justify-between'>
 
-                        <div className='text-medium font-bold text-txt-normal'>
+                        <div className='text-medium text-txt-normal font-bold'>
 
                             { T('Dashboard.Phrase.Title') }
 
@@ -115,7 +115,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                     </div>
 
-                    <div className='flex items-start gap-2 rounded-xl bg-txt-error/10 px-3 py-2 text-start text-tiny text-txt-error'>
+                    <div className='bg-txt-error/10 text-tiny text-txt-error flex items-start gap-2 rounded-xl px-3 py-2 text-start'>
 
                         <FiAlertTriangle size={ 16 } className='mt-0.5 shrink-0' />
 
@@ -130,7 +130,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                     {
                         error.length > 0 &&
                         (
-                            <div className='rounded-lg bg-txt-error/15 px-3 py-2 text-center text-tiny text-txt-error'>
+                            <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
 
                                 { error }
 
@@ -152,7 +152,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                                         <div className='relative flex items-center'>
 
-                                            <HiOutlineLockClosed className='absolute left-3 text-txt-muted' size={ 18 } />
+                                            <HiOutlineLockClosed className='text-txt-muted absolute left-3' size={ 18 } />
 
                                             <input
                                                 value={ password }
@@ -161,12 +161,12 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                                 onChange={ (event) => { setPassword(event.target.value); } }
                                                 // eslint-disable-next-line @typescript-eslint/strict-void-return
                                                 onKeyDown={ (event) => event.key === 'Enter' && void onUnlock() }
-                                                className='glass-input h-11 w-full rounded-xl px-10 text-small' />
+                                                className='glass-input text-small h-11 w-full rounded-xl px-10' />
 
                                             <button
                                                 type='button'
                                                 onClick={ () => { setShowPassword((value) => !value); } }
-                                                className='absolute right-3 rounded-lg text-txt-muted'>
+                                                className='text-txt-muted absolute right-3 rounded-lg'>
 
                                                 {
                                                     showPassword ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
@@ -182,7 +182,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                         type='button'
                                         disabled={ isLoading }
                                         onClick={ () => { void onUnlock(); } }
-                                        className='btn-primary mt-1 flex h-11 items-center justify-center gap-2 rounded-xl text-small disabled:cursor-not-allowed! disabled:opacity-60'>
+                                        className='btn-primary text-small mt-1 flex h-11 items-center justify-center gap-2 rounded-xl disabled:cursor-not-allowed! disabled:opacity-60'>
 
                                         {
                                             isLoading && <AiOutlineLoading3Quarters size={ 16 } className='shrink-0 animate-spin' />
@@ -206,7 +206,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                             words.map((word, index) => (
                                                 <div
                                                     key={ `${ index }-${ word }` }
-                                                    className='flex items-center gap-1 rounded-lg bg-base-1 px-2 py-1.5'>
+                                                    className='bg-base-1 flex items-center gap-1 rounded-lg px-2 py-1.5'>
 
                                                     <span className='text-tiny text-txt-muted'>
 
@@ -214,7 +214,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                                                     </span>
 
-                                                    <span className='truncate font-mono text-tiny text-txt-normal'>
+                                                    <span className='text-tiny text-txt-normal truncate font-mono'>
 
                                                         { word }
 
@@ -232,7 +232,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                             <button
                                                 type='button'
                                                 onClick={ () => { setRevealed(true); } }
-                                                className='absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl bg-base-2/60 text-txt-normal'>
+                                                className='bg-base-2/60 text-txt-normal absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl'>
 
                                                 <FiEye size={ 20 } />
 

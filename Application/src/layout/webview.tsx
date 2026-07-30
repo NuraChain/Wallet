@@ -273,14 +273,14 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
                         title={ title.length > 0 ? title : T('Dashboard.Browser.Title') }
                         referrerPolicy='no-referrer'
                         sandbox='allow-scripts allow-forms allow-popups allow-same-origin'
-                        className='size-full border-0 bg-base-1' />
+                        className='bg-base-1 size-full border-0' />
                 )
             }
 
             {
                 url.length > 0 && embedded &&
                 (
-                    <div className='flex size-full items-center justify-center text-tiny text-txt-muted'>
+                    <div className='text-tiny text-txt-muted flex size-full items-center justify-center'>
 
                         { T('Dashboard.Browser.Loading') }
 

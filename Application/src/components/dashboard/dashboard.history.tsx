@@ -82,7 +82,7 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
 
                         <div className='flex min-w-0 flex-1 flex-col'>
 
-                            <div className='text-medium font-bold text-txt-normal'>
+                            <div className='text-medium text-txt-normal font-bold'>
 
                                 { T('Dashboard.Activity.Title') }
 
@@ -110,7 +110,7 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
 
                     <div className='relative flex items-center'>
 
-                        <FiSearch size={ 16 } className='pointer-events-none absolute inset-s-3 text-txt-muted' />
+                        <FiSearch size={ 16 } className='text-txt-muted pointer-events-none absolute inset-s-3' />
 
                         <input
                             value={ query }
@@ -118,7 +118,7 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
                             autoComplete='off'
                             placeholder={ T('Dashboard.Activity.Search') }
                             onChange={ (event) => { setQuery(event.target.value); } }
-                            className='glass-input h-10 w-full rounded-xl ps-9 pe-3 text-small' />
+                            className='glass-input text-small h-10 w-full rounded-xl ps-9 pe-3' />
 
                     </div>
 
@@ -131,7 +131,7 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
                                     key={ item }
                                     onClick={ () => { setFilter(item); } }
                                     aria-pressed={ filter === item }
-                                    className={ `h-8 flex-1 rounded-lg text-tiny duration-200 ${ filter === item ? 'btn-primary' : 'chip-control' }` }>
+                                    className={ `text-tiny h-8 flex-1 rounded-lg duration-200 ${ filter === item ? 'btn-primary' : 'chip-control' }` }>
 
                                     { T(`Dashboard.Activity.Filter${ item }`) }
 
@@ -153,7 +153,7 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
                                     onClick={ () => { onOpen(item.hash); } }
                                     className='glass-panel flex shrink-0 items-center gap-3 rounded-xl p-3 text-start not-disabled:cursor-pointer'>
 
-                                    <div className='flex size-9 shrink-0 items-center justify-center rounded-lg bg-btn-muted text-txt-normal'>
+                                    <div className='bg-btn-muted text-txt-normal flex size-9 shrink-0 items-center justify-center rounded-lg'>
 
                                         {
                                             item.incoming ? <FiArrowDownLeft size={ 18 } /> : <FiArrowUpRight size={ 18 } />
@@ -169,7 +169,7 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
 
                                         </div>
 
-                                        <div dir='ltr' className='truncate font-mono text-tiny text-txt-muted'>
+                                        <div dir='ltr' className='text-tiny text-txt-muted truncate font-mono'>
 
                                             { item.incoming ? shortAddress(item.from) : shortAddress(item.to) }
 
@@ -179,7 +179,7 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
 
                                     <div className='flex shrink-0 flex-col items-end'>
 
-                                        <div dir='ltr' className='font-mono text-small text-txt-normal'>
+                                        <div dir='ltr' className='text-small text-txt-normal font-mono'>
 
                                             { `${ item.incoming ? '+' : '-' }${ trimAmount(item.value) } ${ item.symbol }` }
 
@@ -200,7 +200,7 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
                         {
                             loading && items.length === 0 &&
                             (
-                                <div className='py-6 text-center text-tiny text-txt-muted'>
+                                <div className='text-tiny text-txt-muted py-6 text-center'>
 
                                     { T('Dashboard.Activity.Loading') }
 

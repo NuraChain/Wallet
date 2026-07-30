@@ -78,13 +78,13 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
 
                         <div className='flex min-w-0 items-center gap-2'>
 
-                            <div className='flex size-8 shrink-0 items-center justify-center rounded-lg bg-btn-primary text-txt-reverse'>
+                            <div className='bg-btn-primary text-txt-reverse flex size-8 shrink-0 items-center justify-center rounded-lg'>
 
                                 <FiGift size={ 16 } />
 
                             </div>
 
-                            <div className='min-w-0 truncate text-medium font-bold text-txt-normal'>
+                            <div className='text-medium text-txt-normal min-w-0 truncate font-bold'>
 
                                 { T('Dashboard.Redeem.Title') }
 
@@ -110,7 +110,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
 
                                     <FiCheckCircle size={ 36 } className='text-btn-primary' />
 
-                                    <div className='text-center text-small text-txt-normal'>
+                                    <div className='text-small text-txt-normal text-center'>
 
                                         { done }
 
@@ -119,7 +119,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                     <button
                                         type='button'
                                         onClick={ onClose }
-                                        className='btn-normal mt-2 h-11 w-full rounded-xl text-small'>
+                                        className='btn-normal text-small mt-2 h-11 w-full rounded-xl'>
 
                                         { T('Dashboard.Redeem.Close') }
 
@@ -132,7 +132,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                     {
                                         error.length > 0 &&
                                         (
-                                            <div className='rounded-lg bg-txt-error/15 px-3 py-2 text-center text-tiny text-txt-error'>
+                                            <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
 
                                                 { error }
 
@@ -148,7 +148,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
 
                                         </div>
 
-                                        <div dir='ltr' className='glass-input flex min-h-11 items-center rounded-xl px-3 py-2 font-mono text-tiny break-all text-txt-muted'>
+                                        <div dir='ltr' className='glass-input text-tiny text-txt-muted flex min-h-11 items-center rounded-xl px-3 py-2 font-mono break-all'>
 
                                             { address }
 
@@ -173,7 +173,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                             onChange={ (event) => { setCode(event.target.value); } }
                                             // eslint-disable-next-line @typescript-eslint/strict-void-return
                                             onKeyDown={ (event) => event.key === 'Enter' && void onSubmit() }
-                                            className='glass-input h-11 w-full rounded-xl px-3 font-mono text-tiny' />
+                                            className='glass-input text-tiny h-11 w-full rounded-xl px-3 font-mono' />
 
                                     </label>
 
@@ -181,7 +181,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                         type='button'
                                         disabled={ isLoading }
                                         onClick={ () => { void onSubmit(); } }
-                                        className='btn-primary mt-1 flex h-11 items-center justify-center gap-2 rounded-xl text-small disabled:cursor-not-allowed! disabled:opacity-60'>
+                                        className='btn-primary text-small mt-1 flex h-11 items-center justify-center gap-2 rounded-xl disabled:cursor-not-allowed! disabled:opacity-60'>
 
                                         {
                                             isLoading && <AiOutlineLoading3Quarters size={ 16 } className='shrink-0 animate-spin' />

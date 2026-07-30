@@ -77,7 +77,7 @@ export default function IntroPage()
 
             </AnimatePresence>
 
-            <div className={ `flex size-full flex-col bg-base-1 px-4 pb-4 sm:px-6 sm:pb-6 ${ isWindows ? 'pt-10' : 'pt-[env(safe-area-inset-top)]' }` }>
+            <div className={ `bg-base-1 flex size-full flex-col px-4 pb-4 sm:px-6 sm:pb-6 ${ isWindows ? 'pt-10' : 'pt-[env(safe-area-inset-top)]' }` }>
 
                 <div className='mx-auto flex size-full max-w-lg flex-col'>
 
@@ -90,7 +90,7 @@ export default function IntroPage()
 
                             <FiGlobe size={ 16 } className='shrink-0' />
 
-                            <div className='truncate text-small'>
+                            <div className='text-small truncate'>
 
                                 {
                                     T('Intro.Language')
@@ -105,7 +105,7 @@ export default function IntroPage()
                         <button
                             onClick={ toggleTheme }
                             type='button'
-                            className='btn-normal flex size-10 shrink-0 items-center justify-center rounded-lg text-txt-normal outline-0'>
+                            className='btn-normal text-txt-normal flex size-10 shrink-0 items-center justify-center rounded-lg outline-0'>
 
                             {
                                 theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } />
@@ -133,13 +133,13 @@ export default function IntroPage()
 
                                         <slide.art className='h-32 max-h-[40%] w-auto max-w-full sm:h-44 md:h-56' />
 
-                                        <h1 className='text-center text-medium font-bold text-txt-normal sm:text-large'>
+                                        <h1 className='text-medium text-txt-normal sm:text-large text-center font-bold'>
 
                                             { T(slide.header) }
 
                                         </h1>
 
-                                        <p className='max-w-sm text-center text-tiny text-txt-normal/75 sm:text-small'>
+                                        <p className='text-tiny text-txt-normal/75 sm:text-small max-w-sm text-center'>
 
                                             { T(slide.message) }
 
@@ -162,7 +162,7 @@ export default function IntroPage()
 
                             <FaPlusCircle size={ 32 } className='shrink-0 p-1.5' />
 
-                            <div className='flex-1 truncate text-start text-small sm:text-medium'>
+                            <div className='text-small sm:text-medium flex-1 truncate text-start'>
 
                                 {
                                     T('Intro.Create')
@@ -181,7 +181,7 @@ export default function IntroPage()
 
                             <LuImport size={ 32 } className='shrink-0 p-1.5' />
 
-                            <div className='flex-1 truncate text-start text-small sm:text-medium'>
+                            <div className='text-small sm:text-medium flex-1 truncate text-start'>
 
                                 {
                                     T('Intro.Import')
@@ -193,7 +193,7 @@ export default function IntroPage()
 
                         </button>
 
-                        <div className='mt-2 text-center text-tiny text-txt-muted'>
+                        <div className='text-tiny text-txt-muted mt-2 text-center'>
 
                             {
                                 T('Intro.Version')

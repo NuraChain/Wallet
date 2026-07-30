@@ -81,7 +81,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
 
                     <div className='flex items-center justify-between'>
 
-                        <div className='text-medium font-bold text-txt-normal'>
+                        <div className='text-medium text-txt-normal font-bold'>
 
                             { T('Dashboard.Tokens.ManageTitle') }
 
@@ -106,7 +106,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                     {
                                         error.length > 0 &&
                                         (
-                                            <div className='rounded-lg bg-txt-error/15 px-3 py-2 text-center text-tiny text-txt-error'>
+                                            <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
 
                                                 { error }
 
@@ -127,7 +127,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                         autoComplete='off'
                                         placeholder='0x…'
                                         onChange={ (event) => { setContract(event.target.value); } }
-                                        className='glass-input h-11 w-full rounded-xl px-3 font-mono text-small' />
+                                        className='glass-input text-small h-11 w-full rounded-xl px-3 font-mono' />
 
                                     <div className='mt-1 flex gap-2'>
 
@@ -135,7 +135,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                             type='button'
                                             disabled={ busy }
                                             onClick={ () => { setAdding(false); setError(''); } }
-                                            className='btn-muted h-11 flex-1 cursor-pointer rounded-xl text-small'>
+                                            className='btn-muted text-small h-11 flex-1 cursor-pointer rounded-xl'>
 
                                             { T('Dashboard.Tokens.Back') }
 
@@ -145,7 +145,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                             type='button'
                                             disabled={ busy }
                                             onClick={ () => { void onSave(); } }
-                                            className='btn-primary h-11 flex-1 cursor-pointer rounded-xl text-small'>
+                                            className='btn-primary text-small h-11 flex-1 cursor-pointer rounded-xl'>
 
                                             { busy ? T('Dashboard.Tokens.Checking') : T('Dashboard.Tokens.Save') }
 
@@ -169,13 +169,13 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
 
                                                 <div className='flex min-w-0 flex-1 flex-col'>
 
-                                                    <div className='truncate text-small text-txt-normal'>
+                                                    <div className='text-small text-txt-normal truncate'>
 
                                                         { item.token.symbol }
 
                                                     </div>
 
-                                                    <div className='truncate text-tiny text-txt-muted'>
+                                                    <div className='text-tiny text-txt-muted truncate'>
 
                                                         { item.token.name }
 
@@ -183,7 +183,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
 
                                                 </div>
 
-                                                <div dir='ltr' className='font-mono text-tiny text-txt-normal'>
+                                                <div dir='ltr' className='text-tiny text-txt-normal font-mono'>
 
                                                     { trimAmount(item.formatted) }
 
@@ -193,7 +193,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                                     type='button'
                                                     onClick={ () => { onRemove(item.token.address); } }
                                                     aria-label={ T('Dashboard.Tokens.Remove') }
-                                                    className='btn-muted flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-txt-error'>
+                                                    className='btn-muted text-txt-error flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg'>
 
                                                     <FiTrash2 size={ 16 } />
 
@@ -206,7 +206,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                     {
                                         tokens.length === 0 &&
                                         (
-                                            <div className='py-4 text-center text-tiny text-txt-muted'>
+                                            <div className='text-tiny text-txt-muted py-4 text-center'>
 
                                                 { T('Dashboard.Tokens.Empty') }
 
@@ -217,7 +217,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                     <button
                                         type='button'
                                         onClick={ () => { setAdding(true); setError(''); } }
-                                        className='btn-normal mt-1 flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl text-small'>
+                                        className='btn-normal text-small mt-1 flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl'>
 
                                         <FiPlus size={ 16 } />
 

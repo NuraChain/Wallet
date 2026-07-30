@@ -91,7 +91,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
                     <div className='flex items-center justify-between'>
 
-                        <div className='text-medium font-bold text-txt-normal'>
+                        <div className='text-medium text-txt-normal font-bold'>
 
                             { T('Dashboard.Network.Title') }
 
@@ -116,7 +116,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                     {
                                         error.length > 0 &&
                                         (
-                                            <div className='rounded-lg bg-txt-error/15 px-3 py-2 text-center text-tiny text-txt-error'>
+                                            <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
 
                                                 { error }
 
@@ -128,14 +128,14 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                         value={ name }
                                         placeholder={ T('Dashboard.Network.Name') }
                                         onChange={ (event) => { setName(event.target.value); } }
-                                        className='glass-input h-11 w-full rounded-xl px-3 text-small' />
+                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
 
                                     <input
                                         value={ rpcUrl }
                                         dir={ rpcUrl.length > 0 ? 'ltr' : undefined }
                                         placeholder={ T('Dashboard.Network.Rpc') }
                                         onChange={ (event) => { setRpcUrl(event.target.value); } }
-                                        className='glass-input h-11 w-full rounded-xl px-3 text-small' />
+                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
 
                                     <input
                                         value={ chainId }
@@ -143,28 +143,28 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                         inputMode='numeric'
                                         placeholder={ T('Dashboard.Network.ChainId') }
                                         onChange={ (event) => { setChainId(event.target.value); } }
-                                        className='glass-input h-11 w-full rounded-xl px-3 text-small' />
+                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
 
                                     <input
                                         value={ symbol }
                                         dir={ symbol.length > 0 ? 'ltr' : undefined }
                                         placeholder={ T('Dashboard.Network.Symbol') }
                                         onChange={ (event) => { setSymbol(event.target.value); } }
-                                        className='glass-input h-11 w-full rounded-xl px-3 text-small' />
+                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
 
                                     <input
                                         value={ explorerUrl }
                                         dir={ explorerUrl.length > 0 ? 'ltr' : undefined }
                                         placeholder={ T('Dashboard.Network.Explorer') }
                                         onChange={ (event) => { setExplorerUrl(event.target.value); } }
-                                        className='glass-input h-11 w-full rounded-xl px-3 text-small' />
+                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
 
                                     <div className='mt-1 flex gap-2'>
 
                                         <button
                                             type='button'
                                             onClick={ () => { setAdding(false); setError(''); } }
-                                            className='btn-muted h-11 flex-1 rounded-xl text-small'>
+                                            className='btn-muted text-small h-11 flex-1 rounded-xl'>
 
                                             { T('Dashboard.Network.Back') }
 
@@ -173,7 +173,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                         <button
                                             type='button'
                                             onClick={ () => { void onAdd(); } }
-                                            className='btn-primary h-11 flex-1 rounded-xl text-small'>
+                                            className='btn-primary text-small h-11 flex-1 rounded-xl'>
 
                                             { T('Dashboard.Network.Save') }
 
@@ -200,13 +200,13 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                         onClick={ () => { void onSelect(item.id); } }
                                                         className={ `btn-muted flex h-12 flex-1 items-center gap-2 rounded-xl px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
 
-                                                        <div className='flex size-7 items-center justify-center rounded-lg bg-btn-primary text-tiny text-txt-reverse'>
+                                                        <div className='bg-btn-primary text-tiny text-txt-reverse flex size-7 items-center justify-center rounded-lg'>
 
                                                             { item.symbol.slice(0, 1) }
 
                                                         </div>
 
-                                                        <div className='flex-1 text-small text-txt-normal'>
+                                                        <div className='text-small text-txt-normal flex-1'>
 
                                                             { item.name }
 
@@ -224,7 +224,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                             <button
                                                                 type='button'
                                                                 onClick={ () => { void onRemove(item.id); } }
-                                                                className='btn-muted flex size-9 items-center justify-center rounded-xl text-txt-error'>
+                                                                className='btn-muted text-txt-error flex size-9 items-center justify-center rounded-xl'>
 
                                                                 <FiTrash2 size={ 16 } />
 
@@ -240,7 +240,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                     <button
                                         type='button'
                                         onClick={ () => { setAdding(true); } }
-                                        className='btn-normal mt-1 flex h-11 items-center justify-center gap-2 rounded-xl text-small'>
+                                        className='btn-normal text-small mt-1 flex h-11 items-center justify-center gap-2 rounded-xl'>
 
                                         <FiPlus size={ 16 } />
 

@@ -1,22 +1,21 @@
 /**
  * Navigation state the Android bridge pushes back after every page event.
  */
-export type BrowserState = { url: string; title: string; canBack: boolean; canForward: boolean; loading: boolean };
+export interface BrowserState { url: string; title: string; canBack: boolean; canForward: boolean; loading: boolean }
 
 /**
  * The Kotlin side of the native browser, injected as `__nuraBrowser` on the app's own webview only.
  *
  * Coordinates are CSS pixels; the bridge converts them to device pixels itself.
  */
-type BrowserBridge =
-{
+interface BrowserBridge {
     open: (url: string, x: number, y: number, width: number, height: number) => void;
     setBounds: (x: number, y: number, width: number, height: number) => void;
     close: () => void;
     reload: () => void;
     back: () => void;
     forward: () => void;
-};
+}
 
 declare global
 {

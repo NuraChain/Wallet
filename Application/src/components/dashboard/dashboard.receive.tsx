@@ -78,7 +78,7 @@ export default function DashboardReceive({ address, network, onClose }: { addres
 
                     <div className='flex w-full items-center justify-between'>
 
-                        <div className='text-medium font-bold text-txt-normal'>
+                        <div className='text-medium text-txt-normal font-bold'>
 
                             { T('Dashboard.Receive.Title') }
 
@@ -103,7 +103,7 @@ export default function DashboardReceive({ address, network, onClose }: { addres
 
                     </div>
 
-                    <div className='text-center text-tiny text-txt-muted'>
+                    <div className='text-tiny text-txt-muted text-center'>
 
                         { T('Dashboard.Receive.Scan', network.symbol) }
 
@@ -111,7 +111,7 @@ export default function DashboardReceive({ address, network, onClose }: { addres
 
                     <div
                         dir='ltr'
-                        className='glass-panel w-full rounded-xl p-3 text-center font-mono text-tiny break-all text-txt-normal select-text!'>
+                        className='glass-panel text-tiny text-txt-normal w-full rounded-xl p-3 text-center font-mono break-all select-text!'>
 
                         { address }
 
@@ -120,7 +120,7 @@ export default function DashboardReceive({ address, network, onClose }: { addres
                     <button
                         type='button'
                         onClick={ () => { void onCopy(); } }
-                        className='btn-primary flex h-11 w-full items-center justify-center gap-2 rounded-xl text-small'>
+                        className='btn-primary text-small flex h-11 w-full items-center justify-center gap-2 rounded-xl'>
 
                         <HiOutlineSquare2Stack size={ 16 } />
 
