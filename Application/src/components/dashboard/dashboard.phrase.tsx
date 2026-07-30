@@ -5,9 +5,9 @@ import { FiAlertTriangle, FiEye } from 'react-icons/fi';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 
-import { T } from '../utility/language';
-import { passwordVerify } from '../core/password';
-import { getValue, getValueEncrypted } from '../utility/storage';
+import { T } from '../../utility/language';
+import { passwordVerify } from '../../core/password';
+import { getValue, getValueEncrypted } from '../../utility/storage';
 
 /**
  * DashboardPhrase - Password-gated reveal of the recovery phrase.

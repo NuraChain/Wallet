@@ -4,12 +4,12 @@ import { IoClose } from 'react-icons/io5';
 import { FiAlertTriangle } from 'react-icons/fi';
 import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 
-import IntroPage from '../page/intro';
+import IntroPage from '../../page/intro';
 
-import { T } from '../utility/language';
-import { passwordVerify } from '../core/password';
-import { openPage } from '../utility/context';
-import { getValue, removeValue } from '../utility/storage';
+import { T } from '../../utility/language';
+import { passwordVerify } from '../../core/password';
+import { openPage } from '../../utility/context';
+import { getValue, removeValue } from '../../utility/storage';
 
 /**
  * DashboardLogout - Password-gated wallet removal.

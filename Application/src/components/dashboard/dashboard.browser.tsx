@@ -1,13 +1,13 @@
-import type { Network } from '../core/network';
+import type { Network } from '../../core/network';
 
 import { useEffect, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch } from 'react-icons/fi';
 
-import WebFrame from '../layout/webview';
+import WebFrame from '../../layout/webview';
 
-import { getDirection, T } from '../utility/language';
-import { getNativeBrowser, onNativeBrowserState, type BrowserState } from '../core/browser';
+import { getDirection, T } from '../../utility/language';
+import { getNativeBrowser, onNativeBrowserState, type BrowserState } from '../../core/browser';
 
 /**
  * Label of the child webview that renders the page. Only ever one exists at a time.

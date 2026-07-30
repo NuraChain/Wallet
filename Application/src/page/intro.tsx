@@ -10,13 +10,13 @@ import { FiGlobe, FiMoon, FiSun } from 'react-icons/fi';
 import { IoIosArrowDown, IoIosArrowForward } from 'react-icons/io';
 import { useRef, useCallback, useState, type ReactNode } from 'react';
 
-import IntroImport from '../components/intro.import';
-import IntroWallet from '../components/intro.wallet';
-import IntroLanguage from '../components/intro.language';
+import IntroImport from '../components/intro/intro.import';
+import IntroWallet from '../components/intro/intro.wallet';
+import IntroLanguage from '../components/intro/intro.language';
 
 import { getDirection, getLanguage, T } from '../utility/language';
 import { getTheme, setTheme } from '../utility/theme';
-import { IntroArtConnect, IntroArtDecentralized, IntroArtSecure } from '../components/intro.art';
+import { IntroArtConnect, IntroArtDecentralized, IntroArtSecure } from '../components/intro/intro.art';
 
 import 'swiper/css';
 import 'swiper/css/pagination';

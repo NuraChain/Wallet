@@ -1,6 +1,6 @@
 import { HiOutlineSquares2X2 } from 'react-icons/hi2';
 
-import { T } from '../utility/language';
+import { T } from '../../utility/language';
 
 /**
  * DashboardApps - Placeholder for the upcoming dApp catalogue.

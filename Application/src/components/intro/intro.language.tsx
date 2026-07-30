@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { FiCheck } from 'react-icons/fi';
 import { IoClose } from 'react-icons/io5';
 
-import { T, getLanguage, setLanguage, languageRecord, type LanguageType } from '../utility/language';
+import { T, getLanguage, setLanguage, languageRecord, type LanguageType } from '../../utility/language';
 
 export default function IntroLanguage({ onClose }: { onClose: () => void })
 {

@@ -5,14 +5,14 @@ import { IoClose } from 'react-icons/io5';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 
-import WalletManager from '../core/wallet';
+import WalletManager from '../../core/wallet';
 
-import DashboardPage from '../page/dashboard';
+import DashboardPage from '../../page/dashboard';
 
-import { T } from '../utility/language';
-import { passwordHash } from '../core/password';
-import { openPage } from '../utility/context';
-import { setValue, setValueEncrypted } from '../utility/storage';
+import { T } from '../../utility/language';
+import { passwordHash } from '../../core/password';
+import { openPage } from '../../utility/context';
+import { setValue, setValueEncrypted } from '../../utility/storage';
 
 export default function IntroWallet({ onClose }: { onClose: () => void })
 {

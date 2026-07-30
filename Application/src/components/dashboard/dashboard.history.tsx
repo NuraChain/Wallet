@@ -1,12 +1,12 @@
-import type { Transaction } from '../hook/history';
+import type { Transaction } from '../../hook/history';
 
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { IoClose } from 'react-icons/io5';
 import { FiArrowDownLeft, FiArrowUpRight, FiInbox, FiSearch } from 'react-icons/fi';
 
-import { T } from '../utility/language';
-import { formatDate, shortAddress, trimAmount } from '../utility/format';
+import { T } from '../../utility/language';
+import { formatDate, shortAddress, trimAmount } from '../../utility/format';
 
 /**
  * The direction filters offered above the list.

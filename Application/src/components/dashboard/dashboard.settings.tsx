@@ -4,8 +4,8 @@ import { IoChevronForward, IoClose } from 'react-icons/io5';
 import { FiGlobe, FiLogOut, FiMoon, FiSun } from 'react-icons/fi';
 import { HiOutlineDocumentText, HiOutlineLockClosed } from 'react-icons/hi2';
 
-import { getTheme, setTheme } from '../utility/theme';
-import { getDirection, T } from '../utility/language';
+import { getTheme, setTheme } from '../../utility/theme';
+import { getDirection, T } from '../../utility/language';
 
 /**
  * DashboardSettings - App settings: language, theme, lock, and logout.

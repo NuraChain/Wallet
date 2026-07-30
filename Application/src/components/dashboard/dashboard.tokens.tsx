@@ -1,16 +1,16 @@
-import type { Network } from '../core/network';
-import type { TokenBalance } from '../core/token';
+import type { Network } from '../../core/network';
+import type { TokenBalance } from '../../core/token';
 
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { IoClose } from 'react-icons/io5';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 
-import TokenIcon from './token.icon';
+import TokenIcon from '../token.icon';
 
-import { T } from '../utility/language';
-import { getTokenLogo } from '../core/price';
-import { trimAmount } from '../utility/format';
+import { T } from '../../utility/language';
+import { getTokenLogo } from '../../core/price';
+import { trimAmount } from '../../utility/format';
 
 /**
  * DashboardTokens - The token list the wallet tab reads from, plus the form that fills it.

@@ -4,8 +4,8 @@ import { IoClose } from 'react-icons/io5';
 import { FiCheckCircle, FiGift } from 'react-icons/fi';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
-import { T } from '../utility/language';
-import { isRedeemCode, redeemCode } from '../core/redeem';
+import { T } from '../../utility/language';
+import { isRedeemCode, redeemCode } from '../../core/redeem';
 
 /**
  * DashboardRedeem - Redeems a code against the active account.

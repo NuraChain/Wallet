@@ -1,4 +1,4 @@
-import type { Network } from '../core/network';
+import type { Network } from '../../core/network';
 
 import QRCode from 'qrcode';
 import { motion } from 'motion/react';
@@ -6,7 +6,7 @@ import { IoClose } from 'react-icons/io5';
 import { useEffect, useState } from 'react';
 import { HiOutlineSquare2Stack } from 'react-icons/hi2';
 
-import { T } from '../utility/language';
+import { T } from '../../utility/language';
 
 /**
  * DashboardReceive - Shows the account address as a QR code plus a copy control.

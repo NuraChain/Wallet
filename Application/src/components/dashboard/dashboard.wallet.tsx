@@ -1,18 +1,18 @@
-import type { Network } from '../core/network';
-import type { TokenBalance } from '../core/token';
-import type { Transaction } from '../hook/history';
+import type { Network } from '../../core/network';
+import type { TokenBalance } from '../../core/token';
+import type { Transaction } from '../../hook/history';
 
 import { useEffect, useState } from 'react';
 import { IoChevronDown } from 'react-icons/io5';
 import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
 import { HiOutlineCog6Tooth, HiOutlineSquare2Stack, HiOutlineSquares2X2, HiOutlineUser } from 'react-icons/hi2';
 
-import TokenIcon from './token.icon';
+import TokenIcon from '../token.icon';
 import DashboardActivity from './dashboard.activity';
 
-import { T } from '../utility/language';
-import { getNativeCoinId, getNativeLogo, getTokenLogo, type PriceMap } from '../core/price';
-import { formatUsd, shortAddress, trimAmount } from '../utility/format';
+import { T } from '../../utility/language';
+import { getNativeCoinId, getNativeLogo, getTokenLogo, type PriceMap } from '../../core/price';
+import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
 
 /**
  * DashboardWallet - Primary account view: portfolio value, address, transfer actions, holdings, and history.

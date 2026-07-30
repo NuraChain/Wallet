@@ -1,4 +1,4 @@
-import type { TokenBalance } from '../core/token';
+import type { TokenBalance } from '../../core/token';
 
 import { motion } from 'motion/react';
 import { IoClose } from 'react-icons/io5';
@@ -7,14 +7,14 @@ import { isAddress, parseUnits } from 'ethers';
 import { FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
-import WalletManager from '../core/wallet';
+import WalletManager from '../../core/wallet';
 
-import TokenIcon from './token.icon';
+import TokenIcon from '../token.icon';
 
-import { T } from '../utility/language';
-import { getProvider, type Network } from '../core/network';
-import { getNativeLogo, getTokenLogo } from '../core/price';
-import { shortAddress, trimAmount } from '../utility/format';
+import { T } from '../../utility/language';
+import { getProvider, type Network } from '../../core/network';
+import { getNativeLogo, getTokenLogo } from '../../core/price';
+import { shortAddress, trimAmount } from '../../utility/format';
 
 type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
 

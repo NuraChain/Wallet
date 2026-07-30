@@ -1,10 +1,10 @@
-import type { Transaction } from '../hook/history';
+import type { Transaction } from '../../hook/history';
 
 import { FiArrowDownLeft, FiArrowUpRight, FiInbox } from 'react-icons/fi';
 import { HiOutlineListBullet } from 'react-icons/hi2';
 
-import { T } from '../utility/language';
-import { formatDate, shortAddress, trimAmount } from '../utility/format';
+import { T } from '../../utility/language';
+import { formatDate, shortAddress, trimAmount } from '../../utility/format';
 
 /**
  * How many transactions the wallet tab shows before sending the user to the overview.

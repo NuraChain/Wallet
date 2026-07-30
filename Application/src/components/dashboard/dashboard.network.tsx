@@ -3,8 +3,8 @@ import { motion } from 'motion/react';
 import { IoClose } from 'react-icons/io5';
 import { FiCheck, FiPlus, FiTrash2 } from 'react-icons/fi';
 
-import { T } from '../utility/language';
-import { addNetwork, getNetworks, removeNetwork, setNetwork, type Network } from '../core/network';
+import { T } from '../../utility/language';
+import { addNetwork, getNetworks, removeNetwork, setNetwork, type Network } from '../../core/network';
 
 /**
  * DashboardNetwork - Network picker and custom-network editor.

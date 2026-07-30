@@ -3,11 +3,11 @@ import { motion } from 'motion/react';
 import { FiCheck, FiEdit2 } from 'react-icons/fi';
 import { IoClose } from 'react-icons/io5';
 
-import WalletManager from '../core/wallet';
+import WalletManager from '../../core/wallet';
 
-import { T } from '../utility/language';
-import { shortAddress } from '../utility/format';
-import { accountLimit, defaultAccountName, type Account } from '../utility/account';
+import { T } from '../../utility/language';
+import { shortAddress } from '../../utility/format';
+import { accountLimit, defaultAccountName, type Account } from '../../utility/account';
 
 /**
  * DashboardAccount - Account switcher: pick which derived account the dashboard is looking at, and label them.
