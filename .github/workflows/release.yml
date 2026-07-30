@@ -78,6 +78,15 @@ jobs:
     name: android (.apk)
     runs-on: ubuntu-latest
 
+    # The `secrets` context is not available to a step's `if`, but job-level `env`
+    # may read it and `env` is available there. This mapping is that bridge; without
+    # it the signing step cannot ask whether a keystore was configured.
+    env:
+      ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -123,39 +132,39 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: npm run tauri android init
 
-      - name: Build unsigned release APK
+      # Gradle signs during the build when this file is present, which also gets the
+      # APK zipaligned - apksigner alone does not align, and Android requires it.
+      - name: Configure release signing
+        if: env.ANDROID_KEYSTORE != ''
+        working-directory: ${{ env.APP_DIR }}/src-tauri/gen/android
+        run: |
+          echo "$ANDROID_KEYSTORE" | base64 -d > release.jks
+          {
+            echo "storeFile=release.jks"
+            echo "storePassword=$ANDROID_KEYSTORE_PASSWORD"
+            echo "keyAlias=$ANDROID_KEY_ALIAS"
+            echo "keyPassword=$ANDROID_KEY_PASSWORD"
+          } > keystore.properties
+
+      - name: Build release APK
         working-directory: ${{ env.APP_DIR }}
         run: npm run tauri android build -- --apk
 
-      # An unsigned APK cannot be installed, so it is signed here if a keystore is
-      # configured. Without the secrets the job still produces the unsigned file
-      # rather than failing outright.
-      - name: Sign the APK
-        id: sign
-        if: ${{ secrets.ANDROID_KEYSTORE != '' }}
-        env:
-          ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      # The keystore is deleted before anything else runs so it cannot reach an
+      # artifact, and the filename records whether the APK is actually installable.
+      - name: Collect the APK
         working-directory: ${{ env.APP_DIR }}
         run: |
-          echo "$ANDROID_KEYSTORE" | base64 -d > release.jks
-          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
-          IN=src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
-          "$BUILD_TOOLS/apksigner" sign \
-            --ks release.jks \
-            --ks-pass "pass:$ANDROID_KEYSTORE_PASSWORD" \
-            --ks-key-alias "$ANDROID_KEY_ALIAS" \
-            --key-pass "pass:$ANDROID_KEY_PASSWORD" \
-            --out nura-wallet.apk "$IN"
-          "$BUILD_TOOLS/apksigner" verify --print-certs nura-wallet.apk
-          rm -f release.jks
-
-      - name: Stage the unsigned APK
-        if: ${{ secrets.ANDROID_KEYSTORE == '' }}
-        working-directory: ${{ env.APP_DIR }}
-        run: cp src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk nura-wallet-unsigned.apk
+          OUT=src-tauri/gen/android/app/build/outputs/apk/universal/release
+          APK=$(ls "$OUT"/*.apk | head -1)
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          rm -f src-tauri/gen/android/keystore.properties src-tauri/gen/android/release.jks
+          if "$APKSIGNER" verify --print-certs "$APK"; then
+            cp "$APK" nura-wallet.apk
+          else
+            cp "$APK" nura-wallet-unsigned.apk
+            echo "::warning::APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
+          fi
 
       - uses: actions/upload-artifact@v4
         with:

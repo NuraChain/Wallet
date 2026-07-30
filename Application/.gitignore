@@ -24,3 +24,9 @@ src-tauri/gen/android/local.properties
 
 src-tauri/gen/schemas
 src-tauri/target
+
+# Release signing material. Never commit these: the keystore and its passwords are
+# what prove an update came from you, and losing control of them is unrecoverable.
+src-tauri/gen/android/keystore.properties
+src-tauri/gen/android/*.jks
+src-tauri/gen/android/*.keystore

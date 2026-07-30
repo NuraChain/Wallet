@@ -14,6 +14,19 @@ val tauriProperties = Properties().apply {
     }
 }
 
+// Release signing, when a keystore has been provided. The file lives outside version control (see
+// .gitignore) and is written by CI from repository secrets, or created by hand for a local release
+// build. Absent it, the release build stays unsigned and simply cannot be installed.
+val keystoreProperties = Properties().apply {
+    val propFile = rootProject.file("keystore.properties")
+
+    if (propFile.exists()) {
+        propFile.inputStream().use { load(it) }
+    }
+}
+
+val keystorePath: String? = keystoreProperties.getProperty("storeFile")
+
 android {
     compileSdk = 36
     ndkVersion = "29.0.13113456 rc1"
@@ -26,6 +39,19 @@ android {
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+    }
+
+    signingConfigs {
+        create("release") {
+            if (keystorePath != null) {
+                // Resolved against gen/android, so keystore.properties can name the file
+                // plainly and stay portable between a Windows checkout and a Linux runner.
+                storeFile = rootProject.file(keystorePath)
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -45,6 +71,12 @@ android {
         }
 
         getByName("release") {
+            // Attaching an empty config would fail the build outright, so an unconfigured checkout
+            // still produces the (uninstallable) unsigned artifact rather than breaking.
+            if (keystorePath != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }.plus(getDefaultProguardFile("proguard-android-optimize.txt"))
