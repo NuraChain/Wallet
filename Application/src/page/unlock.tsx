@@ -203,6 +203,7 @@ export default function UnlockPage()
 
                 <button
                     type='button'
+                    dir='rtl'
                     disabled={ isLoading }
                     onClick={ () => { void onUnlock(); } }
                     className='btn-primary mx-auto flex h-12 w-fit items-center justify-center gap-2 rounded-xl px-8 py-2 disabled:cursor-not-allowed! disabled:opacity-60'>

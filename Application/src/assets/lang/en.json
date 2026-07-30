@@ -66,7 +66,7 @@
         "Subtitle": "Enter your password to open your wallet",
         "Password": "Password",
         "Submit": "Unlock Wallet",
-        "Loading": "Unlocking ...",
+        "Loading": "Unlocking",
         "Hint": "Your wallet data stays on this device and is decrypted locally.",
         "Recovery": "If you forget your password, you will not be able to recover it.",
         "ErrorRequired": "Please enter your password",
