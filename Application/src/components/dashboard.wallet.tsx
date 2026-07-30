@@ -4,7 +4,7 @@ import type { Transaction } from '../hook/history';
 
 import { useEffect, useState } from 'react';
 import { IoChevronDown } from 'react-icons/io5';
-import { FiArrowDownLeft, FiArrowUpRight } from 'react-icons/fi';
+import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
 import { HiOutlineCog6Tooth, HiOutlineSquare2Stack, HiOutlineSquares2X2, HiOutlineUser } from 'react-icons/hi2';
 
 import TokenIcon from './token.icon';
@@ -34,6 +34,7 @@ import { formatUsd, shortAddress, trimAmount } from '../utility/format';
  * @param {PriceMap} props.prices USD price per CoinGecko coin id, used for the per-row value.
  * @param {() => void} props.onSend Opens the send modal.
  * @param {() => void} props.onReceive Opens the receive modal.
+ * @param {() => void} props.onRedeem Opens the redeem modal.
  * @param {() => void} props.onNetwork Opens the network modal.
  * @param {() => void} props.onAccounts Opens the account switcher.
  * @param {() => void} props.onTokens Opens the token manager.
@@ -43,7 +44,7 @@ import { formatUsd, shortAddress, trimAmount } from '../utility/format';
  * @param {() => void} props.onOverview Opens the full history page.
  * @returns {JSX.Element} The wallet tab.
  */
-export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
+export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
 {
     const [ notice, setNotice ] = useState('');
 
@@ -223,6 +224,25 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                     <span className='text-tiny text-txt-muted'>
 
                         { T('Dashboard.Receive.Title') }
+
+                    </span>
+
+                </button>
+
+                <button
+                    type='button'
+                    onClick={ onRedeem }
+                    className='flex cursor-pointer flex-col items-center gap-1'>
+
+                    <div className='btn-normal flex size-14 items-center justify-center rounded-2xl'>
+
+                        <FiGift size={ 22 } />
+
+                    </div>
+
+                    <span className='text-tiny text-txt-muted'>
+
+                        { T('Dashboard.Redeem.Title') }
 
                     </span>
 

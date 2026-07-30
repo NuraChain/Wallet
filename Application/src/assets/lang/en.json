@@ -144,16 +144,17 @@
             "Title": "Receive",
             "Scan": "Scan to receive %s on this network"
         },
-        "Phrase": {
-            "Title": "Recovery Phrase",
-            "Warning": "Anyone who sees these words can take everything in this wallet. Write them down offline and never share them.",
-            "Password": "Password",
-            "Unlock": "Show Phrase",
-            "Pending": "Checking…",
-            "Reveal": "Tap to reveal",
-            "ErrorRequired": "Enter your password",
-            "ErrorInvalid": "Wrong password",
-            "ErrorMissing": "Could not read the recovery phrase"
+        "Redeem": {
+            "Title": "Redeem",
+            "Address": "Reward goes to",
+            "Code": "Redeem code",
+            "CodeHint": "00000000-0000-0000-0000-000000000000",
+            "Submit": "Redeem",
+            "Pending": "Redeeming…",
+            "Close": "Done",
+            "Success": "Code redeemed",
+            "ErrorCode": "That does not look like a valid redeem code",
+            "ErrorFailed": "Could not redeem this code. Try again later."
         },
         "Activity": {
             "Title": "Transaction History",
@@ -194,6 +195,17 @@
             "ThemeLight": "Light",
             "ThemeDark": "Dark",
             "Logout": "Log out"
+        },
+        "Phrase": {
+            "Title": "Recovery Phrase",
+            "Warning": "Anyone who sees these words can take everything in this wallet. Write them down offline and never share them.",
+            "Password": "Password",
+            "Unlock": "Show Phrase",
+            "Pending": "Checking…",
+            "Reveal": "Tap to reveal",
+            "ErrorRequired": "Enter your password",
+            "ErrorInvalid": "Wrong password",
+            "ErrorMissing": "Could not read the recovery phrase"
         },
         "Logout": {
             "Title": "Log out",

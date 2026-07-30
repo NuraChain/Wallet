@@ -20,6 +20,7 @@ import DashboardLogout from '../components/dashboard.logout';
 import DashboardAccount from '../components/dashboard.account';
 import DashboardNetwork from '../components/dashboard.network';
 import DashboardReceive from '../components/dashboard.receive';
+import DashboardRedeem from '../components/dashboard.redeem';
 import DashboardBrowser from '../components/dashboard.browser';
 import DashboardHistory from '../components/dashboard.history';
 import DashboardPhrase from '../components/dashboard.phrase';
@@ -37,7 +38,7 @@ import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type
 
 import 'swiper/css';
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings' | 'accounts' | 'tokens' | 'history' | 'phrase';
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem';
 
 const navMap: { key: string; icon: IconType }[] =
 [
@@ -352,6 +353,16 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                 }
 
                 {
+                    modal === 'redeem' &&
+                    (
+                        <DashboardRedeem
+                            key='redeem'
+                            address={ address }
+                            onClose={ () => { setModal('none'); } } />
+                    )
+                }
+
+                {
                     modal === 'phrase' &&
                     (
                         <DashboardPhrase
@@ -453,6 +464,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                                             history={ history }
                                                             onSend={ () => { setModal('send'); } }
                                                             onReceive={ () => { setModal('receive'); } }
+                                                            onRedeem={ () => { setModal('redeem'); } }
                                                             onNetwork={ () => { setModal('network'); } }
                                                             onAccounts={ () => { setModal('accounts'); } }
                                                             onTokens={ () => { setModal('tokens'); } }
