@@ -3,9 +3,10 @@ import type { TokenBalance } from '../../core/token';
 import type { Transaction } from '../../hook/history';
 
 import { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { IoChevronDown } from 'react-icons/io5';
 import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
-import { HiOutlineCog6Tooth, HiOutlineSquare2Stack, HiOutlineSquares2X2, HiOutlineUser } from 'react-icons/hi2';
+import { HiOutlineCheck, HiOutlineCog6Tooth, HiOutlineSquare2Stack, HiOutlineSquares2X2, HiOutlineUser } from 'react-icons/hi2';
 
 import TokenIcon from '../token.icon';
 import DashboardActivity from './dashboard.activity';
@@ -46,7 +47,7 @@ import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
  */
 export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
 {
-    const [ notice, setNotice ] = useState('');
+    const [ copied, setCopied ] = useState(false);
 
     /**
      * RowValue - USD worth of one holding.
@@ -57,7 +58,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
      * @param {string} formatted The balance as a decimal string.
      * @returns {string | undefined} The formatted USD value, or `undefined` when it cannot be priced.
      */
-    const RowValue = (coinId: string, formatted: string) =>
+    const rowValue = (coinId: string, formatted: string) =>
     {
         const price = prices[coinId];
 
@@ -69,12 +70,13 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
         return formatUsd(Number(formatted) * price);
     };
 
+    // The icon carries the feedback, so it only has to stay swapped long enough to register.
     useEffect(() =>
     {
-        const timer = notice.length === 0 ? undefined : setTimeout(() => { setNotice(''); }, 5000);
+        const timer = copied ? setTimeout(() => { setCopied(false); }, 1400) : undefined;
 
         return () => { clearTimeout(timer); };
-    }, [ notice ]);
+    }, [ copied ]);
 
     const onCopy = async() =>
     {
@@ -82,11 +84,11 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
         {
             await navigator.clipboard.writeText(address);
 
-            setNotice(T('Dashboard.Copied'));
+            setCopied(true);
         }
         catch
         {
-            setNotice(T('Dashboard.CopyFailed'));
+            setCopied(false);
         }
     };
 
@@ -157,11 +159,12 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                 </div>
 
-                <div className='relative flex flex-col items-center'>
+                <div className='flex flex-col items-center'>
 
                     <button
                         type='button'
                         onClick={ () => { void onCopy(); } }
+                        aria-label={ T('Dashboard.Copy') }
                         className='text-tiny text-txt-muted hover:text-txt-normal flex cursor-pointer items-center gap-1'>
 
                         <span dir='ltr' className='font-mono'>
@@ -170,20 +173,50 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                         </span>
 
-                        <HiOutlineSquare2Stack size={ 14 } />
+                        { /*
+                          * The confirmation is the glyph itself: it turns into a tick, scales up and
+                          * settles back. A caption under the address shifted the layout and had to be
+                          * read; this is understood at a glance and takes no space.
+                          */ }
+                        <span className='relative flex size-4 shrink-0 items-center justify-center'>
+
+                            <AnimatePresence initial={ false } mode='wait'>
+
+                                {
+                                    copied ?
+                                        (
+                                            <motion.span
+                                                key='done'
+                                                initial={ { scale: 0.4, opacity: 0 } }
+                                                animate={ { scale: [ 0.4, 1.35, 1 ], opacity: 1 } }
+                                                exit={ { scale: 0.4, opacity: 0 } }
+                                                transition={ { duration: 0.35 } }
+                                                className='text-txt-normal absolute'>
+
+                                                <HiOutlineCheck size={ 14 } />
+
+                                            </motion.span>
+                                        ) :
+                                        (
+                                            <motion.span
+                                                key='copy'
+                                                initial={ { scale: 0.6, opacity: 0 } }
+                                                animate={ { scale: 1, opacity: 1 } }
+                                                exit={ { scale: 0.6, opacity: 0 } }
+                                                transition={ { duration: 0.18 } }
+                                                className='absolute'>
+
+                                                <HiOutlineSquare2Stack size={ 14 } />
+
+                                            </motion.span>
+                                        )
+                                }
+
+                            </AnimatePresence>
+
+                        </span>
 
                     </button>
-
-                    {
-                        notice.length > 0 &&
-                        (
-                            <div className='text-tiny text-txt-muted pointer-events-none absolute top-full left-1/2 z-10 mt-1 w-max -translate-x-1/2 text-center whitespace-nowrap'>
-
-                                { notice }
-
-                            </div>
-                        )
-                    }
 
                 </div>
 
@@ -305,10 +338,10 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                         </div>
 
                         {
-                            !nativeLoading && RowValue(getNativeCoinId(network.chainId), nativeFormatted) !== undefined && (
+                            !nativeLoading && rowValue(getNativeCoinId(network.chainId), nativeFormatted) !== undefined && (
                                 <div className='text-tiny text-txt-muted font-mono'>
 
-                                    { RowValue(getNativeCoinId(network.chainId), nativeFormatted) }
+                                    { rowValue(getNativeCoinId(network.chainId), nativeFormatted) }
 
                                 </div>
                             )
@@ -353,10 +386,10 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                                 </div>
 
                                 {
-                                    RowValue(item.token.coinId, item.formatted) !== undefined && (
+                                    rowValue(item.token.coinId, item.formatted) !== undefined && (
                                         <div className='text-tiny text-txt-muted font-mono'>
 
-                                            { RowValue(item.token.coinId, item.formatted) }
+                                            { rowValue(item.token.coinId, item.formatted) }
 
                                         </div>
                                     )
