@@ -65,14 +65,27 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: npm run tauri build
 
+      # upload-artifact roots the archive at the common ancestor of every search
+      # path it is given, not of the files actually matched. Listing nsis/, msi/
+      # and deb/ together therefore rooted it at bundle/ and stored the installers
+      # one directory down, so the release job's `artifacts/*.exe` globs matched
+      # nothing and only the Android APK - uploaded from a single path, hence flat -
+      # reached the release. Collecting into one directory keeps the archive flat.
+      - name: Stage the installers
+        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          mkdir -p dist
+          find src-tauri/target/release/bundle \
+            \( -name '*.exe' -o -name '*.msi' -o -name '*.deb' \) \
+            -exec cp {} dist/ \;
+          ls -l dist
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           if-no-files-found: error
-          path: |
-            ${{ env.APP_DIR }}/src-tauri/target/release/bundle/nsis/*.exe
-            ${{ env.APP_DIR }}/src-tauri/target/release/bundle/msi/*.msi
-            ${{ env.APP_DIR }}/src-tauri/target/release/bundle/deb/*.deb
+          path: ${{ env.APP_DIR }}/dist
 
   android:
     name: android (.apk)
@@ -159,18 +172,20 @@ jobs:
           APK=$(ls "$OUT"/*.apk | head -1)
           APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
           rm -f src-tauri/gen/android/keystore.properties src-tauri/gen/android/release.jks
+          mkdir -p dist
           if "$APKSIGNER" verify --print-certs "$APK"; then
-            cp "$APK" nura-wallet.apk
+            cp "$APK" dist/nura-wallet.apk
           else
-            cp "$APK" nura-wallet-unsigned.apk
+            cp "$APK" dist/nura-wallet-unsigned.apk
             echo "::warning::APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
           fi
+          ls -l dist
 
       - uses: actions/upload-artifact@v4
         with:
           name: android
           if-no-files-found: error
-          path: ${{ env.APP_DIR }}/nura-wallet*.apk
+          path: ${{ env.APP_DIR }}/dist
 
   release:
     name: Attach to the release
@@ -185,12 +200,14 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      # Every job stages exactly the files meant to ship, so the whole directory
+      # is attached rather than a list of extensions that can silently miss one.
+      - name: List what will be attached
+        run: ls -lR artifacts
+
       - uses: softprops/action-gh-release@v2
         with:
           draft: true
           generate_release_notes: true
-          files: |
-            artifacts/*.exe
-            artifacts/*.msi
-            artifacts/*.deb
-            artifacts/*.apk
+          fail_on_unmatched_files: true
+          files: artifacts/*
