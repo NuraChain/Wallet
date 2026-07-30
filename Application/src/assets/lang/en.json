@@ -144,6 +144,17 @@
             "Title": "Receive",
             "Scan": "Scan to receive %s on this network"
         },
+        "Phrase": {
+            "Title": "Recovery Phrase",
+            "Warning": "Anyone who sees these words can take everything in this wallet. Write them down offline and never share them.",
+            "Password": "Password",
+            "Unlock": "Show Phrase",
+            "Pending": "Checking…",
+            "Reveal": "Tap to reveal",
+            "ErrorRequired": "Enter your password",
+            "ErrorInvalid": "Wrong password",
+            "ErrorMissing": "Could not read the recovery phrase"
+        },
         "Activity": {
             "Title": "Transaction History",
             "Loading": "Loading transactions…",

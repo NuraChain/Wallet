@@ -1,0 +1,258 @@
+import { useState } from 'react';
+import { motion } from 'motion/react';
+import { IoClose } from 'react-icons/io5';
+import { FiAlertTriangle, FiEye } from 'react-icons/fi';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
+
+import { T } from '../utility/language';
+import { passwordVerify } from '../core/password';
+import { getValue, getValueEncrypted } from '../utility/storage';
+
+/**
+ * DashboardPhrase - Password-gated reveal of the recovery phrase.
+ *
+ * Anyone holding these words owns the wallet outright, so the flow puts two deliberate steps in the
+ * way. First the password is verified against the stored Argon2 hash and used to decrypt the mnemonic
+ * — the words are read back out of storage rather than passed down from the dashboard, so the secret
+ * does not travel through the component tree just to be shown here.
+ *
+ * Then the words render blurred behind a tap-to-reveal cover, which is what stops them appearing to
+ * whoever happens to be looking at the screen at that moment.
+ *
+ * The phrase is deliberately not copyable: the clipboard is readable by other apps.
+ * @param {object} props Component props.
+ * @param {() => void} props.onClose Closes the modal.
+ * @returns {JSX.Element} The recovery phrase modal.
+ */
+export default function DashboardPhrase({ onClose }: { onClose: () => void })
+{
+    const [ error, setError ] = useState('');
+    const [ words, setWords ] = useState<string[]>([]);
+    const [ password, setPassword ] = useState('');
+    const [ revealed, setRevealed ] = useState(false);
+    const [ isLoading, setIsLoading ] = useState(false);
+    const [ showPassword, setShowPassword ] = useState(false);
+
+    const onUnlock = async() =>
+    {
+        setError('');
+
+        if (password.trim().length === 0)
+        {
+            setError(T('Dashboard.Phrase.ErrorRequired'));
+
+            return;
+        }
+
+        setIsLoading(true);
+
+        try
+        {
+            const storedHash = await getValue('Wallet.Password');
+
+            if (storedHash === undefined || !await passwordVerify(password, storedHash))
+            {
+                setError(T('Dashboard.Phrase.ErrorInvalid'));
+
+                return;
+            }
+
+            const mnemonic = await getValueEncrypted('Wallet.Mnemonic', password);
+
+            if (mnemonic === undefined)
+            {
+                setError(T('Dashboard.Phrase.ErrorMissing'));
+
+                return;
+            }
+
+            setWords(mnemonic.trim().split(/\s+/));
+        }
+        catch
+        {
+            setError(T('Dashboard.Phrase.ErrorMissing'));
+        }
+        finally
+        {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <>
+            <motion.div
+                initial={ { opacity: 0 } }
+                animate={ { opacity: 1 } }
+                exit={ { opacity: 0 } }
+                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
+                onClick={ onClose } />
+
+            <div className='absolute inset-0 z-30 m-auto flex size-fit items-center justify-center'>
+
+                <motion.div
+                    initial={ { opacity: 0, scale: 0.9 } }
+                    animate={ { opacity: 1, scale: 1 } }
+                    exit={ { opacity: 0, scale: 0.9 } }
+                    className='glass-panel flex max-h-[80vh] w-80 flex-col gap-3 overflow-y-auto rounded-2xl p-4'>
+
+                    <div className='flex items-center justify-between'>
+
+                        <div className='text-medium font-bold text-txt-normal'>
+
+                            { T('Dashboard.Phrase.Title') }
+
+                        </div>
+
+                        <button
+                            type='button'
+                            onClick={ onClose }
+                            className='btn-muted flex size-8 items-center justify-center rounded-lg'>
+
+                            <IoClose size={ 20 } />
+
+                        </button>
+
+                    </div>
+
+                    <div className='flex items-start gap-2 rounded-xl bg-txt-error/10 px-3 py-2 text-start text-tiny text-txt-error'>
+
+                        <FiAlertTriangle size={ 16 } className='mt-0.5 shrink-0' />
+
+                        <span>
+
+                            { T('Dashboard.Phrase.Warning') }
+
+                        </span>
+
+                    </div>
+
+                    {
+                        error.length > 0 &&
+                        (
+                            <div className='rounded-lg bg-txt-error/15 px-3 py-2 text-center text-tiny text-txt-error'>
+
+                                { error }
+
+                            </div>
+                        )
+                    }
+
+                    {
+                        words.length === 0 ?
+                            (
+                                <>
+                                    <label className='flex flex-col gap-2'>
+
+                                        <div className='text-tiny text-txt-muted'>
+
+                                            { T('Dashboard.Phrase.Password') }
+
+                                        </div>
+
+                                        <div className='relative flex items-center'>
+
+                                            <HiOutlineLockClosed className='absolute left-3 text-txt-muted' size={ 18 } />
+
+                                            <input
+                                                value={ password }
+                                                placeholder={ T('Dashboard.Phrase.Password') }
+                                                type={ showPassword ? 'text' : 'password' }
+                                                onChange={ (event) => { setPassword(event.target.value); } }
+                                                // eslint-disable-next-line @typescript-eslint/strict-void-return
+                                                onKeyDown={ (event) => event.key === 'Enter' && void onUnlock() }
+                                                className='glass-input h-11 w-full rounded-xl px-10 text-small' />
+
+                                            <button
+                                                type='button'
+                                                onClick={ () => { setShowPassword((value) => !value); } }
+                                                className='absolute right-3 rounded-lg text-txt-muted'>
+
+                                                {
+                                                    showPassword ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
+                                                }
+
+                                            </button>
+
+                                        </div>
+
+                                    </label>
+
+                                    <button
+                                        type='button'
+                                        disabled={ isLoading }
+                                        onClick={ () => { void onUnlock(); } }
+                                        className='btn-primary mt-1 flex h-11 items-center justify-center gap-2 rounded-xl text-small disabled:cursor-not-allowed! disabled:opacity-60'>
+
+                                        {
+                                            isLoading && <AiOutlineLoading3Quarters size={ 16 } className='shrink-0 animate-spin' />
+                                        }
+
+                                        {
+                                            isLoading ? T('Dashboard.Phrase.Pending') : T('Dashboard.Phrase.Unlock')
+                                        }
+
+                                    </button>
+                                </>
+                            ) :
+                            (
+                                <div className='relative'>
+
+                                    <div
+                                        dir='ltr'
+                                        className={ `grid grid-cols-3 gap-1.5 transition-all duration-300 ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
+
+                                        {
+                                            words.map((word, index) => (
+                                                <div
+                                                    key={ `${ index }-${ word }` }
+                                                    className='flex items-center gap-1 rounded-lg bg-base-1 px-2 py-1.5'>
+
+                                                    <span className='text-tiny text-txt-muted'>
+
+                                                        { index + 1 }
+
+                                                    </span>
+
+                                                    <span className='truncate font-mono text-tiny text-txt-normal'>
+
+                                                        { word }
+
+                                                    </span>
+
+                                                </div>
+                                            ))
+                                        }
+
+                                    </div>
+
+                                    {
+                                        !revealed &&
+                                        (
+                                            <button
+                                                type='button'
+                                                onClick={ () => { setRevealed(true); } }
+                                                className='absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl bg-base-2/60 text-txt-normal'>
+
+                                                <FiEye size={ 20 } />
+
+                                                <span className='text-tiny'>
+
+                                                    { T('Dashboard.Phrase.Reveal') }
+
+                                                </span>
+
+                                            </button>
+                                        )
+                                    }
+
+                                </div>
+                            )
+                    }
+
+                </motion.div>
+
+            </div>
+        </>
+    );
+}

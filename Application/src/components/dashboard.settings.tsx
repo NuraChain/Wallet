@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { IoChevronForward, IoClose } from 'react-icons/io5';
 import { FiGlobe, FiLogOut, FiMoon, FiSun } from 'react-icons/fi';
-import { HiOutlineLockClosed } from 'react-icons/hi2';
+import { HiOutlineDocumentText, HiOutlineLockClosed } from 'react-icons/hi2';
 
 import { getTheme, setTheme } from '../utility/theme';
 import { getDirection, T } from '../utility/language';
@@ -15,12 +15,13 @@ import { getDirection, T } from '../utility/language';
  * Account labels are not edited here — they belong to the account switcher, next to the account they rename. Network selection likewise lives on the wallet tab, next to the balance it changes.
  * @param {object} props Component props.
  * @param {() => void} props.onLanguage Opens the language modal.
+ * @param {() => void} props.onPhrase Opens the recovery phrase modal.
  * @param {() => void} props.onLock Locks the wallet and returns to the unlock screen.
  * @param {() => void} props.onLogout Opens the logout confirmation modal.
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The settings modal.
  */
-export default function DashboardSettings({ onLanguage, onLock, onLogout, onClose }: { onLanguage: () => void; onLock: () => void; onLogout: () => void; onClose: () => void })
+export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogout, onClose }: { onLanguage: () => void; onPhrase: () => void; onLock: () => void; onLogout: () => void; onClose: () => void })
 {
     const [ theme, setThemeState ] = useState(getTheme());
 
@@ -114,6 +115,27 @@ export default function DashboardSettings({ onLanguage, onLock, onLogout, onClos
                             { theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark') }
 
                         </div>
+
+                    </button>
+
+                    <button
+                        type='button'
+                        onClick={ onPhrase }
+                        className='btn-muted flex h-14 items-center gap-3 rounded-xl px-3'>
+
+                        <div className='flex size-8 items-center justify-center rounded-lg bg-btn-muted text-txt-normal'>
+
+                            <HiOutlineDocumentText size={ 16 } />
+
+                        </div>
+
+                        <div className='flex-1 text-start text-small text-txt-normal'>
+
+                            { T('Dashboard.Phrase.Title') }
+
+                        </div>
+
+                        <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'rotate-180 text-txt-muted' : 'text-txt-muted' } />
 
                     </button>
 

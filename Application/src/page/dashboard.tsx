@@ -22,6 +22,7 @@ import DashboardNetwork from '../components/dashboard.network';
 import DashboardReceive from '../components/dashboard.receive';
 import DashboardBrowser from '../components/dashboard.browser';
 import DashboardHistory from '../components/dashboard.history';
+import DashboardPhrase from '../components/dashboard.phrase';
 import DashboardSettings from '../components/dashboard.settings';
 
 import { getNetwork } from '../core/network';
@@ -36,7 +37,7 @@ import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type
 
 import 'swiper/css';
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings' | 'accounts' | 'tokens' | 'history';
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings' | 'accounts' | 'tokens' | 'history' | 'phrase';
 
 const navMap: { key: string; icon: IconType }[] =
 [
@@ -351,6 +352,15 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                 }
 
                 {
+                    modal === 'phrase' &&
+                    (
+                        <DashboardPhrase
+                            key='phrase'
+                            onClose={ () => { setModal('settings'); } } />
+                    )
+                }
+
+                {
                     modal === 'logout' &&
                     (
                         <DashboardLogout
@@ -366,6 +376,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             key='settings'
                             onLanguage={ () => { setModal('language'); } }
                             onLock={ () => { openPage(UnlockPage); } }
+                            onPhrase={ () => { setModal('phrase'); } }
                             onLogout={ () => { setModal('logout'); } }
                             onClose={ () => { setModal('none'); } } />
                     )
