@@ -1,6 +1,8 @@
 import { Webview } from '@tauri-apps/api/webview';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
+import { motion } from 'motion/react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import { T } from '../utility/language';
@@ -288,11 +290,30 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
                 // Only the desktop child-webview path has a gap to fill; the native Android view paints
                 // its own surface, and leaving this mounted behind it is what stranded the tab on
                 // "loading" whenever that view failed to open.
+                //
+                // The child webview reports no progress, so the indicator is deliberately
+                // indeterminate: a spinner and a sweeping bar that say work is happening without
+                // implying a position. It sat here as motionless text before, which reads as a hang.
                 url.length > 0 && embedded && getNativeBrowser() === undefined &&
                 (
-                    <div className='text-tiny text-txt-muted flex size-full items-center justify-center'>
+                    <div className='text-tiny text-txt-muted flex size-full flex-col items-center justify-center gap-3'>
 
-                        { T('Dashboard.Browser.Loading') }
+                        <AiOutlineLoading3Quarters size={ 22 } className='animate-spin' />
+
+                        <span>
+
+                            { T('Dashboard.Browser.Loading') }
+
+                        </span>
+
+                        <span className='bg-base-3 relative h-0.5 w-32 overflow-hidden rounded-full'>
+
+                            <motion.span
+                                animate={ { x: [ '-100%', '220%' ] } }
+                                transition={ { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } }
+                                className='bg-btn-primary absolute inset-y-0 w-1/2 rounded-full' />
+
+                        </span>
 
                     </div>
                 )
