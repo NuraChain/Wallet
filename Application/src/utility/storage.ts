@@ -18,6 +18,13 @@ type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' 
 const storage = await load('application.bin');
 
 /**
+ * getValue - Retrieves a plaintext value from persistent storage
+ * @param {StorageKey} key - The storage key name
+ * @returns {Promise<string | undefined>} Stored string or undefined if not set
+ */
+export const getValue = async(key: StorageKey) => storage.get<string>(key);
+
+/**
  * deriveKey - Derives a non-extractable AES-GCM 256 key from a passphrase and salt via PBKDF2-SHA256
  * @param {string} passphrase - The passphrase to derive the key from
  * @param {Uint8Array<ArrayBuffer>} salt - The salt bytes used in derivation
@@ -88,13 +95,6 @@ export const setValue = async(key: StorageKey, value: string) =>
 
     await storage.save();
 };
-
-/**
- * getValue - Retrieves a plaintext value from persistent storage
- * @param {StorageKey} key - The storage key name
- * @returns {Promise<string | undefined>} Stored string or undefined if not set
- */
-export const getValue = async(key: StorageKey) => storage.get<string>(key);
 
 /**
  * removeValue - Deletes a value from persistent storage.

@@ -60,11 +60,11 @@ export default function IntroImport({ onClose }: { onClose: () => void })
         setError('');
         setLoading(true);
 
-        const hash = await passwordHash(password);
+        const hash2 = await passwordHash(password);
 
         swiperRef.current?.slideTo(1);
 
-        setHash(hash);
+        setHash(hash2);
 
         setProceed(true);
 

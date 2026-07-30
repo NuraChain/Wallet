@@ -48,7 +48,7 @@ export default function TitleBar()
 
     if (!isWindows)
     {
-        return;
+        return undefined;
     }
 
     return (
