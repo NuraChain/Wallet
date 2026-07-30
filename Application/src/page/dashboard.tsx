@@ -143,6 +143,25 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
         void saveTokens(next);
     };
 
+    /**
+     * onRefresh - Re-reads every live source behind the tabs.
+     *
+     * Prices are derived from the balances rather than fetched independently, so refreshing the
+     * balances is what pulls them along; only these three have anything to re-request.
+     * @returns {Promise<void>} Resolves once the slowest refetch settles, so the pull indicator stays
+     * up for as long as work is actually happening.
+     */
+    const onRefresh = async() =>
+    {
+        native.refresh();
+        tokens.refresh();
+        history.refresh();
+
+        // The hooks fire off their own requests; this is the shortest pause that still reads as work
+        // rather than a flicker, since none of them expose a promise to await.
+        await new Promise((resolve) => { setTimeout(resolve, 600); });
+    };
+
     const onSelectAccount = (index: number) =>
     {
         if (!accounts.some((item) => item.index === index))
@@ -397,6 +416,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                     (
                                         <ScrollArea
                                             className='size-full'
+                                            onRefresh={ onRefresh }
                                             onScrollChange={ onPanelScroll(index) }>
 
                                             <div

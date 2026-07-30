@@ -1,5 +1,5 @@
 import { formatUnits } from 'ethers';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { getExplorerApi, type Network } from '../core/network';
 
@@ -120,6 +120,12 @@ export const useHistory = (address: string, network: Network) =>
 {
     const [ items, setItems ] = useState<Transaction[]>([]);
     const [ loading, setLoading ] = useState(true);
+    const [ nonce, setNonce ] = useState(0);
+
+    const refresh = useCallback(() =>
+    {
+        setNonce((current) => current + 1);
+    }, []);
 
     const api = getExplorerApi(network);
 
@@ -158,7 +164,7 @@ export const useHistory = (address: string, network: Network) =>
         {
             active = false;
         };
-    }, [ address, network.id, api ]);
+    }, [ address, network.id, api, nonce ]);
 
-    return { items, loading };
+    return { items, loading, refresh };
 };
