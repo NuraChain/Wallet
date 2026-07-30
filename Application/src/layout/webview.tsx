@@ -9,6 +9,18 @@ import { T } from '../utility/language';
 import { getNativeBrowser } from '../core/browser';
 
 /**
+ * User agent the child webview presents.
+ *
+ * The window is phone-shaped, but WebView2 announces itself as desktop Windows, so sites served the
+ * desktop layout into a 360px column. Claiming to be mobile Chrome is what makes them send the
+ * layout that actually fits. Android needs none of this: its WebView already says `Mobile`.
+ *
+ * Kept close to a real Chrome-on-Android string, since sites sniff for the pieces rather than parse
+ * the whole thing.
+ */
+const mobileAgent = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36';
+
+/**
  * WebFrame - A rectangle of the layout that a real browser view is painted into.
  *
  * Pages render in a child webview parented to the app window, not an iframe: most dApps and explorers
@@ -159,7 +171,7 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
 
             try
             {
-                const view = new Webview(getCurrentWindow(), label, { url, x: rect.x, y: rect.y, width: rect.width, height: rect.height, focus: false });
+                const view = new Webview(getCurrentWindow(), label, { url, x: rect.x, y: rect.y, width: rect.width, height: rect.height, focus: false, userAgent: mobileAgent });
 
                 void view.once('tauri://error', (event) => { failure = String(event.payload); });
             }

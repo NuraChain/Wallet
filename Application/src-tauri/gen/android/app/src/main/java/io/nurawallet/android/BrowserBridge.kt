@@ -77,7 +77,10 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         view.settings.displayZoomControls = false
         view.settings.mediaPlaybackRequiresUserGesture = false
         view.settings.javaScriptCanOpenWindowsAutomatically = true
-        // Without a desktop-shaped UA some sites serve a stripped WebView experience.
+        // Dropping the "; wv" marker makes this read as ordinary Chrome for Android rather than an
+        // embedded WebView, which some sites serve a stripped-down page to. The string still carries
+        // "Mobile", so the mobile layout is what arrives - the desktop webview has to ask for that
+        // explicitly instead (see mobileAgent in layout/webview.tsx).
         view.settings.userAgentString = view.settings.userAgentString?.replace("; wv", "")
 
         // This view renders untrusted pages, and the app's private storage next door holds the
