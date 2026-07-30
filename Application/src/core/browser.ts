@@ -1,7 +1,7 @@
 /**
  * Navigation state the Android bridge pushes back after every page event.
  */
-export interface BrowserState { url: string; title: string; canBack: boolean; canForward: boolean; loading: boolean }
+export interface BrowserState { url: string; title: string; canBack: boolean; canForward: boolean; loading: boolean; progress: number }
 
 /**
  * The Kotlin side of the native browser, injected as `__nuraBrowser` on the app's own webview only.

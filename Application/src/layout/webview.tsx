@@ -64,28 +64,35 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
             return undefined;
         }
 
-        const rect = () => frameRef.current?.getBoundingClientRect();
+        let opened = false;
 
-        const start = rect();
-
-        if (start === undefined || start.width < 1 || start.height < 1)
-        {
-            return undefined;
-        }
-
-        native.open(url, start.x, start.y, start.width, start.height);
-
-        // Resizes only move the view. Routing them through `open` would reload the page every time
-        // the keyboard or the nav bar changed the frame's height.
+        // The frame is not always measurable on the first pass — switching to this tab runs the effect
+        // before layout settles. Giving up there left the page never opening and the placeholder up
+        // for good, which is what made the browser stick on "loading" now and again. So the same
+        // callback both opens on the first usable rectangle and moves the view afterwards; routing
+        // moves through `open` instead would reload the page on every keyboard or nav-bar change.
         const move = () =>
         {
-            const next = rect();
+            const next = frameRef.current?.getBoundingClientRect();
 
-            if (next !== undefined && next.width >= 1 && next.height >= 1)
+            if (next === undefined || next.width < 1 || next.height < 1)
+            {
+                return;
+            }
+
+            if (opened)
             {
                 native.setBounds(next.x, next.y, next.width, next.height);
+
+                return;
             }
+
+            opened = true;
+
+            native.open(url, next.x, next.y, next.width, next.height);
         };
+
+        move();
 
         const observer = new ResizeObserver(move);
 
@@ -278,7 +285,10 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
             }
 
             {
-                url.length > 0 && embedded &&
+                // Only the desktop child-webview path has a gap to fill; the native Android view paints
+                // its own surface, and leaving this mounted behind it is what stranded the tab on
+                // "loading" whenever that view failed to open.
+                url.length > 0 && embedded && getNativeBrowser() === undefined &&
                 (
                     <div className='text-tiny text-txt-muted flex size-full items-center justify-center'>
 

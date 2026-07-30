@@ -2,6 +2,7 @@ import type { Network } from '../../core/network';
 
 import { useEffect, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
+import { AnimatePresence, motion } from 'motion/react';
 import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch } from 'react-icons/fi';
 
 import WebFrame from '../../layout/webview';
@@ -233,7 +234,9 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                 onClick={ () => { setCounter((value) => value + 1); } }
                                 className='text-txt-muted absolute inset-e-2.5 cursor-pointer'>
 
-                                <FiRotateCw size={ 14 } />
+                                { /* Spinning the reload glyph is the in-flight cue; it is the same
+                                  * control either way, so nothing moves when the load ends. */ }
+                                <FiRotateCw size={ 14 } className={ live?.loading === true ? 'animate-spin' : '' } />
 
                             </button>
                         )
@@ -251,6 +254,32 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                     <FiHome size={ 16 } />
 
                 </button>
+
+            </div>
+
+            { /*
+              * Real load progress from the WebView, on the toolbar's bottom edge where a browser puts
+              * it. It only unmounts once the bar has actually reached the end, so a finished load
+              * reads as finished rather than the bar vanishing mid-way.
+              */ }
+            <div className='relative h-0.5 shrink-0 overflow-hidden'>
+
+                <AnimatePresence>
+
+                    {
+                        live !== undefined && live.loading &&
+                        (
+                            <motion.div
+                                key='progress'
+                                initial={ { opacity: 1 } }
+                                exit={ { opacity: 0 } }
+                                transition={ { duration: 0.25 } }
+                                className='bg-btn-primary absolute inset-y-0 inset-s-0'
+                                style={ { width: `${ Math.max(live.progress, 6) }%` } } />
+                        )
+                    }
+
+                </AnimatePresence>
 
             </div>
 

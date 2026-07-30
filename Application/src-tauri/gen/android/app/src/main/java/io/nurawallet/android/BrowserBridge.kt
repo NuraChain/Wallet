@@ -41,13 +41,14 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     private fun isWeb(scheme: String?) = scheme?.lowercase() == "https" || scheme?.lowercase() == "http"
 
     /** Pushes navigation state back into the app so the toolbar can reflect it. */
-    private fun publish(view: WebView, loading: Boolean) {
+    private fun publish(view: WebView, loading: Boolean, progress: Int) {
         val state = JSONObject()
             .put("url", view.url ?: "")
             .put("title", view.title ?: "")
             .put("canBack", view.canGoBack())
             .put("canForward", view.canGoForward())
             .put("loading", loading)
+            .put("progress", progress)
 
         host.post {
             host.evaluateJavascript("window.__nuraBrowserState && window.__nuraBrowserState($state)", null)
@@ -101,25 +102,25 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !isWeb(request.url.scheme)
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
-                publish(view, true)
+                publish(view, true, 0)
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
-                publish(view, false)
+                publish(view, false, 100)
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (request.isForMainFrame) {
-                    publish(view, false)
+                    publish(view, false, 100)
                 }
             }
         }
 
         view.webChromeClient = object : WebChromeClient() {
+            // The real driver of the progress bar: every tick is forwarded, not just completion, so
+            // the UI can show how far along the load actually is.
             override fun onProgressChanged(view: WebView, newProgress: Int) {
-                if (newProgress >= 100) {
-                    publish(view, false)
-                }
+                publish(view, newProgress < 100, newProgress)
             }
         }
 
