@@ -446,7 +446,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                                 id={ `dashboard-panel-${ item.key }` }
                                                 aria-hidden={ index !== active }
                                                 aria-labelledby={ `dashboard-tab-${ item.key }` }
-                                                className={ `flex min-h-full flex-col px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] ${ isWindows ? 'pt-8' : 'pt-[calc(1rem+env(safe-area-inset-top))]' }` }>
+                                                className={ `flex min-h-full flex-col px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] ${ isWindows ? 'pt-8' : 'pt-[calc(0.375rem+env(safe-area-inset-top))]' }` }>
 
                                                 {
                                                     item.key === 'Wallet' &&
