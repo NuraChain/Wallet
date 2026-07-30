@@ -9,11 +9,8 @@ import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
 import WalletManager from '../../core/wallet';
 
-import TokenIcon from '../token.icon';
-
 import { T } from '../../utility/language';
 import { getProvider, type Network } from '../../core/network';
-import { getNativeLogo, getTokenLogo } from '../../core/price';
 import { shortAddress, trimAmount } from '../../utility/format';
 
 type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
@@ -58,8 +55,6 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
     const [ selected, setSelected ] = useState('native');
 
     const asset = assets.find((item) => item.key === selected) ?? assets[0];
-
-    const assetLogo = asset.token === undefined ? getNativeLogo(network.chainId) : getTokenLogo(network.chainId, asset.token.address);
 
     const onReview = () =>
     {
@@ -137,20 +132,9 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                     <div className='flex items-center justify-between gap-2'>
 
-                        { /* Which asset is leaving is the thing to get wrong, so it leads the title. */ }
-                        <div className='flex min-w-0 items-center gap-2'>
+                        <div className='text-medium text-txt-normal min-w-0 truncate font-bold'>
 
-                            <TokenIcon
-                                primary
-                                src={ assetLogo }
-                                symbol={ asset.symbol }
-                                className='text-tiny size-8 shrink-0' />
-
-                            <div className='text-medium text-txt-normal min-w-0 truncate font-bold'>
-
-                                { T('Dashboard.Send.Title') }
-
-                            </div>
+                            { T('Dashboard.Send.Title') }
 
                         </div>
 
