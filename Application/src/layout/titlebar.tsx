@@ -5,6 +5,8 @@ import { AiOutlineMobile } from 'react-icons/ai';
 import { VscChromeClose, VscChromeMinimize } from 'react-icons/vsc';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
+import Button from '../components/ui/button';
+
 import { T } from '../utility/language';
 
 import Logo from '../assets/image/logo.svg';
@@ -51,6 +53,18 @@ export default function TitleBar()
         return undefined;
     }
 
+    /**
+     * The window controls, in visual order. Every control is the same 40px hover square; only the
+     * glyph and the action differ, so the row is data rather than four copies of the same button.
+     */
+    const controlMap =
+    [
+        { key: 'minimize', icon: <VscChromeMinimize size={ 16 } />, action: onMinimize },
+        { key: 'mobile', icon: <AiOutlineMobile size={ 16 } />, action: onMobileView },
+        { key: 'maximize', icon: <LuTvMinimal size={ 16 } />, action: onMaximize },
+        { key: 'close', icon: <VscChromeClose size={ 16 } />, action: onClose }
+    ];
+
     return (
         <div
             data-tauri-drag-region
@@ -75,41 +89,18 @@ export default function TitleBar()
 
             <div className='flex h-full'>
 
-                <button
-                    type='button'
-                    onClick={ onMinimize }
-                    className='text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active flex h-full w-10 cursor-pointer items-center justify-center duration-200'>
+                {
+                    controlMap.map((item) => (
+                        <Button
+                            key={ item.key }
+                            onClick={ item.action }
+                            className='flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-btn-muted-hover active:bg-btn-muted-active'>
 
-                    <VscChromeMinimize size={ 16 } />
+                            { item.icon }
 
-                </button>
-
-                <button
-                    type='button'
-                    onClick={ onMobileView }
-                    className='text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active flex h-full w-10 cursor-pointer items-center justify-center duration-200'>
-
-                    <AiOutlineMobile size={ 16 } />
-
-                </button>
-
-                <button
-                    type='button'
-                    onClick={ onMaximize }
-                    className='text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active flex h-full w-10 cursor-pointer items-center justify-center duration-200'>
-
-                    <LuTvMinimal size={ 16 } />
-
-                </button>
-
-                <button
-                    type='button'
-                    onClick={ onClose }
-                    className='text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active flex h-full w-10 cursor-pointer items-center justify-center duration-200'>
-
-                    <VscChromeClose size={ 16 } />
-
-                </button>
+                        </Button>
+                    ))
+                }
 
             </div>
 

@@ -2,8 +2,9 @@ import { Webview } from '@tauri-apps/api/webview';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
 import { motion } from 'motion/react';
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+
+import Spinner from '../components/ui/spinner';
 
 import { T } from '../utility/language';
 import { getNativeBrowser } from '../core/browser';
@@ -294,7 +295,7 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
                         title={ title.length > 0 ? title : T('Dashboard.Browser.Title') }
                         referrerPolicy='no-referrer'
                         sandbox='allow-scripts allow-forms allow-popups allow-same-origin'
-                        className='bg-base-1 size-full border-0' />
+                        className='size-full border-0 bg-base-1' />
                 )
             }
 
@@ -308,9 +309,9 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
                 // implying a position. It sat here as motionless text before, which reads as a hang.
                 url.length > 0 && embedded && getNativeBrowser() === undefined &&
                 (
-                    <div className='text-tiny text-txt-muted flex size-full flex-col items-center justify-center gap-3'>
+                    <div className='flex size-full flex-col items-center justify-center gap-3 text-tiny text-txt-muted'>
 
-                        <AiOutlineLoading3Quarters size={ 22 } className='animate-spin' />
+                        <Spinner size={ 22 } />
 
                         <span>
 
@@ -318,12 +319,12 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
 
                         </span>
 
-                        <span className='bg-base-3 relative h-0.5 w-32 overflow-hidden rounded-full'>
+                        <span className='relative h-0.5 w-32 overflow-hidden rounded-full bg-base-3'>
 
                             <motion.span
                                 animate={ { x: [ '-100%', '220%' ] } }
                                 transition={ { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } }
-                                className='bg-btn-primary absolute inset-y-0 w-1/2 rounded-full' />
+                                className='absolute inset-y-0 w-1/2 rounded-full bg-btn-primary' />
 
                         </span>
 
