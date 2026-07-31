@@ -7,6 +7,10 @@ import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch } from 'react-i
 
 import WebFrame from '../../layout/webview';
 
+import Button from '../ui/button';
+import IconBox from '../ui/iconbox';
+import { TextField } from '../ui/field';
+
 import { getDirection, T } from '../../utility/language';
 import { getNativeBrowser, onNativeBrowserState, type BrowserState } from '../../core/browser';
 
@@ -175,85 +179,87 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         <div className='flex min-h-0 flex-1 flex-col'>
 
             { /* `base-1` is the 0.25-alpha token in both themes; `base-2` sits at 0.6/0.55 and read as solid. */ }
-            <div className='border-glass-line bg-base-1 flex shrink-0 items-center gap-1.5 border-b p-2 backdrop-blur-xl'>
+            <div className='flex shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
 
-                <button
-                    type='button'
+                <Button
+                    variant='chip'
+                    size='iconChip'
                     aria-label={ T('Dashboard.Browser.Exit') }
                     onClick={ onExit }
-                    className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl'>
+                    className='shrink-0'>
 
                     <IoClose size={ 18 } />
 
-                </button>
+                </Button>
 
-                <button
-                    type='button'
+                <Button
+                    variant='chip'
+                    size='iconChip'
                     disabled={ !canBack }
                     aria-label={ T('Dashboard.Browser.Back') }
                     onClick={ () => { onStep(-1); } }
-                    className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl disabled:cursor-not-allowed! disabled:opacity-40'>
+                    className='shrink-0 disabled:cursor-not-allowed! disabled:opacity-40'>
 
                     {
                         isRtl ? <FiArrowRight size={ 16 } /> : <FiArrowLeft size={ 16 } />
                     }
 
-                </button>
+                </Button>
 
-                <button
-                    type='button'
+                <Button
+                    variant='chip'
+                    size='iconChip'
                     disabled={ !canForward }
                     aria-label={ T('Dashboard.Browser.Forward') }
                     onClick={ () => { onStep(1); } }
-                    className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl disabled:cursor-not-allowed! disabled:opacity-40'>
+                    className='shrink-0 disabled:cursor-not-allowed! disabled:opacity-40'>
 
                     {
                         isRtl ? <FiArrowLeft size={ 16 } /> : <FiArrowRight size={ 16 } />
                     }
 
-                </button>
+                </Button>
 
-                <div className='relative flex min-w-0 flex-1 items-center'>
+                <div className='min-w-0 flex-1'>
 
-                    <FiSearch size={ 14 } className='text-txt-muted pointer-events-none absolute inset-s-2.5' />
-
-                    <input
+                    <TextField
                         dir={ draft.length > 0 ? 'ltr' : undefined }
                         value={ draft }
                         placeholder={ T('Dashboard.Browser.Placeholder') }
-                        onChange={ (event) => { setDraft(event.target.value); } }
-                        onKeyDown={ (event) => { if (event.key === 'Enter') { onOpen(draft); } } }
-                        className='glass-input text-tiny h-9 w-full truncate rounded-xl ps-8 pe-8' />
+                        onValue={ setDraft }
+                        onEnter={ () => { onOpen(draft); } }
+                        className='h-9 truncate rounded-xl ps-8 pe-8 text-tiny'
+                        leading={ <FiSearch size={ 14 } className='pointer-events-none absolute inset-s-2.5 text-txt-muted' /> }
+                        trailing={
+                            current.length > 0 ?
+                                (
+                                    <Button
+                                        aria-label={ T('Dashboard.Browser.Reload') }
+                                        onClick={ () => { setCounter((value) => value + 1); } }
+                                        className='absolute inset-e-2.5 cursor-pointer text-txt-muted'>
 
-                    {
-                        current.length > 0 &&
-                        (
-                            <button
-                                type='button'
-                                aria-label={ T('Dashboard.Browser.Reload') }
-                                onClick={ () => { setCounter((value) => value + 1); } }
-                                className='text-txt-muted absolute inset-e-2.5 cursor-pointer'>
+                                        { /* Spinning the reload glyph is the in-flight cue; it is the same
+                                          * control either way, so nothing moves when the load ends. */ }
+                                        <FiRotateCw size={ 14 } className={ live?.loading === true ? 'animate-spin' : '' } />
 
-                                { /* Spinning the reload glyph is the in-flight cue; it is the same
-                                  * control either way, so nothing moves when the load ends. */ }
-                                <FiRotateCw size={ 14 } className={ live?.loading === true ? 'animate-spin' : '' } />
-
-                            </button>
-                        )
-                    }
+                                    </Button>
+                                ) :
+                                undefined
+                        } />
 
                 </div>
 
-                <button
-                    type='button'
+                <Button
+                    variant='chip'
+                    size='iconChip'
                     disabled={ current.length === 0 }
                     aria-label={ T('Dashboard.Browser.Home') }
                     onClick={ onHome }
-                    className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl disabled:cursor-not-allowed! disabled:opacity-40'>
+                    className='shrink-0 disabled:cursor-not-allowed! disabled:opacity-40'>
 
                     <FiHome size={ 16 } />
 
-                </button>
+                </Button>
 
             </div>
 
@@ -274,7 +280,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                 initial={ { opacity: 1 } }
                                 exit={ { opacity: 0 } }
                                 transition={ { duration: 0.25 } }
-                                className='bg-btn-primary absolute inset-y-0 inset-s-0'
+                                className='absolute inset-y-0 inset-s-0 bg-btn-primary'
                                 style={ { width: `${ Math.max(live.progress, 6) }%` } } />
                         )
                     }
@@ -290,7 +296,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                 reload={ counter }
                 title={ T('Dashboard.Browser.Title') }
                 onFallback={ (value) => { setNotice(value); } }
-                className='bg-base-1 min-h-0 flex-1 overflow-hidden'>
+                className='min-h-0 flex-1 overflow-hidden bg-base-1'>
 
                 <div className='flex size-full flex-col gap-3 overflow-y-auto p-4'>
 
@@ -304,25 +310,25 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                         {
                             links.map((item) => (
-                                <button
-                                    type='button'
+                                <Button
                                     key={ item.url }
+                                    variant='muted'
                                     onClick={ () => { onOpen(item.url); } }
-                                    className='btn-muted flex h-14 items-center gap-2 rounded-xl px-3 text-start'>
+                                    className='h-14 rounded-xl px-3 text-start'>
 
-                                    <div className='bg-btn-primary text-tiny text-txt-reverse flex size-8 shrink-0 items-center justify-center rounded-lg'>
+                                    <IconBox tone='primary' size='size-8' className='text-tiny'>
 
                                         { item.name.slice(0, 1) }
 
-                                    </div>
+                                    </IconBox>
 
-                                    <div className='text-small text-txt-normal flex-1 truncate'>
+                                    <div className='flex-1 truncate text-small text-txt-normal'>
 
                                         { item.name }
 
                                     </div>
 
-                                </button>
+                                </Button>
                             ))
                         }
 
@@ -339,7 +345,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                                 </div>
 
-                                <div dir='ltr' className='bg-txt-error/10 text-tiny text-txt-error rounded-lg px-2 py-1 text-start font-mono'>
+                                <div dir='ltr' className='rounded-lg bg-txt-error/10 px-2 py-1 text-start font-mono text-tiny text-txt-error'>
 
                                     { notice }
 

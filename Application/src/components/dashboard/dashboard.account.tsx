@@ -1,9 +1,12 @@
 import { useMemo, useState } from 'react';
-import { motion } from 'motion/react';
 import { FiCheck, FiEdit2 } from 'react-icons/fi';
-import { IoClose } from 'react-icons/io5';
 
 import WalletManager from '../../core/wallet';
+
+import Button from '../ui/button';
+import IconBox from '../ui/iconbox';
+import { TextField } from '../ui/field';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
@@ -50,145 +53,113 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
     };
 
     return (
-        <>
-            <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
-                onClick={ onClose } />
+        <Modal
+            onClose={ onClose }
+            panelClass='max-h-[80vh] max-w-[calc(100vw-2rem)] overflow-y-auto'>
 
-            <div className='absolute inset-0 z-30 m-auto flex size-fit items-center justify-center'>
+            <ModalHeader
+                title={ T('Dashboard.Accounts.Title') }
+                subtitle={ T('Dashboard.Accounts.Subtitle') }
+                onClose={ onClose } />
 
-                <motion.div
-                    initial={ { opacity: 0, scale: 0.9 } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale: 0.9 } }
-                    className='glass-panel flex max-h-[80vh] w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 overflow-y-auto rounded-2xl p-4'>
+            {
+                addresses.map((address, index) =>
+                {
+                    const account = accounts.find((item) => item.index === index);
+                    const isActive = index === active;
+                    const name = account?.name ?? defaultAccountName(index);
 
-                    <div className='flex items-center justify-between'>
-
-                        <div className='flex flex-col'>
-
-                            <div className='text-medium text-txt-normal font-bold'>
-
-                                { T('Dashboard.Accounts.Title') }
-
-                            </div>
-
-                            <div className='text-tiny text-txt-muted'>
-
-                                { T('Dashboard.Accounts.Subtitle') }
-
-                            </div>
-
-                        </div>
-
-                        <button
-                            type='button'
-                            onClick={ onClose }
-                            className='btn-muted flex size-8 shrink-0 items-center justify-center rounded-lg'>
-
-                            <IoClose size={ 20 } />
-
-                        </button>
-
-                    </div>
-
+                    if (editing === index)
                     {
-                        addresses.map((address, index) =>
-                        {
-                            const account = accounts.find((item) => item.index === index);
-                            const isActive = index === active;
-                            const name = account?.name ?? defaultAccountName(index);
+                        return (
+                            <div
+                                key={ address }
+                                className='flex gap-2'>
 
-                            if (editing === index)
-                            {
-                                return (
-                                    <div
-                                        key={ address }
-                                        className='flex gap-2'>
+                                <div className='flex-1'>
 
-                                        <input
-                                            autoFocus
-                                            value={ draft }
-                                            placeholder={ name }
-                                            onChange={ (event) => { setDraft(event.target.value); } }
-                                            onKeyDown={ (event) => { if (event.key === 'Enter') { onSave(); } } }
-                                            className='glass-input text-small h-12 flex-1 rounded-xl px-3' />
-
-                                        <button
-                                            type='button'
-                                            onClick={ onSave }
-                                            className='btn-primary text-small h-12 rounded-xl px-4'>
-
-                                            { T('Dashboard.Accounts.Save') }
-
-                                        </button>
-
-                                    </div>
-                                );
-                            }
-
-                            return (
-                                <div
-                                    key={ address }
-                                    className={ `flex items-center gap-2 rounded-xl p-2 duration-300 ${ isActive ? 'bg-btn-primary/15' : '' }` }>
-
-                                    <button
-                                        type='button'
-                                        onClick={ () => { onSelect(index); } }
-                                        className='flex flex-1 cursor-pointer items-center gap-3 text-start'>
-
-                                        <div className={ `text-small flex size-9 shrink-0 items-center justify-center rounded-lg ${ isActive ? 'bg-btn-primary text-txt-reverse' : 'bg-btn-secondary text-txt-reverse' }` }>
-
-                                            { index + 1 }
-
-                                        </div>
-
-                                        <div className='flex min-w-0 flex-1 flex-col'>
-
-                                            <div className='text-small text-txt-normal truncate'>
-
-                                                { name }
-
-                                            </div>
-
-                                            <div dir='ltr' className='text-tiny text-txt-muted font-mono'>
-
-                                                { account === undefined ? T('Dashboard.Accounts.Empty') : shortAddress(address) }
-
-                                            </div>
-
-                                        </div>
-
-                                        {
-                                            isActive &&
-                                            (
-                                                <FiCheck size={ 18 } className='text-txt-normal shrink-0' />
-                                            )
-                                        }
-
-                                    </button>
-
-                                    <button
-                                        type='button'
-                                        aria-label={ T('Dashboard.Accounts.Rename') }
-                                        onClick={ () => { onEdit(index, name); } }
-                                        className='btn-muted flex size-8 shrink-0 items-center justify-center rounded-lg'>
-
-                                        <FiEdit2 size={ 14 } />
-
-                                    </button>
+                                    <TextField
+                                        autoFocus
+                                        value={ draft }
+                                        placeholder={ name }
+                                        onValue={ setDraft }
+                                        onEnter={ onSave }
+                                        className='h-12' />
 
                                 </div>
-                            );
-                        })
+
+                                <Button
+                                    variant='primary'
+                                    onClick={ onSave }
+                                    className='h-12 rounded-xl px-4 text-small'>
+
+                                    { T('Dashboard.Accounts.Save') }
+
+                                </Button>
+
+                            </div>
+                        );
                     }
 
-                </motion.div>
+                    return (
+                        <div
+                            key={ address }
+                            className={ `flex items-center gap-2 rounded-xl p-2 duration-300 ${ isActive ? 'bg-btn-primary/15' : '' }` }>
 
-            </div>
-        </>
+                            <Button
+                                onClick={ () => { onSelect(index); } }
+                                className='flex flex-1 cursor-pointer items-center gap-3 text-start'>
+
+                                <IconBox
+                                    tone={ isActive ? 'primary' : 'secondary' }
+                                    size='size-9'
+                                    className='text-small'>
+
+                                    { index + 1 }
+
+                                </IconBox>
+
+                                <div className='flex min-w-0 flex-1 flex-col'>
+
+                                    <div className='truncate text-small text-txt-normal'>
+
+                                        { name }
+
+                                    </div>
+
+                                    <div dir='ltr' className='font-mono text-tiny text-txt-muted'>
+
+                                        { account === undefined ? T('Dashboard.Accounts.Empty') : shortAddress(address) }
+
+                                    </div>
+
+                                </div>
+
+                                {
+                                    isActive &&
+                                    (
+                                        <FiCheck size={ 18 } className='shrink-0 text-txt-normal' />
+                                    )
+                                }
+
+                            </Button>
+
+                            <Button
+                                variant='muted'
+                                size='icon'
+                                aria-label={ T('Dashboard.Accounts.Rename') }
+                                onClick={ () => { onEdit(index, name); } }
+                                className='shrink-0'>
+
+                                <FiEdit2 size={ 14 } />
+
+                            </Button>
+
+                        </div>
+                    );
+                })
+            }
+
+        </Modal>
     );
 }

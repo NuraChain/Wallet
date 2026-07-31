@@ -1,7 +1,11 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
-import { IoClose } from 'react-icons/io5';
 import { FiCheck, FiPlus, FiTrash2 } from 'react-icons/fi';
+
+import Alert from '../ui/alert';
+import Button from '../ui/button';
+import IconBox from '../ui/iconbox';
+import { TextField } from '../ui/field';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { addNetwork, getNetworks, removeNetwork, setNetwork, type Network } from '../../core/network';
@@ -73,187 +77,155 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
     };
 
     return (
-        <>
-            <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
-                onClick={ onClose } />
+        <Modal
+            onClose={ onClose }
+            panelClass='max-h-[80vh] gap-2 overflow-y-auto'>
 
-            <div className='absolute inset-0 z-30 m-auto flex size-fit items-center justify-center'>
+            <ModalHeader
+                title={ T('Dashboard.Network.Title') }
+                onClose={ onClose } />
 
-                <motion.div
-                    initial={ { opacity: 0, scale: 0.9 } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale: 0.9 } }
-                    className='glass-panel flex max-h-[80vh] w-80 flex-col gap-2 overflow-y-auto rounded-2xl p-4'>
+            {
+                adding ?
+                    (
+                        <div className='flex flex-col gap-2'>
 
-                    <div className='flex items-center justify-between'>
+                            {
+                                error.length > 0 &&
+                                (
+                                    <Alert>
 
-                        <div className='text-medium text-txt-normal font-bold'>
+                                        { error }
 
-                            { T('Dashboard.Network.Title') }
+                                    </Alert>
+                                )
+                            }
+
+                            <TextField
+                                value={ name }
+                                placeholder={ T('Dashboard.Network.Name') }
+                                onValue={ setName } />
+
+                            <TextField
+                                value={ rpcUrl }
+                                dir={ rpcUrl.length > 0 ? 'ltr' : undefined }
+                                placeholder={ T('Dashboard.Network.Rpc') }
+                                onValue={ setRpcUrl } />
+
+                            <TextField
+                                value={ chainId }
+                                dir={ chainId.length > 0 ? 'ltr' : undefined }
+                                inputMode='numeric'
+                                placeholder={ T('Dashboard.Network.ChainId') }
+                                onValue={ setChainId } />
+
+                            <TextField
+                                value={ symbol }
+                                dir={ symbol.length > 0 ? 'ltr' : undefined }
+                                placeholder={ T('Dashboard.Network.Symbol') }
+                                onValue={ setSymbol } />
+
+                            <TextField
+                                value={ explorerUrl }
+                                dir={ explorerUrl.length > 0 ? 'ltr' : undefined }
+                                placeholder={ T('Dashboard.Network.Explorer') }
+                                onValue={ setExplorerUrl } />
+
+                            <div className='mt-1 flex gap-2'>
+
+                                <Button
+                                    variant='muted'
+                                    size='action'
+                                    onClick={ () => { setAdding(false); setError(''); } }
+                                    className='flex-1'>
+
+                                    { T('Dashboard.Network.Back') }
+
+                                </Button>
+
+                                <Button
+                                    variant='primary'
+                                    size='action'
+                                    onClick={ () => { void onAdd(); } }
+                                    className='flex-1'>
+
+                                    { T('Dashboard.Network.Save') }
+
+                                </Button>
+
+                            </div>
 
                         </div>
+                    ) :
+                    (
+                        <>
+                            {
+                                getNetworks().map((item) =>
+                                {
+                                    const isActive = item.id === network.id;
 
-                        <button
-                            type='button'
-                            onClick={ onClose }
-                            className='btn-muted flex size-8 items-center justify-center rounded-lg'>
+                                    return (
+                                        <div
+                                            key={ item.id }
+                                            className='flex items-center gap-1'>
 
-                            <IoClose size={ 20 } />
+                                            <Button
+                                                variant='muted'
+                                                onClick={ () => { void onSelect(item.id); } }
+                                                className={ `h-12 flex-1 rounded-xl px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
 
-                        </button>
+                                                <IconBox tone='primary' size='size-7' className='text-tiny'>
 
-                    </div>
+                                                    { item.symbol.slice(0, 1) }
 
-                    {
-                        adding ?
-                            (
-                                <div className='flex flex-col gap-2'>
+                                                </IconBox>
 
-                                    {
-                                        error.length > 0 &&
-                                        (
-                                            <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
+                                                <div className='flex-1 text-small text-txt-normal'>
 
-                                                { error }
-
-                                            </div>
-                                        )
-                                    }
-
-                                    <input
-                                        value={ name }
-                                        placeholder={ T('Dashboard.Network.Name') }
-                                        onChange={ (event) => { setName(event.target.value); } }
-                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
-
-                                    <input
-                                        value={ rpcUrl }
-                                        dir={ rpcUrl.length > 0 ? 'ltr' : undefined }
-                                        placeholder={ T('Dashboard.Network.Rpc') }
-                                        onChange={ (event) => { setRpcUrl(event.target.value); } }
-                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
-
-                                    <input
-                                        value={ chainId }
-                                        dir={ chainId.length > 0 ? 'ltr' : undefined }
-                                        inputMode='numeric'
-                                        placeholder={ T('Dashboard.Network.ChainId') }
-                                        onChange={ (event) => { setChainId(event.target.value); } }
-                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
-
-                                    <input
-                                        value={ symbol }
-                                        dir={ symbol.length > 0 ? 'ltr' : undefined }
-                                        placeholder={ T('Dashboard.Network.Symbol') }
-                                        onChange={ (event) => { setSymbol(event.target.value); } }
-                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
-
-                                    <input
-                                        value={ explorerUrl }
-                                        dir={ explorerUrl.length > 0 ? 'ltr' : undefined }
-                                        placeholder={ T('Dashboard.Network.Explorer') }
-                                        onChange={ (event) => { setExplorerUrl(event.target.value); } }
-                                        className='glass-input text-small h-11 w-full rounded-xl px-3' />
-
-                                    <div className='mt-1 flex gap-2'>
-
-                                        <button
-                                            type='button'
-                                            onClick={ () => { setAdding(false); setError(''); } }
-                                            className='btn-muted text-small h-11 flex-1 rounded-xl'>
-
-                                            { T('Dashboard.Network.Back') }
-
-                                        </button>
-
-                                        <button
-                                            type='button'
-                                            onClick={ () => { void onAdd(); } }
-                                            className='btn-primary text-small h-11 flex-1 rounded-xl'>
-
-                                            { T('Dashboard.Network.Save') }
-
-                                        </button>
-
-                                    </div>
-
-                                </div>
-                            ) :
-                            (
-                                <>
-                                    {
-                                        getNetworks().map((item) =>
-                                        {
-                                            const isActive = item.id === network.id;
-
-                                            return (
-                                                <div
-                                                    key={ item.id }
-                                                    className='flex items-center gap-1'>
-
-                                                    <button
-                                                        type='button'
-                                                        onClick={ () => { void onSelect(item.id); } }
-                                                        className={ `btn-muted flex h-12 flex-1 items-center gap-2 rounded-xl px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
-
-                                                        <div className='bg-btn-primary text-tiny text-txt-reverse flex size-7 items-center justify-center rounded-lg'>
-
-                                                            { item.symbol.slice(0, 1) }
-
-                                                        </div>
-
-                                                        <div className='text-small text-txt-normal flex-1'>
-
-                                                            { item.name }
-
-                                                        </div>
-
-                                                        {
-                                                            isActive && <FiCheck size={ 18 } />
-                                                        }
-
-                                                    </button>
-
-                                                    {
-                                                        item.custom &&
-                                                        (
-                                                            <button
-                                                                type='button'
-                                                                onClick={ () => { void onRemove(item.id); } }
-                                                                className='btn-muted text-txt-error flex size-9 items-center justify-center rounded-xl'>
-
-                                                                <FiTrash2 size={ 16 } />
-
-                                                            </button>
-                                                        )
-                                                    }
+                                                    { item.name }
 
                                                 </div>
-                                            );
-                                        })
-                                    }
 
-                                    <button
-                                        type='button'
-                                        onClick={ () => { setAdding(true); } }
-                                        className='btn-normal text-small mt-1 flex h-11 items-center justify-center gap-2 rounded-xl'>
+                                                {
+                                                    isActive && <FiCheck size={ 18 } />
+                                                }
 
-                                        <FiPlus size={ 16 } />
+                                            </Button>
 
-                                        { T('Dashboard.Network.Add') }
+                                            {
+                                                item.custom &&
+                                                (
+                                                    <Button
+                                                        variant='danger'
+                                                        size='iconChip'
+                                                        onClick={ () => { void onRemove(item.id); } }>
 
-                                    </button>
-                                </>
-                            )
-                    }
+                                                        <FiTrash2 size={ 16 } />
 
-                </motion.div>
+                                                    </Button>
+                                                )
+                                            }
 
-            </div>
-        </>
+                                        </div>
+                                    );
+                                })
+                            }
+
+                            <Button
+                                variant='normal'
+                                size='action'
+                                onClick={ () => { setAdding(true); } }
+                                className='mt-1'>
+
+                                <FiPlus size={ 16 } />
+
+                                { T('Dashboard.Network.Add') }
+
+                            </Button>
+                        </>
+                    )
+            }
+
+        </Modal>
     );
 }

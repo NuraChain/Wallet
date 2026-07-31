@@ -1,10 +1,14 @@
 import type { Transaction } from '../../hook/history';
 
-import { FiArrowDownLeft, FiArrowUpRight, FiInbox } from 'react-icons/fi';
 import { HiOutlineListBullet } from 'react-icons/hi2';
 
+import TransactionRow from './dashboard.transaction';
+
+import Button from '../ui/button';
+import EmptyState from '../ui/state';
+import SectionHeader from '../ui/section';
+
 import { T } from '../../utility/language';
-import { formatDate, shortAddress, trimAmount } from '../../utility/format';
 
 /**
  * How many transactions the wallet tab shows before sending the user to the overview.
@@ -30,85 +34,35 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
     return (
         <div className='flex flex-col gap-2'>
 
-            <div className='flex items-center justify-between gap-2'>
+            <SectionHeader title={ T('Dashboard.Activity.Title') }>
 
-                <div className='text-tiny text-txt-muted'>
-
-                    { T('Dashboard.Activity.Title') }
-
-                </div>
-
-                <button
-                    type='button'
+                <Button
+                    variant='chip'
                     onClick={ onOverview }
-                    className='chip-control text-tiny flex h-8 items-center gap-1 rounded-lg px-3'>
+                    className='h-8 gap-1 rounded-lg px-3 text-tiny'>
 
                     <HiOutlineListBullet size={ 14 } />
 
                     { T('Dashboard.Activity.Overview') }
 
-                </button>
+                </Button>
 
-            </div>
+            </SectionHeader>
 
             {
                 items.slice(0, preview).map((item) => (
-                    <button
-                        type='button'
+                    <TransactionRow
                         key={ item.id }
-                        disabled={ !canOpen }
-                        aria-label={ T('Dashboard.Activity.Open') }
-                        onClick={ () => { onOpen(item.hash); } }
-                        className='glass-panel flex items-center gap-3 rounded-xl p-3 text-start not-disabled:cursor-pointer'>
-
-                        <div className='bg-btn-muted text-txt-normal flex size-9 shrink-0 items-center justify-center rounded-lg'>
-
-                            {
-                                item.incoming ? <FiArrowDownLeft size={ 18 } /> : <FiArrowUpRight size={ 18 } />
-                            }
-
-                        </div>
-
-                        <div className='flex min-w-0 flex-1 flex-col'>
-
-                            <div className='text-small text-txt-normal'>
-
-                                { item.incoming ? T('Dashboard.Activity.Received') : T('Dashboard.Activity.Sent') }
-
-                            </div>
-
-                            <div dir='ltr' className='text-tiny text-txt-muted truncate font-mono'>
-
-                                { item.incoming ? shortAddress(item.from) : shortAddress(item.to) }
-
-                            </div>
-
-                        </div>
-
-                        <div className='flex shrink-0 flex-col items-end'>
-
-                            <div dir='ltr' className='text-small text-txt-normal font-mono'>
-
-                                { `${ item.incoming ? '+' : '-' }${ trimAmount(item.value) } ${ item.symbol }` }
-
-                            </div>
-
-                            <div className='text-tiny text-txt-muted'>
-
-                                { formatDate(item.timestamp) }
-
-                            </div>
-
-                        </div>
-
-                    </button>
+                        item={ item }
+                        canOpen={ canOpen }
+                        onOpen={ onOpen } />
                 ))
             }
 
             {
                 loading && items.length === 0 &&
                 (
-                    <div className='text-tiny text-txt-muted py-4 text-center'>
+                    <div className='py-4 text-center text-tiny text-txt-muted'>
 
                         { T('Dashboard.Activity.Loading') }
 
@@ -119,17 +73,11 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
             {
                 !loading && items.length === 0 &&
                 (
-                    <div className='glass-panel flex flex-col items-center gap-1 rounded-xl px-3 py-6 text-center'>
+                    <EmptyState panel>
 
-                        <FiInbox size={ 24 } className='text-txt-muted' />
+                        { T('Dashboard.Activity.Empty') }
 
-                        <div className='text-small text-txt-muted'>
-
-                            { T('Dashboard.Activity.Empty') }
-
-                        </div>
-
-                    </div>
+                    </EmptyState>
                 )
             }
 

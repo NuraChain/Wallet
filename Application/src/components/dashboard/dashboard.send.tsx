@@ -1,13 +1,17 @@
 import type { TokenBalance } from '../../core/token';
 
-import { motion } from 'motion/react';
-import { IoClose } from 'react-icons/io5';
 import { useMemo, useState } from 'react';
 import { isAddress, parseUnits } from 'ethers';
 import { FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 
 import WalletManager from '../../core/wallet';
+
+import Alert from '../ui/alert';
+import Button from '../ui/button';
+import Spinner from '../ui/spinner';
+import SectionHeader from '../ui/section';
+import { TextField } from '../ui/field';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { getProvider, type Network } from '../../core/network';
@@ -114,297 +118,264 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
     };
 
     return (
-        <>
-            <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
-                onClick={ onClose } />
+        <Modal onClose={ onClose }>
 
-            <div className='absolute inset-0 z-30 m-auto flex size-fit items-center justify-center'>
+            <ModalHeader
+                title={ T('Dashboard.Send.Title') }
+                titleClass='min-w-0 truncate'
+                className='gap-2'
+                onClose={ onClose } />
 
-                <motion.div
-                    initial={ { opacity: 0, scale: 0.9 } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale: 0.9 } }
-                    className='glass-panel flex w-80 flex-col gap-3 rounded-2xl p-4'>
+            {
+                step === 'form' &&
+                (
+                    <div className='flex flex-col gap-3'>
 
-                    <div className='flex items-center justify-between gap-2'>
+                        {
+                            error.length > 0 &&
+                            (
+                                <Alert>
 
-                        <div className='text-medium text-txt-normal min-w-0 truncate font-bold'>
+                                    { error }
 
-                            { T('Dashboard.Send.Title') }
+                                </Alert>
+                            )
+                        }
+
+                        <div className='flex flex-wrap gap-1'>
+
+                            {
+                                assets.map((item) => (
+                                    <Button
+                                        key={ item.key }
+                                        onClick={ () => { setSelected(item.key); } }
+                                        className={ `flex h-9 items-center rounded-xl px-3 text-tiny duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : 'btn-muted' }` }>
+
+                                        { item.symbol }
+
+                                    </Button>
+                                ))
+                            }
 
                         </div>
 
-                        <button
-                            type='button'
-                            onClick={ onClose }
-                            className='btn-muted flex size-8 items-center justify-center rounded-lg'>
+                        <div className='flex flex-col gap-1'>
 
-                            <IoClose size={ 20 } />
+                            <div className='text-tiny text-txt-muted'>
 
-                        </button>
+                                { T('Dashboard.Send.Recipient') }
+
+                            </div>
+
+                            <TextField
+                                value={ to }
+                                dir='ltr'
+                                placeholder='0x…'
+                                onValue={ setTo }
+                                className='font-mono' />
+
+                        </div>
+
+                        <div className='flex flex-col gap-1'>
+
+                            <SectionHeader title={ T('Dashboard.Send.Amount') }>
+
+                                <Button
+                                    variant='muted'
+                                    onClick={ () => { setAmount(asset.formatted); } }
+                                    className='rounded-lg px-2 py-0.5 text-tiny text-txt-muted'>
+
+                                    { T('Dashboard.Send.Max', trimAmount(asset.formatted)) }
+
+                                </Button>
+
+                            </SectionHeader>
+
+                            <TextField
+                                value={ amount }
+                                dir='ltr'
+                                inputMode='decimal'
+                                placeholder='0.0'
+                                onValue={ setAmount }
+                                className='font-mono' />
+
+                        </div>
+
+                        <Button
+                            variant='primary'
+                            size='action'
+                            onClick={ onReview }>
+
+                            { T('Dashboard.Send.Review') }
+
+                        </Button>
 
                     </div>
+                )
+            }
 
-                    {
-                        step === 'form' &&
-                        (
-                            <div className='flex flex-col gap-3'>
+            {
+                step === 'review' &&
+                (
+                    <div className='flex flex-col gap-3'>
 
-                                {
-                                    error.length > 0 &&
-                                    (
-                                        <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
+                        <div className='glass-panel flex flex-col gap-2 rounded-xl p-3'>
 
-                                            { error }
+                            <div className='flex items-center justify-between gap-2 text-tiny'>
 
-                                        </div>
-                                    )
-                                }
+                                <span className='text-txt-muted'>
 
-                                <div className='flex flex-wrap gap-1'>
+                                    { T('Dashboard.Send.Amount') }
 
-                                    {
-                                        assets.map((item) => (
-                                            <button
-                                                key={ item.key }
-                                                type='button'
-                                                onClick={ () => { setSelected(item.key); } }
-                                                className={ `text-tiny flex h-9 items-center rounded-xl px-3 duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : 'btn-muted' }` }>
+                                </span>
 
-                                                { item.symbol }
+                                <span dir='ltr' className='font-mono text-txt-normal'>
 
-                                            </button>
-                                        ))
-                                    }
+                                    { `${ trimAmount(amount) } ${ asset.symbol }` }
 
-                                </div>
-
-                                <div className='flex flex-col gap-1'>
-
-                                    <div className='text-tiny text-txt-muted'>
-
-                                        { T('Dashboard.Send.Recipient') }
-
-                                    </div>
-
-                                    <input
-                                        value={ to }
-                                        dir='ltr'
-                                        placeholder='0x…'
-                                        onChange={ (event) => { setTo(event.target.value); } }
-                                        className='glass-input text-small h-11 w-full rounded-xl px-3 font-mono' />
-
-                                </div>
-
-                                <div className='flex flex-col gap-1'>
-
-                                    <div className='flex items-center justify-between'>
-
-                                        <div className='text-tiny text-txt-muted'>
-
-                                            { T('Dashboard.Send.Amount') }
-
-                                        </div>
-
-                                        <button
-                                            type='button'
-                                            onClick={ () => { setAmount(asset.formatted); } }
-                                            className='btn-muted text-tiny text-txt-muted rounded-lg px-2 py-0.5'>
-
-                                            { T('Dashboard.Send.Max', trimAmount(asset.formatted)) }
-
-                                        </button>
-
-                                    </div>
-
-                                    <input
-                                        value={ amount }
-                                        dir='ltr'
-                                        inputMode='decimal'
-                                        placeholder='0.0'
-                                        onChange={ (event) => { setAmount(event.target.value); } }
-                                        className='glass-input text-small h-11 w-full rounded-xl px-3 font-mono' />
-
-                                </div>
-
-                                <button
-                                    type='button'
-                                    onClick={ onReview }
-                                    className='btn-primary text-small h-11 rounded-xl'>
-
-                                    { T('Dashboard.Send.Review') }
-
-                                </button>
+                                </span>
 
                             </div>
-                        )
-                    }
 
-                    {
-                        step === 'review' &&
-                        (
-                            <div className='flex flex-col gap-3'>
+                            <div className='flex items-center justify-between gap-2 text-tiny'>
 
-                                <div className='glass-panel flex flex-col gap-2 rounded-xl p-3'>
+                                <span className='text-txt-muted'>
 
-                                    <div className='text-tiny flex items-center justify-between gap-2'>
+                                    { T('Dashboard.Send.To') }
 
-                                        <span className='text-txt-muted'>
+                                </span>
 
-                                            { T('Dashboard.Send.Amount') }
+                                <span dir='ltr' className='font-mono text-txt-normal'>
 
-                                        </span>
+                                    { shortAddress(to) }
 
-                                        <span dir='ltr' className='text-txt-normal font-mono'>
-
-                                            { `${ trimAmount(amount) } ${ asset.symbol }` }
-
-                                        </span>
-
-                                    </div>
-
-                                    <div className='text-tiny flex items-center justify-between gap-2'>
-
-                                        <span className='text-txt-muted'>
-
-                                            { T('Dashboard.Send.To') }
-
-                                        </span>
-
-                                        <span dir='ltr' className='text-txt-normal font-mono'>
-
-                                            { shortAddress(to) }
-
-                                        </span>
-
-                                    </div>
-
-                                    <div className='text-tiny flex items-center justify-between gap-2'>
-
-                                        <span className='text-txt-muted'>
-
-                                            { T('Dashboard.Network.Title') }
-
-                                        </span>
-
-                                        <span className='text-txt-normal'>
-
-                                            { network.name }
-
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-                                <div className='flex gap-2'>
-
-                                    <button
-                                        type='button'
-                                        onClick={ () => { setStep('form'); } }
-                                        className='btn-muted text-small flex h-11 flex-1 items-center justify-center gap-2 rounded-xl'>
-
-                                        <FiArrowLeft size={ 16 } />
-
-                                        { T('Dashboard.Send.Back') }
-
-                                    </button>
-
-                                    <button
-                                        type='button'
-                                        onClick={ () => { void onConfirm(); } }
-                                        className='btn-primary text-small h-11 flex-1 rounded-xl'>
-
-                                        { T('Dashboard.Send.Confirm') }
-
-                                    </button>
-
-                                </div>
+                                </span>
 
                             </div>
-                        )
-                    }
 
-                    {
-                        step === 'pending' &&
-                        (
-                            <div className='flex flex-col items-center gap-3 py-6'>
+                            <div className='flex items-center justify-between gap-2 text-tiny'>
 
-                                <AiOutlineLoading3Quarters size={ 32 } className='text-txt-muted animate-spin' />
+                                <span className='text-txt-muted'>
 
-                                <div className='text-small text-txt-muted'>
+                                    { T('Dashboard.Network.Title') }
 
-                                    { T('Dashboard.Send.Pending') }
+                                </span>
 
-                                </div>
+                                <span className='text-txt-normal'>
 
-                            </div>
-                        )
-                    }
+                                    { network.name }
 
-                    {
-                        step === 'success' &&
-                        (
-                            <div className='flex flex-col items-center gap-3 py-4'>
-
-                                <FiCheckCircle size={ 40 } className='text-txt-normal' />
-
-                                <div className='text-small text-txt-normal'>
-
-                                    { T('Dashboard.Send.Success') }
-
-                                </div>
-
-                                <div dir='ltr' className='bg-base-3 text-tiny text-txt-muted w-full rounded-xl p-2 text-center font-mono break-all select-text!'>
-
-                                    { hash }
-
-                                </div>
-
-                                <button
-                                    type='button'
-                                    onClick={ onClose }
-                                    className='btn-primary text-small h-11 w-full rounded-xl'>
-
-                                    { T('Dashboard.Send.Done') }
-
-                                </button>
+                                </span>
 
                             </div>
-                        )
-                    }
 
-                    {
-                        step === 'error' &&
-                        (
-                            <div className='flex flex-col items-center gap-3 py-4'>
+                        </div>
 
-                                <div className='text-small text-txt-error text-center'>
+                        <div className='flex gap-2'>
 
-                                    { T('Dashboard.Send.Error') }
+                            <Button
+                                variant='muted'
+                                size='action'
+                                onClick={ () => { setStep('form'); } }
+                                className='flex-1'>
 
-                                </div>
+                                <FiArrowLeft size={ 16 } />
 
-                                <button
-                                    type='button'
-                                    onClick={ () => { setStep('form'); } }
-                                    className='btn-muted text-small h-11 w-full rounded-xl'>
+                                { T('Dashboard.Send.Back') }
 
-                                    { T('Dashboard.Send.Back') }
+                            </Button>
 
-                                </button>
+                            <Button
+                                variant='primary'
+                                size='action'
+                                onClick={ () => { void onConfirm(); } }
+                                className='flex-1'>
 
-                            </div>
-                        )
-                    }
+                                { T('Dashboard.Send.Confirm') }
 
-                </motion.div>
+                            </Button>
 
-            </div>
-        </>
+                        </div>
+
+                    </div>
+                )
+            }
+
+            {
+                step === 'pending' &&
+                (
+                    <div className='flex flex-col items-center gap-3 py-6'>
+
+                        <Spinner size={ 32 } className='text-txt-muted' />
+
+                        <div className='text-small text-txt-muted'>
+
+                            { T('Dashboard.Send.Pending') }
+
+                        </div>
+
+                    </div>
+                )
+            }
+
+            {
+                step === 'success' &&
+                (
+                    <div className='flex flex-col items-center gap-3 py-4'>
+
+                        <FiCheckCircle size={ 40 } className='text-txt-normal' />
+
+                        <div className='text-small text-txt-normal'>
+
+                            { T('Dashboard.Send.Success') }
+
+                        </div>
+
+                        <div dir='ltr' className='w-full rounded-xl bg-base-3 p-2 text-center font-mono text-tiny break-all text-txt-muted select-text!'>
+
+                            { hash }
+
+                        </div>
+
+                        <Button
+                            variant='primary'
+                            size='action'
+                            fullWidth
+                            onClick={ onClose }>
+
+                            { T('Dashboard.Send.Done') }
+
+                        </Button>
+
+                    </div>
+                )
+            }
+
+            {
+                step === 'error' &&
+                (
+                    <div className='flex flex-col items-center gap-3 py-4'>
+
+                        <div className='text-center text-small text-txt-error'>
+
+                            { T('Dashboard.Send.Error') }
+
+                        </div>
+
+                        <Button
+                            variant='muted'
+                            size='action'
+                            fullWidth
+                            onClick={ () => { setStep('form'); } }>
+
+                            { T('Dashboard.Send.Back') }
+
+                        </Button>
+
+                    </div>
+                )
+            }
+
+        </Modal>
     );
 }

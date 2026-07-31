@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
-import { IoClose } from 'react-icons/io5';
 import { FiCheckCircle, FiGift } from 'react-icons/fi';
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+
+import Alert from '../ui/alert';
+import Button from '../ui/button';
+import IconBox from '../ui/iconbox';
+import { TextField } from '../ui/field';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { isRedeemCode, redeemCode } from '../../core/redeem';
@@ -58,147 +61,108 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
     };
 
     return (
-        <>
-            <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
-                onClick={ onClose } />
+        <Modal
+            onClose={ onClose }
+            panelClass='max-h-[80vh] overflow-y-auto'>
 
-            <div className='absolute inset-0 z-30 m-auto flex size-fit items-center justify-center'>
+            <ModalHeader
+                title={ T('Dashboard.Redeem.Title') }
+                titleClass='min-w-0 truncate'
+                className='gap-2'
+                onClose={ onClose }
+                leading={
+                    (
+                        <IconBox tone='primary' size='size-8'>
 
-                <motion.div
-                    initial={ { opacity: 0, scale: 0.9 } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale: 0.9 } }
-                    className='glass-panel flex max-h-[80vh] w-80 flex-col gap-3 overflow-y-auto rounded-2xl p-4'>
+                            <FiGift size={ 16 } />
 
-                    <div className='flex items-center justify-between gap-2'>
+                        </IconBox>
+                    )
+                } />
 
-                        <div className='flex min-w-0 items-center gap-2'>
+            {
+                done.length > 0 ?
+                    (
+                        <div className='flex flex-col items-center gap-2 py-4'>
 
-                            <div className='bg-btn-primary text-txt-reverse flex size-8 shrink-0 items-center justify-center rounded-lg'>
+                            <FiCheckCircle size={ 36 } className='text-btn-primary' />
 
-                                <FiGift size={ 16 } />
+                            <div className='text-center text-small text-txt-normal'>
+
+                                { done }
 
                             </div>
 
-                            <div className='text-medium text-txt-normal min-w-0 truncate font-bold'>
+                            <Button
+                                variant='normal'
+                                size='action'
+                                fullWidth
+                                onClick={ onClose }
+                                className='mt-2'>
 
-                                { T('Dashboard.Redeem.Title') }
+                                { T('Dashboard.Redeem.Close') }
 
-                            </div>
+                            </Button>
 
                         </div>
+                    ) :
+                    (
+                        <>
+                            {
+                                error.length > 0 &&
+                                (
+                                    <Alert>
 
-                        <button
-                            type='button'
-                            onClick={ onClose }
-                            className='btn-muted flex size-8 shrink-0 items-center justify-center rounded-lg'>
+                                        { error }
 
-                            <IoClose size={ 20 } />
+                                    </Alert>
+                                )
+                            }
 
-                        </button>
+                            <div className='flex flex-col gap-2'>
 
-                    </div>
+                                <div className='text-tiny text-txt-muted'>
 
-                    {
-                        done.length > 0 ?
-                            (
-                                <div className='flex flex-col items-center gap-2 py-4'>
-
-                                    <FiCheckCircle size={ 36 } className='text-btn-primary' />
-
-                                    <div className='text-small text-txt-normal text-center'>
-
-                                        { done }
-
-                                    </div>
-
-                                    <button
-                                        type='button'
-                                        onClick={ onClose }
-                                        className='btn-normal text-small mt-2 h-11 w-full rounded-xl'>
-
-                                        { T('Dashboard.Redeem.Close') }
-
-                                    </button>
+                                    { T('Dashboard.Redeem.Address') }
 
                                 </div>
-                            ) :
-                            (
-                                <>
-                                    {
-                                        error.length > 0 &&
-                                        (
-                                            <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
 
-                                                { error }
+                                <div dir='ltr' className='glass-input flex min-h-11 items-center rounded-xl px-3 py-2 font-mono text-tiny break-all text-txt-muted'>
 
-                                            </div>
-                                        )
-                                    }
+                                    { address }
 
-                                    <div className='flex flex-col gap-2'>
+                                </div>
 
-                                        <div className='text-tiny text-txt-muted'>
+                            </div>
 
-                                            { T('Dashboard.Redeem.Address') }
+                            <TextField
+                                label={ T('Dashboard.Redeem.Code') }
+                                value={ code }
+                                onValue={ setCode }
+                                onEnter={ () => { void onSubmit(); } }
+                                dir={ code.length > 0 ? 'ltr' : undefined }
+                                autoCapitalize='none'
+                                spellCheck={ false }
+                                placeholder={ T('Dashboard.Redeem.CodeHint') }
+                                className='font-mono text-tiny' />
 
-                                        </div>
+                            <Button
+                                variant='primary'
+                                size='action'
+                                disabled={ isLoading }
+                                loading={ isLoading }
+                                onClick={ () => { void onSubmit(); } }
+                                className='mt-1 disabled:cursor-not-allowed! disabled:opacity-60'>
 
-                                        <div dir='ltr' className='glass-input text-tiny text-txt-muted flex min-h-11 items-center rounded-xl px-3 py-2 font-mono break-all'>
+                                {
+                                    isLoading ? T('Dashboard.Redeem.Pending') : T('Dashboard.Redeem.Submit')
+                                }
 
-                                            { address }
+                            </Button>
+                        </>
+                    )
+            }
 
-                                        </div>
-
-                                    </div>
-
-                                    <label className='flex flex-col gap-2'>
-
-                                        <div className='text-tiny text-txt-muted'>
-
-                                            { T('Dashboard.Redeem.Code') }
-
-                                        </div>
-
-                                        <input
-                                            value={ code }
-                                            dir={ code.length > 0 ? 'ltr' : undefined }
-                                            autoCapitalize='none'
-                                            spellCheck={ false }
-                                            placeholder={ T('Dashboard.Redeem.CodeHint') }
-                                            onChange={ (event) => { setCode(event.target.value); } }
-                                            // eslint-disable-next-line @typescript-eslint/strict-void-return
-                                            onKeyDown={ (event) => event.key === 'Enter' && void onSubmit() }
-                                            className='glass-input text-tiny h-11 w-full rounded-xl px-3 font-mono' />
-
-                                    </label>
-
-                                    <button
-                                        type='button'
-                                        disabled={ isLoading }
-                                        onClick={ () => { void onSubmit(); } }
-                                        className='btn-primary text-small mt-1 flex h-11 items-center justify-center gap-2 rounded-xl disabled:cursor-not-allowed! disabled:opacity-60'>
-
-                                        {
-                                            isLoading && <AiOutlineLoading3Quarters size={ 16 } className='shrink-0 animate-spin' />
-                                        }
-
-                                        {
-                                            isLoading ? T('Dashboard.Redeem.Pending') : T('Dashboard.Redeem.Submit')
-                                        }
-
-                                    </button>
-                                </>
-                            )
-                    }
-
-                </motion.div>
-
-            </div>
-        </>
+        </Modal>
     );
 }

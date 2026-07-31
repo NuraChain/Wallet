@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
-import { IoClose } from 'react-icons/io5';
-import { FiAlertTriangle, FiEye, FiFileText, FiImage } from 'react-icons/fi';
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
+import { FiEye, FiFileText, FiImage } from 'react-icons/fi';
+
+import Alert from '../ui/alert';
+import Button from '../ui/button';
+import { PasswordField } from '../ui/field';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { getExporter, phraseToPng } from '../../core/export';
@@ -33,6 +34,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
     const [ password, setPassword ] = useState('');
     const [ revealed, setRevealed ] = useState(false);
     const [ notice, setNotice ] = useState('');
+    const [ isLoading, setIsLoading ] = useState(false);
 
     // Off Android there is no MediaStore to write to, so the controls are simply absent.
     const exporter = getExporter();
@@ -68,8 +70,6 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
         setNotice(failure === 'unsupported' ? T('Dashboard.Phrase.ExportUnsupported') : T('Dashboard.Phrase.ExportFailed'));
     };
-    const [ isLoading, setIsLoading ] = useState(false);
-    const [ showPassword, setShowPassword ] = useState(false);
 
     const onUnlock = async() =>
     {
@@ -117,244 +117,176 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
     };
 
     return (
-        <>
-            <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
-                onClick={ onClose } />
+        <Modal
+            onClose={ onClose }
+            panelClass='max-h-[80vh] overflow-y-auto'>
 
-            <div className='absolute inset-0 z-30 m-auto flex size-fit items-center justify-center'>
+            <ModalHeader
+                title={ T('Dashboard.Phrase.Title') }
+                onClose={ onClose } />
 
-                <motion.div
-                    initial={ { opacity: 0, scale: 0.9 } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale: 0.9 } }
-                    className='glass-panel flex max-h-[80vh] w-80 flex-col gap-3 overflow-y-auto rounded-2xl p-4'>
+            <Alert variant='warning'>
 
-                    <div className='flex items-center justify-between'>
+                { T('Dashboard.Phrase.Warning') }
 
-                        <div className='text-medium text-txt-normal font-bold'>
+            </Alert>
 
-                            { T('Dashboard.Phrase.Title') }
+            {
+                error.length > 0 &&
+                (
+                    <Alert>
 
-                        </div>
+                        { error }
 
-                        <button
-                            type='button'
-                            onClick={ onClose }
-                            className='btn-muted flex size-8 items-center justify-center rounded-lg'>
+                    </Alert>
+                )
+            }
 
-                            <IoClose size={ 20 } />
+            {
+                words.length === 0 ?
+                    (
+                        <>
+                            <PasswordField
+                                size='compact'
+                                label={ T('Dashboard.Phrase.Password') }
+                                value={ password }
+                                onValue={ setPassword }
+                                onEnter={ () => { void onUnlock(); } } />
 
-                        </button>
+                            <Button
+                                variant='primary'
+                                size='action'
+                                disabled={ isLoading }
+                                loading={ isLoading }
+                                onClick={ () => { void onUnlock(); } }
+                                className='mt-1 disabled:cursor-not-allowed! disabled:opacity-60'>
 
-                    </div>
+                                {
+                                    isLoading ? T('Dashboard.Phrase.Pending') : T('Dashboard.Phrase.Unlock')
+                                }
 
-                    <div className='bg-txt-error/10 text-tiny text-txt-error flex items-start gap-2 rounded-xl px-3 py-2 text-start'>
+                            </Button>
+                        </>
+                    ) :
+                    (
+                        <div className='relative'>
 
-                        <FiAlertTriangle size={ 16 } className='mt-0.5 shrink-0' />
+                            <div
+                                dir='ltr'
+                                className={ `grid grid-cols-3 gap-1.5 transition-all duration-300 ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
 
-                        <span>
+                                {
+                                    words.map((word, index) => (
+                                        <div
+                                            key={ `${ index }-${ word }` }
+                                            className='flex items-center gap-1 rounded-lg bg-base-1 px-2 py-1.5'>
 
-                            { T('Dashboard.Phrase.Warning') }
+                                            <span className='text-tiny text-txt-muted'>
 
-                        </span>
+                                                { index + 1 }
 
-                    </div>
+                                            </span>
 
-                    {
-                        error.length > 0 &&
-                        (
-                            <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
+                                            <span className='truncate font-mono text-tiny text-txt-normal'>
 
-                                { error }
+                                                { word }
+
+                                            </span>
+
+                                        </div>
+                                    ))
+                                }
 
                             </div>
-                        )
-                    }
 
-                    {
-                        words.length === 0 ?
-                            (
-                                <>
-                                    <label className='flex flex-col gap-2'>
+                            {
+                                !revealed &&
+                                (
+                                    <Button
+                                        onClick={ () => { setRevealed(true); } }
+                                        className='absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl bg-base-2/60 text-txt-normal'>
 
-                                        <div className='text-tiny text-txt-muted'>
+                                        <FiEye size={ 20 } />
 
-                                            { T('Dashboard.Phrase.Password') }
+                                        <span className='text-tiny'>
 
-                                        </div>
+                                            { T('Dashboard.Phrase.Reveal') }
 
-                                        <div className='relative flex items-center'>
+                                        </span>
 
-                                            <HiOutlineLockClosed className='text-txt-muted absolute left-3' size={ 18 } />
+                                    </Button>
+                                )
+                            }
 
-                                            <input
-                                                value={ password }
-                                                placeholder={ T('Dashboard.Phrase.Password') }
-                                                type={ showPassword ? 'text' : 'password' }
-                                                onChange={ (event) => { setPassword(event.target.value); } }
-                                                // eslint-disable-next-line @typescript-eslint/strict-void-return
-                                                onKeyDown={ (event) => event.key === 'Enter' && void onUnlock() }
-                                                className='glass-input text-small h-11 w-full rounded-xl px-10' />
+                            {
+                                revealed && exporter !== undefined &&
+                                (
+                                    <div className='mt-3 flex flex-col gap-2'>
 
-                                            <button
-                                                type='button'
-                                                onClick={ () => { setShowPassword((value) => !value); } }
-                                                className='text-txt-muted absolute right-3 rounded-lg'>
+                                        { /*
+                                          * Spelled out every time rather than shown once: a file
+                                          * on shared storage outlives the moment it was written,
+                                          * and the gallery copy is the one people forget.
+                                          */ }
+                                        <Alert variant='danger'>
 
-                                                {
-                                                    showPassword ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
-                                                }
+                                            { T('Dashboard.Phrase.ExportDanger') }
 
-                                            </button>
+                                        </Alert>
 
-                                        </div>
+                                        <div className='flex gap-2'>
 
-                                    </label>
+                                            <Button
+                                                variant='muted'
+                                                onClick={ () => { onExport('image'); } }
+                                                className='h-10 min-w-0 flex-1 rounded-xl text-tiny'>
 
-                                    <button
-                                        type='button'
-                                        disabled={ isLoading }
-                                        onClick={ () => { void onUnlock(); } }
-                                        className='btn-primary text-small mt-1 flex h-11 items-center justify-center gap-2 rounded-xl disabled:cursor-not-allowed! disabled:opacity-60'>
+                                                <FiImage size={ 14 } className='shrink-0' />
 
-                                        {
-                                            isLoading && <AiOutlineLoading3Quarters size={ 16 } className='shrink-0 animate-spin' />
-                                        }
+                                                <span className='truncate'>
 
-                                        {
-                                            isLoading ? T('Dashboard.Phrase.Pending') : T('Dashboard.Phrase.Unlock')
-                                        }
-
-                                    </button>
-                                </>
-                            ) :
-                            (
-                                <div className='relative'>
-
-                                    <div
-                                        dir='ltr'
-                                        className={ `grid grid-cols-3 gap-1.5 transition-all duration-300 ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
-
-                                        {
-                                            words.map((word, index) => (
-                                                <div
-                                                    key={ `${ index }-${ word }` }
-                                                    className='bg-base-1 flex items-center gap-1 rounded-lg px-2 py-1.5'>
-
-                                                    <span className='text-tiny text-txt-muted'>
-
-                                                        { index + 1 }
-
-                                                    </span>
-
-                                                    <span className='text-tiny text-txt-normal truncate font-mono'>
-
-                                                        { word }
-
-                                                    </span>
-
-                                                </div>
-                                            ))
-                                        }
-
-                                    </div>
-
-                                    {
-                                        !revealed &&
-                                        (
-                                            <button
-                                                type='button'
-                                                onClick={ () => { setRevealed(true); } }
-                                                className='bg-base-2/60 text-txt-normal absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl'>
-
-                                                <FiEye size={ 20 } />
-
-                                                <span className='text-tiny'>
-
-                                                    { T('Dashboard.Phrase.Reveal') }
+                                                    { T('Dashboard.Phrase.SaveImage') }
 
                                                 </span>
 
-                                            </button>
-                                        )
-                                    }
+                                            </Button>
 
-                                    {
-                                        revealed && exporter !== undefined &&
-                                        (
-                                            <div className='mt-3 flex flex-col gap-2'>
+                                            <Button
+                                                variant='muted'
+                                                onClick={ () => { onExport('text'); } }
+                                                className='h-10 min-w-0 flex-1 rounded-xl text-tiny'>
 
-                                                { /*
-                                                  * Spelled out every time rather than shown once: a file
-                                                  * on shared storage outlives the moment it was written,
-                                                  * and the gallery copy is the one people forget.
-                                                  */ }
-                                                <div className='bg-txt-error/10 text-tiny text-txt-error rounded-lg px-3 py-2'>
+                                                <FiFileText size={ 14 } className='shrink-0' />
 
-                                                    { T('Dashboard.Phrase.ExportDanger') }
+                                                <span className='truncate'>
 
-                                                </div>
+                                                    { T('Dashboard.Phrase.SaveText') }
 
-                                                <div className='flex gap-2'>
+                                                </span>
 
-                                                    <button
-                                                        type='button'
-                                                        onClick={ () => { onExport('image'); } }
-                                                        className='btn-muted flex h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl text-tiny'>
+                                            </Button>
 
-                                                        <FiImage size={ 14 } className='shrink-0' />
+                                        </div>
 
-                                                        <span className='truncate'>
+                                        {
+                                            notice.length > 0 &&
+                                            (
+                                                <div className='text-center text-tiny text-txt-muted'>
 
-                                                            { T('Dashboard.Phrase.SaveImage') }
-
-                                                        </span>
-
-                                                    </button>
-
-                                                    <button
-                                                        type='button'
-                                                        onClick={ () => { onExport('text'); } }
-                                                        className='btn-muted flex h-10 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl text-tiny'>
-
-                                                        <FiFileText size={ 14 } className='shrink-0' />
-
-                                                        <span className='truncate'>
-
-                                                            { T('Dashboard.Phrase.SaveText') }
-
-                                                        </span>
-
-                                                    </button>
+                                                    { notice }
 
                                                 </div>
+                                            )
+                                        }
 
-                                                {
-                                                    notice.length > 0 &&
-                                                    (
-                                                        <div className='text-tiny text-txt-muted text-center'>
+                                    </div>
+                                )
+                            }
 
-                                                            { notice }
+                        </div>
+                    )
+            }
 
-                                                        </div>
-                                                    )
-                                                }
-
-                                            </div>
-                                        )
-                                    }
-
-                                </div>
-                            )
-                    }
-
-                </motion.div>
-
-            </div>
-        </>
+        </Modal>
     );
 }

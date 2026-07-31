@@ -1,8 +1,11 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
-import { IoChevronForward, IoClose } from 'react-icons/io5';
+import { IoChevronForward } from 'react-icons/io5';
 import { FiGlobe, FiLogOut, FiMoon, FiSun } from 'react-icons/fi';
 import { HiOutlineDocumentText, HiOutlineLockClosed } from 'react-icons/hi2';
+
+import Button from '../ui/button';
+import MenuRow from '../ui/menu';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { getTheme, setTheme } from '../../utility/theme';
 import { getDirection, T } from '../../utility/language';
@@ -35,148 +38,75 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
     };
 
     return (
-        <>
-            <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
-                onClick={ onClose } />
+        <Modal
+            onClose={ onClose }
+            panelClass='max-h-[80vh] overflow-y-auto'>
 
-            <div className='absolute inset-0 z-30 m-auto flex size-fit items-center justify-center'>
+            <ModalHeader
+                title={ T('Dashboard.Settings.Title') }
+                onClose={ onClose } />
 
-                <motion.div
-                    initial={ { opacity: 0, scale: 0.9 } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale: 0.9 } }
-                    className='glass-panel flex max-h-[80vh] w-80 flex-col gap-3 overflow-y-auto rounded-2xl p-4'>
+            <MenuRow
+                icon={ <FiGlobe size={ 16 } /> }
+                label={ T('Intro.Language') }
+                onClick={ onLanguage }
+                trailing={ <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'rotate-180 text-txt-muted' : 'text-txt-muted' } /> } />
 
-                    <div className='flex items-center justify-between'>
-
-                        <div className='text-medium text-txt-normal font-bold'>
-
-                            { T('Dashboard.Settings.Title') }
-
-                        </div>
-
-                        <button
-                            type='button'
-                            onClick={ onClose }
-                            className='btn-muted flex size-8 items-center justify-center rounded-lg'>
-
-                            <IoClose size={ 20 } />
-
-                        </button>
-
-                    </div>
-
-                    <button
-                        type='button'
-                        onClick={ onLanguage }
-                        className='btn-muted flex h-14 items-center gap-3 rounded-xl px-3'>
-
-                        <div className='bg-btn-muted text-txt-normal flex size-8 items-center justify-center rounded-lg'>
-
-                            <FiGlobe size={ 16 } />
-
-                        </div>
-
-                        <div className='text-small text-txt-normal flex-1 text-start'>
-
-                            { T('Intro.Language') }
-
-                        </div>
-
-                        <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'text-txt-muted rotate-180' : 'text-txt-muted' } />
-
-                    </button>
-
-                    <button
-                        type='button'
-                        onClick={ onToggleTheme }
-                        className='btn-muted flex h-14 items-center gap-3 rounded-xl px-3'>
-
-                        <div className='bg-btn-muted text-txt-normal flex size-8 items-center justify-center rounded-lg'>
-
-                            {
-                                theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } />
-                            }
-
-                        </div>
-
-                        <div className='text-small text-txt-normal flex-1 text-start'>
-
-                            { T('Dashboard.Settings.Theme') }
-
-                        </div>
-
+            <MenuRow
+                icon={ theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } /> }
+                label={ T('Dashboard.Settings.Theme') }
+                onClick={ onToggleTheme }
+                trailing={
+                    (
                         <div className='text-tiny text-txt-muted'>
 
                             { theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark') }
 
                         </div>
+                    )
+                } />
 
-                    </button>
+            <MenuRow
+                icon={ <HiOutlineDocumentText size={ 16 } /> }
+                label={ T('Dashboard.Phrase.Title') }
+                onClick={ onPhrase }
+                trailing={ <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'rotate-180 text-txt-muted' : 'text-txt-muted' } /> } />
 
-                    <button
-                        type='button'
-                        onClick={ onPhrase }
-                        className='btn-muted flex h-14 items-center gap-3 rounded-xl px-3'>
+            { /* Both are session-ending actions, so they share one row rather than a line each. */ }
+            <div className='mt-1 flex gap-2'>
 
-                        <div className='bg-btn-muted text-txt-normal flex size-8 items-center justify-center rounded-lg'>
+                <Button
+                    variant='primary'
+                    onClick={ onLock }
+                    className='h-12 min-w-0 flex-1 rounded-xl text-small'>
 
-                            <HiOutlineDocumentText size={ 16 } />
+                    <HiOutlineLockClosed size={ 16 } className='shrink-0' />
 
-                        </div>
+                    <span className='truncate'>
 
-                        <div className='text-small text-txt-normal flex-1 text-start'>
+                        { T('Dashboard.Lock') }
 
-                            { T('Dashboard.Phrase.Title') }
+                    </span>
 
-                        </div>
+                </Button>
 
-                        <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'text-txt-muted rotate-180' : 'text-txt-muted' } />
+                <Button
+                    variant='danger'
+                    onClick={ onLogout }
+                    className='h-12 min-w-0 flex-1 rounded-xl text-small'>
 
-                    </button>
+                    <FiLogOut size={ 16 } className={ `shrink-0 ${ getDirection() === 'rtl' ? 'rotate-180' : '' }` } />
 
-                    { /* Both are session-ending actions, so they share one row rather than a line each. */ }
-                    <div className='mt-1 flex gap-2'>
+                    <span className='truncate'>
 
-                        <button
-                            type='button'
-                            onClick={ onLock }
-                            className='btn-primary text-small flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl'>
+                        { T('Dashboard.Settings.Logout') }
 
-                            <HiOutlineLockClosed size={ 16 } className='shrink-0' />
+                    </span>
 
-                            <span className='truncate'>
-
-                                { T('Dashboard.Lock') }
-
-                            </span>
-
-                        </button>
-
-                        <button
-                            type='button'
-                            onClick={ onLogout }
-                            className='btn-muted text-small text-txt-error flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl'>
-
-                            <FiLogOut size={ 16 } className={ `shrink-0 ${ getDirection() === 'rtl' ? 'rotate-180' : '' }` } />
-
-                            <span className='truncate'>
-
-                                { T('Dashboard.Settings.Logout') }
-
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                </motion.div>
+                </Button>
 
             </div>
-        </>
+
+        </Modal>
     );
 }

@@ -9,7 +9,12 @@ import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
 import { HiOutlineCheck, HiOutlineCog6Tooth, HiOutlineSquare2Stack, HiOutlineSquares2X2, HiOutlineUser } from 'react-icons/hi2';
 
 import TokenIcon from '../token.icon';
+import TokenRow from '../token.row';
 import DashboardActivity from './dashboard.activity';
+
+import Button from '../ui/button';
+import IconBox from '../ui/iconbox';
+import SectionHeader from '../ui/section';
 
 import { T } from '../../utility/language';
 import { getNativeCoinId, getNativeLogo, getTokenLogo, type PriceMap } from '../../core/price';
@@ -97,16 +102,16 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
             <div className='flex items-center gap-2'>
 
-                <button
-                    type='button'
+                <Button
+                    variant='chip'
                     onClick={ onAccounts }
-                    className='chip-control text-tiny flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-xl ps-1 pe-2.5'>
+                    className='h-9 min-w-0 flex-1 gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny'>
 
-                    <div className='bg-btn-primary text-txt-reverse flex size-7 shrink-0 items-center justify-center rounded-lg'>
+                    <IconBox tone='primary' size='size-7'>
 
                         <HiOutlineUser size={ 14 } />
 
-                    </div>
+                    </IconBox>
 
                     <span className='min-w-0 flex-1 truncate text-start font-medium'>
 
@@ -116,18 +121,18 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                     <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />
 
-                </button>
+                </Button>
 
-                <button
-                    type='button'
+                <Button
+                    variant='chip'
                     onClick={ onNetwork }
-                    className='chip-control text-tiny flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-xl ps-1 pe-2.5'>
+                    className='h-9 min-w-0 flex-1 gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny'>
 
                     <TokenIcon
                         primary
                         src={ getNativeLogo(network.chainId) }
                         symbol={ network.symbol }
-                        className='text-tiny size-7 shrink-0' />
+                        className='size-7 shrink-0 text-tiny' />
 
                     <span className='min-w-0 flex-1 truncate text-start font-medium'>
 
@@ -137,23 +142,24 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                     <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />
 
-                </button>
+                </Button>
 
-                <button
-                    type='button'
+                <Button
+                    variant='chip'
+                    size='iconChip'
                     onClick={ onSettings }
                     aria-label={ T('Dashboard.Settings.Title') }
-                    className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl'>
+                    className='shrink-0'>
 
                     <HiOutlineCog6Tooth size={ 17 } />
 
-                </button>
+                </Button>
 
             </div>
 
             <div className='flex flex-col items-center gap-2 py-2'>
 
-                <div dir='ltr' className='text-txt-normal text-3xl font-bold'>
+                <div dir='ltr' className='text-3xl font-bold text-txt-normal'>
 
                     { totalLoading || nativeLoading ? '…' : formatUsd(total) }
 
@@ -161,11 +167,10 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                 <div className='flex flex-col items-center'>
 
-                    <button
-                        type='button'
+                    <Button
                         onClick={ () => { void onCopy(); } }
                         aria-label={ T('Dashboard.Copy') }
-                        className='text-tiny text-txt-muted hover:text-txt-normal flex cursor-pointer items-center gap-1'>
+                        className='flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal'>
 
                         <span dir='ltr' className='font-mono'>
 
@@ -191,7 +196,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                                                 animate={ { scale: [ 0.4, 1.35, 1 ], opacity: 1 } }
                                                 exit={ { scale: 0.4, opacity: 0 } }
                                                 transition={ { duration: 0.35 } }
-                                                className='text-txt-normal absolute'>
+                                                className='absolute text-txt-normal'>
 
                                                 <HiOutlineCheck size={ 14 } />
 
@@ -216,7 +221,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                         </span>
 
-                    </button>
+                    </Button>
 
                 </div>
 
@@ -224,8 +229,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
             <div className='flex justify-center gap-3'>
 
-                <button
-                    type='button'
+                <Button
                     onClick={ onSend }
                     className='flex cursor-pointer flex-col items-center gap-1'>
 
@@ -241,10 +245,9 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                     </span>
 
-                </button>
+                </Button>
 
-                <button
-                    type='button'
+                <Button
                     onClick={ onReceive }
                     className='flex cursor-pointer flex-col items-center gap-1'>
 
@@ -260,10 +263,9 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                     </span>
 
-                </button>
+                </Button>
 
-                <button
-                    type='button'
+                <Button
                     onClick={ onRedeem }
                     className='flex cursor-pointer flex-col items-center gap-1'>
 
@@ -279,59 +281,37 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                     </span>
 
-                </button>
+                </Button>
 
             </div>
 
             <div className='flex flex-col gap-2'>
 
-                <div className='flex items-center justify-between gap-2'>
+                <SectionHeader title={ T('Dashboard.Tokens.Title') }>
 
-                    <div className='text-tiny text-txt-muted'>
-
-                        { T('Dashboard.Tokens.Title') }
-
-                    </div>
-
-                    <button
-                        type='button'
+                    <Button
+                        variant='muted'
                         onClick={ onTokens }
-                        className='btn-muted text-tiny flex h-8 cursor-pointer items-center gap-1 rounded-lg px-3'>
+                        className='h-8 gap-1 rounded-lg px-3 text-tiny'>
 
                         <HiOutlineSquares2X2 size={ 14 } />
 
                         { T('Dashboard.Tokens.Manage') }
 
-                    </button>
+                    </Button>
 
-                </div>
+                </SectionHeader>
 
-                <div className='glass-panel flex items-center gap-3 rounded-xl p-3'>
-
-                    <TokenIcon
-                        primary
-                        src={ getNativeLogo(network.chainId) }
-                        symbol={ network.symbol } />
-
-                    <div className='flex min-w-0 flex-1 flex-col'>
-
-                        <div className='text-small text-txt-normal truncate'>
-
-                            { network.symbol }
-
-                        </div>
-
-                        <div className='text-tiny text-txt-muted truncate'>
-
-                            { network.coin ?? network.name }
-
-                        </div>
-
-                    </div>
+                <TokenRow
+                    panel
+                    primary
+                    src={ getNativeLogo(network.chainId) }
+                    symbol={ network.symbol }
+                    subtitle={ network.coin ?? network.name }>
 
                     <div dir='ltr' className='flex shrink-0 flex-col items-center'>
 
-                        <div className='text-small text-txt-normal font-mono'>
+                        <div className='font-mono text-small text-txt-normal'>
 
                             { nativeLoading ? '…' : trimAmount(nativeFormatted) }
 
@@ -339,7 +319,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                         {
                             !nativeLoading && rowValue(getNativeCoinId(network.chainId), nativeFormatted) !== undefined && (
-                                <div className='text-tiny text-txt-muted font-mono'>
+                                <div className='font-mono text-tiny text-txt-muted'>
 
                                     { rowValue(getNativeCoinId(network.chainId), nativeFormatted) }
 
@@ -349,37 +329,20 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                     </div>
 
-                </div>
+                </TokenRow>
 
                 {
                     tokens.map((item) => (
-                        <div
+                        <TokenRow
                             key={ item.token.address }
-                            className='glass-panel flex items-center gap-3 rounded-xl p-3'>
-
-                            <TokenIcon
-                                src={ getTokenLogo(network.chainId, item.token.address) }
-                                symbol={ item.token.symbol } />
-
-                            <div className='flex min-w-0 flex-1 flex-col'>
-
-                                <div className='text-small text-txt-normal truncate'>
-
-                                    { item.token.symbol }
-
-                                </div>
-
-                                <div className='text-tiny text-txt-muted truncate'>
-
-                                    { item.token.name }
-
-                                </div>
-
-                            </div>
+                            panel
+                            src={ getTokenLogo(network.chainId, item.token.address) }
+                            symbol={ item.token.symbol }
+                            subtitle={ item.token.name }>
 
                             <div dir='ltr' className='flex shrink-0 flex-col items-center'>
 
-                                <div className='text-small text-txt-normal font-mono'>
+                                <div className='font-mono text-small text-txt-normal'>
 
                                     { trimAmount(item.formatted) }
 
@@ -387,7 +350,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                                 {
                                     rowValue(item.token.coinId, item.formatted) !== undefined && (
-                                        <div className='text-tiny text-txt-muted font-mono'>
+                                        <div className='font-mono text-tiny text-txt-muted'>
 
                                             { rowValue(item.token.coinId, item.formatted) }
 
@@ -397,7 +360,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
                             </div>
 
-                        </div>
+                        </TokenRow>
                     ))
                 }
 

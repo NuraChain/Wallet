@@ -11,7 +11,9 @@ import UnlockPage from './unlock';
 import WalletManager from '../core/wallet';
 
 import ScrollArea from '../layout/scroll';
+import PageContainer from '../layout/container';
 import DashboardApps from '../components/dashboard/dashboard.apps';
+import DashboardNav from '../components/dashboard/dashboard.nav';
 import DashboardSend from '../components/dashboard/dashboard.send';
 import DashboardTokens from '../components/dashboard/dashboard.tokens';
 import DashboardWallet from '../components/dashboard/dashboard.wallet';
@@ -30,7 +32,6 @@ import { getNetwork } from '../core/network';
 import { openPage } from '../utility/context';
 import { usePrices } from '../hook/price';
 import { useHistory } from '../hook/history';
-import { useIsWindows } from '../hook/platform';
 import { useBalance, useTokens } from '../hook/balance';
 import { getDirection, getLanguage, T } from '../utility/language';
 import { loadTokens, readToken, saveTokens, type TokenMap } from '../core/token';
@@ -57,7 +58,6 @@ const navMap: { key: string; icon: IconType }[] =
  */
 export default function DashboardPage({ mnemonic }: { mnemonic: string })
 {
-    const isWindows = useIsWindows();
     const swiperRef = useRef<SwiperType>(undefined);
 
     const [ active, setActive ] = useState(0);
@@ -261,7 +261,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
             initial={ { opacity: 0 } }
             animate={ { opacity: 1 } }
             transition={ { type: 'tween' } }
-            className='bg-base-1 relative size-full'>
+            className='relative size-full bg-base-1'>
 
             <AnimatePresence>
 
@@ -418,12 +418,12 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                 // is up. Only the drag region at the top of a frameless window is spared.
                                 item.key === 'Browser' ?
                                     (
-                                        <div
+                                        <PageContainer
+                                            variant='browser'
                                             role='tabpanel'
                                             id={ `dashboard-panel-${ item.key }` }
                                             aria-hidden={ index !== active }
-                                            aria-labelledby={ `dashboard-tab-${ item.key }` }
-                                            className={ `flex size-full flex-col ${ isWindows ? 'pt-8' : 'pt-[env(safe-area-inset-top)]' }` }>
+                                            aria-labelledby={ `dashboard-tab-${ item.key }` }>
 
                                             <DashboardBrowser
                                                 address={ address }
@@ -433,7 +433,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                                 enabled={ index === active && modal === 'none' }
                                                 onExit={ () => { swiperRef.current?.slideTo(0); } } />
 
-                                        </div>
+                                        </PageContainer>
                                     ) :
                                     (
                                         <ScrollArea
@@ -441,12 +441,12 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                             onRefresh={ onRefresh }
                                             onScrollChange={ onPanelScroll(index) }>
 
-                                            <div
+                                            <PageContainer
+                                                variant='tab'
                                                 role='tabpanel'
                                                 id={ `dashboard-panel-${ item.key }` }
                                                 aria-hidden={ index !== active }
-                                                aria-labelledby={ `dashboard-tab-${ item.key }` }
-                                                className={ `mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6 ${ isWindows ? 'pt-8' : 'pt-[calc(0.375rem+env(safe-area-inset-top))]' }` }>
+                                                aria-labelledby={ `dashboard-tab-${ item.key }` }>
 
                                                 {
                                                     item.key === 'Wallet' &&
@@ -478,7 +478,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                                     item.key === 'Apps' && <DashboardApps />
                                                 }
 
-                                            </div>
+                                            </PageContainer>
 
                                         </ScrollArea>
                                     )
@@ -490,56 +490,11 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
 
             </Swiper>
 
-            <motion.div
-                role='tablist'
-                animate={ { y: barHidden ? '150%' : '0%', opacity: barHidden ? 0 : 1 } }
-                transition={ { type: 'tween', duration: 0.25 } }
-                className={ `glass-panel absolute inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-20 mx-auto flex w-fit gap-1 rounded-full p-1 ${ barHidden ? 'pointer-events-none' : '' }` }>
-
-                {
-                    navMap.map((item, index) =>
-                    {
-                        const isActive = index === active;
-
-                        return (
-                            <button
-                                type='button'
-                                role='tab'
-                                key={ item.key }
-                                id={ `dashboard-tab-${ item.key }` }
-                                aria-selected={ isActive }
-                                aria-controls={ `dashboard-panel-${ item.key }` }
-                                onClick={ () => { swiperRef.current?.slideTo(index); } }
-                                className={ `group relative flex h-12 w-20 cursor-pointer items-center justify-center rounded-full duration-300 ${ isActive ? '' : 'hover:bg-btn-muted-hover' }` }>
-
-                                {
-                                    isActive &&
-                                    (
-                                        <motion.div
-                                            layoutId='dashboard-nav-active'
-                                            transition={ { type: 'spring', stiffness: 420, damping: 35 } }
-                                            className='bg-btn-primary-active absolute inset-0 rounded-full' />
-                                    )
-                                }
-
-                                <div className={ `relative flex flex-col items-center gap-1 duration-300 ${ isActive ? 'text-txt-reverse' : 'text-txt-muted group-hover:text-txt-normal' }` }>
-
-                                    <item.icon size={ 16 } />
-
-                                    <div className='text-tiny'>
-
-                                        { T(`Dashboard.Nav.${ item.key }`) }
-
-                                    </div>
-
-                                </div>
-
-                            </button>
-                        );
-                    })
-                }
-
-            </motion.div>
+            <DashboardNav
+                items={ navMap }
+                active={ active }
+                hidden={ barHidden }
+                onSelect={ (index) => { swiperRef.current?.slideTo(index); } } />
 
         </motion.div>
     );

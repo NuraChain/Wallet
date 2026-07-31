@@ -2,11 +2,14 @@ import type { Network } from '../../core/network';
 import type { TokenBalance } from '../../core/token';
 
 import { useState } from 'react';
-import { motion } from 'motion/react';
-import { IoClose } from 'react-icons/io5';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 
-import TokenIcon from '../token.icon';
+import TokenRow from '../token.row';
+
+import Alert from '../ui/alert';
+import Button from '../ui/button';
+import { TextField } from '../ui/field';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { getTokenLogo } from '../../core/price';
@@ -63,174 +66,130 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
     };
 
     return (
-        <>
-            <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
-                onClick={ onClose } />
+        <Modal
+            onClose={ onClose }
+            panelClass='max-h-[80vh] max-w-[calc(100vw-2rem)] overflow-y-auto'>
 
-            <div className='absolute inset-0 z-30 m-auto flex size-fit items-center justify-center'>
+            <ModalHeader
+                title={ T('Dashboard.Tokens.ManageTitle') }
+                onClose={ onClose } />
 
-                <motion.div
-                    initial={ { opacity: 0, scale: 0.9 } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale: 0.9 } }
-                    className='glass-panel flex max-h-[80vh] w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 overflow-y-auto rounded-2xl p-4'>
+            {
+                adding ?
+                    (
+                        <div className='flex flex-col gap-2'>
 
-                    <div className='flex items-center justify-between'>
+                            {
+                                error.length > 0 &&
+                                (
+                                    <Alert>
 
-                        <div className='text-medium text-txt-normal font-bold'>
+                                        { error }
 
-                            { T('Dashboard.Tokens.ManageTitle') }
+                                    </Alert>
+                                )
+                            }
+
+                            <div className='text-tiny text-txt-muted'>
+
+                                { T('Dashboard.Tokens.ContractHint') }
+
+                            </div>
+
+                            <TextField
+                                dir='ltr'
+                                value={ contract }
+                                spellCheck={ false }
+                                autoComplete='off'
+                                placeholder='0x…'
+                                onValue={ setContract }
+                                className='font-mono' />
+
+                            <div className='mt-1 flex gap-2'>
+
+                                <Button
+                                    variant='muted'
+                                    size='action'
+                                    disabled={ busy }
+                                    onClick={ () => { setAdding(false); setError(''); } }
+                                    className='flex-1'>
+
+                                    { T('Dashboard.Tokens.Back') }
+
+                                </Button>
+
+                                <Button
+                                    variant='primary'
+                                    size='action'
+                                    disabled={ busy }
+                                    onClick={ () => { void onSave(); } }
+                                    className='flex-1'>
+
+                                    { busy ? T('Dashboard.Tokens.Checking') : T('Dashboard.Tokens.Save') }
+
+                                </Button>
+
+                            </div>
 
                         </div>
+                    ) :
+                    (
+                        <>
+                            {
+                                tokens.map((item) => (
+                                    <TokenRow
+                                        key={ item.token.address }
+                                        src={ getTokenLogo(network.chainId, item.token.address) }
+                                        symbol={ item.token.symbol }
+                                        subtitle={ item.token.name }>
 
-                        <button
-                            type='button'
-                            onClick={ onClose }
-                            className='btn-muted flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg'>
+                                        <div dir='ltr' className='font-mono text-tiny text-txt-normal'>
 
-                            <IoClose size={ 20 } />
+                                            { trimAmount(item.formatted) }
 
-                        </button>
+                                        </div>
 
-                    </div>
+                                        <Button
+                                            variant='danger'
+                                            size='icon'
+                                            onClick={ () => { onRemove(item.token.address); } }
+                                            aria-label={ T('Dashboard.Tokens.Remove') }
+                                            className='shrink-0'>
 
-                    {
-                        adding ?
-                            (
-                                <div className='flex flex-col gap-2'>
+                                            <FiTrash2 size={ 16 } />
 
-                                    {
-                                        error.length > 0 &&
-                                        (
-                                            <div className='bg-txt-error/15 text-tiny text-txt-error rounded-lg px-3 py-2 text-center'>
+                                        </Button>
 
-                                                { error }
+                                    </TokenRow>
+                                ))
+                            }
 
-                                            </div>
-                                        )
-                                    }
+                            {
+                                tokens.length === 0 &&
+                                (
+                                    <div className='py-4 text-center text-tiny text-txt-muted'>
 
-                                    <div className='text-tiny text-txt-muted'>
-
-                                        { T('Dashboard.Tokens.ContractHint') }
-
-                                    </div>
-
-                                    <input
-                                        dir='ltr'
-                                        value={ contract }
-                                        spellCheck={ false }
-                                        autoComplete='off'
-                                        placeholder='0x…'
-                                        onChange={ (event) => { setContract(event.target.value); } }
-                                        className='glass-input text-small h-11 w-full rounded-xl px-3 font-mono' />
-
-                                    <div className='mt-1 flex gap-2'>
-
-                                        <button
-                                            type='button'
-                                            disabled={ busy }
-                                            onClick={ () => { setAdding(false); setError(''); } }
-                                            className='btn-muted text-small h-11 flex-1 cursor-pointer rounded-xl'>
-
-                                            { T('Dashboard.Tokens.Back') }
-
-                                        </button>
-
-                                        <button
-                                            type='button'
-                                            disabled={ busy }
-                                            onClick={ () => { void onSave(); } }
-                                            className='btn-primary text-small h-11 flex-1 cursor-pointer rounded-xl'>
-
-                                            { busy ? T('Dashboard.Tokens.Checking') : T('Dashboard.Tokens.Save') }
-
-                                        </button>
+                                        { T('Dashboard.Tokens.Empty') }
 
                                     </div>
+                                )
+                            }
 
-                                </div>
-                            ) :
-                            (
-                                <>
-                                    {
-                                        tokens.map((item) => (
-                                            <div
-                                                key={ item.token.address }
-                                                className='flex items-center gap-3 rounded-xl p-2'>
+                            <Button
+                                variant='normal'
+                                size='action'
+                                onClick={ () => { setAdding(true); setError(''); } }
+                                className='mt-1'>
 
-                                                <TokenIcon
-                                                    src={ getTokenLogo(network.chainId, item.token.address) }
-                                                    symbol={ item.token.symbol } />
+                                <FiPlus size={ 16 } />
 
-                                                <div className='flex min-w-0 flex-1 flex-col'>
+                                { T('Dashboard.Tokens.Add') }
 
-                                                    <div className='text-small text-txt-normal truncate'>
+                            </Button>
+                        </>
+                    )
+            }
 
-                                                        { item.token.symbol }
-
-                                                    </div>
-
-                                                    <div className='text-tiny text-txt-muted truncate'>
-
-                                                        { item.token.name }
-
-                                                    </div>
-
-                                                </div>
-
-                                                <div dir='ltr' className='text-tiny text-txt-normal font-mono'>
-
-                                                    { trimAmount(item.formatted) }
-
-                                                </div>
-
-                                                <button
-                                                    type='button'
-                                                    onClick={ () => { onRemove(item.token.address); } }
-                                                    aria-label={ T('Dashboard.Tokens.Remove') }
-                                                    className='btn-muted text-txt-error flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg'>
-
-                                                    <FiTrash2 size={ 16 } />
-
-                                                </button>
-
-                                            </div>
-                                        ))
-                                    }
-
-                                    {
-                                        tokens.length === 0 &&
-                                        (
-                                            <div className='text-tiny text-txt-muted py-4 text-center'>
-
-                                                { T('Dashboard.Tokens.Empty') }
-
-                                            </div>
-                                        )
-                                    }
-
-                                    <button
-                                        type='button'
-                                        onClick={ () => { setAdding(true); setError(''); } }
-                                        className='btn-normal text-small mt-1 flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl'>
-
-                                        <FiPlus size={ 16 } />
-
-                                        { T('Dashboard.Tokens.Add') }
-
-                                    </button>
-                                </>
-                            )
-                    }
-
-                </motion.div>
-
-            </div>
-        </>
+        </Modal>
     );
 }

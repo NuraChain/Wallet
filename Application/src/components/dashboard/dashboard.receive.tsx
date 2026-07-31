@@ -1,10 +1,11 @@
 import type { Network } from '../../core/network';
 
 import QRCode from 'qrcode';
-import { motion } from 'motion/react';
-import { IoClose } from 'react-icons/io5';
 import { useEffect, useState } from 'react';
 import { HiOutlineSquare2Stack } from 'react-icons/hi2';
+
+import Button from '../ui/button';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 
@@ -60,88 +61,60 @@ export default function DashboardReceive({ address, network, onClose }: { addres
     };
 
     return (
-        <>
-            <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
-                onClick={ onClose } />
+        <Modal
+            onClose={ onClose }
+            panelClass='items-center'>
 
-            <div className='absolute inset-0 z-30 m-auto flex size-fit items-center justify-center'>
+            <ModalHeader
+                title={ T('Dashboard.Receive.Title') }
+                className='w-full'
+                onClose={ onClose } />
 
-                <motion.div
-                    initial={ { opacity: 0, scale: 0.9 } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale: 0.9 } }
-                    className='glass-panel flex w-80 flex-col items-center gap-3 rounded-2xl p-4'>
+            <div className='flex size-56 items-center justify-center rounded-2xl bg-white p-3'>
 
-                    <div className='flex w-full items-center justify-between'>
-
-                        <div className='text-medium text-txt-normal font-bold'>
-
-                            { T('Dashboard.Receive.Title') }
-
-                        </div>
-
-                        <button
-                            type='button'
-                            onClick={ onClose }
-                            className='btn-muted flex size-8 items-center justify-center rounded-lg'>
-
-                            <IoClose size={ 20 } />
-
-                        </button>
-
-                    </div>
-
-                    <div className='flex size-56 items-center justify-center rounded-2xl bg-white p-3'>
-
-                        {
-                            qr.length > 0 && <img src={ qr } alt='' className='size-full' />
-                        }
-
-                    </div>
-
-                    <div className='text-tiny text-txt-muted text-center'>
-
-                        { T('Dashboard.Receive.Scan', network.symbol) }
-
-                    </div>
-
-                    <div
-                        dir='ltr'
-                        className='glass-panel text-tiny text-txt-normal w-full rounded-xl p-3 text-center font-mono break-all select-text!'>
-
-                        { address }
-
-                    </div>
-
-                    <button
-                        type='button'
-                        onClick={ () => { void onCopy(); } }
-                        className='btn-primary text-small flex h-11 w-full items-center justify-center gap-2 rounded-xl'>
-
-                        <HiOutlineSquare2Stack size={ 16 } />
-
-                        { T('Dashboard.Copy') }
-
-                    </button>
-
-                    {
-                        notice.length > 0 &&
-                        (
-                            <div className='text-tiny text-txt-muted'>
-
-                                { notice }
-
-                            </div>
-                        )
-                    }
-
-                </motion.div>
+                {
+                    qr.length > 0 && <img src={ qr } alt='' className='size-full' />
+                }
 
             </div>
-        </>
+
+            <div className='text-center text-tiny text-txt-muted'>
+
+                { T('Dashboard.Receive.Scan', network.symbol) }
+
+            </div>
+
+            <div
+                dir='ltr'
+                className='glass-panel w-full rounded-xl p-3 text-center font-mono text-tiny break-all text-txt-normal select-text!'>
+
+                { address }
+
+            </div>
+
+            <Button
+                variant='primary'
+                size='action'
+                fullWidth
+                onClick={ () => { void onCopy(); } }>
+
+                <HiOutlineSquare2Stack size={ 16 } />
+
+                { T('Dashboard.Copy') }
+
+            </Button>
+
+            {
+                notice.length > 0 &&
+                (
+                    <div className='text-tiny text-txt-muted'>
+
+                        { notice }
+
+                    </div>
+                )
+            }
+
+        </Modal>
     );
 }

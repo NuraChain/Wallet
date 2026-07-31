@@ -1,12 +1,16 @@
 import type { Transaction } from '../../hook/history';
 
 import { useMemo, useState } from 'react';
-import { motion } from 'motion/react';
-import { IoClose } from 'react-icons/io5';
-import { FiArrowDownLeft, FiArrowUpRight, FiInbox, FiSearch } from 'react-icons/fi';
+import { FiSearch } from 'react-icons/fi';
+
+import TransactionRow from './dashboard.transaction';
+
+import Button from '../ui/button';
+import EmptyState from '../ui/state';
+import { TextField } from '../ui/field';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
-import { formatDate, shortAddress, trimAmount } from '../../utility/format';
 
 /**
  * The direction filters offered above the list.
@@ -62,174 +66,84 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
     }, [ items, query, filter ]);
 
     return (
-        <>
-            <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className='absolute z-30 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
-                onClick={ onClose } />
+        <Modal
+            frame='screen'
+            scale={ 0.96 }
+            onClose={ onClose }
+            panelClass='size-full max-w-2xl'>
 
-            <div className='absolute inset-0 z-30 flex items-center justify-center p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]'>
+            <ModalHeader
+                title={ T('Dashboard.Activity.Title') }
+                subtitle={ T('Dashboard.Activity.Count', String(results.length)) }
+                groupClass='min-w-0 flex-1'
+                className='gap-2'
+                close='chip'
+                closeLabel={ T('Dashboard.Activity.Close') }
+                onClose={ onClose } />
 
-                <motion.div
-                    initial={ { opacity: 0, scale: 0.96 } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale: 0.96 } }
-                    className='glass-panel flex size-full max-w-2xl flex-col gap-3 rounded-2xl p-4'>
+            <TextField
+                value={ query }
+                spellCheck={ false }
+                autoComplete='off'
+                placeholder={ T('Dashboard.Activity.Search') }
+                onValue={ setQuery }
+                className='h-10 ps-9 pe-3'
+                leading={ <FiSearch size={ 16 } className='pointer-events-none absolute inset-s-3 text-txt-muted' /> } />
 
-                    <div className='flex items-center gap-2'>
+            <div className='flex gap-2'>
 
-                        <div className='flex min-w-0 flex-1 flex-col'>
+                {
+                    filters.map((item) => (
+                        <Button
+                            key={ item }
+                            onClick={ () => { setFilter(item); } }
+                            aria-pressed={ filter === item }
+                            className={ `h-8 flex-1 rounded-lg text-tiny duration-200 ${ filter === item ? 'btn-primary' : 'chip-control' }` }>
 
-                            <div className='text-medium text-txt-normal font-bold'>
+                            { T(`Dashboard.Activity.Filter${ item }`) }
 
-                                { T('Dashboard.Activity.Title') }
-
-                            </div>
-
-                            <div className='text-tiny text-txt-muted'>
-
-                                { T('Dashboard.Activity.Count', String(results.length)) }
-
-                            </div>
-
-                        </div>
-
-                        <button
-                            type='button'
-                            aria-label={ T('Dashboard.Activity.Close') }
-                            onClick={ onClose }
-                            className='chip-control flex size-9 shrink-0 items-center justify-center rounded-xl'>
-
-                            <IoClose size={ 20 } />
-
-                        </button>
-
-                    </div>
-
-                    <div className='relative flex items-center'>
-
-                        <FiSearch size={ 16 } className='text-txt-muted pointer-events-none absolute inset-s-3' />
-
-                        <input
-                            value={ query }
-                            spellCheck={ false }
-                            autoComplete='off'
-                            placeholder={ T('Dashboard.Activity.Search') }
-                            onChange={ (event) => { setQuery(event.target.value); } }
-                            className='glass-input text-small h-10 w-full rounded-xl ps-9 pe-3' />
-
-                    </div>
-
-                    <div className='flex gap-2'>
-
-                        {
-                            filters.map((item) => (
-                                <button
-                                    type='button'
-                                    key={ item }
-                                    onClick={ () => { setFilter(item); } }
-                                    aria-pressed={ filter === item }
-                                    className={ `text-tiny h-8 flex-1 rounded-lg duration-200 ${ filter === item ? 'btn-primary' : 'chip-control' }` }>
-
-                                    { T(`Dashboard.Activity.Filter${ item }`) }
-
-                                </button>
-                            ))
-                        }
-
-                    </div>
-
-                    <div className='scroll-hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto'>
-
-                        {
-                            results.map((item) => (
-                                <button
-                                    type='button'
-                                    key={ item.id }
-                                    disabled={ !canOpen }
-                                    aria-label={ T('Dashboard.Activity.Open') }
-                                    onClick={ () => { onOpen(item.hash); } }
-                                    className='glass-panel flex shrink-0 items-center gap-3 rounded-xl p-3 text-start not-disabled:cursor-pointer'>
-
-                                    <div className='bg-btn-muted text-txt-normal flex size-9 shrink-0 items-center justify-center rounded-lg'>
-
-                                        {
-                                            item.incoming ? <FiArrowDownLeft size={ 18 } /> : <FiArrowUpRight size={ 18 } />
-                                        }
-
-                                    </div>
-
-                                    <div className='flex min-w-0 flex-1 flex-col'>
-
-                                        <div className='text-small text-txt-normal'>
-
-                                            { item.incoming ? T('Dashboard.Activity.Received') : T('Dashboard.Activity.Sent') }
-
-                                        </div>
-
-                                        <div dir='ltr' className='text-tiny text-txt-muted truncate font-mono'>
-
-                                            { item.incoming ? shortAddress(item.from) : shortAddress(item.to) }
-
-                                        </div>
-
-                                    </div>
-
-                                    <div className='flex shrink-0 flex-col items-end'>
-
-                                        <div dir='ltr' className='text-small text-txt-normal font-mono'>
-
-                                            { `${ item.incoming ? '+' : '-' }${ trimAmount(item.value) } ${ item.symbol }` }
-
-                                        </div>
-
-                                        <div className='text-tiny text-txt-muted'>
-
-                                            { formatDate(item.timestamp) }
-
-                                        </div>
-
-                                    </div>
-
-                                </button>
-                            ))
-                        }
-
-                        {
-                            loading && items.length === 0 &&
-                            (
-                                <div className='text-tiny text-txt-muted py-6 text-center'>
-
-                                    { T('Dashboard.Activity.Loading') }
-
-                                </div>
-                            )
-                        }
-
-                        {
-                            !loading && results.length === 0 &&
-                            (
-                                <div className='flex flex-col items-center gap-1 py-10 text-center'>
-
-                                    <FiInbox size={ 24 } className='text-txt-muted' />
-
-                                    <div className='text-small text-txt-muted'>
-
-                                        { items.length === 0 ? T('Dashboard.Activity.Empty') : T('Dashboard.Activity.NoMatch') }
-
-                                    </div>
-
-                                </div>
-                            )
-                        }
-
-                    </div>
-
-                </motion.div>
+                        </Button>
+                    ))
+                }
 
             </div>
-        </>
+
+            <div className='scroll-hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto'>
+
+                {
+                    results.map((item) => (
+                        <TransactionRow
+                            key={ item.id }
+                            item={ item }
+                            canOpen={ canOpen }
+                            onOpen={ onOpen } />
+                    ))
+                }
+
+                {
+                    loading && items.length === 0 &&
+                    (
+                        <div className='py-6 text-center text-tiny text-txt-muted'>
+
+                            { T('Dashboard.Activity.Loading') }
+
+                        </div>
+                    )
+                }
+
+                {
+                    !loading && results.length === 0 &&
+                    (
+                        <EmptyState>
+
+                            { items.length === 0 ? T('Dashboard.Activity.Empty') : T('Dashboard.Activity.NoMatch') }
+
+                        </EmptyState>
+                    )
+                }
+
+            </div>
+
+        </Modal>
     );
 }
