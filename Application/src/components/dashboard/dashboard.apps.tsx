@@ -13,19 +13,19 @@ export default function DashboardApps()
     return (
         <div className='flex flex-1 flex-col items-center justify-center gap-3'>
 
-            <div className='glass-panel text-txt-muted flex size-16 items-center justify-center rounded-2xl'>
+            <div className='glass-panel flex size-16 items-center justify-center rounded-2xl text-txt-muted'>
 
                 <HiOutlineSquares2X2 size={ 28 } />
 
             </div>
 
-            <div className='text-medium text-txt-normal font-semibold'>
+            <div className='text-medium font-semibold text-txt-normal'>
 
                 { T('Dashboard.Apps.Title') }
 
             </div>
 
-            <div className='text-tiny text-txt-muted max-w-60 text-center'>
+            <div className='max-w-60 text-center text-tiny text-txt-muted'>
 
                 { T('Dashboard.Apps.Soon') }
 
