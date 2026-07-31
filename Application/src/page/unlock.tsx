@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { FaQuestion } from 'react-icons/fa';
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { motion, AnimatePresence } from 'motion/react';
-import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 
 import IntroPage from './intro';
 import DashboardPage from './dashboard';
+
+import Alert from '../components/ui/alert';
+import Button from '../components/ui/button';
+import { PasswordField } from '../components/ui/field';
 
 import { T } from '../utility/language';
 import { passwordVerify } from '../core/password';
@@ -18,7 +20,6 @@ export default function UnlockPage()
     const [ password, setPassword ] = useState('');
     const [ showHint, setShowHint ] = useState(false);
     const [ isLoading, setIsLoading ] = useState(false);
-    const [ showPassword, setShowPassword ] = useState(false);
 
     const onUnlock = async() =>
     {
@@ -88,7 +89,7 @@ export default function UnlockPage()
             initial={ { opacity: 0 } }
             animate={ { opacity: 1 } }
             transition={ { type: 'tween' } }
-            className='bg-base-1 flex size-full items-center justify-center px-4'>
+            className='flex size-full items-center justify-center bg-base-1 px-4'>
 
             <div className='glass-panel flex w-full max-w-md flex-col gap-4 rounded-3xl p-6'>
 
@@ -96,7 +97,7 @@ export default function UnlockPage()
 
                     <div>
 
-                        <div className='text-large text-txt-normal font-semibold'>
+                        <div className='text-large font-semibold text-txt-normal'>
 
                             { T('Unlock.Title') }
 
@@ -112,14 +113,15 @@ export default function UnlockPage()
 
                     <div className='relative z-20'>
 
-                        <button
-                            type='button'
+                        <Button
+                            variant='muted'
+                            size='iconLarge'
                             onClick={ () => { setShowHint((value) => !value); } }
-                            className='btn-muted flex size-10 shrink-0 items-center justify-center rounded-lg'>
+                            className='shrink-0'>
 
                             <FaQuestion size={ 18 } />
 
-                        </button>
+                        </Button>
 
                         <AnimatePresence>
 
@@ -131,7 +133,7 @@ export default function UnlockPage()
                                         animate={ { opacity: 1, scale: 1, y: 0 } }
                                         exit={ { opacity: 0, scale: 0.95, y: -4 } }
                                         transition={ { duration: 0.15 } }
-                                        className='glass-panel text-tiny text-txt-normal absolute inset-e-0 top-12 w-56 origin-top rounded-xl p-3 text-start'>
+                                        className='glass-panel absolute inset-e-0 top-12 w-56 origin-top rounded-xl p-3 text-start text-tiny text-txt-normal'>
 
                                         { T('Unlock.Recovery') }
 
@@ -157,68 +159,34 @@ export default function UnlockPage()
                 {
                     error.length > 0 &&
                     (
-                        <div className='bg-txt-error/10 text-small text-txt-error mt-2 rounded-xl px-3 py-2 text-center'>
+                        <Alert className='mt-2 rounded-xl bg-txt-error/10 text-small'>
 
                             { error }
 
-                        </div>
+                        </Alert>
                     )
                 }
 
-                <label className='flex flex-col gap-2'>
+                <PasswordField
+                    label={ T('Unlock.Password') }
+                    value={ password }
+                    lockSize={ 18 }
+                    onValue={ setPassword }
+                    onEnter={ () => { void onUnlock(); } } />
 
-                    <div className='text-tiny text-txt-muted'>
-
-                        { T('Unlock.Password') }
-
-                    </div>
-
-                    <div className='relative flex items-center'>
-
-                        <HiOutlineLockClosed className='text-txt-muted absolute left-4' size={ 18 } />
-
-                        <input
-                            value={ password }
-                            placeholder={ T('Unlock.Password') }
-                            type={ showPassword ? 'text' : 'password' }
-                            onChange={ (event) => { setPassword(event.target.value); } }
-                            // eslint-disable-next-line @typescript-eslint/strict-void-return
-                            onKeyDown={ (event) => event.key === 'Enter' && void onUnlock() }
-                            className='glass-input text-small h-12 w-full rounded-xl px-12' />
-
-                        <button
-                            type='button'
-                            onClick={ () => { setShowPassword((value) => !value); } }
-                            className='text-txt-muted absolute right-4 rounded-lg'>
-
-                            {
-                                showPassword ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
-                            }
-
-                        </button>
-
-                    </div>
-
-                </label>
-
-                <button
-                    type='button'
+                <Button
+                    variant='primary'
                     dir='rtl'
                     disabled={ isLoading }
+                    loading={ isLoading }
                     onClick={ () => { void onUnlock(); } }
-                    className='btn-primary mx-auto flex h-12 w-fit items-center justify-center gap-2 rounded-xl px-8 py-2 disabled:cursor-not-allowed! disabled:opacity-60'>
-
-                    {
-                        // Argon2id runs 32 MiB over two passes, which is a visible pause on a phone.
-                        // Without a moving indicator the button just looks dead while it works.
-                        isLoading && <AiOutlineLoading3Quarters size={ 16 } className='shrink-0 animate-spin' />
-                    }
+                    className='mx-auto h-12 w-fit rounded-xl px-8 py-2 disabled:cursor-not-allowed! disabled:opacity-60'>
 
                     {
                         isLoading ? T('Unlock.Loading') : T('Unlock.Submit')
                     }
 
-                </button>
+                </Button>
 
             </div>
 
