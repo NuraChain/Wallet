@@ -41,7 +41,13 @@
                         "os:allow-version",
                         "os:allow-family",
                         "os:allow-locale",
-                        "os:allow-arch"
+                        "os:allow-arch",
+
+                        "fs:allow-mkdir",
+                        "fs:allow-write-file",
+                        "fs:allow-write-text-file",
+                        "fs:allow-picture-write-recursive",
+                        "fs:allow-download-write-recursive"
                     ]
                 }
             ]

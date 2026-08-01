@@ -46,7 +46,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
      * check and an explicit tap.
      * @param {'image' | 'text'} kind Which file to write.
      */
-    const onExport = (kind: 'image' | 'text') =>
+    const onExport = async(kind: 'image' | 'text') =>
     {
         const bridge = getExporter();
 
@@ -58,8 +58,8 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
         const stamp = new Date().toISOString().slice(0, 10);
 
         const failure = kind === 'image' ?
-            bridge.saveImage(phraseToPng(words, T('Dashboard.Phrase.ExportImageTitle'), T('Dashboard.Phrase.ExportImageWarning')), `nura-recovery-phrase-${ stamp }.png`) :
-            bridge.saveText(words.map((word, index) => `${ index + 1 }. ${ word }`).join('\n'), `nura-recovery-phrase-${ stamp }.txt`);
+            await bridge.saveImage(phraseToPng(words, T('Dashboard.Phrase.ExportImageTitle'), T('Dashboard.Phrase.ExportImageWarning')), `nura-recovery-phrase-${ stamp }.png`) :
+            await bridge.saveText(words.map((word, index) => `${ index + 1 }. ${ word }`).join('\n'), `nura-recovery-phrase-${ stamp }.txt`);
 
         if (failure.length === 0)
         {
@@ -238,7 +238,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                                             <Button
                                                 variant='muted'
-                                                onClick={ () => { onExport('image'); } }
+                                                onClick={ () => { void onExport('image'); } }
                                                 className='h-10 min-w-0 flex-1 rounded-xl text-tiny'>
 
                                                 <FiImage size={ 14 } className='shrink-0' />
@@ -253,7 +253,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                                             <Button
                                                 variant='muted'
-                                                onClick={ () => { onExport('text'); } }
+                                                onClick={ () => { void onExport('text'); } }
                                                 className='h-10 min-w-0 flex-1 rounded-xl text-tiny'>
 
                                                 <FiFileText size={ 14 } className='shrink-0' />

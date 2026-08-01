@@ -23,8 +23,13 @@ serde_json = "1"
 
 # Single-instance has no mobile implementation, so it is scoped to the desktop targets — pulling it
 # into the Android build would fail to compile.
+#
+# The filesystem plugin is desktop-only for a different reason: Android saves the recovery phrase
+# through MediaStore (see ExportBridge.kt), which no webview can reach, so the plugin would be dead
+# weight there and one more thing granted to a build that does not use it.
 [target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))'.dependencies]
 tauri-plugin-single-instance = "2"
+tauri-plugin-fs = "2"
 
 [profile.release]
 lto = true

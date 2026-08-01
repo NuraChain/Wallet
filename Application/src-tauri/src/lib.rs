@@ -36,6 +36,13 @@ pub fn run() {
         });
     }
 
+    // Only the recovery-phrase export writes files, and only into the two directories the capability
+    // grants. Android does the same job through MediaStore instead, so it never registers this.
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_fs::init());
+    }
+
     builder = builder.plugin(tauri_plugin_os::init());
 
     builder = builder.plugin(tauri_plugin_store::Builder::new().build());
