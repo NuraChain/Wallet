@@ -110,6 +110,8 @@ document.addEventListener('keydown', (event) =>
     if (event.key === 'F3' ||
         event.key === 'F5' ||
         event.key === 'F7' ||
+        event.key === 'F12' ||
+        (event.ctrlKey && (event.key === 'u' || event.key === 'U')) ||
         (event.ctrlKey && (event.key === 'p' || event.key === 'P')) ||
         (event.ctrlKey && (event.key === 'j' || event.key === 'J')) ||
         (event.ctrlKey && (event.key === 'r' || event.key === 'R')) ||
@@ -130,19 +132,9 @@ const rootElement = document.querySelector('#root');
 
 if (rootElement)
 {
-    try
-    {
-        await initTheme();
-        await initLanguage();
-        await initNetwork();
-    }
-    catch (error)
-    {
-        // Without this the module simply rejects and the app shows a blank white screen with no clue as to why.
-        rootElement.textContent = `Startup failed: ${ error instanceof Error ? error.message : String(error) }`;
-
-        throw error;
-    }
+    await initTheme();
+    await initLanguage();
+    await initNetwork();
 
     createRoot(rootElement).render(<Application />);
 }
