@@ -98,11 +98,8 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                 size='action'
                                 fullWidth
                                 onClick={ onClose }
-                                className='mt-2'>
-
-                                { T('Dashboard.Redeem.Close') }
-
-                            </Button>
+                                className='mt-2'
+                                text={ T('Dashboard.Redeem.Close') } />
 
                         </div>
                     ) :
@@ -152,13 +149,8 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                 disabled={ isLoading }
                                 loading={ isLoading }
                                 onClick={ () => { void onSubmit(); } }
-                                className='mt-1 disabled:cursor-not-allowed! disabled:opacity-60'>
-
-                                {
-                                    isLoading ? T('Dashboard.Redeem.Pending') : T('Dashboard.Redeem.Submit')
-                                }
-
-                            </Button>
+                                className='mt-1 disabled:cursor-not-allowed! disabled:opacity-60'
+                                text={ isLoading ? T('Dashboard.Redeem.Pending') : T('Dashboard.Redeem.Submit') } />
                         </>
                     )
             }

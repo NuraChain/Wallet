@@ -171,13 +171,8 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                         <Button
                             variant='primary'
                             onClick={ () => void onSubmit2() }
-                            className='mx-auto h-12 w-full rounded-lg px-4 sm:w-fit sm:px-8'>
-
-                            {
-                                T('Intro.ImportWallet.Submit2')
-                            }
-
-                        </Button>
+                            className='mx-auto h-12 w-full rounded-lg px-4 sm:w-fit sm:px-8'
+                            text={ T('Intro.ImportWallet.Submit2') } />
 
                     </div>
 

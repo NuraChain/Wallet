@@ -98,11 +98,8 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
                             key={ item }
                             onClick={ () => { setFilter(item); } }
                             aria-pressed={ filter === item }
-                            className={ `h-8 flex-1 rounded-lg text-tiny duration-200 ${ filter === item ? 'btn-primary' : 'chip-control' }` }>
-
-                            { T(`Dashboard.Activity.Filter${ item }`) }
-
-                        </Button>
+                            className={ `h-8 flex-1 rounded-lg text-tiny duration-200 ${ filter === item ? 'btn-primary' : 'chip-control' }` }
+                            text={ T(`Dashboard.Activity.Filter${ item }`) } />
                     ))
                 }
 

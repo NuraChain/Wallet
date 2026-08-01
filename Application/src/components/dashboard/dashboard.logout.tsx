@@ -113,24 +113,16 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                     variant='muted'
                     size='action'
                     onClick={ onClose }
-                    className='flex-1'>
-
-                    { T('Dashboard.Logout.Cancel') }
-
-                </Button>
+                    className='flex-1'
+                    text={ T('Dashboard.Logout.Cancel') } />
 
                 <Button
                     variant='normal'
                     size='action'
                     disabled={ isLoading }
                     onClick={ () => { void onConfirm(); } }
-                    className='flex-1 text-txt-error disabled:cursor-not-allowed! disabled:opacity-60'>
-
-                    {
-                        isLoading ? T('Dashboard.Logout.Pending') : T('Dashboard.Logout.Confirm')
-                    }
-
-                </Button>
+                    className='flex-1 text-txt-error disabled:cursor-not-allowed! disabled:opacity-60'
+                    text={ isLoading ? T('Dashboard.Logout.Pending') : T('Dashboard.Logout.Confirm') } />
 
             </div>
 

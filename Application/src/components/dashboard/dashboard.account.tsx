@@ -186,21 +186,15 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                     variant='muted'
                                     size='action'
                                     onClick={ () => { setAdding(false); setError(''); } }
-                                    className='flex-1'>
-
-                                    { T('Dashboard.Accounts.Back') }
-
-                                </Button>
+                                    className='flex-1'
+                                    text={ T('Dashboard.Accounts.Back') } />
 
                                 <Button
                                     variant='primary'
                                     size='action'
                                     onClick={ onCreate }
-                                    className='flex-1'>
-
-                                    { T('Dashboard.Accounts.Create') }
-
-                                </Button>
+                                    className='flex-1'
+                                    text={ T('Dashboard.Accounts.Create') } />
 
                             </div>
 
@@ -236,11 +230,8 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                                 <Button
                                                     variant='primary'
                                                     onClick={ onSave }
-                                                    className='h-12 rounded-xl px-4 text-small'>
-
-                                                    { T('Dashboard.Accounts.Save') }
-
-                                                </Button>
+                                                    className='h-12 rounded-xl px-4 text-small'
+                                                    text={ T('Dashboard.Accounts.Save') } />
 
                                             </div>
                                         );

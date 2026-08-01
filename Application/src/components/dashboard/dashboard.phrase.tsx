@@ -159,13 +159,8 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                 disabled={ isLoading }
                                 loading={ isLoading }
                                 onClick={ () => { void onUnlock(); } }
-                                className='mt-1 disabled:cursor-not-allowed! disabled:opacity-60'>
-
-                                {
-                                    isLoading ? T('Dashboard.Phrase.Pending') : T('Dashboard.Phrase.Unlock')
-                                }
-
-                            </Button>
+                                className='mt-1 disabled:cursor-not-allowed! disabled:opacity-60'
+                                text={ isLoading ? T('Dashboard.Phrase.Pending') : T('Dashboard.Phrase.Unlock') } />
                         </>
                     ) :
                     (

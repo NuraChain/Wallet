@@ -180,13 +180,8 @@ export default function UnlockPage()
                     disabled={ isLoading }
                     loading={ isLoading }
                     onClick={ () => { void onUnlock(); } }
-                    className='mx-auto h-12 w-fit rounded-xl px-8 py-2 disabled:cursor-not-allowed! disabled:opacity-60'>
-
-                    {
-                        isLoading ? T('Unlock.Loading') : T('Unlock.Submit')
-                    }
-
-                </Button>
+                    className='mx-auto h-12 w-fit rounded-xl px-8 py-2 disabled:cursor-not-allowed! disabled:opacity-60'
+                    text={ isLoading ? T('Unlock.Loading') : T('Unlock.Submit') } />
 
             </div>
 

@@ -146,21 +146,15 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                     variant='muted'
                                     size='action'
                                     onClick={ () => { setAdding(false); setError(''); } }
-                                    className='flex-1'>
-
-                                    { T('Dashboard.Network.Back') }
-
-                                </Button>
+                                    className='flex-1'
+                                    text={ T('Dashboard.Network.Back') } />
 
                                 <Button
                                     variant='primary'
                                     size='action'
                                     onClick={ () => { void onAdd(); } }
-                                    className='flex-1'>
-
-                                    { T('Dashboard.Network.Save') }
-
-                                </Button>
+                                    className='flex-1'
+                                    text={ T('Dashboard.Network.Save') } />
 
                             </div>
 

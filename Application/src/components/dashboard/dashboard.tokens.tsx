@@ -112,22 +112,16 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                     size='action'
                                     disabled={ busy }
                                     onClick={ () => { setAdding(false); setError(''); } }
-                                    className='flex-1'>
-
-                                    { T('Dashboard.Tokens.Back') }
-
-                                </Button>
+                                    className='flex-1'
+                                    text={ T('Dashboard.Tokens.Back') } />
 
                                 <Button
                                     variant='primary'
                                     size='action'
                                     disabled={ busy }
                                     onClick={ () => { void onSave(); } }
-                                    className='flex-1'>
-
-                                    { busy ? T('Dashboard.Tokens.Checking') : T('Dashboard.Tokens.Save') }
-
-                                </Button>
+                                    className='flex-1'
+                                    text={ busy ? T('Dashboard.Tokens.Checking') : T('Dashboard.Tokens.Save') } />
 
                             </div>
 

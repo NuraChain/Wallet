@@ -149,11 +149,8 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                     <Button
                                         key={ item.key }
                                         onClick={ () => { setSelected(item.key); } }
-                                        className={ `flex h-9 items-center rounded-xl px-3 text-tiny duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : 'btn-muted' }` }>
-
-                                        { item.symbol }
-
-                                    </Button>
+                                        className={ `flex h-9 items-center rounded-xl px-3 text-tiny duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : 'btn-muted' }` }
+                                        text={ item.symbol } />
                                 ))
                             }
 
@@ -183,11 +180,8 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 <Button
                                     variant='muted'
                                     onClick={ () => { setAmount(asset.formatted); } }
-                                    className='rounded-lg px-2 py-0.5 text-tiny text-txt-muted'>
-
-                                    { T('Dashboard.Send.Max', trimAmount(asset.formatted)) }
-
-                                </Button>
+                                    className='rounded-lg px-2 py-0.5 text-tiny text-txt-muted'
+                                    text={ T('Dashboard.Send.Max', trimAmount(asset.formatted)) } />
 
                             </SectionHeader>
 
@@ -204,11 +198,8 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                         <Button
                             variant='primary'
                             size='action'
-                            onClick={ onReview }>
-
-                            { T('Dashboard.Send.Review') }
-
-                        </Button>
+                            onClick={ onReview }
+                            text={ T('Dashboard.Send.Review') } />
 
                     </div>
                 )
@@ -289,11 +280,8 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 variant='primary'
                                 size='action'
                                 onClick={ () => { void onConfirm(); } }
-                                className='flex-1'>
-
-                                { T('Dashboard.Send.Confirm') }
-
-                            </Button>
+                                className='flex-1'
+                                text={ T('Dashboard.Send.Confirm') } />
 
                         </div>
 
@@ -341,11 +329,8 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                             variant='primary'
                             size='action'
                             fullWidth
-                            onClick={ onClose }>
-
-                            { T('Dashboard.Send.Done') }
-
-                        </Button>
+                            onClick={ onClose }
+                            text={ T('Dashboard.Send.Done') } />
 
                     </div>
                 )
@@ -366,11 +351,8 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                             variant='muted'
                             size='action'
                             fullWidth
-                            onClick={ () => { setStep('form'); } }>
-
-                            { T('Dashboard.Send.Back') }
-
-                        </Button>
+                            onClick={ () => { setStep('form'); } }
+                            text={ T('Dashboard.Send.Back') } />
 
                     </div>
                 )
