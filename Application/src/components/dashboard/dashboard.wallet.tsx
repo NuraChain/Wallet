@@ -183,7 +183,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                           * settles back. A caption under the address shifted the layout and had to be
                           * read; this is understood at a glance and takes no space.
                           */ }
-                        <span className='relative flex size-4 shrink-0 items-center justify-center'>
+                        <span className='relative flex size-5 shrink-0 items-center justify-center'>
 
                             <AnimatePresence initial={ false } mode='wait'>
 
@@ -198,7 +198,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                                                 transition={ { duration: 0.35 } }
                                                 className='absolute text-txt-normal'>
 
-                                                <HiOutlineCheck size={ 14 } />
+                                                <HiOutlineCheck size={ 18 } />
 
                                             </motion.span>
                                         ) :
@@ -211,7 +211,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                                                 transition={ { duration: 0.18 } }
                                                 className='absolute'>
 
-                                                <HiOutlineSquare2Stack size={ 14 } />
+                                                <HiOutlineSquare2Stack size={ 18 } />
 
                                             </motion.span>
                                         )
