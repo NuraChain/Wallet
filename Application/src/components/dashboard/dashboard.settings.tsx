@@ -3,12 +3,19 @@ import { IoChevronForward } from 'react-icons/io5';
 import { FiGlobe, FiLogOut, FiMoon, FiSun } from 'react-icons/fi';
 import { HiOutlineDocumentText, HiOutlineLockClosed } from 'react-icons/hi2';
 
+import Text from '../ui/text';
 import Button from '../ui/button';
 import MenuRow from '../ui/menu';
-import { Modal, ModalHeader } from '../ui/modal';
+import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
+import { T } from '../../utility/language';
 import { getTheme, setTheme } from '../../utility/theme';
-import { getDirection, T } from '../../utility/language';
+
+/**
+ * The "go here" chevron, mirrored by the `rtl:` variant rather than by reading the active language at
+ * render time — the document already carries `dir`, so the stylesheet can answer this on its own.
+ */
+const chevron = <IoChevronForward size={ 18 } className='text-txt-muted rtl:rotate-180' />;
 
 /**
  * DashboardSettings - App settings: language, theme, lock, and logout.
@@ -39,8 +46,8 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
 
     return (
         <Modal
-            onClose={ onClose }
-            panelClass='max-h-[80vh] overflow-y-auto'>
+            scroll
+            onClose={ onClose }>
 
             <ModalHeader
                 title={ T('Dashboard.Settings.Title') }
@@ -50,35 +57,27 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
                 icon={ <FiGlobe size={ 16 } /> }
                 label={ T('Intro.Language') }
                 onClick={ onLanguage }
-                trailing={ <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'rotate-180 text-txt-muted' : 'text-txt-muted' } /> } />
+                trailing={ chevron } />
 
             <MenuRow
                 icon={ theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } /> }
                 label={ T('Dashboard.Settings.Theme') }
                 onClick={ onToggleTheme }
-                trailing={
-                    (
-                        <div className='text-tiny text-txt-muted'>
-
-                            { theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark') }
-
-                        </div>
-                    )
-                } />
+                trailing={ <Text text={ theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark') } /> } />
 
             <MenuRow
                 icon={ <HiOutlineDocumentText size={ 16 } /> }
                 label={ T('Dashboard.Phrase.Title') }
                 onClick={ onPhrase }
-                trailing={ <IoChevronForward size={ 18 } className={ getDirection() === 'rtl' ? 'rotate-180 text-txt-muted' : 'text-txt-muted' } /> } />
+                trailing={ chevron } />
 
             { /* Both are session-ending actions, so they share one row rather than a line each. */ }
-            <div className='mt-1 flex gap-2'>
+            <ModalActions>
 
                 <Button
                     variant='primary'
                     onClick={ onLock }
-                    className='h-12 min-w-0 flex-1 rounded-xl text-small'>
+                    className='h-12 min-w-0 rounded-xl text-small'>
 
                     <HiOutlineLockClosed size={ 16 } className='shrink-0' />
 
@@ -93,9 +92,9 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
                 <Button
                     variant='destructive'
                     onClick={ onLogout }
-                    className='h-12 min-w-0 flex-1 rounded-xl text-small'>
+                    className='h-12 min-w-0 rounded-xl text-small'>
 
-                    <FiLogOut size={ 16 } className={ `shrink-0 ${ getDirection() === 'rtl' ? 'rotate-180' : '' }` } />
+                    <FiLogOut size={ 16 } className='shrink-0 rtl:rotate-180' />
 
                     <span className='truncate'>
 
@@ -105,7 +104,7 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
 
                 </Button>
 
-            </div>
+            </ModalActions>
 
         </Modal>
     );

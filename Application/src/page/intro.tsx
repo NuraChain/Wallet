@@ -1,3 +1,4 @@
+import type { IconType } from 'react-icons';
 import type { Swiper as SwiperType } from 'swiper';
 
 import { LuImport } from 'react-icons/lu';
@@ -13,6 +14,7 @@ import IntroImport from '../components/intro/intro.import';
 import IntroWallet from '../components/intro/intro.wallet';
 import IntroLanguage from '../components/intro/intro.language';
 
+import Text from '../components/ui/text';
 import Button from '../components/ui/button';
 import PageContainer from '../layout/container';
 
@@ -42,12 +44,27 @@ const slideMap =
     }
 ];
 
+/**
+ * The two ways in. Same tall row with a leading glyph, a filling label and a chevron; only the fill,
+ * the icon, the label and which sheet opens differ.
+ */
+const entryMap: { key: string; icon: IconType; label: string; variant: 'primary' | 'normal'; page: (close: () => void) => ReactNode }[] =
+[
+    { key: 'create', icon: FaPlusCircle, label: 'Intro.Create', variant: 'primary', page: (close) => <IntroWallet onClose={ close } /> },
+    { key: 'import', icon: LuImport, label: 'Intro.Import', variant: 'normal', page: (close) => <IntroImport onClose={ close } /> }
+];
+
 export default function IntroPage()
 {
     const swiperRef = useRef<SwiperType>(undefined);
 
     const [ subPage, setSubPage ] = useState<ReactNode>();
     const [ theme, setThemeState ] = useState(getTheme());
+
+    const onCloseSub = useCallback(() =>
+    {
+        setSubPage(undefined);
+    }, [ ]);
 
     const toggleTheme = useCallback(() =>
     {
@@ -86,7 +103,7 @@ export default function IntroPage()
 
                         <Button
                             variant='normal'
-                            onClick={ () => { setSubPage(<IntroLanguage onClose={ () => { setSubPage(undefined); } } />); } }
+                            onClick={ () => { setSubPage(<IntroLanguage onClose={ onCloseSub } />); } }
                             className='h-10 w-fit shrink justify-start rounded-lg p-2'>
 
                             <FiGlobe size={ 16 } className='shrink-0' />
@@ -107,7 +124,7 @@ export default function IntroPage()
                             variant='normal'
                             size='iconLarge'
                             onClick={ toggleTheme }
-                            className='shrink-0 text-txt-normal outline-0'>
+                            className='shrink-0 text-txt-normal'>
 
                             {
                                 theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } />
@@ -157,51 +174,33 @@ export default function IntroPage()
 
                     <div className='flex shrink-0 flex-col gap-2'>
 
-                        <Button
-                            variant='primary'
-                            onClick={ () => { setSubPage(<IntroWallet onClose={ () => { setSubPage(undefined); } } />); } }
-                            className='h-12 rounded-lg p-2 outline-0'>
+                        {
+                            entryMap.map((item) => (
+                                <Button
+                                    key={ item.key }
+                                    variant={ item.variant }
+                                    onClick={ () => { setSubPage(item.page(onCloseSub)); } }
+                                    className='h-12 rounded-lg p-2'>
 
-                            <FaPlusCircle size={ 32 } className='shrink-0 p-1.5' />
+                                    <item.icon size={ 32 } className='shrink-0 p-1.5' />
 
-                            <div className='flex-1 truncate text-start text-small sm:text-medium'>
+                                    { /* No colour of its own: the label takes the fill's, which is
+                                      * reversed on the primary entry and normal on the other. */ }
+                                    <div className='flex-1 truncate text-start text-small sm:text-medium'>
 
-                                {
-                                    T('Intro.Create')
-                                }
+                                        { T(item.label) }
 
-                            </div>
+                                    </div>
 
-                            <IoIosArrowForward size={ 16 } className={ `shrink-0 ${ getDirection() === 'rtl' ? 'rotate-180' : '' }` } />
+                                    <IoIosArrowForward size={ 16 } className='shrink-0 rtl:rotate-180' />
 
-                        </Button>
+                                </Button>
+                            ))
+                        }
 
-                        <Button
-                            variant='normal'
-                            onClick={ () => { setSubPage(<IntroImport onClose={ () => { setSubPage(undefined); } } />); } }
-                            className='h-12 rounded-lg p-2 outline-0'>
-
-                            <LuImport size={ 32 } className='shrink-0 p-1.5' />
-
-                            <div className='flex-1 truncate text-start text-small sm:text-medium'>
-
-                                {
-                                    T('Intro.Import')
-                                }
-
-                            </div>
-
-                            <IoIosArrowForward size={ 16 } className={ `shrink-0 ${ getDirection() === 'rtl' ? 'rotate-180' : '' }` } />
-
-                        </Button>
-
-                        <div className='mt-2 text-center text-tiny text-txt-muted'>
-
-                            {
-                                T('Intro.Version')
-                            }
-
-                        </div>
+                        <Text
+                            className='mt-2 text-center'
+                            text={ T('Intro.Version') } />
 
                     </div>
 

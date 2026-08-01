@@ -5,14 +5,16 @@ import { motion, AnimatePresence } from 'motion/react';
 import IntroPage from './intro';
 import DashboardPage from './dashboard';
 
+import Text from '../components/ui/text';
 import Alert from '../components/ui/alert';
 import Button from '../components/ui/button';
 import { PasswordField } from '../components/ui/field';
 
 import { T } from '../utility/language';
-import { passwordVerify } from '../core/password';
+import { glassPanel } from '../components/ui/panel';
+import { passwordCheck } from '../core/password';
 import { openPage } from '../utility/context';
-import { getValue, getValueEncrypted, isConvertedEncrypted, setValueEncrypted } from '../utility/storage';
+import { getValueEncrypted } from '../utility/storage';
 
 export default function UnlockPage()
 {
@@ -36,18 +38,17 @@ export default function UnlockPage()
 
         try
         {
-            const storedHash = await getValue('Wallet.Password');
+            const outcome = await passwordCheck(password);
 
-            if (storedHash === undefined)
+            // No stored hash means there is no wallet on this device, so there is nothing to unlock.
+            if (outcome === 'missing')
             {
                 openPage(IntroPage);
 
                 return;
             }
 
-            const isValid = await passwordVerify(password, storedHash);
-
-            if (!isValid)
+            if (outcome === 'invalid')
             {
                 setError(T('Unlock.ErrorInvalid'));
 
@@ -61,13 +62,6 @@ export default function UnlockPage()
                 setError(T('Unlock.ErrorMissing'));
 
                 return;
-            }
-
-            // Converge a device that ran the Argon2id build back onto the current derivation, so the
-            // compatibility path in storage stops being load-bearing after one successful unlock.
-            if (await isConvertedEncrypted('Wallet.Mnemonic'))
-            {
-                await setValueEncrypted('Wallet.Mnemonic', mnemonic, password);
             }
 
             openPage(DashboardPage, { mnemonic });
@@ -91,23 +85,17 @@ export default function UnlockPage()
             transition={ { type: 'tween' } }
             className='flex size-full items-center justify-center bg-base-1 px-4'>
 
-            <div className='glass-panel flex w-full max-w-md flex-col gap-4 rounded-3xl p-6'>
+            <div className={ `${ glassPanel } flex w-full max-w-md flex-col gap-4 rounded-3xl p-6` }>
 
                 <div className='flex items-center justify-between gap-2'>
 
                     <div>
 
-                        <div className='text-large font-semibold text-txt-normal'>
+                        <Text
+                            variant='heading'
+                            text={ T('Unlock.Title') } />
 
-                            { T('Unlock.Title') }
-
-                        </div>
-
-                        <div className='text-tiny text-txt-muted'>
-
-                            { T('Unlock.Subtitle') }
-
-                        </div>
+                        <Text text={ T('Unlock.Subtitle') } />
 
                     </div>
 
@@ -133,7 +121,7 @@ export default function UnlockPage()
                                         animate={ { opacity: 1, scale: 1, y: 0 } }
                                         exit={ { opacity: 0, scale: 0.95, y: -4 } }
                                         transition={ { duration: 0.15 } }
-                                        className='glass-panel absolute inset-e-0 top-12 w-56 origin-top rounded-xl p-3 text-start text-tiny text-txt-normal'>
+                                        className={ `${ glassPanel } absolute inset-e-0 top-12 w-56 origin-top rounded-xl p-3 text-start text-tiny text-txt-normal` }>
 
                                         { T('Unlock.Recovery') }
 
@@ -156,14 +144,10 @@ export default function UnlockPage()
                     )
                 }
 
-                {
-                    error.length > 0 &&
-                    (
-                        <Alert
-                            className='mt-2 rounded-xl bg-txt-error/10 text-small'
-                            text={ error } />
-                    )
-                }
+                <Alert
+                    variant='danger'
+                    className='mt-2 rounded-xl text-center text-small'
+                    text={ error } />
 
                 <PasswordField
                     label={ T('Unlock.Password') }
@@ -183,7 +167,7 @@ export default function UnlockPage()
                     disabled={ isLoading }
                     loading={ isLoading }
                     onClick={ () => { void onUnlock(); } }
-                    className='mx-auto h-12 w-fit rounded-xl px-8 py-2 disabled:cursor-not-allowed! disabled:opacity-60'
+                    className='mx-auto h-12 w-fit rounded-xl px-8 py-2 disabled:opacity-60'
                     text={ isLoading ? T('Unlock.Loading') : T('Unlock.Submit') } />
 
             </div>

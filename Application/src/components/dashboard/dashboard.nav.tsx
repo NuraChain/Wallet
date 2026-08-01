@@ -6,6 +6,7 @@ import Button from '../ui/button';
 
 import { inset } from '../../layout/container';
 import { T } from '../../utility/language';
+import { glassPanel } from '../ui/panel';
 
 /**
  * DashboardNav - The floating pill navigation bar at the bottom of the dashboard.
@@ -30,7 +31,7 @@ export default function DashboardNav({ items, active, hidden, onSelect }: { item
             role='tablist'
             animate={ { y: hidden ? '150%' : '0%', opacity: hidden ? 0 : 1 } }
             transition={ { type: 'tween', duration: 0.25 } }
-            className={ `glass-panel absolute inset-x-0 ${ inset.navBottom } z-20 mx-auto flex w-fit gap-1 rounded-full p-1 ${ hidden ? 'pointer-events-none' : '' }` }>
+            className={ `${ glassPanel } absolute inset-x-0 ${ inset.navBottom } z-20 mx-auto flex w-fit gap-1 rounded-full p-1 ${ hidden ? 'pointer-events-none' : '' }` }>
 
             {
                 items.map((item, index) =>

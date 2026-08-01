@@ -5,10 +5,7 @@ import WalletManager from '../../core/wallet';
 import DashboardPage from '../../page/dashboard';
 
 import Alert from '../ui/alert';
-import Button from '../ui/button';
-import Spinner from '../ui/spinner';
-import Checkbox from '../ui/checkbox';
-import { PasswordField } from '../ui/field';
+import IntroCredentials from './intro.credentials';
 import { Sheet, SheetHeader } from '../ui/sheet';
 
 import { T } from '../../utility/language';
@@ -19,57 +16,25 @@ import { setValue, setValueEncrypted } from '../../utility/storage';
 export default function IntroWallet({ onClose }: { onClose: () => void })
 {
     const [ error, setError ] = useState('');
-    const [ agree, setAgree ] = useState(false);
-    const [ password, setPassword ] = useState('');
-    const [ loading, setLoading ] = useState(false);
-    const [ password2, setPassword2 ] = useState('');
 
-    const onCreateWallet = async() =>
+    const onCreateWallet = async(password: string) =>
     {
-        if (loading)
+        const mnemonic = WalletManager.Generate();
+
+        if (mnemonic === undefined)
         {
+            setError(T('Intro.CreateWallet.ErrorGenerate'));
+
             return;
         }
 
-        setLoading(true);
+        const hash = await passwordHash(password);
 
-        try
-        {
-            if (password !== password2)
-            {
-                setError(T('Intro.CreateWallet.ErrorMismatch'));
+        await setValueEncrypted('Wallet.Mnemonic', mnemonic, password);
 
-                return;
-            }
+        await setValue('Wallet.Password', hash);
 
-            if (password.length <= 5 || password.length >= 33)
-            {
-                setError(T('Intro.CreateWallet.ErrorLength'));
-
-                return;
-            }
-
-            const mnemonic = WalletManager.Generate();
-
-            if (mnemonic === undefined)
-            {
-                setError(T('Intro.CreateWallet.ErrorGenerate'));
-
-                return;
-            }
-
-            const hash = await passwordHash(password);
-
-            await setValueEncrypted('Wallet.Mnemonic', mnemonic, password);
-
-            await setValue('Wallet.Password', hash);
-
-            openPage(DashboardPage, { mnemonic });
-        }
-        finally
-        {
-            setLoading(false);
-        }
+        openPage(DashboardPage, { mnemonic });
     };
 
     return (
@@ -79,43 +44,16 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
                 title={ T('Intro.CreateWallet.Title') }
                 subtitle={ T('Intro.CreateWallet.Subtitle') } />
 
-            {
-                error.length > 0 &&
-                (
-                    <Alert
-                        className='mx-auto w-fit px-4 text-small'
-                        text={ error } />
-                )
-            }
+            <Alert
+                className='mx-auto w-fit px-4 text-small'
+                text={ error } />
 
-            <PasswordField
-                label={ T('Intro.CreateWallet.Password') }
-                value={ password }
-                onValue={ setPassword }
-                className='rounded-lg' />
-
-            <PasswordField
-                label={ T('Intro.CreateWallet.Confirm') }
-                value={ password2 }
-                onValue={ setPassword2 }
-                className='rounded-lg' />
-
-            <Checkbox
-                checked={ agree }
-                onToggle={ () => { setAgree(!agree); } }
-                text={ T('Intro.CreateWallet.Agreement') } />
-
-            <Button
-                variant='primary'
-                disabled={ !agree }
-                onClick={ () => { void onCreateWallet(); } }
-                className={ `mx-auto h-12 w-full shrink-0 rounded-lg px-4 py-2 sm:w-fit sm:px-8 ${ !agree ? 'cursor-not-allowed! opacity-50' : '' }` }>
-
-                {
-                    !loading ? T('Intro.CreateWallet.Submit') : <Spinner size={ 24 } />
-                }
-
-            </Button>
+            <IntroCredentials
+                prefix='Intro.CreateWallet'
+                submitKey='Submit'
+                className='shrink-0'
+                onError={ setError }
+                onSubmit={ onCreateWallet } />
 
         </Sheet>
     );

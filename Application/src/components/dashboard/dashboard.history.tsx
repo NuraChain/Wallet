@@ -5,6 +5,7 @@ import { FiSearch } from 'react-icons/fi';
 
 import TransactionRow from './dashboard.transaction';
 
+import Text from '../ui/text';
 import Button from '../ui/button';
 import EmptyState from '../ui/state';
 import { TextField } from '../ui/field';
@@ -96,9 +97,10 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
                     filters.map((item) => (
                         <Button
                             key={ item }
+                            variant={ filter === item ? 'primary' : 'chip' }
                             onClick={ () => { setFilter(item); } }
                             aria-pressed={ filter === item }
-                            className={ `h-8 flex-1 rounded-lg text-tiny duration-200 ${ filter === item ? 'btn-primary' : 'chip-control' }` }
+                            className='h-8 flex-1 rounded-lg text-tiny duration-200'
                             text={ T(`Dashboard.Activity.Filter${ item }`) } />
                     ))
                 }
@@ -120,22 +122,16 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
                 {
                     loading && items.length === 0 &&
                     (
-                        <div className='py-6 text-center text-tiny text-txt-muted'>
-
-                            { T('Dashboard.Activity.Loading') }
-
-                        </div>
+                        <Text
+                            className='py-6 text-center'
+                            text={ T('Dashboard.Activity.Loading') } />
                     )
                 }
 
                 {
                     !loading && results.length === 0 &&
                     (
-                        <EmptyState>
-
-                            { items.length === 0 ? T('Dashboard.Activity.Empty') : T('Dashboard.Activity.NoMatch') }
-
-                        </EmptyState>
+                        <EmptyState text={ items.length === 0 ? T('Dashboard.Activity.Empty') : T('Dashboard.Activity.NoMatch') } />
                     )
                 }
 

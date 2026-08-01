@@ -26,39 +26,48 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
                 title={ T('Intro.Select') }
                 onClose={ onClose } />
 
-            <div />
+            { /*
+              * The list carries its own top padding rather than the panel's gap being padded out by an
+              * empty element, which is how the space under the header used to be made.
+              *
+              * The active row is disabled because it is the one you are already on, not because it is
+              * unavailable — so it keeps the ordinary cursor instead of the "no" one.
+              */ }
+            <div className='flex flex-col gap-2 pt-2'>
 
-            {
-                languageRecord.map((lang) =>
                 {
-                    const isActive = lang.code === current.code;
+                    languageRecord.map((lang) =>
+                    {
+                        const isActive = lang.code === current.code;
 
-                    return (
-                        <Button
-                            key={ lang.code }
-                            variant='muted'
-                            disabled={ isActive }
-                            onClick={ () => { void handleSelect(lang.code); } }
-                            className={ `h-12 gap-2 rounded-xl px-4 text-start duration-300 ${ isActive ? 'cursor-default!' : 'hover:bg-black/25' }` }>
+                        return (
+                            <Button
+                                key={ lang.code }
+                                variant='muted'
+                                disabled={ isActive }
+                                onClick={ () => { void handleSelect(lang.code); } }
+                                className={ `h-12 gap-2 rounded-xl px-4 text-start duration-300 ${ isActive ? 'disabled:cursor-default!' : '' }` }>
 
-                            <div className={ `fi fi-${ lang.country } size-4!` } />
+                                <div className={ `fi fi-${ lang.country } size-4!` } />
 
-                            <div className='flex-1'>
+                                <div className='flex-1'>
+
+                                    {
+                                        T(`Language.${ lang.code }`)
+                                    }
+
+                                </div>
 
                                 {
-                                    T(`Language.${ lang.code }`)
+                                    isActive && <FiCheck size={ 18 } />
                                 }
 
-                            </div>
+                            </Button>
+                        );
+                    })
+                }
 
-                            {
-                                isActive && <FiCheck size={ 18 } />
-                            }
-
-                        </Button>
-                    );
-                })
-            }
+            </div>
 
         </Modal>
     );

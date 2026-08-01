@@ -1,14 +1,30 @@
 import { useState } from 'react';
 import { FiCheck, FiPlus, FiTrash2 } from 'react-icons/fi';
 
+import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 import { TextField } from '../ui/field';
-import { Modal, ModalHeader } from '../ui/modal';
+import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { addNetwork, getNetworks, removeNetwork, setNetwork, type Network } from '../../core/network';
+
+/**
+ * The custom-network form. Every field is a plain text input that only differs by its placeholder and
+ * where the typed value lands, so the form is a list rather than five copies of one input.
+ *
+ * `numeric` marks the chain id, the only field that wants a number pad on a phone.
+ */
+const fieldMap =
+[
+    { key: 'Name', numeric: false },
+    { key: 'Rpc', numeric: false },
+    { key: 'ChainId', numeric: true },
+    { key: 'Symbol', numeric: false },
+    { key: 'Explorer', numeric: false }
+] as const;
 
 /**
  * DashboardNetwork - Network picker and custom-network editor.
@@ -24,11 +40,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 {
     const [ adding, setAdding ] = useState(false);
     const [ error, setError ] = useState('');
-    const [ name, setName ] = useState('');
-    const [ rpcUrl, setRpcUrl ] = useState('');
-    const [ chainId, setChainId ] = useState('');
-    const [ symbol, setSymbol ] = useState('');
-    const [ explorerUrl, setExplorerUrl ] = useState('');
+    const [ draft, setDraft ] = useState({ Name: '', Rpc: '', ChainId: '', Symbol: '', Explorer: '' });
 
     // The network list is module state, not React state, so mutating it does not re-render anything
     // on its own. Notifying the parent is not enough either: it only tracks the *active* network, and
@@ -56,16 +68,16 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
     const onAdd = async() =>
     {
-        const chain = Number(chainId);
+        const chain = Number(draft.ChainId);
 
-        if (name.trim().length === 0 || symbol.trim().length === 0)
+        if (draft.Name.trim().length === 0 || draft.Symbol.trim().length === 0)
         {
             setError(T('Dashboard.Network.Invalid'));
 
             return;
         }
 
-        if (!rpcUrl.startsWith('http'))
+        if (!draft.Rpc.startsWith('http'))
         {
             setError(T('Dashboard.Network.InvalidRpc'));
 
@@ -79,7 +91,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
             return;
         }
 
-        await addNetwork({ name: name.trim(), symbol: symbol.trim().toUpperCase(), rpcUrl: rpcUrl.trim(), explorerUrl: explorerUrl.trim(), chainId: chain, decimals: 18 });
+        await addNetwork({ name: draft.Name.trim(), symbol: draft.Symbol.trim().toUpperCase(), rpcUrl: draft.Rpc.trim(), explorerUrl: draft.Explorer.trim(), chainId: chain, decimals: 18 });
 
         onChange();
         onClose();
@@ -87,8 +99,9 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
     return (
         <Modal
+            scroll
             onClose={ onClose }
-            panelClass='max-h-[80vh] gap-2 overflow-y-auto'>
+            panelClass='gap-2'>
 
             <ModalHeader
                 title={ T('Dashboard.Network.Title') }
@@ -99,61 +112,38 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                     (
                         <div className='flex flex-col gap-2'>
 
+                            <Alert text={ error } />
+
                             {
-                                error.length > 0 &&
-                                (
-                                    <Alert
-                                        text={ error } />
-                                )
+                                fieldMap.map((item) => (
+                                    <TextField
+                                        key={ item.key }
+                                        value={ draft[item.key] }
+                                        // A URL, a chain id and a ticker are all left-to-right, but an
+                                        // empty field has to keep the placeholder in the UI's own
+                                        // direction or the hint reads backwards under Persian.
+                                        dir={ item.key !== 'Name' && draft[item.key].length > 0 ? 'ltr' : undefined }
+                                        inputMode={ item.numeric ? 'numeric' : undefined }
+                                        placeholder={ T(`Dashboard.Network.${ item.key }`) }
+                                        onValue={ (value) => { setDraft((current) => ({ ...current, [item.key]: value })); } } />
+                                ))
                             }
 
-                            <TextField
-                                value={ name }
-                                placeholder={ T('Dashboard.Network.Name') }
-                                onValue={ setName } />
-
-                            <TextField
-                                value={ rpcUrl }
-                                dir={ rpcUrl.length > 0 ? 'ltr' : undefined }
-                                placeholder={ T('Dashboard.Network.Rpc') }
-                                onValue={ setRpcUrl } />
-
-                            <TextField
-                                value={ chainId }
-                                dir={ chainId.length > 0 ? 'ltr' : undefined }
-                                inputMode='numeric'
-                                placeholder={ T('Dashboard.Network.ChainId') }
-                                onValue={ setChainId } />
-
-                            <TextField
-                                value={ symbol }
-                                dir={ symbol.length > 0 ? 'ltr' : undefined }
-                                placeholder={ T('Dashboard.Network.Symbol') }
-                                onValue={ setSymbol } />
-
-                            <TextField
-                                value={ explorerUrl }
-                                dir={ explorerUrl.length > 0 ? 'ltr' : undefined }
-                                placeholder={ T('Dashboard.Network.Explorer') }
-                                onValue={ setExplorerUrl } />
-
-                            <div className='mt-1 flex gap-2'>
+                            <ModalActions>
 
                                 <Button
                                     variant='muted'
                                     size='action'
                                     onClick={ () => { setAdding(false); setError(''); } }
-                                    className='flex-1'
                                     text={ T('Dashboard.Network.Back') } />
 
                                 <Button
                                     variant='primary'
                                     size='action'
                                     onClick={ () => { void onAdd(); } }
-                                    className='flex-1'
                                     text={ T('Dashboard.Network.Save') } />
 
-                            </div>
+                            </ModalActions>
 
                         </div>
                     ) :
@@ -180,11 +170,10 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
                                                 </IconBox>
 
-                                                <div className='flex-1 text-small text-txt-normal'>
-
-                                                    { item.name }
-
-                                                </div>
+                                                <Text
+                                                    variant='body'
+                                                    className='flex-1'
+                                                    text={ item.name } />
 
                                                 {
                                                     isActive && <FiCheck size={ 18 } />
@@ -198,6 +187,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                     <Button
                                                         variant='danger'
                                                         size='iconChip'
+                                                        aria-label={ T('Dashboard.Network.Remove') }
                                                         onClick={ () => { void onRemove(item.id); } }>
 
                                                         <FiTrash2 size={ 16 } />
@@ -215,13 +205,9 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                 variant='normal'
                                 size='action'
                                 onClick={ () => { setAdding(true); } }
-                                className='mt-1'>
-
-                                <FiPlus size={ 16 } />
-
-                                { T('Dashboard.Network.Add') }
-
-                            </Button>
+                                className='mt-1'
+                                leftIcon={ <FiPlus size={ 16 } /> }
+                                text={ T('Dashboard.Network.Add') } />
                         </>
                     )
             }

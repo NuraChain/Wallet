@@ -1,6 +1,8 @@
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type UIEvent } from 'react';
 
+import Spinner from '../components/ui/spinner';
+
 /**
  * ScrollArea - A scroll container with an overlay scrollbar.
  *
@@ -257,10 +259,20 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
                         style={ { height: `${ pull }px` } }
                         className='pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-center overflow-hidden'>
 
-                        <AiOutlineLoading3Quarters
-                            size={ 18 }
-                            style={ refreshing ? undefined : { transform: `rotate(${ pull * 4 }deg)` } }
-                            className={ `text-txt-muted ${ refreshing ? 'animate-spin' : '' }` } />
+                        { /*
+                          * Before the release the glyph tracks the pull, so it is the plain icon with
+                          * a rotation; once the work starts it becomes the app's standard spinner.
+                          */ }
+                        {
+                            refreshing ?
+                                <Spinner size={ 18 } className='text-txt-muted' /> :
+                                (
+                                    <AiOutlineLoading3Quarters
+                                        size={ 18 }
+                                        style={ { transform: `rotate(${ pull * 4 }deg)` } }
+                                        className='text-txt-muted' />
+                                )
+                        }
 
                     </div>
                 )

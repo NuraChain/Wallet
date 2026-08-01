@@ -2,10 +2,12 @@ import type { Transaction } from '../../hook/history';
 
 import { FiArrowDownLeft, FiArrowUpRight } from 'react-icons/fi';
 
+import Text from '../ui/text';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 
 import { T } from '../../utility/language';
+import { glassPanel } from '../ui/panel';
 import { formatDate, shortAddress, trimAmount } from '../../utility/format';
 
 /**
@@ -30,7 +32,7 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
             disabled={ !canOpen }
             aria-label={ T('Dashboard.Activity.Open') }
             onClick={ () => { onOpen(item.hash); } }
-            className='glass-panel flex shrink-0 items-center gap-3 rounded-xl p-3 text-start not-disabled:cursor-pointer'>
+            className={ `${ glassPanel } flex shrink-0 items-center gap-3 rounded-xl p-3 text-start not-disabled:cursor-pointer` }>
 
             <IconBox tone='muted' size='size-9'>
 
@@ -42,33 +44,26 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
 
             <div className='flex min-w-0 flex-1 flex-col'>
 
-                <div className='text-small text-txt-normal'>
+                <Text
+                    variant='body'
+                    text={ item.incoming ? T('Dashboard.Activity.Received') : T('Dashboard.Activity.Sent') } />
 
-                    { item.incoming ? T('Dashboard.Activity.Received') : T('Dashboard.Activity.Sent') }
-
-                </div>
-
-                <div dir='ltr' className='truncate font-mono text-tiny text-txt-muted'>
-
-                    { item.incoming ? shortAddress(item.from) : shortAddress(item.to) }
-
-                </div>
+                <Text
+                    dir='ltr'
+                    className='truncate font-mono'
+                    text={ item.incoming ? shortAddress(item.from) : shortAddress(item.to) } />
 
             </div>
 
             <div className='flex shrink-0 flex-col items-end'>
 
-                <div dir='ltr' className='font-mono text-small text-txt-normal'>
+                <Text
+                    dir='ltr'
+                    variant='body'
+                    className='font-mono'
+                    text={ `${ item.incoming ? '+' : '-' }${ trimAmount(item.value) } ${ item.symbol }` } />
 
-                    { `${ item.incoming ? '+' : '-' }${ trimAmount(item.value) } ${ item.symbol }` }
-
-                </div>
-
-                <div className='text-tiny text-txt-muted'>
-
-                    { formatDate(item.timestamp) }
-
-                </div>
+                <Text text={ formatDate(item.timestamp) } />
 
             </div>
 

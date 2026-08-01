@@ -3,7 +3,7 @@ import type { Swiper as SwiperType } from 'swiper';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HiOutlineGlobeAlt, HiOutlineSquares2X2, HiOutlineWallet } from 'react-icons/hi2';
 
 import UnlockPage from './unlock';
@@ -70,6 +70,11 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
     const [ accounts, setAccounts ] = useState<Account[]>([ { index: 0, name: defaultAccountName(0) } ]);
 
     const address = useMemo(() => new WalletManager(mnemonic, account).retrieve().Public, [ mnemonic, account ]);
+
+    // Every dialog closes the same way and three of them step back to settings rather than to the
+    // dashboard, so the two destinations are named once instead of being written out at each mount.
+    const closeModal = useCallback(() => { setModal('none'); }, [ ]);
+    const backToSettings = useCallback(() => { setModal('settings'); }, [ ]);
 
     const name = accounts.find((item) => item.index === account)?.name ?? defaultAccountName(account);
 
@@ -277,7 +282,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             nativeFormatted={ native.formatted }
                             tokens={ tokens.tokens }
                             onSent={ onSent }
-                            onClose={ () => { setModal('none'); } } />
+                            onClose={ closeModal } />
                     )
                 }
 
@@ -288,7 +293,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             key='receive'
                             address={ address }
                             network={ network }
-                            onClose={ () => { setModal('none'); } } />
+                            onClose={ closeModal } />
                     )
                 }
 
@@ -302,7 +307,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             active={ account }
                             onSelect={ onSelectAccount }
                             onRename={ onRenameAccount }
-                            onClose={ () => { setModal('none'); } } />
+                            onClose={ closeModal } />
                     )
                 }
 
@@ -315,7 +320,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             tokens={ tokens.tokens }
                             onAdd={ onAddToken }
                             onRemove={ onRemoveToken }
-                            onClose={ () => { setModal('none'); } } />
+                            onClose={ closeModal } />
                     )
                 }
 
@@ -328,7 +333,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             loading={ history.loading }
                             canOpen={ network.explorerUrl.length > 0 }
                             onOpen={ onTransaction }
-                            onClose={ () => { setModal('none'); } } />
+                            onClose={ closeModal } />
                     )
                 }
 
@@ -339,7 +344,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             key='network'
                             network={ network }
                             onChange={ onNetworkChange }
-                            onClose={ () => { setModal('none'); } } />
+                            onClose={ closeModal } />
                     )
                 }
 
@@ -348,7 +353,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <IntroLanguage
                             key='language'
-                            onClose={ () => { setModal('settings'); } } />
+                            onClose={ backToSettings } />
                     )
                 }
 
@@ -358,7 +363,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                         <DashboardRedeem
                             key='redeem'
                             address={ address }
-                            onClose={ () => { setModal('none'); } } />
+                            onClose={ closeModal } />
                     )
                 }
 
@@ -367,7 +372,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <DashboardPhrase
                             key='phrase'
-                            onClose={ () => { setModal('settings'); } } />
+                            onClose={ backToSettings } />
                     )
                 }
 
@@ -376,7 +381,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <DashboardLogout
                             key='logout'
-                            onClose={ () => { setModal('settings'); } } />
+                            onClose={ backToSettings } />
                     )
                 }
 
@@ -389,7 +394,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             onLock={ () => { openPage(UnlockPage); } }
                             onPhrase={ () => { setModal('phrase'); } }
                             onLogout={ () => { setModal('logout'); } }
-                            onClose={ () => { setModal('none'); } } />
+                            onClose={ closeModal } />
                     )
                 }
 

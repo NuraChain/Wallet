@@ -3,11 +3,12 @@ import { FiCheck, FiEdit2, FiPlus } from 'react-icons/fi';
 
 import WalletManager from '../../core/wallet';
 
+import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
-import { TextField } from '../ui/field';
-import { Modal, ModalHeader } from '../ui/modal';
+import { ReadonlyField, TextField } from '../ui/field';
+import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
@@ -128,8 +129,9 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
     return (
         <Modal
+            scroll
             onClose={ onClose }
-            panelClass='max-h-[80vh] max-w-[calc(100vw-2rem)] overflow-y-auto'>
+            panelClass='max-w-[calc(100vw-2rem)]'>
 
             <ModalHeader
                 title={ T('Dashboard.Accounts.Title') }
@@ -141,13 +143,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                     (
                         <div className='flex flex-col gap-2'>
 
-                            {
-                                error.length > 0 &&
-                                (
-                                    <Alert
-                                        text={ error } />
-                                )
-                            }
+                            <Alert text={ error } />
 
                             <TextField
                                 autoFocus
@@ -160,40 +156,27 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                 onEnter={ onCreate }
                                 className='font-mono' />
 
-                            <div className='text-tiny text-txt-muted'>
-
-                                { T('Dashboard.Accounts.IndexNote') }
-
-                            </div>
+                            <Text text={ T('Dashboard.Accounts.IndexNote') } />
 
                             {
-                                preview.length > 0 &&
-                                (
-                                    <div dir='ltr' className='glass-input flex min-h-11 items-center rounded-xl px-3 py-2 font-mono text-tiny break-all text-txt-muted'>
-
-                                        { preview }
-
-                                    </div>
-                                )
+                                preview.length > 0 && <ReadonlyField value={ preview } />
                             }
 
-                            <div className='mt-1 flex gap-2'>
+                            <ModalActions>
 
                                 <Button
                                     variant='muted'
                                     size='action'
                                     onClick={ () => { setAdding(false); setError(''); } }
-                                    className='flex-1'
                                     text={ T('Dashboard.Accounts.Back') } />
 
                                 <Button
                                     variant='primary'
                                     size='action'
                                     onClick={ onCreate }
-                                    className='flex-1'
                                     text={ T('Dashboard.Accounts.Create') } />
 
-                            </div>
+                            </ModalActions>
 
                         </div>
                     ) :
@@ -254,17 +237,15 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
                                                 <div className='flex min-w-0 flex-1 flex-col'>
 
-                                                    <div className='truncate text-small text-txt-normal'>
+                                                    <Text
+                                                        variant='body'
+                                                        className='truncate'
+                                                        text={ name } />
 
-                                                        { name }
-
-                                                    </div>
-
-                                                    <div dir='ltr' className='font-mono text-tiny text-txt-muted'>
-
-                                                        { shortAddress(addresses[item.index] ?? '') }
-
-                                                    </div>
+                                                    <Text
+                                                        dir='ltr'
+                                                        className='font-mono'
+                                                        text={ shortAddress(addresses[item.index] ?? '') } />
 
                                                 </div>
 
@@ -297,13 +278,9 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                 variant='normal'
                                 size='action'
                                 onClick={ () => { setAdding(true); setError(''); setDraftIndex(''); } }
-                                className='mt-1'>
-
-                                <FiPlus size={ 16 } />
-
-                                { T('Dashboard.Accounts.Add') }
-
-                            </Button>
+                                className='mt-1'
+                                leftIcon={ <FiPlus size={ 16 } /> }
+                                text={ T('Dashboard.Accounts.Add') } />
                         </>
                     )
             }

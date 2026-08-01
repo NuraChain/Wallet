@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { FiCheckCircle, FiGift } from 'react-icons/fi';
 
+import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
-import { TextField } from '../ui/field';
+import { ReadonlyField, TextField } from '../ui/field';
 import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
@@ -62,8 +63,8 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
 
     return (
         <Modal
-            onClose={ onClose }
-            panelClass='max-h-[80vh] overflow-y-auto'>
+            scroll
+            onClose={ onClose }>
 
             <ModalHeader
                 title={ T('Dashboard.Redeem.Title') }
@@ -87,11 +88,10 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
 
                             <FiCheckCircle size={ 36 } className='text-btn-primary' />
 
-                            <div className='text-center text-small text-txt-normal'>
-
-                                { done }
-
-                            </div>
+                            <Text
+                                variant='body'
+                                className='text-center'
+                                text={ done } />
 
                             <Button
                                 variant='normal'
@@ -105,29 +105,11 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                     ) :
                     (
                         <>
-                            {
-                                error.length > 0 &&
-                                (
-                                    <Alert
-                                        text={ error } />
-                                )
-                            }
+                            <Alert text={ error } />
 
-                            <div className='flex flex-col gap-2'>
-
-                                <div className='text-tiny text-txt-muted'>
-
-                                    { T('Dashboard.Redeem.Address') }
-
-                                </div>
-
-                                <div dir='ltr' className='glass-input flex min-h-11 items-center rounded-xl px-3 py-2 font-mono text-tiny break-all text-txt-muted'>
-
-                                    { address }
-
-                                </div>
-
-                            </div>
+                            <ReadonlyField
+                                label={ T('Dashboard.Redeem.Address') }
+                                value={ address } />
 
                             <TextField
                                 label={ T('Dashboard.Redeem.Code') }
@@ -146,7 +128,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                 disabled={ isLoading }
                                 loading={ isLoading }
                                 onClick={ () => { void onSubmit(); } }
-                                className='mt-1 disabled:cursor-not-allowed! disabled:opacity-60'
+                                className='mt-1 disabled:opacity-60'
                                 text={ isLoading ? T('Dashboard.Redeem.Pending') : T('Dashboard.Redeem.Submit') } />
                         </>
                     )

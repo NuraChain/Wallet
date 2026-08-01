@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import { VscChromeClose, VscChromeMinimize } from 'react-icons/vsc';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
+import Text from '../components/ui/text';
 import Button from '../components/ui/button';
 
 import { T } from '../utility/language';
@@ -103,13 +104,9 @@ export default function TitleBar()
                     src={ Logo }
                     className='size-4' />
 
-                <div className='text-tiny text-txt-normal'>
-
-                    {
-                        T('App.Name')
-                    }
-
-                </div>
+                <Text
+                    variant='captionStrong'
+                    text={ T('App.Name') } />
 
             </div>
 

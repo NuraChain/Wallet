@@ -1,8 +1,8 @@
+import type { IconType } from 'react-icons';
 import type { Network } from '../../core/network';
 import type { TokenBalance } from '../../core/token';
 import type { Transaction } from '../../hook/history';
 
-import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { IoChevronDown } from 'react-icons/io5';
 import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
@@ -12,13 +12,47 @@ import TokenIcon from '../token.icon';
 import TokenRow from '../token.row';
 import DashboardActivity from './dashboard.activity';
 
-import Button from '../ui/button';
+import Text from '../ui/text';
+import Button, { fillNormal, fillPrimary } from '../ui/button';
 import IconBox from '../ui/iconbox';
 import SectionHeader from '../ui/section';
 
 import { T } from '../../utility/language';
+import { useClipboard } from '../../hook/clipboard';
 import { getNativeCoinId, getNativeLogo, getTokenLogo, type PriceMap } from '../../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
+
+/**
+ * The two selector capsules at the top of the tab are the same control with different contents, so
+ * they are the same dimensions written once.
+ */
+const chipClass = 'h-9 min-w-0 flex-1 gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny';
+
+/**
+ * AssetAmount - Balance over its USD worth, on the end of a holdings row.
+ *
+ * The native coin and every token render this identical pair. A holding with no resolvable price
+ * passes no `value` and the second line is left out entirely, rather than printing a misleading
+ * `$0.00`.
+ * @param {object} props Component props.
+ * @param {string} props.amount The balance, already trimmed for display.
+ * @param {string} [props.value] The USD worth, when it could be resolved.
+ * @returns {JSX.Element} The stacked amount.
+ */
+function AssetAmount({ amount, value }: { amount: string; value?: string })
+{
+    return (
+        <div dir='ltr' className='flex shrink-0 flex-col items-center'>
+
+            <Text variant='body' className='font-mono' text={ amount } />
+
+            {
+                value !== undefined && <Text className='font-mono' text={ value } />
+            }
+
+        </div>
+    );
+}
 
 /**
  * DashboardWallet - Primary account view: portfolio value, address, transfer actions, holdings, and history.
@@ -52,7 +86,21 @@ import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
  */
 export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
 {
-    const [ copied, setCopied ] = useState(false);
+    // The icon carries the feedback, so it only has to stay swapped long enough to register.
+    const clipboard = useClipboard();
+
+    const copied = clipboard.state === 'done';
+
+    /**
+     * The three transfer controls. Same stacked shape, same dimensions; only the glyph, the fill and
+     * the destination differ, so the row is data rather than three copies of one button.
+     */
+    const actionMap: { key: string; icon: IconType; fill: string; onClick: () => void }[] =
+    [
+        { key: 'Dashboard.Send.Title', icon: FiArrowUpRight, fill: fillPrimary, onClick: onSend },
+        { key: 'Dashboard.Receive.Title', icon: FiArrowDownLeft, fill: fillNormal, onClick: onReceive },
+        { key: 'Dashboard.Redeem.Title', icon: FiGift, fill: fillNormal, onClick: onRedeem }
+    ];
 
     /**
      * RowValue - USD worth of one holding.
@@ -75,28 +123,6 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
         return formatUsd(Number(formatted) * price);
     };
 
-    // The icon carries the feedback, so it only has to stay swapped long enough to register.
-    useEffect(() =>
-    {
-        const timer = copied ? setTimeout(() => { setCopied(false); }, 1400) : undefined;
-
-        return () => { clearTimeout(timer); };
-    }, [ copied ]);
-
-    const onCopy = async() =>
-    {
-        try
-        {
-            await navigator.clipboard.writeText(address);
-
-            setCopied(true);
-        }
-        catch
-        {
-            setCopied(false);
-        }
-    };
-
     return (
         <div className='mt-2 flex flex-col gap-4'>
 
@@ -105,7 +131,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                 <Button
                     variant='chip'
                     onClick={ onAccounts }
-                    className='h-9 min-w-0 flex-1 gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny'>
+                    className={ chipClass }>
 
                     <IconBox tone='primary' size='size-7'>
 
@@ -126,7 +152,7 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                 <Button
                     variant='chip'
                     onClick={ onNetwork }
-                    className='h-9 min-w-0 flex-1 gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny'>
+                    className={ chipClass }>
 
                     <TokenIcon
                         primary
@@ -159,16 +185,16 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
             <div className='flex flex-col items-center gap-2 py-2'>
 
-                <div dir='ltr' className='text-3xl font-bold text-txt-normal'>
-
-                    { totalLoading || nativeLoading ? '…' : formatUsd(total) }
-
-                </div>
+                <Text
+                    dir='ltr'
+                    variant='title'
+                    className='text-display'
+                    text={ totalLoading || nativeLoading ? '…' : formatUsd(total) } />
 
                 <div className='flex flex-col items-center'>
 
                     <Button
-                        onClick={ () => { void onCopy(); } }
+                        onClick={ () => { void clipboard.copy(address); } }
                         aria-label={ T('Dashboard.Copy') }
                         className='flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal'>
 
@@ -229,59 +255,24 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
 
             <div className='flex justify-center gap-3'>
 
-                <Button
-                    onClick={ onSend }
-                    className='flex cursor-pointer flex-col items-center gap-1'>
+                {
+                    actionMap.map((item) => (
+                        <Button
+                            key={ item.key }
+                            onClick={ item.onClick }
+                            className='flex cursor-pointer flex-col items-center gap-1'>
 
-                    <div className='btn-primary flex size-14 items-center justify-center rounded-2xl'>
+                            <div className={ `${ item.fill } flex size-14 items-center justify-center rounded-2xl` }>
 
-                        <FiArrowUpRight size={ 22 } />
+                                <item.icon size={ 22 } />
 
-                    </div>
+                            </div>
 
-                    <span className='text-tiny text-txt-muted'>
+                            <Text text={ T(item.key) } />
 
-                        { T('Dashboard.Send.Title') }
-
-                    </span>
-
-                </Button>
-
-                <Button
-                    onClick={ onReceive }
-                    className='flex cursor-pointer flex-col items-center gap-1'>
-
-                    <div className='btn-normal flex size-14 items-center justify-center rounded-2xl'>
-
-                        <FiArrowDownLeft size={ 22 } />
-
-                    </div>
-
-                    <span className='text-tiny text-txt-muted'>
-
-                        { T('Dashboard.Receive.Title') }
-
-                    </span>
-
-                </Button>
-
-                <Button
-                    onClick={ onRedeem }
-                    className='flex cursor-pointer flex-col items-center gap-1'>
-
-                    <div className='btn-normal flex size-14 items-center justify-center rounded-2xl'>
-
-                        <FiGift size={ 22 } />
-
-                    </div>
-
-                    <span className='text-tiny text-txt-muted'>
-
-                        { T('Dashboard.Redeem.Title') }
-
-                    </span>
-
-                </Button>
+                        </Button>
+                    ))
+                }
 
             </div>
 
@@ -292,13 +283,9 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                     <Button
                         variant='muted'
                         onClick={ onTokens }
-                        className='h-8 gap-1 rounded-lg px-3 text-tiny'>
-
-                        <HiOutlineSquares2X2 size={ 14 } />
-
-                        { T('Dashboard.Tokens.Manage') }
-
-                    </Button>
+                        className='h-8 gap-1 rounded-lg px-3 text-tiny'
+                        leftIcon={ <HiOutlineSquares2X2 size={ 14 } /> }
+                        text={ T('Dashboard.Tokens.Manage') } />
 
                 </SectionHeader>
 
@@ -309,25 +296,9 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                     symbol={ network.symbol }
                     subtitle={ network.coin ?? network.name }>
 
-                    <div dir='ltr' className='flex shrink-0 flex-col items-center'>
-
-                        <div className='font-mono text-small text-txt-normal'>
-
-                            { nativeLoading ? '…' : trimAmount(nativeFormatted) }
-
-                        </div>
-
-                        {
-                            !nativeLoading && rowValue(getNativeCoinId(network.chainId), nativeFormatted) !== undefined && (
-                                <div className='font-mono text-tiny text-txt-muted'>
-
-                                    { rowValue(getNativeCoinId(network.chainId), nativeFormatted) }
-
-                                </div>
-                            )
-                        }
-
-                    </div>
+                    <AssetAmount
+                        amount={ nativeLoading ? '…' : trimAmount(nativeFormatted) }
+                        value={ nativeLoading ? undefined : rowValue(getNativeCoinId(network.chainId), nativeFormatted) } />
 
                 </TokenRow>
 
@@ -340,25 +311,9 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                             symbol={ item.token.symbol }
                             subtitle={ item.token.name }>
 
-                            <div dir='ltr' className='flex shrink-0 flex-col items-center'>
-
-                                <div className='font-mono text-small text-txt-normal'>
-
-                                    { trimAmount(item.formatted) }
-
-                                </div>
-
-                                {
-                                    rowValue(item.token.coinId, item.formatted) !== undefined && (
-                                        <div className='font-mono text-tiny text-txt-muted'>
-
-                                            { rowValue(item.token.coinId, item.formatted) }
-
-                                        </div>
-                                    )
-                                }
-
-                            </div>
+                            <AssetAmount
+                                amount={ trimAmount(item.formatted) }
+                                value={ rowValue(item.token.coinId, item.formatted) } />
 
                         </TokenRow>
                     ))

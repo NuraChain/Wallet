@@ -7,11 +7,13 @@ import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch } from 'react-i
 
 import WebFrame from '../../layout/webview';
 
+import Text from '../ui/text';
+import Alert from '../ui/alert';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 import { TextField } from '../ui/field';
 
-import { getDirection, T } from '../../utility/language';
+import { T } from '../../utility/language';
 import { getNativeBrowser, onNativeBrowserState, type BrowserState } from '../../core/browser';
 
 /**
@@ -87,7 +89,6 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     const [ entries, setEntries ] = useState<string[]>([]);
     const [ live, setLive ] = useState<BrowserState | undefined>(undefined);
 
-    const isRtl = getDirection() === 'rtl';
     const current = index < 0 ? '' : entries[index];
 
     const native = getNativeBrowser() !== undefined;
@@ -186,23 +187,25 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                     size='iconChip'
                     aria-label={ T('Dashboard.Browser.Exit') }
                     onClick={ onExit }
-                    className='shrink-0'>
+                    className='shrink-0 disabled:opacity-40'>
 
                     <IoClose size={ 18 } />
 
                 </Button>
 
+                { /*
+                  * Back and forward are mirror images of one glyph, so `rtl:` turns each into the
+                  * other instead of the component picking between two icons at render time.
+                  */ }
                 <Button
                     variant='chip'
                     size='iconChip'
                     disabled={ !canBack }
                     aria-label={ T('Dashboard.Browser.Back') }
                     onClick={ () => { onStep(-1); } }
-                    className='shrink-0 disabled:cursor-not-allowed! disabled:opacity-40'>
+                    className='shrink-0 disabled:opacity-40'>
 
-                    {
-                        isRtl ? <FiArrowRight size={ 16 } /> : <FiArrowLeft size={ 16 } />
-                    }
+                    <FiArrowLeft size={ 16 } className='rtl:rotate-180' />
 
                 </Button>
 
@@ -212,11 +215,9 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                     disabled={ !canForward }
                     aria-label={ T('Dashboard.Browser.Forward') }
                     onClick={ () => { onStep(1); } }
-                    className='shrink-0 disabled:cursor-not-allowed! disabled:opacity-40'>
+                    className='shrink-0 disabled:opacity-40'>
 
-                    {
-                        isRtl ? <FiArrowLeft size={ 16 } /> : <FiArrowRight size={ 16 } />
-                    }
+                    <FiArrowRight size={ 16 } className='rtl:rotate-180' />
 
                 </Button>
 
@@ -255,7 +256,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                     disabled={ current.length === 0 }
                     aria-label={ T('Dashboard.Browser.Home') }
                     onClick={ onHome }
-                    className='shrink-0 disabled:cursor-not-allowed! disabled:opacity-40'>
+                    className='shrink-0 disabled:opacity-40'>
 
                     <FiHome size={ 16 } />
 
@@ -300,11 +301,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                 <div className='flex size-full flex-col gap-3 overflow-y-auto p-4'>
 
-                    <div className='text-tiny text-txt-muted'>
-
-                        { T('Dashboard.Browser.Shortcuts') }
-
-                    </div>
+                    <Text text={ T('Dashboard.Browser.Shortcuts') } />
 
                     <div className='grid grid-cols-2 gap-2'>
 
@@ -322,11 +319,10 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                                     </IconBox>
 
-                                    <div className='flex-1 truncate text-small text-txt-normal'>
-
-                                        { item.name }
-
-                                    </div>
+                                    <Text
+                                        variant='body'
+                                        className='flex-1 truncate'
+                                        text={ item.name } />
 
                                 </Button>
                             ))
@@ -339,17 +335,15 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                         (
                             <div className='mt-auto flex flex-col gap-1'>
 
-                                <div className='text-tiny text-txt-muted/70'>
+                                <Text
+                                    className='text-txt-muted/70'
+                                    text={ T('Dashboard.Browser.Hint') } />
 
-                                    { T('Dashboard.Browser.Hint') }
-
-                                </div>
-
-                                <div dir='ltr' className='rounded-lg bg-txt-error/10 px-2 py-1 text-start font-mono text-tiny text-txt-error'>
-
-                                    { notice }
-
-                                </div>
+                                <Alert
+                                    dir='ltr'
+                                    variant='danger'
+                                    className='px-2 py-1 text-start font-mono'
+                                    text={ notice } />
 
                             </div>
                         )

@@ -1,15 +1,28 @@
+import type { IconType } from 'react-icons';
+
 import { useState } from 'react';
 import { FiEye, FiFileText, FiImage } from 'react-icons/fi';
 
+import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import { PasswordField } from '../ui/field';
 import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
+import { passwordCheck } from '../../core/password';
 import { getExporter, phraseToPng } from '../../core/export';
-import { passwordVerify } from '../../core/password';
-import { getValue, getValueEncrypted } from '../../utility/storage';
+import { getValueEncrypted } from '../../utility/storage';
+
+/**
+ * The two files the phrase can be written as. Same button, same dimensions; only the glyph, the label
+ * and which writer runs differ.
+ */
+const exportMap: { kind: 'image' | 'text'; icon: IconType; label: string }[] =
+[
+    { kind: 'image', icon: FiImage, label: 'Dashboard.Phrase.SaveImage' },
+    { kind: 'text', icon: FiFileText, label: 'Dashboard.Phrase.SaveText' }
+];
 
 /**
  * DashboardPhrase - Password-gated reveal of the recovery phrase.
@@ -86,9 +99,9 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
         try
         {
-            const storedHash = await getValue('Wallet.Password');
-
-            if (storedHash === undefined || !await passwordVerify(password, storedHash))
+            // A device with no stored hash has no phrase to show either, so both outcomes read the
+            // same way from here.
+            if (await passwordCheck(password) !== 'ok')
             {
                 setError(T('Dashboard.Phrase.ErrorInvalid'));
 
@@ -118,8 +131,8 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
     return (
         <Modal
-            onClose={ onClose }
-            panelClass='max-h-[80vh] overflow-y-auto'>
+            scroll
+            onClose={ onClose }>
 
             <ModalHeader
                 title={ T('Dashboard.Phrase.Title') }
@@ -129,13 +142,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                 variant='warning'
                 text={ T('Dashboard.Phrase.Warning') } />
 
-            {
-                error.length > 0 &&
-                (
-                    <Alert
-                        text={ error } />
-                )
-            }
+            <Alert text={ error } />
 
             {
                 words.length === 0 ?
@@ -154,7 +161,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                 disabled={ isLoading }
                                 loading={ isLoading }
                                 onClick={ () => { void onUnlock(); } }
-                                className='mt-1 disabled:cursor-not-allowed! disabled:opacity-60'
+                                className='mt-1 disabled:opacity-60'
                                 text={ isLoading ? T('Dashboard.Phrase.Pending') : T('Dashboard.Phrase.Unlock') } />
                         </>
                     ) :
@@ -171,17 +178,12 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                             key={ `${ index }-${ word }` }
                                             className='flex items-center gap-1 rounded-lg bg-base-1 px-2 py-1.5'>
 
-                                            <span className='text-tiny text-txt-muted'>
+                                            <Text text={ String(index + 1) } />
 
-                                                { index + 1 }
-
-                                            </span>
-
-                                            <span className='truncate font-mono text-tiny text-txt-normal'>
-
-                                                { word }
-
-                                            </span>
+                                            <Text
+                                                variant='captionStrong'
+                                                className='truncate font-mono'
+                                                text={ word } />
 
                                         </div>
                                     ))
@@ -198,11 +200,9 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                                         <FiEye size={ 20 } />
 
-                                        <span className='text-tiny'>
-
-                                            { T('Dashboard.Phrase.Reveal') }
-
-                                        </span>
+                                        <Text
+                                            variant='captionStrong'
+                                            text={ T('Dashboard.Phrase.Reveal') } />
 
                                     </Button>
                                 )
@@ -224,46 +224,34 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                                         <div className='flex gap-2'>
 
-                                            <Button
-                                                variant='muted'
-                                                onClick={ () => { void onExport('image'); } }
-                                                className='h-10 min-w-0 flex-1 rounded-xl text-tiny'>
+                                            {
+                                                exportMap.map((item) => (
+                                                    <Button
+                                                        key={ item.kind }
+                                                        variant='muted'
+                                                        onClick={ () => { void onExport(item.kind); } }
+                                                        className='h-10 min-w-0 flex-1 rounded-xl text-tiny'>
 
-                                                <FiImage size={ 14 } className='shrink-0' />
+                                                        <item.icon size={ 14 } className='shrink-0' />
 
-                                                <span className='truncate'>
+                                                        <span className='truncate'>
 
-                                                    { T('Dashboard.Phrase.SaveImage') }
+                                                            { T(item.label) }
 
-                                                </span>
+                                                        </span>
 
-                                            </Button>
-
-                                            <Button
-                                                variant='muted'
-                                                onClick={ () => { void onExport('text'); } }
-                                                className='h-10 min-w-0 flex-1 rounded-xl text-tiny'>
-
-                                                <FiFileText size={ 14 } className='shrink-0' />
-
-                                                <span className='truncate'>
-
-                                                    { T('Dashboard.Phrase.SaveText') }
-
-                                                </span>
-
-                                            </Button>
+                                                    </Button>
+                                                ))
+                                            }
 
                                         </div>
 
                                         {
                                             notice.length > 0 &&
                                             (
-                                                <div className='text-center text-tiny text-txt-muted'>
-
-                                                    { notice }
-
-                                                </div>
+                                                <Text
+                                                    className='text-center'
+                                                    text={ notice } />
                                             )
                                         }
 

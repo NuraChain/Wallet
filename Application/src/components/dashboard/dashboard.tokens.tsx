@@ -6,10 +6,11 @@ import { FiPlus, FiTrash2 } from 'react-icons/fi';
 
 import TokenRow from '../token.row';
 
+import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import { TextField } from '../ui/field';
-import { Modal, ModalHeader } from '../ui/modal';
+import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { getTokenLogo } from '../../core/price';
@@ -67,8 +68,9 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
 
     return (
         <Modal
+            scroll
             onClose={ onClose }
-            panelClass='max-h-[80vh] max-w-[calc(100vw-2rem)] overflow-y-auto'>
+            panelClass='max-w-[calc(100vw-2rem)]'>
 
             <ModalHeader
                 title={ T('Dashboard.Tokens.ManageTitle') }
@@ -79,19 +81,9 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                     (
                         <div className='flex flex-col gap-2'>
 
-                            {
-                                error.length > 0 &&
-                                (
-                                    <Alert
-                                        text={ error } />
-                                )
-                            }
+                            <Alert text={ error } />
 
-                            <div className='text-tiny text-txt-muted'>
-
-                                { T('Dashboard.Tokens.ContractHint') }
-
-                            </div>
+                            <Text text={ T('Dashboard.Tokens.ContractHint') } />
 
                             <TextField
                                 dir='ltr'
@@ -102,14 +94,13 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                 onValue={ setContract }
                                 className='font-mono' />
 
-                            <div className='mt-1 flex gap-2'>
+                            <ModalActions>
 
                                 <Button
                                     variant='muted'
                                     size='action'
                                     disabled={ busy }
                                     onClick={ () => { setAdding(false); setError(''); } }
-                                    className='flex-1'
                                     text={ T('Dashboard.Tokens.Back') } />
 
                                 <Button
@@ -117,10 +108,9 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                     size='action'
                                     disabled={ busy }
                                     onClick={ () => { void onSave(); } }
-                                    className='flex-1'
                                     text={ busy ? T('Dashboard.Tokens.Checking') : T('Dashboard.Tokens.Save') } />
 
-                            </div>
+                            </ModalActions>
 
                         </div>
                     ) :
@@ -134,11 +124,11 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                         symbol={ item.token.symbol }
                                         subtitle={ item.token.name }>
 
-                                        <div dir='ltr' className='font-mono text-tiny text-txt-normal'>
-
-                                            { trimAmount(item.formatted) }
-
-                                        </div>
+                                        <Text
+                                            dir='ltr'
+                                            variant='captionStrong'
+                                            className='font-mono'
+                                            text={ trimAmount(item.formatted) } />
 
                                         <Button
                                             variant='danger'
@@ -158,11 +148,9 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                             {
                                 tokens.length === 0 &&
                                 (
-                                    <div className='py-4 text-center text-tiny text-txt-muted'>
-
-                                        { T('Dashboard.Tokens.Empty') }
-
-                                    </div>
+                                    <Text
+                                        className='py-4 text-center'
+                                        text={ T('Dashboard.Tokens.Empty') } />
                                 )
                             }
 
@@ -170,13 +158,9 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                 variant='normal'
                                 size='action'
                                 onClick={ () => { setAdding(true); setError(''); } }
-                                className='mt-1'>
-
-                                <FiPlus size={ 16 } />
-
-                                { T('Dashboard.Tokens.Add') }
-
-                            </Button>
+                                className='mt-1'
+                                leftIcon={ <FiPlus size={ 16 } /> }
+                                text={ T('Dashboard.Tokens.Add') } />
                         </>
                     )
             }

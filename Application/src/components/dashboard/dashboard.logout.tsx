@@ -5,12 +5,17 @@ import IntroPage from '../../page/intro';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import { PasswordField } from '../ui/field';
-import { Modal, ModalHeader } from '../ui/modal';
+import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
-import { passwordVerify } from '../../core/password';
+import { passwordCheck } from '../../core/password';
 import { openPage } from '../../utility/context';
-import { getValue, removeValue } from '../../utility/storage';
+import { removeValues } from '../../utility/storage';
+
+/**
+ * Everything the wallet leaves on the device. Logging out means all of it goes.
+ */
+const clearList = [ 'Wallet.Mnemonic', 'Wallet.Password', 'Wallet.Name', 'Wallet.Accounts', 'Wallet.Active' ] as const;
 
 /**
  * DashboardLogout - Password-gated wallet removal.
@@ -42,29 +47,24 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
 
         try
         {
-            const storedHash = await getValue('Wallet.Password');
+            const outcome = await passwordCheck(password);
 
-            if (storedHash === undefined)
+            // Nothing stored means there is nothing left to log out of, so the wallet is already gone.
+            if (outcome === 'missing')
             {
                 openPage(IntroPage);
 
                 return;
             }
 
-            const isValid = await passwordVerify(password, storedHash);
-
-            if (!isValid)
+            if (outcome === 'invalid')
             {
                 setError(T('Dashboard.Logout.ErrorInvalid'));
 
                 return;
             }
 
-            await removeValue('Wallet.Mnemonic');
-            await removeValue('Wallet.Password');
-            await removeValue('Wallet.Name');
-            await removeValue('Wallet.Accounts');
-            await removeValue('Wallet.Active');
+            await removeValues(...clearList);
 
             openPage(IntroPage);
         }
@@ -76,8 +76,8 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
 
     return (
         <Modal
-            onClose={ onClose }
-            panelClass='max-h-[80vh] overflow-y-auto'>
+            scroll
+            onClose={ onClose }>
 
             <ModalHeader
                 title={ T('Dashboard.Logout.Title') }
@@ -87,13 +87,7 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                 variant='warning'
                 text={ T('Dashboard.Logout.Message') } />
 
-            {
-                error.length > 0 &&
-                (
-                    <Alert
-                        text={ error } />
-                )
-            }
+            <Alert text={ error } />
 
             <PasswordField
                 size='compact'
@@ -102,18 +96,17 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                 onValue={ setPassword }
                 onEnter={ () => { void onConfirm(); } } />
 
-            <div className='mt-1 flex gap-2'>
+            { /*
+              * Cancel carries the emphasis and the destructive button is the quiet one: this
+              * dialog exists to slow the user down, so the prominent control should be the way
+              * back out rather than the one that wipes the wallet.
+              */ }
+            <ModalActions>
 
-                { /*
-                  * Cancel carries the emphasis and the destructive button is the quiet one: this
-                  * dialog exists to slow the user down, so the prominent control should be the way
-                  * back out rather than the one that wipes the wallet.
-                  */ }
                 <Button
                     variant='primary'
                     size='action'
                     onClick={ onClose }
-                    className='flex-1'
                     text={ T('Dashboard.Logout.Cancel') } />
 
                 <Button
@@ -121,10 +114,10 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                     size='action'
                     disabled={ isLoading }
                     onClick={ () => { void onConfirm(); } }
-                    className='flex-1 disabled:cursor-not-allowed! disabled:opacity-60'
+                    className='disabled:opacity-60'
                     text={ isLoading ? T('Dashboard.Logout.Pending') : T('Dashboard.Logout.Confirm') } />
 
-            </div>
+            </ModalActions>
 
         </Modal>
     );

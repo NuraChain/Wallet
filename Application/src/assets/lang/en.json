@@ -129,7 +129,8 @@
             "Back": "Back",
             "Invalid": "Please fill in the network name and symbol",
             "InvalidRpc": "RPC URL must start with http",
-            "InvalidChainId": "Chain ID must be a positive number"
+            "InvalidChainId": "Chain ID must be a positive number",
+            "Remove": "Remove network"
         },
         "Send": {
             "Title": "Send",

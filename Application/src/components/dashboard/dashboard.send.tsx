@@ -6,12 +6,14 @@ import { FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
 
 import WalletManager from '../../core/wallet';
 
+import Text from '../ui/text';
 import Alert from '../ui/alert';
+import Panel from '../ui/panel';
 import Button from '../ui/button';
 import Spinner from '../ui/spinner';
 import SectionHeader from '../ui/section';
 import { TextField } from '../ui/field';
-import { Modal, ModalHeader } from '../ui/modal';
+import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { getProvider, type Network } from '../../core/network';
@@ -59,6 +61,17 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
     const [ selected, setSelected ] = useState('native');
 
     const asset = assets.find((item) => item.key === selected) ?? assets[0];
+
+    /**
+     * What the confirmation screen restates before anything is signed. Three label/value rows drawn
+     * the same way, so they are listed rather than written out three times.
+     */
+    const reviewMap =
+    [
+        { label: T('Dashboard.Send.Amount'), value: `${ trimAmount(amount) } ${ asset.symbol }`, mono: true },
+        { label: T('Dashboard.Send.To'), value: shortAddress(to), mono: true },
+        { label: T('Dashboard.Network.Title'), value: network.name, mono: false }
+    ];
 
     const onReview = () =>
     {
@@ -131,22 +144,19 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                 (
                     <div className='flex flex-col gap-3'>
 
-                        {
-                            error.length > 0 &&
-                            (
-                                <Alert
-                                    text={ error } />
-                            )
-                        }
+                        <Alert text={ error } />
 
                         <div className='flex flex-wrap gap-1'>
 
                             {
+                                // The selected chip is a flat fill rather than the primary button:
+                                // it marks a choice, so it carries no elevation, hover lift or press.
                                 assets.map((item) => (
                                     <Button
                                         key={ item.key }
+                                        variant={ item.key === selected ? 'bare' : 'muted' }
                                         onClick={ () => { setSelected(item.key); } }
-                                        className={ `flex h-9 items-center rounded-xl px-3 text-tiny duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : 'btn-muted' }` }
+                                        className={ `flex h-9 items-center rounded-xl px-3 text-tiny duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : '' }` }
                                         text={ item.symbol } />
                                 ))
                             }
@@ -155,11 +165,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                         <div className='flex flex-col gap-1'>
 
-                            <div className='text-tiny text-txt-muted'>
-
-                                { T('Dashboard.Send.Recipient') }
-
-                            </div>
+                            <Text text={ T('Dashboard.Send.Recipient') } />
 
                             <TextField
                                 value={ to }
@@ -207,80 +213,50 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                 (
                     <div className='flex flex-col gap-3'>
 
-                        <div className='glass-panel flex flex-col gap-2 rounded-xl p-3'>
+                        <Panel className='flex flex-col gap-2 rounded-xl p-3'>
 
-                            <div className='flex items-center justify-between gap-2 text-tiny'>
+                            {
+                                reviewMap.map((item) => (
+                                    <div
+                                        key={ item.label }
+                                        className='flex items-center justify-between gap-2 text-tiny'>
 
-                                <span className='text-txt-muted'>
+                                        <span className='text-txt-muted'>
 
-                                    { T('Dashboard.Send.Amount') }
+                                            { item.label }
 
-                                </span>
+                                        </span>
 
-                                <span dir='ltr' className='font-mono text-txt-normal'>
+                                        <span
+                                            dir={ item.mono ? 'ltr' : undefined }
+                                            className={ item.mono ? 'font-mono text-txt-normal' : 'text-txt-normal' }>
 
-                                    { `${ trimAmount(amount) } ${ asset.symbol }` }
+                                            { item.value }
 
-                                </span>
+                                        </span>
 
-                            </div>
+                                    </div>
+                                ))
+                            }
 
-                            <div className='flex items-center justify-between gap-2 text-tiny'>
+                        </Panel>
 
-                                <span className='text-txt-muted'>
-
-                                    { T('Dashboard.Send.To') }
-
-                                </span>
-
-                                <span dir='ltr' className='font-mono text-txt-normal'>
-
-                                    { shortAddress(to) }
-
-                                </span>
-
-                            </div>
-
-                            <div className='flex items-center justify-between gap-2 text-tiny'>
-
-                                <span className='text-txt-muted'>
-
-                                    { T('Dashboard.Network.Title') }
-
-                                </span>
-
-                                <span className='text-txt-normal'>
-
-                                    { network.name }
-
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                        <div className='flex gap-2'>
+                        <ModalActions className='mt-0'>
 
                             <Button
                                 variant='muted'
                                 size='action'
                                 onClick={ () => { setStep('form'); } }
-                                className='flex-1'>
-
-                                <FiArrowLeft size={ 16 } />
-
-                                { T('Dashboard.Send.Back') }
-
-                            </Button>
+                                leftIcon={ <FiArrowLeft size={ 16 } /> }
+                                text={ T('Dashboard.Send.Back') } />
 
                             <Button
                                 variant='primary'
                                 size='action'
                                 onClick={ () => { void onConfirm(); } }
-                                className='flex-1'
                                 text={ T('Dashboard.Send.Confirm') } />
 
-                        </div>
+                        </ModalActions>
 
                     </div>
                 )
@@ -293,11 +269,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                         <Spinner size={ 32 } className='text-txt-muted' />
 
-                        <div className='text-small text-txt-muted'>
-
-                            { T('Dashboard.Send.Pending') }
-
-                        </div>
+                        <Text variant='bodyMuted' text={ T('Dashboard.Send.Pending') } />
 
                     </div>
                 )
@@ -310,11 +282,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                         <FiCheckCircle size={ 40 } className='text-txt-normal' />
 
-                        <div className='text-small text-txt-normal'>
-
-                            { T('Dashboard.Send.Success') }
-
-                        </div>
+                        <Text variant='body' text={ T('Dashboard.Send.Success') } />
 
                         <div dir='ltr' className='w-full rounded-xl bg-base-3 p-2 text-center font-mono text-tiny break-all text-txt-muted select-text!'>
 
@@ -338,11 +306,10 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                 (
                     <div className='flex flex-col items-center gap-3 py-4'>
 
-                        <div className='text-center text-small text-txt-error'>
-
-                            { T('Dashboard.Send.Error') }
-
-                        </div>
+                        <Text
+                            variant='body'
+                            className='text-center text-txt-error'
+                            text={ T('Dashboard.Send.Error') } />
 
                         <Button
                             variant='muted'

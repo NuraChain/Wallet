@@ -4,6 +4,7 @@ import { HiOutlineListBullet } from 'react-icons/hi2';
 
 import TransactionRow from './dashboard.transaction';
 
+import Text from '../ui/text';
 import Button from '../ui/button';
 import EmptyState from '../ui/state';
 import SectionHeader from '../ui/section';
@@ -39,13 +40,9 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
                 <Button
                     variant='chip'
                     onClick={ onOverview }
-                    className='h-8 gap-1 rounded-lg px-3 text-tiny'>
-
-                    <HiOutlineListBullet size={ 14 } />
-
-                    { T('Dashboard.Activity.Overview') }
-
-                </Button>
+                    className='h-8 gap-1 rounded-lg px-3 text-tiny'
+                    leftIcon={ <HiOutlineListBullet size={ 14 } /> }
+                    text={ T('Dashboard.Activity.Overview') } />
 
             </SectionHeader>
 
@@ -62,22 +59,16 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
             {
                 loading && items.length === 0 &&
                 (
-                    <div className='py-4 text-center text-tiny text-txt-muted'>
-
-                        { T('Dashboard.Activity.Loading') }
-
-                    </div>
+                    <Text
+                        className='py-4 text-center'
+                        text={ T('Dashboard.Activity.Loading') } />
                 )
             }
 
             {
                 !loading && items.length === 0 &&
                 (
-                    <EmptyState panel>
-
-                        { T('Dashboard.Activity.Empty') }
-
-                    </EmptyState>
+                    <EmptyState panel text={ T('Dashboard.Activity.Empty') } />
                 )
             }
 

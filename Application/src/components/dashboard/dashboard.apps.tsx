@@ -1,5 +1,8 @@
 import { HiOutlineSquares2X2 } from 'react-icons/hi2';
 
+import Text from '../ui/text';
+import Panel from '../ui/panel';
+
 import { T } from '../../utility/language';
 
 /**
@@ -13,23 +16,20 @@ export default function DashboardApps()
     return (
         <div className='flex flex-1 flex-col items-center justify-center gap-3'>
 
-            <div className='glass-panel flex size-16 items-center justify-center rounded-2xl text-txt-muted'>
+            <Panel className='flex size-16 items-center justify-center rounded-2xl text-txt-muted'>
 
                 <HiOutlineSquares2X2 size={ 28 } />
 
-            </div>
+            </Panel>
 
-            <div className='text-medium font-semibold text-txt-normal'>
+            <Text
+                variant='title'
+                className='font-semibold'
+                text={ T('Dashboard.Apps.Title') } />
 
-                { T('Dashboard.Apps.Title') }
-
-            </div>
-
-            <div className='max-w-60 text-center text-tiny text-txt-muted'>
-
-                { T('Dashboard.Apps.Soon') }
-
-            </div>
+            <Text
+                className='max-w-60 text-center'
+                text={ T('Dashboard.Apps.Soon') } />
 
         </div>
     );
