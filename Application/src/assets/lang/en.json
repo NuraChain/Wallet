@@ -145,7 +145,7 @@
             "Scan": "Scan to receive %s on this network"
         },
         "Redeem": {
-            "Title": "Redeem",
+            "Title": "Submit Code",
             "Address": "Reward goes to",
             "Code": "Redeem code",
             "CodeHint": "00000000-0000-0000-0000-000000000000",
