@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
 import { LuTvMinimal } from 'react-icons/lu';
 import { useIsWindows } from '../hook/platform';
 import { AiOutlineMobile } from 'react-icons/ai';
+import { useCallback, useState } from 'react';
 import { VscChromeClose, VscChromeMinimize } from 'react-icons/vsc';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
@@ -10,6 +10,12 @@ import Button from '../components/ui/button';
 import { T } from '../utility/language';
 
 import Logo from '../assets/image/logo.svg';
+
+/**
+ * Size the mobile view snaps back to: the phone-shaped frame the layout is designed around, and what
+ * the Android build actually runs at.
+ */
+const mobileSize = { width: 360, height: 640 };
 
 /**
  * TitleBar - Custom window chrome for frameless desktop windows.
@@ -23,25 +29,42 @@ export default function TitleBar()
 {
     const isWindows = useIsWindows();
 
+    const [ wide, setWide ] = useState(false);
+
     const onMinimize = useCallback(() =>
     {
         void getCurrentWindow().minimize();
     }, [ ]);
 
-    const onMaximize = useCallback(() =>
+    /**
+     * onToggleSize - Swaps the window between filling the desktop and the phone-shaped frame.
+     *
+     * Deliberately sizes the window rather than calling `maximize`. On this frameless window Tauri's
+     * `unmaximize` and `toggleMaximize` do not take effect — verified by driving both: the window
+     * maximizes and then will not come back, while the OS's own restore does. Entering that state at
+     * all is therefore a trap, so neither this control nor the double-click below ever does.
+     *
+     * `screen.availWidth/Height` is the desktop minus the taskbar, in the same CSS pixels
+     * `LogicalSize` takes, so the wide state lands where a maximized window would.
+     */
+    const onToggleSize = useCallback(() =>
     {
-        void getCurrentWindow().maximize();
-    }, [ ]);
+        const run = async() =>
+        {
+            const current = getCurrentWindow();
+            const next = !wide;
 
-    const onToggleMaximize = useCallback(() =>
-    {
-        void getCurrentWindow().toggleMaximize();
-    }, [ ]);
+            await current.setSize(next ?
+                new LogicalSize(window.screen.availWidth, window.screen.availHeight) :
+                new LogicalSize(mobileSize.width, mobileSize.height));
 
-    const onMobileView = useCallback(() =>
-    {
-        void getCurrentWindow().setSize(new LogicalSize(360, 640));
-    }, [ ]);
+            await current.center();
+
+            setWide(next);
+        };
+
+        void run();
+    }, [ wide ]);
 
     const onClose = useCallback(() =>
     {
@@ -55,20 +78,23 @@ export default function TitleBar()
 
     /**
      * The window controls, in visual order. Every control is the same 40px hover square; only the
-     * glyph and the action differ, so the row is data rather than four copies of the same button.
+     * glyph and the action differ, so the row is data rather than three copies of the same button.
+     *
+     * The middle one is a single toggle rather than a pair: maximize and mobile view are two ends of
+     * one choice, and only one of them is ever the useful next step. It shows the state it would
+     * move to, so the phone glyph appears once the window is maximized.
      */
     const controlMap =
     [
         { key: 'minimize', icon: <VscChromeMinimize size={ 16 } />, action: onMinimize },
-        { key: 'mobile', icon: <AiOutlineMobile size={ 16 } />, action: onMobileView },
-        { key: 'maximize', icon: <LuTvMinimal size={ 16 } />, action: onMaximize },
+        { key: 'size', icon: wide ? <AiOutlineMobile size={ 16 } /> : <LuTvMinimal size={ 16 } />, action: onToggleSize },
         { key: 'close', icon: <VscChromeClose size={ 16 } />, action: onClose }
     ];
 
     return (
         <div
             data-tauri-drag-region
-            onDoubleClick={ onToggleMaximize }
+            onDoubleClick={ onToggleSize }
             className='absolute inset-x-0 z-20 flex h-8 cursor-pointer items-center justify-between'>
 
             <div className='flex items-center gap-2 px-2'>
