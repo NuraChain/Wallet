@@ -10,6 +10,7 @@
     --color-base-3: var(--base-3);
 
     --color-glass-line: var(--glass-border);
+    --color-scrim: var(--scrim);
 
     --color-btn-muted: var(--btn-muted);
     --color-btn-muted-hover: var(--btn-muted-hover);
@@ -41,6 +42,7 @@
     --color-btn-danger-border: var(--btn-danger-border);
     --color-btn-danger-outline: var(--btn-danger-outline);
 
+    --color-input-bg: var(--input-bg);
     --color-input-normal: var(--input-normal);
     --color-input-primary: var(--input-primary);
 
@@ -53,6 +55,14 @@
     --text-small: 14px;
     --text-medium: 16px;
     --text-large: 18px;
+
+    /*
+     * The display step, for the one figure on the wallet tab that has to read as the headline. It is
+     * the only size in the app that pins its own line height, because at this scale the inherited one
+     * leaves the number floating in its row.
+     */
+    --text-display: 30px;
+    --text-display--line-height: 36px;
 }
 
 @font-face {
@@ -78,6 +88,9 @@
 
     --scrollbar-thumb: oklch(45% 0.02 260 / 0.3);
     --scrollbar-thumb-hover: oklch(45% 0.02 260 / 0.5);
+
+    /* What every dialog and sheet dims the page with. One value so the two surfaces cannot drift. */
+    --scrim: oklch(0% 0 0 / 0.25);
 
     --glass-border: oklch(100% 0 0 / 0.6);
     --glass-highlight: oklch(100% 0 0 / 0.5);
@@ -138,6 +151,8 @@
 
     --scrollbar-thumb: oklch(100% 0 0 / 0.22);
     --scrollbar-thumb-hover: oklch(100% 0 0 / 0.4);
+
+    --scrim: oklch(0% 0 0 / 0.25);
 
     --glass-border: oklch(100% 0 0 / 0.14);
     --glass-highlight: oklch(100% 0 0 / 0.12);
@@ -247,7 +262,8 @@ input[type="password"]::-webkit-textfield-decoration-container {
 }
 
 /*
- * Application specific below.
+ * Everything below styles something no component owns — the document, the mount node, and Swiper's
+ * own pagination markup — so none of it can be expressed as a utility on a React element.
  */
 
 /*
@@ -272,198 +288,10 @@ body {
 }
 
 /*
- * Blur radius and shadow spread are the two dominant per-frame GPU costs here: a `backdrop-filter`
- * forces the compositor to re-read and re-blur everything behind the element every time any pixel
- * under it moves. With ~20 of these on screen a mid-range GPU cannot hold a frame budget, so the
- * radii are kept to the smallest value that still reads as glass.
+ * Swiper renders its own pagination, so these elements never pass through a component and cannot
+ * carry utilities. Deliberately unlayered: they have to outrank the library's own stylesheet, which
+ * is unlayered too.
  */
-.glass-panel {
-    background: var(--base-2);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(12px) saturate(150%);
-    box-shadow: 0 8px 24px var(--glass-shadow);
-    transition: background-color 300ms, border-color 300ms;
-}
-
-.glass-input {
-    outline-width: 2px;
-    outline-offset: 2px;
-    outline-style: double;
-    outline-color: transparent;
-    background: var(--input-bg);
-    border: 1px solid var(--input-normal);
-    backdrop-filter: blur(8px) saturate(140%);
-    transition: background-color 300ms, border-color 300ms;
-}
-
-.glass-input:focus {
-    outline-color: var(--color-btn-muted-outline);
-}
-
-/*
- * Apple-style control capsule.
- *
- * Where `.btn-*` announces itself with a fill, a shadow and a lift on hover, this stays quiet: a
- * hairline over blurred material, no elevation, and a press that scales down into the surface rather
- * than jumping off it. Used for the dashboard's account / network / settings row, where three
- * controls sit side by side and none of them is the action the user came for.
- */
-.chip-control {
-    cursor: pointer;
-    outline-width: 2px;
-    outline-offset: 2px;
-    outline-style: double;
-    outline-color: transparent;
-    color: var(--color-txt-normal);
-    background: var(--base-3);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(10px) saturate(150%);
-    transition: background-color 200ms, transform 200ms, opacity 200ms;
-}
-
-.chip-control:hover {
-    background: var(--base-2);
-}
-
-.chip-control:active {
-    transform: scale(0.95);
-    background: var(--base-2);
-}
-
-.chip-control:focus {
-    outline-color: var(--color-btn-muted-outline);
-}
-
-.btn-muted,
-.btn-normal,
-.btn-primary,
-.btn-secondary,
-.btn-danger {
-    cursor: pointer;
-    outline-width: 2px;
-    outline-offset: 2px;
-    outline-style: double;
-    outline-color: transparent;
-    /*
-     * A bare `transition-duration` leaves `transition-property` at `all`, which animates
-     * `backdrop-filter` and `box-shadow` too — re-blurring the backdrop on every press. Only the
-     * properties that actually change are transitioned.
-     */
-    transition-property: background-color, border-color, transform, box-shadow;
-    transition-duration: 300ms;
-    box-shadow: 0 4px 12px var(--glass-shadow);
-}
-
-.btn-muted {
-    color: var(--color-txt-muted);
-    background: var(--color-btn-muted);
-    border: 1px solid var(--color-btn-muted-border);
-}
-
-.btn-muted:hover {
-    transform: translateY(-1px);
-    background: var(--color-btn-muted-hover);
-}
-
-.btn-muted:active {
-    transform: translateY(0) scale(0.99);
-    background: var(--color-btn-muted-active);
-}
-
-.btn-muted:focus {
-    outline-color: var(--color-btn-muted-outline);
-}
-
-/*
- * The only button fill translucent enough for the blur to actually read (8% white in dark). The
- * primary and secondary fills sit at 90% and 60%, so blurring behind them is invisible work.
- */
-.btn-normal {
-    color: var(--color-txt-normal);
-    background: var(--color-btn-normal);
-    border: 1px solid var(--color-btn-normal-border);
-    backdrop-filter: blur(10px) saturate(150%);
-}
-
-.btn-normal:hover {
-    transform: translateY(-1px);
-    background: var(--color-btn-normal-hover);
-}
-
-.btn-normal:active {
-    transform: translateY(0) scale(0.99);
-    background: var(--color-btn-normal-active);
-}
-
-.btn-normal:focus {
-    outline-color: var(--color-btn-normal-outline);
-}
-
-.btn-primary {
-    color: var(--color-txt-reverse);
-    background: var(--color-btn-primary);
-    border: 1px solid var(--color-btn-primary-border);
-}
-
-.btn-primary:hover {
-    transform: translateY(-1px);
-    background: var(--color-btn-primary-hover);
-}
-
-.btn-primary:active {
-    transform: translateY(0) scale(0.99);
-    background: var(--color-btn-primary-active);
-}
-
-.btn-primary:focus {
-    outline-color: var(--color-btn-primary-outline);
-}
-
-.btn-secondary {
-    color: var(--color-txt-reverse);
-    background: var(--color-btn-secondary);
-    border: 1px solid var(--color-btn-secondary-border);
-}
-
-.btn-secondary:hover {
-    transform: translateY(-1px);
-    background: var(--color-btn-secondary-hover);
-}
-
-.btn-secondary:active {
-    transform: translateY(0) scale(0.99);
-    background: var(--color-btn-secondary-active);
-}
-
-.btn-secondary:focus {
-    outline-color: var(--color-btn-secondary-outline);
-}
-
-/*
- * The filled destructive button. Distinct from the muted-with-red-text treatment used for the small
- * remove controls: that one has to sit quietly in a list, this one is the end of a session and should
- * read as the consequence it is.
- */
-.btn-danger {
-    color: var(--color-txt-reverse);
-    background: var(--color-btn-danger);
-    border: 1px solid var(--color-btn-danger-border);
-}
-
-.btn-danger:hover {
-    transform: translateY(-1px);
-    background: var(--color-btn-danger-hover);
-}
-
-.btn-danger:active {
-    transform: translateY(0) scale(0.99);
-    background: var(--color-btn-danger-active);
-}
-
-.btn-danger:focus {
-    outline-color: var(--color-btn-danger-outline);
-}
-
 .swiper-pagination {
     display: flex;
     margin-bottom: 16px;

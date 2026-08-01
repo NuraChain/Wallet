@@ -3,9 +3,11 @@ import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { IoClose } from 'react-icons/io5';
 
+import Text from './text';
 import Button from './button';
 
 import { inset } from '../../layout/container';
+import { glassPanel } from './panel';
 
 /**
  * Sheet - The top drop-down glass sheet the intro flows open.
@@ -26,7 +28,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 initial={ { opacity: 0 } }
                 animate={ { opacity: 1 } }
                 exit={ { opacity: 0 } }
-                className='absolute z-10 size-full cursor-pointer bg-black/25 backdrop-blur-xs'
+                className='absolute z-10 size-full cursor-pointer bg-scrim backdrop-blur-xs'
                 onClick={ onClose } />
 
             <motion.div
@@ -34,7 +36,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 animate={ { y: '0%' } }
                 exit={ { y: '-100%' } }
                 transition={ { type: 'tween' } }
-                className={ `glass-panel absolute inset-x-0 top-0 z-20 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-3xl px-4 ${ inset.sheetTop } pb-4 sm:mx-auto sm:px-6 sm:pb-6` }>
+                className={ `${ glassPanel } absolute inset-x-0 top-0 z-20 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-3xl px-4 ${ inset.sheetTop } pb-4 sm:mx-auto sm:px-6 sm:pb-6` }>
 
                 <Button
                     variant='muted'
@@ -65,17 +67,14 @@ export function SheetHeader({ title, subtitle }: { title: string; subtitle: stri
     return (
         <div className='flex flex-col'>
 
-            <div className='text-center text-medium font-bold text-txt-normal sm:text-large'>
+            <Text
+                variant='title'
+                className='text-center sm:text-large'
+                text={ title } />
 
-                { title }
-
-            </div>
-
-            <div className='text-center text-tiny text-txt-muted sm:text-small'>
-
-                { subtitle }
-
-            </div>
+            <Text
+                className='text-center sm:text-small'
+                text={ subtitle } />
 
         </div>
     );

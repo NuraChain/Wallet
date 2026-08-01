@@ -1,13 +1,28 @@
 import { useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 
+import Text from './text';
+
 import { cn } from '../../utility/cn';
+
+/**
+ * The frosted text input, as Tailwind utilities.
+ *
+ * This was a hand-written `.glass-input` CSS class, and every declaration in it had a utility
+ * equivalent. It carries a transparent outline at rest so focusing one only changes its colour and
+ * nothing shifts. Exported for the agreement checkbox, which is a button dressed as an input so that
+ * it matches the fields around it.
+ *
+ * `ease-initial` pins the easing the replaced CSS used, which Tailwind's `transition-*` would
+ * otherwise override with its own curve.
+ */
+export const glassInput = 'border border-input-normal bg-input-bg outline-2 outline-offset-2 outline-double outline-transparent backdrop-blur-[8px] backdrop-saturate-[140%] transition-[background-color,border-color] duration-300 ease-initial focus:outline-btn-muted-outline';
 
 /**
  * TextField - Labelled glass input with optional adornments.
  *
  * Owns the structure every text input in the app repeats — the muted label above, the relative row,
- * the `glass-input` styling — while the caller keeps the parts that differ per site: dimensions and
+ * the shared glass-input recipe — while the caller keeps the parts that differ per site: dimensions and
  * font via `className`, and absolutely-positioned `leading`/`trailing` nodes passed in complete, so a
  * search icon or a reload control renders exactly as it did inline.
  *
@@ -32,7 +47,7 @@ export function TextField({ label = '', onValue, onEnter, leading, trailing, cla
             <input
                 onChange={ (event) => { onValue(event.target.value); } }
                 onKeyDown={ onEnter === undefined ? undefined : (event) => { if (event.key === 'Enter') { onEnter(); } } }
-                className={ cn('glass-input h-11 w-full rounded-xl px-3 text-small', className) }
+                className={ cn(glassInput, 'h-11 w-full rounded-xl px-3 text-small', className) }
                 { ...rest } />
 
             { trailing }
@@ -48,11 +63,7 @@ export function TextField({ label = '', onValue, onEnter, leading, trailing, cla
     return (
         <label className='flex flex-col gap-2'>
 
-            <div className='text-tiny text-txt-muted'>
-
-                { label }
-
-            </div>
+            <Text text={ label } />
 
             { row }
 
@@ -86,11 +97,7 @@ export function PasswordField({ label, value, onValue, onEnter, size = 'regular'
     return (
         <label className='flex flex-col gap-2'>
 
-            <div className='text-tiny text-txt-muted'>
-
-                { label }
-
-            </div>
+            <Text text={ label } />
 
             <div className='relative flex items-center'>
 
@@ -104,7 +111,7 @@ export function PasswordField({ label, value, onValue, onEnter, size = 'regular'
                     type={ show ? 'text' : 'password' }
                     onChange={ (event) => { onValue(event.target.value); } }
                     onKeyDown={ onEnter === undefined ? undefined : (event) => { if (event.key === 'Enter') { onEnter(); } } }
-                    className={ cn('glass-input w-full rounded-xl text-small', regular ? 'h-12 px-12' : 'h-11 px-10', className) } />
+                    className={ cn(glassInput, 'w-full rounded-xl text-small', regular ? 'h-12 px-12' : 'h-11 px-10', className) } />
 
                 <button
                     type='button'
@@ -120,5 +127,48 @@ export function PasswordField({ label, value, onValue, onEnter, size = 'regular'
             </div>
 
         </label>
+    );
+}
+
+/**
+ * ReadonlyField - A value the user can read but not edit, in the shape of an input.
+ *
+ * The account preview and the redeem screen's target address are the same thing: an address the flow
+ * derived rather than asked for, shown in the field it would have occupied so it reads as part of the
+ * form. Both drew the identical box by hand.
+ *
+ * Always `ltr` — the content is an address or a hash, which is never a right-to-left string even when
+ * the interface around it is.
+ * @param {object} props Component props.
+ * @param {string} [props.label] Muted label above the box; omitted entirely when empty.
+ * @param {string} props.value The value to show.
+ * @param {string} [props.className] Extra box classes; conflicting utilities override the defaults.
+ * @returns {JSX.Element} The field.
+ */
+export function ReadonlyField({ label = '', value, className = '' }: { label?: string; value: string; className?: string })
+{
+    const box = (
+        <div
+            dir='ltr'
+            className={ cn(glassInput, 'flex min-h-11 items-center rounded-xl px-3 py-2 font-mono text-tiny break-all text-txt-muted', className) }>
+
+            { value }
+
+        </div>
+    );
+
+    if (label.length === 0)
+    {
+        return box;
+    }
+
+    return (
+        <div className='flex flex-col gap-2'>
+
+            <Text text={ label } />
+
+            { box }
+
+        </div>
     );
 }

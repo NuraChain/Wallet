@@ -3,9 +3,11 @@ import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { IoClose } from 'react-icons/io5';
 
+import Text from './text';
 import Button from './button';
 
 import { cn } from '../../utility/cn';
+import { glassPanel } from './panel';
 import { inset } from '../../layout/container';
 
 /**
@@ -17,16 +19,20 @@ import { inset } from '../../layout/container';
  *
  * `frame='screen'` swaps the shrink-wrapped centring for a padded full-screen frame (the history
  * overview), where the panel then sizes itself against the viewport instead of its content.
+ *
+ * `scroll` is the cap-and-scroll every long dialog wants; seven of them spelled the same two
+ * utilities into `panelClass` by hand.
  * @param {object} props Component props.
  * @param {() => void} props.onClose Called when the backdrop is clicked.
  * @param {string} [props.z] Stacking class for backdrop and frame, where a surface layers differently.
  * @param {'center' | 'screen'} [props.frame] Shrink-wrapped centring, or a padded full-screen frame.
+ * @param {boolean} [props.scroll] Caps the panel against the viewport and scrolls its content.
  * @param {number} [props.scale] Entrance scale of the panel.
  * @param {string} [props.panelClass] Extra panel classes; conflicting utilities override the defaults.
  * @param {ReactNode} props.children The dialog content.
  * @returns {JSX.Element} The modal.
  */
-export function Modal({ onClose, z = 'z-30', frame = 'center', scale = 0.9, panelClass = '', children }: { onClose: () => void; z?: string; frame?: 'center' | 'screen'; scale?: number; panelClass?: string; children: ReactNode })
+export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, scale = 0.9, panelClass = '', children }: { onClose: () => void; z?: string; frame?: 'center' | 'screen'; scroll?: boolean; scale?: number; panelClass?: string; children: ReactNode })
 {
     return (
         <>
@@ -34,7 +40,7 @@ export function Modal({ onClose, z = 'z-30', frame = 'center', scale = 0.9, pane
                 initial={ { opacity: 0 } }
                 animate={ { opacity: 1 } }
                 exit={ { opacity: 0 } }
-                className={ cn('absolute size-full cursor-pointer bg-black/25 backdrop-blur-xs', z) }
+                className={ cn('absolute size-full cursor-pointer bg-scrim backdrop-blur-xs', z) }
                 onClick={ onClose } />
 
             <div
@@ -51,7 +57,7 @@ export function Modal({ onClose, z = 'z-30', frame = 'center', scale = 0.9, pane
                     initial={ { opacity: 0, scale } }
                     animate={ { opacity: 1, scale: 1 } }
                     exit={ { opacity: 0, scale } }
-                    className={ cn('glass-panel flex w-80 flex-col gap-3 rounded-2xl p-4', panelClass) }>
+                    className={ cn(glassPanel, 'flex w-80 flex-col gap-3 rounded-2xl p-4', scroll && 'max-h-[80vh] overflow-y-auto', panelClass) }>
 
                     { children }
 
@@ -82,11 +88,10 @@ export function Modal({ onClose, z = 'z-30', frame = 'center', scale = 0.9, pane
 export function ModalHeader({ title, subtitle = '', leading, close = 'icon', closeLabel = '', titleClass = '', groupClass = '', className = '', onClose }: { title: string; subtitle?: string; leading?: ReactNode; close?: 'icon' | 'chip'; closeLabel?: string; titleClass?: string; groupClass?: string; className?: string; onClose: () => void })
 {
     const heading = (
-        <div className={ cn('text-medium font-bold text-txt-normal', titleClass) }>
-
-            { title }
-
-        </div>
+        <Text
+            variant='title'
+            className={ titleClass }
+            text={ title } />
     );
 
     return (
@@ -103,14 +108,7 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
                             { heading }
 
                             {
-                                subtitle.length > 0 &&
-                                (
-                                    <div className='text-tiny text-txt-muted'>
-
-                                        { subtitle }
-
-                                    </div>
-                                )
+                                subtitle.length > 0 && <Text text={ subtitle } />
                             }
 
                         </div>
@@ -127,6 +125,28 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
                 <IoClose size={ 20 } />
 
             </Button>
+
+        </div>
+    );
+}
+
+/**
+ * ModalActions - The footer row of a dialog: side-by-side controls that split the width evenly.
+ *
+ * Six dialogs opened a `mt-1 flex gap-2` wrapper and then told each button inside it to be `flex-1`.
+ * The row owning the split is what the row is for, so the buttons go back to describing only
+ * themselves.
+ * @param {object} props Component props.
+ * @param {string} [props.className] Extra classes; conflicting utilities override the defaults.
+ * @param {ReactNode} props.children The controls, usually two buttons.
+ * @returns {JSX.Element} The footer row.
+ */
+export function ModalActions({ className = '', children }: { className?: string; children: ReactNode })
+{
+    return (
+        <div className={ cn('mt-1 flex gap-2 *:flex-1', className) }>
+
+            { children }
 
         </div>
     );

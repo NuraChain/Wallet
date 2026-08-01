@@ -6,12 +6,57 @@ import Spinner from './spinner';
 import { cn } from '../../utility/cn';
 
 /**
+ * What every button fill shares: the pointer, the resting outline, the lift on hover and the press
+ * that settles back into the surface.
+ *
+ * These were hand-written `.btn-*` CSS classes. Every declaration in them had a utility equivalent,
+ * so they live here as class strings instead — in the same vocabulary as the call sites around them,
+ * and, being ordinary utilities now, overridable through `cn` rather than winning silently on cascade
+ * order. That last part is what makes the `danger` variant below actually red.
+ *
+ * Only the properties that actually change are transitioned. A blanket `transition-all` would animate
+ * `backdrop-filter` and `box-shadow` too, re-blurring the backdrop on every press. `ease-initial` is
+ * equally deliberate: Tailwind's `transition-*` utilities apply their own easing curve, while the CSS
+ * this replaces never set one and so used the initial `ease`.
+ */
+const fillBase = 'cursor-pointer outline-2 outline-offset-2 outline-double outline-transparent shadow-[0_4px_12px_var(--glass-shadow)] transition-[background-color,border-color,transform,box-shadow] duration-300 ease-initial hover:-translate-y-px active:translate-y-0 active:scale-[0.99]';
+
+const fillMuted = `${ fillBase } border border-btn-muted-border bg-btn-muted text-txt-muted hover:bg-btn-muted-hover focus:outline-btn-muted-outline active:bg-btn-muted-active`;
+
+/**
+ * The only button fill translucent enough for the blur to actually read (8% white in dark). The
+ * primary and secondary fills sit at 90% and 60%, so blurring behind them is invisible work.
+ *
+ * Exported alongside `fillPrimary` for the wallet tab's transfer tiles, where the fill is worn by a
+ * plain square inside the button rather than by the button itself.
+ */
+export const fillNormal = `${ fillBase } border border-btn-normal-border bg-btn-normal text-txt-normal backdrop-blur-[10px] backdrop-saturate-[150%] hover:bg-btn-normal-hover focus:outline-btn-normal-outline active:bg-btn-normal-active`;
+
+export const fillPrimary = `${ fillBase } border border-btn-primary-border bg-btn-primary text-txt-reverse hover:bg-btn-primary-hover focus:outline-btn-primary-outline active:bg-btn-primary-active`;
+
+const fillSecondary = `${ fillBase } border border-btn-secondary-border bg-btn-secondary text-txt-reverse hover:bg-btn-secondary-hover focus:outline-btn-secondary-outline active:bg-btn-secondary-active`;
+
+/**
+ * The filled destructive fill, for an action that ends the session.
+ */
+const fillDanger = `${ fillBase } border border-btn-danger-border bg-btn-danger text-txt-reverse hover:bg-btn-danger-hover focus:outline-btn-danger-outline active:bg-btn-danger-active`;
+
+/**
+ * Apple-style control capsule.
+ *
+ * Where the fills above announce themselves with a fill, a shadow and a lift on hover, this stays
+ * quiet: a hairline over blurred material, no elevation, and a press that scales down into the
+ * surface rather than jumping off it. Used for the dashboard's account / network / settings row,
+ * where three controls sit side by side and none of them is the action the user came for.
+ */
+const fillChip = 'cursor-pointer border border-glass-line bg-base-3 text-txt-normal outline-2 outline-offset-2 outline-double outline-transparent backdrop-blur-[10px] backdrop-saturate-[150%] transition-[background-color,transform,opacity] duration-200 ease-initial hover:bg-base-2 focus:outline-btn-muted-outline active:scale-95 active:bg-base-2';
+
+/**
  * Class recipe for every button in the app.
  *
- * The fills come straight from the `.btn-*` / `.chip-control` component classes in `style.css`, so
- * this file adds no colours of its own — a variant here is only the pairing of one of those fills
- * with the recurring dimension sets below. Anything a call site needs beyond that (widths, margins,
- * one-off paddings) rides in through `className`, which `cn` lets win over the variant's classes.
+ * A variant is only the pairing of one of the fills above with the recurring dimension sets below.
+ * Anything a call site needs beyond that (widths, margins, one-off paddings) rides in through
+ * `className`, which `cn` lets win over the variant's classes.
  *
  * `danger` is the muted fill with the error text colour — the quiet treatment the small remove
  * controls use, where the button has to sit inside a list without shouting. `destructive` is the
@@ -23,13 +68,13 @@ const buttonVariants = cva('', {
         variant:
         {
             bare: '',
-            primary: 'btn-primary',
-            secondary: 'btn-secondary',
-            normal: 'btn-normal',
-            muted: 'btn-muted',
-            chip: 'chip-control',
-            danger: 'btn-muted text-txt-error',
-            destructive: 'btn-danger'
+            primary: fillPrimary,
+            secondary: fillSecondary,
+            normal: fillNormal,
+            muted: fillMuted,
+            chip: fillChip,
+            danger: `${ fillMuted } text-txt-error`,
+            destructive: fillDanger
         },
         size:
         {
@@ -57,6 +102,11 @@ const buttonVariants = cva('', {
  * `loading` renders the standard spinner ahead of the label — the caller keeps control of the label,
  * so swapping text while busy stays a one-line ternary at the call site.
  *
+ * A styled variant also owns the disabled cursor, which seven call sites were each spelling out. The
+ * fade stays with the caller: `disabled` means "not available yet" on an action button, where dimming
+ * is right, and "this is the one you are already on" in the language and network pickers, where it is
+ * not.
+ *
  * A button whose whole content is a label passes it as `text` and self-closes; `children` stays for
  * the ones that compose something — an icon beside a label, a stacked icon and caption, a nav tab.
  * Both render in the same slot, so the two forms are interchangeable and never combine.
@@ -76,7 +126,7 @@ export default function Button({ variant = 'bare', size = 'none', text, loading 
     return (
         <button
             type={ type }
-            className={ cn(variant !== 'bare' && 'flex items-center justify-center gap-2', buttonVariants({ variant, size }), fullWidth && 'w-full', className) }
+            className={ cn(variant !== 'bare' && 'flex items-center justify-center gap-2 disabled:cursor-not-allowed!', buttonVariants({ variant, size }), fullWidth && 'w-full', className) }
             { ...rest }>
 
             {

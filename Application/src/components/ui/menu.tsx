@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import Text from './text';
 import Button from './button';
 import IconBox from './iconbox';
 
@@ -29,11 +30,10 @@ export default function MenuRow({ icon, label, trailing, onClick }: { icon: Reac
 
             </IconBox>
 
-            <div className='flex-1 text-start text-small text-txt-normal'>
-
-                { label }
-
-            </div>
+            <Text
+                variant='body'
+                className='flex-1 text-start'
+                text={ label } />
 
             { trailing }
 
