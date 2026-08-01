@@ -1,5 +1,7 @@
 import { argon2id } from 'hash-wasm';
 
+import { getValue } from '../utility/storage';
+
 /**
  * Fixed application-wide salt.
  *
@@ -58,4 +60,57 @@ export const passwordVerify = async(password: string, expectedHash: string) =>
     }
 
     return difference === 0;
+};
+
+/**
+ * passwordCheck - Checks a password against the hash this device has stored.
+ *
+ * The unlock screen, the logout dialog and the recovery-phrase reveal each read the stored hash and
+ * ran the comparison themselves. They only ever disagreed on what to do about it, so the reading and
+ * the comparing live here and the branching stays with them: `missing` means there is no wallet on
+ * this device to unlock, which is a different situation from a wrong password.
+ * @param {string} password The plaintext password to check.
+ * @returns {Promise<'ok' | 'invalid' | 'missing'>} The outcome.
+ */
+export const passwordCheck = async(password: string): Promise<'ok' | 'invalid' | 'missing'> =>
+{
+    const stored = await getValue('Wallet.Password');
+
+    if (stored === undefined)
+    {
+        return 'missing';
+    }
+
+    return await passwordVerify(password, stored) ? 'ok' : 'invalid';
+};
+
+/**
+ * The password rules the two wallet-creation flows enforce: the confirmation has to match, and the
+ * password has to be between 6 and 32 characters.
+ */
+const passwordMin = 6;
+const passwordMax = 32;
+
+/**
+ * passwordIssue - Reports what is wrong with a new password, if anything.
+ *
+ * Creating a wallet and importing one applied these two rules in two places, which is one place too
+ * many for a rule that decides what a user can never change later.
+ * @param {string} password The chosen password.
+ * @param {string} confirm The confirmation field.
+ * @returns {'mismatch' | 'length' | undefined} The first rule broken, or `undefined` when it passes.
+ */
+export const passwordIssue = (password: string, confirm: string) =>
+{
+    if (password !== confirm)
+    {
+        return 'mismatch';
+    }
+
+    if (password.length < passwordMin || password.length > passwordMax)
+    {
+        return 'length';
+    }
+
+    return undefined;
 };

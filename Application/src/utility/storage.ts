@@ -1,28 +1,10 @@
-import { argon2id } from 'hash-wasm';
 import { load } from '@tauri-apps/plugin-store';
 
-interface EncryptedPayload { salt: string; iv: string; cipher: string; kdf?: string }
-
-/**
- * Marks a payload whose key came from Argon2id rather than PBKDF2.
- *
- * A build that derived storage keys with Argon2id shipped briefly and rewrote `Wallet.Mnemonic` into
- * that format on unlock. Writes are PBKDF2 again, but anything already converted on a device still has
- * to open — otherwise reverting the code strands the user's wallet. Reading both formats is cheap;
- * losing access is not.
- */
-const kdfArgon2id = 'argon2id';
+interface EncryptedPayload { salt: string; iv: string; cipher: string }
 
 type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name' | 'Wallet.Accounts' | 'Wallet.Active' | 'Wallet.Tokens';
 
 const storage = await load('application.bin');
-
-/**
- * getValue - Retrieves a plaintext value from persistent storage
- * @param {StorageKey} key - The storage key name
- * @returns {Promise<string | undefined>} Stored string or undefined if not set
- */
-export const getValue = async(key: StorageKey) => storage.get<string>(key);
 
 /**
  * deriveKey - Derives a non-extractable AES-GCM 256 key from a passphrase and salt via PBKDF2-SHA256
@@ -38,50 +20,11 @@ const deriveKey = async(passphrase: string, salt: Uint8Array<ArrayBuffer>) =>
 };
 
 /**
- * deriveKeyArgon2id - Read-only derivation for payloads written by the Argon2id build.
- *
- * Parameters have to match that build exactly (32 MiB, two passes, no parallelism, 32 bytes out) or the
- * key comes out different and the GCM tag rejects it. Nothing writes this format any more.
- * @param {string} passphrase - The passphrase to derive the key from
- * @param {Uint8Array<ArrayBuffer>} salt - The salt bytes used in derivation
- * @returns {Promise<CryptoKey>} The derived AES-GCM key
- */
-const deriveKeyArgon2id = async(passphrase: string, salt: Uint8Array<ArrayBuffer>) =>
-{
-    const derived = await argon2id({ password: passphrase, salt, memorySize: 32768, iterations: 2, parallelism: 1, hashLength: 32, outputType: 'binary' });
-
-    return crypto.subtle.importKey('raw', new Uint8Array(derived), { name: 'AES-GCM', length: 256 }, false, [ 'encrypt', 'decrypt' ]);
-};
-
-/**
- * isConvertedEncrypted - Whether a stored payload is in the short-lived Argon2id format.
- *
- * Lets a caller holding the passphrase rewrite it under the current PBKDF2 derivation, so a device
- * that ran the Argon2id build converges back instead of depending on the compatibility path forever.
+ * getValue - Retrieves a plaintext value from persistent storage
  * @param {StorageKey} key - The storage key name
- * @returns {Promise<boolean>} True when the value exists and was written by that build.
+ * @returns {Promise<string | undefined>} Stored string or undefined if not set
  */
-export const isConvertedEncrypted = async(key: StorageKey) =>
-{
-    const stored = await getValue(key);
-
-    if (stored === undefined)
-    {
-        return false;
-    }
-
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const parsed = JSON.parse(stored) as EncryptedPayload;
-
-        return typeof parsed === 'object' && parsed.kdf === kdfArgon2id;
-    }
-    catch
-    {
-        return false;
-    }
-};
+export const getValue = async(key: StorageKey) => storage.get<string>(key);
 
 /**
  * setValue - Stores a plaintext value in persistent storage
@@ -104,6 +47,22 @@ export const setValue = async(key: StorageKey, value: string) =>
 export const removeValue = async(key: StorageKey) =>
 {
     await storage.delete(key);
+
+    await storage.save();
+};
+
+/**
+ * removeValues - Deletes several values and writes the file once.
+ *
+ * Logging out clears five keys at once. Calling `removeValue` for each meant five separate saves of
+ * the same file, and the wallet is half-deleted between any two of them — this leaves one write, so
+ * the store either still has the wallet or has none of it.
+ * @param {...StorageKey} keys - The storage key names
+ * @returns {Promise<void>} Resolves once the file has been written
+ */
+export const removeValues = async(...keys: StorageKey[]) =>
+{
+    await Promise.all(keys.map(async(key) => storage.delete(key)));
 
     await storage.save();
 };
@@ -176,10 +135,7 @@ export const getValueEncrypted = async(key: StorageKey, passphrase: string) =>
 
     const fromBase64 = (value: string) => Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
 
-    // A device that ran the Argon2id build has payloads only that derivation can open.
-    const derive = parsed.kdf === kdfArgon2id ? deriveKeyArgon2id : deriveKey;
-
-    const cryptoKey = await derive(passphrase, fromBase64(parsed.salt));
+    const cryptoKey = await deriveKey(passphrase, fromBase64(parsed.salt));
     const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBase64(parsed.iv) }, cryptoKey, fromBase64(parsed.cipher));
 
     return new TextDecoder().decode(plain);
