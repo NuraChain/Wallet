@@ -157,18 +157,24 @@ export default function UnlockPage()
                     onEnter={ () => { void onUnlock(); } } />
 
                 { /*
-                  * `ltr` pins the spinner ahead of the label. The row is a flex container, so it
-                  * follows the page direction — under Persian that puts the first child, the spinner,
-                  * at the right-hand end, behind the word it belongs to.
+                  * The spinner replaces the label rather than joining it. Unlocking takes a moment —
+                  * Argon2id is meant to — and the spinner alone says "working" without a second word
+                  * appearing where the first one was.
+                  *
+                  * `min-w` holds the resting width so the button does not shrink around the spinner
+                  * and snap back, and it is wide enough for either language's label.
+                  *
+                  * The label the spinner replaced becomes the accessible name for as long as it is
+                  * gone, so a screen reader still hears what the button is doing.
                   */ }
                 <Button
                     variant='primary'
-                    dir='ltr'
                     disabled={ isLoading }
                     loading={ isLoading }
                     onClick={ () => { void onUnlock(); } }
-                    className='mx-auto h-12 w-fit rounded-xl px-8 py-2 disabled:opacity-60'
-                    text={ isLoading ? T('Unlock.Loading') : T('Unlock.Submit') } />
+                    aria-label={ isLoading ? T('Unlock.Loading') : undefined }
+                    className='mx-auto h-12 w-fit min-w-40 rounded-xl px-8 py-2 disabled:opacity-60'
+                    text={ isLoading ? '' : T('Unlock.Submit') } />
 
             </div>
 
