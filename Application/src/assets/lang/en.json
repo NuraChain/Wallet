@@ -87,7 +87,15 @@
             "Subtitle": "Switch between accounts of this wallet",
             "Empty": "Not created yet",
             "Rename": "Rename account",
-            "Save": "Save"
+            "Save": "Save",
+            "Add": "Add account",
+            "Index": "Derivation index",
+            "IndexHint": "1",
+            "IndexNote": "Each index derives a different account from the same recovery phrase.",
+            "Back": "Back",
+            "Create": "Add",
+            "ErrorIndex": "Enter a whole number between 0 and %s",
+            "ErrorExists": "That index is already in your list"
         },
         "Address": "Address",
         "Copy": "Copy Address",

@@ -13,9 +13,14 @@ export interface Account
 }
 
 /**
- * How many accounts a wallet may keep. Slots map one-to-one onto derivation indexes `0 .. accountLimit - 1`.
+ * Highest derivation index the wallet will accept, exclusive.
+ *
+ * Accounts are not slots to be filled any more — index 0 is created with the wallet and the user adds
+ * whichever further indexes they want — so this is only the bound that keeps a typed index sane and
+ * keeps a corrupt stored entry from deriving something absurd. BIP44 allows far more; the cap is
+ * about the label ("Account 100") and the input staying comprehensible, not about the key space.
  */
-export const accountLimit = 3;
+export const accountLimit = 100;
 
 /**
  * defaultAccountName - Builds the fallback label for a slot ("Account 1", "Account 2", ...).
