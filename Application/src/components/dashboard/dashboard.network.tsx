@@ -30,6 +30,13 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
     const [ symbol, setSymbol ] = useState('');
     const [ explorerUrl, setExplorerUrl ] = useState('');
 
+    // The network list is module state, not React state, so mutating it does not re-render anything
+    // on its own. Notifying the parent is not enough either: it only tracks the *active* network, and
+    // removing an inactive one leaves `getNetwork()` returning the very same object, which React
+    // treats as no change at all — so the deleted row stayed on screen. Keeping a local copy makes
+    // this list re-render because the list changed, which is the thing that actually changed.
+    const [ networks, setNetworks ] = useState(getNetworks);
+
     const onSelect = async(id: string) =>
     {
         await setNetwork(id);
@@ -41,6 +48,8 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
     const onRemove = async(id: string) =>
     {
         await removeNetwork(id);
+
+        setNetworks(getNetworks());
 
         onChange();
     };
@@ -160,7 +169,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                     (
                         <>
                             {
-                                getNetworks().map((item) =>
+                                networks.map((item) =>
                                 {
                                     const isActive = item.id === network.id;
 
