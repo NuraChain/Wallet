@@ -109,19 +109,24 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
 
             <div className='mt-1 flex gap-2'>
 
+                { /*
+                  * Cancel carries the emphasis and the destructive button is the quiet one: this
+                  * dialog exists to slow the user down, so the prominent control should be the way
+                  * back out rather than the one that wipes the wallet.
+                  */ }
                 <Button
-                    variant='muted'
+                    variant='primary'
                     size='action'
                     onClick={ onClose }
                     className='flex-1'
                     text={ T('Dashboard.Logout.Cancel') } />
 
                 <Button
-                    variant='normal'
+                    variant='danger'
                     size='action'
                     disabled={ isLoading }
                     onClick={ () => { void onConfirm(); } }
-                    className='flex-1 text-txt-error disabled:cursor-not-allowed! disabled:opacity-60'
+                    className='flex-1 disabled:cursor-not-allowed! disabled:opacity-60'
                     text={ isLoading ? T('Dashboard.Logout.Pending') : T('Dashboard.Logout.Confirm') } />
 
             </div>
