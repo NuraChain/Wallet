@@ -174,9 +174,14 @@ export default function UnlockPage()
                     onValue={ setPassword }
                     onEnter={ () => { void onUnlock(); } } />
 
+                { /*
+                  * `ltr` pins the spinner ahead of the label. The row is a flex container, so it
+                  * follows the page direction — under Persian that puts the first child, the spinner,
+                  * at the right-hand end, behind the word it belongs to.
+                  */ }
                 <Button
                     variant='primary'
-                    dir='rtl'
+                    dir='ltr'
                     disabled={ isLoading }
                     loading={ isLoading }
                     onClick={ () => { void onUnlock(); } }
