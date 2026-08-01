@@ -11,14 +11,16 @@ import { argon2id } from 'hash-wasm';
 const salt = new TextEncoder().encode('ApplicationSaltAt2026');
 
 /**
- * Argon2id cost parameters.
+ * Argon2id cost parameters: 64 MiB of memory, three passes, no parallelism, 32 bytes out.
  *
- * These mirror the previous Rust `Params::new(32768, 2, 1, Some(32))` exactly — 32 MiB of memory,
- * two passes, no parallelism, 32 bytes out. Changing any of them invalidates every stored hash.
+ * These no longer match the Rust `Params::new(32768, 2, 1, Some(32))` the stored hashes were written
+ * under — memory and passes have both been raised since. Changing any of them invalidates every
+ * stored hash, so a wallet created before the change cannot be unlocked until verification learns to
+ * read the parameters a hash was written with.
  */
 const memorySize = 65536;
 const iterations = 3;
-const parallelism = 2;
+const parallelism = 1;
 const hashLength = 32;
 
 /**
