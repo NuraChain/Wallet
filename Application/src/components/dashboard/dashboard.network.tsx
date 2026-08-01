@@ -102,11 +102,8 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                             {
                                 error.length > 0 &&
                                 (
-                                    <Alert>
-
-                                        { error }
-
-                                    </Alert>
+                                    <Alert
+                                        text={ error } />
                                 )
                             }
 

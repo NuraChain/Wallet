@@ -82,11 +82,9 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
             {
                 error.length > 0 &&
                 (
-                    <Alert className='mx-auto w-fit px-4 text-small'>
-
-                        { error }
-
-                    </Alert>
+                    <Alert
+                        className='mx-auto w-fit px-4 text-small'
+                        text={ error } />
                 )
             }
 
@@ -104,11 +102,8 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
             <Checkbox
                 checked={ agree }
-                onToggle={ () => { setAgree(!agree); } }>
-
-                { T('Intro.CreateWallet.Agreement') }
-
-            </Checkbox>
+                onToggle={ () => { setAgree(!agree); } }
+                text={ T('Intro.CreateWallet.Agreement') } />
 
             <Button
                 variant='primary'

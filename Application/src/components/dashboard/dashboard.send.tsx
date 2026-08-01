@@ -134,11 +134,8 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                         {
                             error.length > 0 &&
                             (
-                                <Alert>
-
-                                    { error }
-
-                                </Alert>
+                                <Alert
+                                    text={ error } />
                             )
                         }
 

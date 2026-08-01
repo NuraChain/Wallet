@@ -23,14 +23,20 @@ const variantMap =
  *
  * One component for every red box in the app, so the tint, radius and padding stop drifting between
  * copies. The `warning` variant brings its own triangle; the others are plain text containers.
+ *
+ * An alert whose whole content is a message passes it as `text` and self-closes; `children` stays for
+ * anything that composes. Both render in the same slot, so the two forms never combine.
  * @param {object} props Component props.
  * @param {'error' | 'warning' | 'danger'} [props.variant] Which treatment to render.
+ * @param {string} [props.text] The message, when that is all the alert holds.
  * @param {string} [props.className] Extra classes; conflicting utilities override the variant's.
- * @param {ReactNode} props.children The message.
+ * @param {ReactNode} [props.children] Composed content, for the cases `text` cannot express.
  * @returns {JSX.Element} The alert.
  */
-export default function Alert({ variant = 'error', className = '', children }: { variant?: keyof typeof variantMap; className?: string; children: ReactNode })
+export default function Alert({ variant = 'error', text, className = '', children }: { variant?: keyof typeof variantMap; text?: string; className?: string; children?: ReactNode })
 {
+    const content = text ?? children;
+
     return (
         <div className={ cn('text-txt-error', variantMap[variant], className) }>
 
@@ -43,11 +49,11 @@ export default function Alert({ variant = 'error', className = '', children }: {
                     (
                         <span>
 
-                            { children }
+                            { content }
 
                         </span>
                     ) :
-                    children
+                    content
             }
 
         </div>

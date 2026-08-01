@@ -125,20 +125,15 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                 title={ T('Dashboard.Phrase.Title') }
                 onClose={ onClose } />
 
-            <Alert variant='warning'>
-
-                { T('Dashboard.Phrase.Warning') }
-
-            </Alert>
+            <Alert
+                variant='warning'
+                text={ T('Dashboard.Phrase.Warning') } />
 
             {
                 error.length > 0 &&
                 (
-                    <Alert>
-
-                        { error }
-
-                    </Alert>
+                    <Alert
+                        text={ error } />
                 )
             }
 
@@ -223,11 +218,9 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                           * on shared storage outlives the moment it was written,
                                           * and the gallery copy is the one people forget.
                                           */ }
-                                        <Alert variant='danger'>
-
-                                            { T('Dashboard.Phrase.ExportDanger') }
-
-                                        </Alert>
+                                        <Alert
+                                            variant='danger'
+                                            text={ T('Dashboard.Phrase.ExportDanger') } />
 
                                         <div className='flex gap-2'>
 

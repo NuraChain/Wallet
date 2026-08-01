@@ -144,11 +144,8 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                             {
                                 error.length > 0 &&
                                 (
-                                    <Alert>
-
-                                        { error }
-
-                                    </Alert>
+                                    <Alert
+                                        text={ error } />
                                 )
                             }
 

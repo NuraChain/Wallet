@@ -83,20 +83,15 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
                 title={ T('Dashboard.Logout.Title') }
                 onClose={ onClose } />
 
-            <Alert variant='warning'>
-
-                { T('Dashboard.Logout.Message') }
-
-            </Alert>
+            <Alert
+                variant='warning'
+                text={ T('Dashboard.Logout.Message') } />
 
             {
                 error.length > 0 &&
                 (
-                    <Alert>
-
-                        { error }
-
-                    </Alert>
+                    <Alert
+                        text={ error } />
                 )
             }
 

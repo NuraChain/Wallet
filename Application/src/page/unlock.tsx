@@ -159,11 +159,9 @@ export default function UnlockPage()
                 {
                     error.length > 0 &&
                     (
-                        <Alert className='mt-2 rounded-xl bg-txt-error/10 text-small'>
-
-                            { error }
-
-                        </Alert>
+                        <Alert
+                            className='mt-2 rounded-xl bg-txt-error/10 text-small'
+                            text={ error } />
                     )
                 }
 

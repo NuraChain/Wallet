@@ -108,11 +108,8 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                             {
                                 error.length > 0 &&
                                 (
-                                    <Alert>
-
-                                        { error }
-
-                                    </Alert>
+                                    <Alert
+                                        text={ error } />
                                 )
                             }
 

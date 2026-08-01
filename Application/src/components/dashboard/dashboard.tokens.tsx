@@ -82,11 +82,8 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                             {
                                 error.length > 0 &&
                                 (
-                                    <Alert>
-
-                                        { error }
-
-                                    </Alert>
+                                    <Alert
+                                        text={ error } />
                                 )
                             }
 
