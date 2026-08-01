@@ -75,14 +75,26 @@ jobs:
       # The directory must not be `dist`: that is Vite's build output, so staging
       # there uploaded index.html and the whole frontend bundle alongside the
       # installers, and index.html ended up attached to the release.
+      # Tauri names bundles after `productName`, which is "Nura Wallet" - and GitHub
+      # rewrites the space when it attaches an asset, so the release listed
+      # `Nura.Wallet_1.0.0_x64-setup.exe`. Every artifact is renamed to one scheme
+      # here instead, so the four downloads read as one product.
       - name: Stage the installers
         working-directory: ${{ env.APP_DIR }}
         shell: bash
         run: |
           mkdir -p release-files
-          find src-tauri/target/release/bundle \
-            \( -name '*.exe' -o -name '*.msi' -o -name '*.deb' \) \
-            -exec cp {} release-files/ \;
+          VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
+          BUNDLE=src-tauri/target/release/bundle
+          for file in "$BUNDLE"/nsis/*-setup.exe; do
+            [ -e "$file" ] && cp "$file" "release-files/Nura-Wallet-$VERSION-x64-setup.exe"
+          done
+          for file in "$BUNDLE"/msi/*.msi; do
+            [ -e "$file" ] && cp "$file" "release-files/Nura-Wallet-$VERSION-x64.msi"
+          done
+          for file in "$BUNDLE"/deb/*.deb; do
+            [ -e "$file" ] && cp "$file" "release-files/Nura-Wallet-$VERSION-amd64.deb"
+          done
           ls -l release-files
 
       - uses: actions/upload-artifact@v4
@@ -179,21 +191,27 @@ jobs:
       # The keystore is deleted before anything else runs so it cannot reach an
       # artifact. A tag that got this far with a broken keystore still fails here:
       # the guard above only proves a secret was set, not that Gradle used it.
+      #
+      # Gradle names the file app-universal-release.apk, which says nothing about
+      # the product on a downloads page. It is renamed to carry the product and
+      # the version, like every desktop installer does, and the staging directory
+      # is deliberately not `dist` - that is Vite's output.
       - name: Collect the APK
         working-directory: ${{ env.APP_DIR }}
         run: |
           OUT=src-tauri/gen/android/app/build/outputs/apk/universal/release
           APK=$(ls "$OUT"/*.apk | head -1)
           APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
           rm -f src-tauri/gen/android/keystore.properties src-tauri/gen/android/release.jks
           mkdir -p release-files
           if "$APKSIGNER" verify --print-certs "$APK"; then
-            cp "$APK" release-files/nura-wallet.apk
+            cp "$APK" "release-files/Nura-Wallet-$VERSION-universal.apk"
           elif [ "${{ startsWith(github.ref, 'refs/tags/v') }}" = "true" ]; then
             echo "::error::The build produced an unsigned APK despite a keystore being configured. Check that ANDROID_KEYSTORE is valid base64 and that the alias and passwords match it."
             exit 1
           else
-            cp "$APK" release-files/nura-wallet-unsigned.apk
+            cp "$APK" "release-files/Nura-Wallet-$VERSION-universal-unsigned.apk"
             echo "::warning::APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
           fi
           ls -l release-files
