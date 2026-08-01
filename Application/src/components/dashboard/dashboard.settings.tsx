@@ -91,7 +91,7 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
                 </Button>
 
                 <Button
-                    variant='danger'
+                    variant='destructive'
                     onClick={ onLogout }
                     className='h-12 min-w-0 flex-1 rounded-xl text-small'>
 

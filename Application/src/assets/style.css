@@ -35,6 +35,12 @@
     --color-btn-secondary-border: var(--btn-secondary-border);
     --color-btn-secondary-outline: var(--btn-secondary-outline);
 
+    --color-btn-danger: var(--btn-danger);
+    --color-btn-danger-hover: var(--btn-danger-hover);
+    --color-btn-danger-active: var(--btn-danger-active);
+    --color-btn-danger-border: var(--btn-danger-border);
+    --color-btn-danger-outline: var(--btn-danger-outline);
+
     --color-input-normal: var(--input-normal);
     --color-input-primary: var(--input-primary);
 
@@ -101,6 +107,13 @@
     --btn-secondary-border: oklch(75% 0.02 260 / 0.4);
     --btn-secondary-outline: oklch(60% 0.02 260 / 0.6);
 
+    /* Same hue as `--txt-error`, built out into a fill the way primary is. */
+    --btn-danger: oklch(55% 0.22 25 / 0.9);
+    --btn-danger-hover: oklch(60% 0.22 25 / 0.9);
+    --btn-danger-active: oklch(50% 0.22 25 / 0.95);
+    --btn-danger-border: oklch(65% 0.18 25 / 0.5);
+    --btn-danger-outline: oklch(55% 0.22 25 / 0.6);
+
     --input-bg: oklch(100% 0 0 / 0.5);
     --input-normal: oklch(85% 0.01 260 / 0.9);
     --input-primary: oklch(58% 0.21 255 / 0.9);
@@ -153,6 +166,13 @@
     --btn-secondary-active: oklch(40% 0.02 260 / 0.6);
     --btn-secondary-border: oklch(100% 0 0 / 0.12);
     --btn-secondary-outline: oklch(60% 0.02 260 / 0.6);
+
+    /* Sits darker than `--txt-error` so the reversed label keeps its contrast on the fill. */
+    --btn-danger: oklch(62% 0.20 25 / 0.85);
+    --btn-danger-hover: oklch(67% 0.20 25 / 0.85);
+    --btn-danger-active: oklch(57% 0.20 25 / 0.9);
+    --btn-danger-border: oklch(75% 0.15 25 / 0.35);
+    --btn-danger-outline: oklch(62% 0.20 25 / 0.6);
 
     --input-bg: oklch(100% 0 0 / 0.06);
     --input-normal: oklch(100% 0 0 / 0.16);
@@ -317,7 +337,8 @@ body {
 .btn-muted,
 .btn-normal,
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-danger {
     cursor: pointer;
     outline-width: 2px;
     outline-offset: 2px;
@@ -416,6 +437,31 @@ body {
 
 .btn-secondary:focus {
     outline-color: var(--color-btn-secondary-outline);
+}
+
+/*
+ * The filled destructive button. Distinct from the muted-with-red-text treatment used for the small
+ * remove controls: that one has to sit quietly in a list, this one is the end of a session and should
+ * read as the consequence it is.
+ */
+.btn-danger {
+    color: var(--color-txt-reverse);
+    background: var(--color-btn-danger);
+    border: 1px solid var(--color-btn-danger-border);
+}
+
+.btn-danger:hover {
+    transform: translateY(-1px);
+    background: var(--color-btn-danger-hover);
+}
+
+.btn-danger:active {
+    transform: translateY(0) scale(0.99);
+    background: var(--color-btn-danger-active);
+}
+
+.btn-danger:focus {
+    outline-color: var(--color-btn-danger-outline);
 }
 
 .swiper-pagination {

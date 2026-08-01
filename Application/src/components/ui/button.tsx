@@ -13,8 +13,9 @@ import { cn } from '../../utility/cn';
  * with the recurring dimension sets below. Anything a call site needs beyond that (widths, margins,
  * one-off paddings) rides in through `className`, which `cn` lets win over the variant's classes.
  *
- * `danger` is the muted fill with the error text colour — the treatment every destructive control in
- * the app already used by hand.
+ * `danger` is the muted fill with the error text colour — the quiet treatment the small remove
+ * controls use, where the button has to sit inside a list without shouting. `destructive` is the
+ * filled red one, for an action that ends the session.
  */
 const buttonVariants = cva('', {
     variants:
@@ -27,7 +28,8 @@ const buttonVariants = cva('', {
             normal: 'btn-normal',
             muted: 'btn-muted',
             chip: 'chip-control',
-            danger: 'btn-muted text-txt-error'
+            danger: 'btn-muted text-txt-error',
+            destructive: 'btn-danger'
         },
         size:
         {
@@ -59,7 +61,7 @@ const buttonVariants = cva('', {
  * the ones that compose something — an icon beside a label, a stacked icon and caption, a nav tab.
  * Both render in the same slot, so the two forms are interchangeable and never combine.
  * @param {object} props Component props.
- * @param {string} [props.variant] Fill: `primary`, `secondary`, `normal`, `muted`, `chip`, `danger`, or `bare` for none.
+ * @param {string} [props.variant] Fill: `primary`, `secondary`, `normal`, `muted`, `chip`, `danger`, `destructive`, or `bare` for none.
  * @param {string} [props.size] Recurring dimensions: `action` rows, `icon`/`iconChip`/`iconLarge` squares, or `none`.
  * @param {string} [props.text] The button's label, when that is all it holds.
  * @param {boolean} [props.loading] Shows the spinner ahead of the label.
