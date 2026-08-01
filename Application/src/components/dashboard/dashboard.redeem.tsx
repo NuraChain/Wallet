@@ -144,7 +144,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                 autoCapitalize='none'
                                 spellCheck={ false }
                                 placeholder={ T('Dashboard.Redeem.CodeHint') }
-                                className='font-mono text-tiny' />
+                                className='text-center font-mono text-tiny' />
 
                             <Button
                                 variant='primary'
