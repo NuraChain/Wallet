@@ -71,21 +71,25 @@ jobs:
       # one directory down, so the release job's `artifacts/*.exe` globs matched
       # nothing and only the Android APK - uploaded from a single path, hence flat -
       # reached the release. Collecting into one directory keeps the archive flat.
+      #
+      # The directory must not be `dist`: that is Vite's build output, so staging
+      # there uploaded index.html and the whole frontend bundle alongside the
+      # installers, and index.html ended up attached to the release.
       - name: Stage the installers
         working-directory: ${{ env.APP_DIR }}
         shell: bash
         run: |
-          mkdir -p dist
+          mkdir -p release-files
           find src-tauri/target/release/bundle \
             \( -name '*.exe' -o -name '*.msi' -o -name '*.deb' \) \
-            -exec cp {} dist/ \;
-          ls -l dist
+            -exec cp {} release-files/ \;
+          ls -l release-files
 
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           if-no-files-found: error
-          path: ${{ env.APP_DIR }}/dist
+          path: ${{ env.APP_DIR }}/release-files
 
   android:
     name: android (.apk)
@@ -182,23 +186,23 @@ jobs:
           APK=$(ls "$OUT"/*.apk | head -1)
           APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
           rm -f src-tauri/gen/android/keystore.properties src-tauri/gen/android/release.jks
-          mkdir -p dist
+          mkdir -p release-files
           if "$APKSIGNER" verify --print-certs "$APK"; then
-            cp "$APK" dist/nura-wallet.apk
+            cp "$APK" release-files/nura-wallet.apk
           elif [ "${{ startsWith(github.ref, 'refs/tags/v') }}" = "true" ]; then
             echo "::error::The build produced an unsigned APK despite a keystore being configured. Check that ANDROID_KEYSTORE is valid base64 and that the alias and passwords match it."
             exit 1
           else
-            cp "$APK" dist/nura-wallet-unsigned.apk
+            cp "$APK" release-files/nura-wallet-unsigned.apk
             echo "::warning::APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
           fi
-          ls -l dist
+          ls -l release-files
 
       - uses: actions/upload-artifact@v4
         with:
           name: android
           if-no-files-found: error
-          path: ${{ env.APP_DIR }}/dist
+          path: ${{ env.APP_DIR }}/release-files
 
   release:
     name: Attach to the release
