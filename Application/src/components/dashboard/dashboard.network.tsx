@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { FiCheck, FiPlus, FiTrash2 } from 'react-icons/fi';
 
+import TokenIcon from '../token.icon';
+
 import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
-import IconBox from '../ui/iconbox';
 import { TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
+import { getNativeLogo } from '../../core/price';
 import { addNetwork, getNetworks, removeNetwork, setNetwork, type Network } from '../../core/network';
 
 /**
@@ -164,11 +166,18 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                 onClick={ () => { void onSelect(item.id); } }
                                                 className={ `h-12 flex-1 rounded-xl px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
 
-                                                <IconBox tone='primary' size='size-7' className='text-tiny'>
-
-                                                    { item.symbol.slice(0, 1) }
-
-                                                </IconBox>
+                                                { /*
+                                                  * The same coin logo the wallet tab shows for the
+                                                  * active network, so the row and the chip that
+                                                  * opens it are the same thing. A custom network has
+                                                  * no logo to fetch, and `TokenIcon` falls back to
+                                                  * the lettered disc this row drew before.
+                                                  */ }
+                                                <TokenIcon
+                                                    primary
+                                                    src={ getNativeLogo(item.chainId) }
+                                                    symbol={ item.symbol }
+                                                    className='size-7 text-tiny' />
 
                                                 <Text
                                                     variant='body'
