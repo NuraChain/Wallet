@@ -12,6 +12,7 @@ import Panel from '../ui/panel';
 import Button from '../ui/button';
 import Spinner from '../ui/spinner';
 import SectionHeader from '../ui/section';
+
 import { TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
@@ -58,9 +59,8 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
     const [ hash, setHash ] = useState('');
     const [ to, setTo ] = useState('');
     const [ amount, setAmount ] = useState('');
-    const [ selected, setSelected ] = useState('native');
 
-    const asset = assets.find((item) => item.key === selected) ?? assets[0];
+    const asset = assets[0];
 
     /**
      * What the confirmation screen restates before anything is signed. Three label/value rows drawn
@@ -145,23 +145,6 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                     <div className='flex flex-col gap-3'>
 
                         <Alert text={ error } />
-
-                        <div className='flex flex-wrap gap-1'>
-
-                            {
-                                // The selected chip is a flat fill rather than the primary button:
-                                // it marks a choice, so it carries no elevation, hover lift or press.
-                                assets.map((item) => (
-                                    <Button
-                                        key={ item.key }
-                                        variant={ item.key === selected ? 'bare' : 'muted' }
-                                        onClick={ () => { setSelected(item.key); } }
-                                        className={ `flex h-9 items-center rounded-xl px-3 text-tiny duration-300 ${ item.key === selected ? 'bg-btn-primary text-txt-reverse' : '' }` }
-                                        text={ item.symbol } />
-                                ))
-                            }
-
-                        </div>
 
                         <div className='flex flex-col gap-1'>
 
