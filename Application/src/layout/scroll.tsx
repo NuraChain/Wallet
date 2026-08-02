@@ -8,7 +8,7 @@ import Spinner from '../components/ui/spinner';
  *
  * The native scrollbar is hidden (`.scroll-hidden`) and replaced by an absolutely positioned thumb, so the bar floats over the content instead of reserving a column of layout width — the content keeps the same width whether it scrolls or not.
  *
- * The thumb rests at 10% opacity and only reaches full opacity while hovered or dragged, so it stays out of the way of the glass surfaces underneath.
+ * The thumb rests at 5% opacity and lifts to 15% on hover — the same two weights the native bar's `--scrollbar-thumb` pair carries — so it stays out of the way of the glass surfaces underneath. Only a drag brings it to full, since by then the user is holding it and wants to see what they are moving.
  * @param {object} props Component props.
  * @param {string} [props.className] Extra classes for the outer (positioned) wrapper.
  * @param {ReactNode} props.children The scrollable content.
@@ -299,7 +299,7 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
                         onPointerMove={ onPointerMove }
                         onPointerCancel={ onPointerUp }
                         style={ { height: `${ thumb.size }px`, transform: `translateY(${ thumb.top }px)` } }
-                        className={ `absolute inset-e-1 top-0 z-30 w-1.5 cursor-pointer rounded-full bg-txt-muted transition-opacity duration-200 hover:opacity-100 ${ dragging ? 'opacity-100' : 'opacity-10' }` } />
+                        className={ `absolute inset-e-1 top-0 z-30 w-1.5 cursor-pointer rounded-full bg-txt-muted transition-opacity duration-200 hover:opacity-15 ${ dragging ? 'opacity-100' : 'opacity-5' }` } />
                 )
             }
 

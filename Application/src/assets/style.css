@@ -90,8 +90,13 @@
     --base-2: oklch(100% 0 0 / 0.6);
     --base-3: oklch(100% 0 0 / 0.4);
 
-    --scrollbar-thumb: oklch(45% 0.02 260 / 0.3);
-    --scrollbar-thumb-hover: oklch(45% 0.02 260 / 0.5);
+    /*
+     * The bar rests at 5%, barely there until it is wanted. `ScrollArea`'s overlay thumb rests at the
+     * same value — the two are the same object as far as the user is concerned, so they should not sit
+     * at two weights. Hover is the step that makes it grabbable, and stays the stronger value.
+     */
+    --scrollbar-thumb: oklch(45% 0.02 260 / 0.05);
+    --scrollbar-thumb-hover: oklch(45% 0.02 260 / 0.15);
 
     /* What every dialog and sheet dims the page with. One value so the two surfaces cannot drift. */
     --scrim: oklch(0% 0 0 / 0.25);
@@ -163,8 +168,9 @@
     --base-2: oklch(28% 0.02 260 / 0.55);
     --base-3: oklch(30% 0.02 260 / 0.4);
 
-    --scrollbar-thumb: oklch(100% 0 0 / 0.22);
-    --scrollbar-thumb-hover: oklch(100% 0 0 / 0.4);
+    /* Same 5% as the light theme — see the note there. */
+    --scrollbar-thumb: oklch(100% 0 0 / 0.05);
+    --scrollbar-thumb-hover: oklch(100% 0 0 / 0.15);
 
     --scrim: oklch(0% 0 0 / 0.25);
 
@@ -257,7 +263,14 @@ input[type="password"]::-webkit-textfield-decoration-container {
     display: none;
 }
 
+/*
+ * Chromium has historically ignored `cursor` on the scrollbar pseudo-elements and painted the plain
+ * arrow regardless, so the pointer here may do nothing in the WebView the app runs in. It costs one
+ * declaration, states the intent, and starts working the day the engine honours it. `ScrollArea`'s
+ * overlay thumb is a real element and does get the pointer today.
+ */
 ::-webkit-scrollbar-thumb {
+    cursor: pointer;
     border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: padding-box;
