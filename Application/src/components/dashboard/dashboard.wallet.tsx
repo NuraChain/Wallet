@@ -29,6 +29,11 @@ import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
 const chipClass = 'h-9 min-w-0 flex-1 gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny';
 
 /**
+ * And the label inside them, for the same reason.
+ */
+const chipLabelClass = 'min-w-0 flex-1 truncate text-start font-medium';
+
+/**
  * AssetAmount - Balance over its USD worth, on the end of a holdings row.
  *
  * The native coin and every token render this identical pair. A holding with no resolvable price
@@ -149,7 +154,7 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                       */ }
                     <Text
                         variant='captionStrong'
-                        className='min-w-0 flex-1 truncate text-start font-medium'
+                        className={ chipLabelClass }
                         text={ name } />
 
                     <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />
@@ -169,7 +174,7 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
 
                     <Text
                         variant='captionStrong'
-                        className='min-w-0 flex-1 truncate text-start font-medium'
+                        className={ chipLabelClass }
                         text={ network.name } />
 
                     <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />

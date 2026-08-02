@@ -202,7 +202,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 reviewMap.map((item) => (
                                     <div
                                         key={ item.label }
-                                        className='flex items-center justify-between gap-2 text-tiny'>
+                                        className='flex items-center justify-between gap-2'>
 
                                         <Text text={ item.label } />
 
