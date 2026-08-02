@@ -7,7 +7,7 @@ import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import { TextField } from '../ui/field';
-import { Modal, ModalActions, ModalHeader } from '../ui/modal';
+import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { getNativeLogo } from '../../core/price';
@@ -101,7 +101,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
     return (
         <Modal
-            scroll
+            scroll='body'
             onClose={ onClose }
             panelClass='gap-2'>
 
@@ -121,13 +121,19 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                     <TextField
                                         key={ item.key }
                                         value={ draft[item.key] }
-                                        // A URL, a chain id and a ticker are all left-to-right, but an
-                                        // empty field has to keep the placeholder in the UI's own
-                                        // direction or the hint reads backwards under Persian.
-                                        dir={ item.key !== 'Name' && draft[item.key].length > 0 ? 'ltr' : undefined }
+                                        // A URL, a chain id and a ticker are all left-to-right, so
+                                        // they are typed `ltr` whatever the interface language is.
+                                        // Centring is what makes that bearable: aligned to the start,
+                                        // the Persian placeholder sat on one side of the field and the
+                                        // value the user typed appeared on the other, so the text
+                                        // jumped across the box on the first keystroke. Centred, the
+                                        // hint and the value occupy the same place and only the
+                                        // ordering inside the string is left to `dir`.
+                                        dir={ item.key === 'Name' ? undefined : 'ltr' }
                                         inputMode={ item.numeric ? 'numeric' : undefined }
                                         placeholder={ T(`Dashboard.Network.${ item.key }`) }
-                                        onValue={ (value) => { setDraft((current) => ({ ...current, [item.key]: value })); } } />
+                                        onValue={ (value) => { setDraft((current) => ({ ...current, [item.key]: value })); } }
+                                        className='text-center' />
                                 ))
                             }
 
@@ -151,70 +157,79 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                     ) :
                     (
                         <>
-                            {
-                                networks.map((item) =>
+                            <ModalBody className='gap-2'>
+
                                 {
-                                    const isActive = item.id === network.id;
+                                    networks.map((item) =>
+                                    {
+                                        const isActive = item.id === network.id;
 
-                                    return (
-                                        <div
-                                            key={ item.id }
-                                            className='flex items-center gap-1'>
+                                        // A row holds a fixed-height control, so it has to say it does
+                                        // not shrink: inside a scroll container the flex algorithm
+                                        // still squeezes items down to their content before it lets
+                                        // the region scroll, and the rows would lose their height
+                                        // instead of moving under the header.
+                                        return (
+                                            <div
+                                                key={ item.id }
+                                                className='flex shrink-0 items-center gap-1'>
 
-                                            <Button
-                                                variant='muted'
-                                                onClick={ () => { void onSelect(item.id); } }
-                                                className={ `h-12 flex-1 rounded-xl px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
+                                                <Button
+                                                    variant='muted'
+                                                    onClick={ () => { void onSelect(item.id); } }
+                                                    className={ `h-12 flex-1 rounded-xl px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
 
-                                                { /*
-                                                  * The same coin logo the wallet tab shows for the
-                                                  * active network, so the row and the chip that
-                                                  * opens it are the same thing. A custom network has
-                                                  * no logo to fetch, and `TokenIcon` falls back to
-                                                  * the lettered disc this row drew before.
-                                                  */ }
-                                                <TokenIcon
-                                                    primary
-                                                    src={ getNativeLogo(item.chainId) }
-                                                    symbol={ item.symbol }
-                                                    className='size-7 text-tiny' />
+                                                    { /*
+                                                      * The same coin logo the wallet tab shows for the
+                                                      * active network, so the row and the chip that
+                                                      * opens it are the same thing. A custom network has
+                                                      * no logo to fetch, and `TokenIcon` falls back to
+                                                      * the lettered disc this row drew before.
+                                                      */ }
+                                                    <TokenIcon
+                                                        primary
+                                                        src={ getNativeLogo(item.chainId) }
+                                                        symbol={ item.symbol }
+                                                        className='size-7 text-tiny' />
 
-                                                <Text
-                                                    variant='body'
-                                                    className='flex-1'
-                                                    text={ item.name } />
+                                                    <Text
+                                                        variant='body'
+                                                        className='flex-1'
+                                                        text={ item.name } />
+
+                                                    {
+                                                        isActive && <FiCheck size={ 18 } />
+                                                    }
+
+                                                </Button>
 
                                                 {
-                                                    isActive && <FiCheck size={ 18 } />
+                                                    item.custom &&
+                                                    (
+                                                        <Button
+                                                            variant='danger'
+                                                            size='iconChip'
+                                                            aria-label={ T('Dashboard.Network.Remove') }
+                                                            onClick={ () => { void onRemove(item.id); } }>
+
+                                                            <FiTrash2 size={ 16 } />
+
+                                                        </Button>
+                                                    )
                                                 }
 
-                                            </Button>
+                                            </div>
+                                        );
+                                    })
+                                }
 
-                                            {
-                                                item.custom &&
-                                                (
-                                                    <Button
-                                                        variant='danger'
-                                                        size='iconChip'
-                                                        aria-label={ T('Dashboard.Network.Remove') }
-                                                        onClick={ () => { void onRemove(item.id); } }>
-
-                                                        <FiTrash2 size={ 16 } />
-
-                                                    </Button>
-                                                )
-                                            }
-
-                                        </div>
-                                    );
-                                })
-                            }
+                            </ModalBody>
 
                             <Button
                                 variant='normal'
                                 size='action'
                                 onClick={ () => { setAdding(true); } }
-                                className='mt-1'
+                                className='mt-1 shrink-0'
                                 leftIcon={ <FiPlus size={ 16 } /> }
                                 text={ T('Dashboard.Network.Add') } />
                         </>

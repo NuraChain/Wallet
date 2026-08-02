@@ -22,17 +22,23 @@ import { inset } from '../../layout/container';
  *
  * `scroll` is the cap-and-scroll every long dialog wants; seven of them spelled the same two
  * utilities into `panelClass` by hand.
+ *
+ * `scroll='body'` caps the panel the same way but moves the scrolling into a `ModalBody`, so the
+ * header and the footer stay put and only the list between them moves. A dialog whose content grows
+ * without bound wants that one: scrolling the whole panel takes the title and the action row with it,
+ * and every fixed-height control in the column (an `action` button is `h-11`) is a flex item that
+ * shrinks to its text once the content no longer fits.
  * @param {object} props Component props.
  * @param {() => void} props.onClose Called when the backdrop is clicked.
  * @param {string} [props.z] Stacking class for backdrop and frame, where a surface layers differently.
  * @param {'center' | 'screen'} [props.frame] Shrink-wrapped centring, or a padded full-screen frame.
- * @param {boolean} [props.scroll] Caps the panel against the viewport and scrolls its content.
+ * @param {boolean | 'body'} [props.scroll] Caps the panel against the viewport and scrolls its content, or `'body'` to scroll only a `ModalBody` inside it.
  * @param {number} [props.scale] Entrance scale of the panel.
  * @param {string} [props.panelClass] Extra panel classes; conflicting utilities override the defaults.
  * @param {ReactNode} props.children The dialog content.
  * @returns {JSX.Element} The modal.
  */
-export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, scale = 0.9, panelClass = '', children }: { onClose: () => void; z?: string; frame?: 'center' | 'screen'; scroll?: boolean; scale?: number; panelClass?: string; children: ReactNode })
+export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, scale = 0.9, panelClass = '', children }: { onClose: () => void; z?: string; frame?: 'center' | 'screen'; scroll?: boolean | 'body'; scale?: number; panelClass?: string; children: ReactNode })
 {
     return (
         <>
@@ -57,7 +63,7 @@ export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, s
                     initial={ { opacity: 0, scale } }
                     animate={ { opacity: 1, scale: 1 } }
                     exit={ { opacity: 0, scale } }
-                    className={ cn(glassPanel, 'flex w-80 flex-col gap-3 rounded-2xl p-4', scroll && 'max-h-[80vh] overflow-y-auto', panelClass) }>
+                    className={ cn(glassPanel, 'flex w-80 flex-col gap-3 rounded-2xl p-4', scroll !== false && `max-h-[80vh] ${ scroll === 'body' ? 'overflow-hidden' : 'overflow-y-auto' }`, panelClass) }>
 
                     { children }
 
@@ -95,7 +101,7 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
     );
 
     return (
-        <div className={ cn('flex items-center justify-between', className) }>
+        <div className={ cn('flex shrink-0 items-center justify-between', className) }>
 
             {
                 subtitle.length === 0 && leading === undefined ?
@@ -131,6 +137,32 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
 }
 
 /**
+ * ModalBody - The one part of a dialog that scrolls, under `Modal`'s `scroll='body'`.
+ *
+ * `min-h-0` is what makes it work: a flex item's automatic minimum is its content, so without it the
+ * column refuses to shrink below the full list and the panel's cap is spent squeezing everything else
+ * instead. `flex-1` then hands the leftover height to this region, which is why the header above it
+ * and the actions below it keep the height they asked for.
+ *
+ * The gap matches the panel's own, so rows sit the same distance apart whether they are inside this
+ * region or not.
+ * @param {object} props Component props.
+ * @param {string} [props.className] Extra classes; conflicting utilities override the defaults.
+ * @param {ReactNode} props.children The scrolling content.
+ * @returns {JSX.Element} The scroll region.
+ */
+export function ModalBody({ className = '', children }: { className?: string; children: ReactNode })
+{
+    return (
+        <div className={ cn('flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain', className) }>
+
+            { children }
+
+        </div>
+    );
+}
+
+/**
  * ModalActions - The footer row of a dialog: side-by-side controls that split the width evenly.
  *
  * Six dialogs opened a `mt-1 flex gap-2` wrapper and then told each button inside it to be `flex-1`.
@@ -144,7 +176,7 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
 export function ModalActions({ className = '', children }: { className?: string; children: ReactNode })
 {
     return (
-        <div className={ cn('mt-1 flex gap-2 *:flex-1', className) }>
+        <div className={ cn('mt-1 flex shrink-0 gap-2 *:flex-1', className) }>
 
             { children }
 

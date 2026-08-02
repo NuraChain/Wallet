@@ -8,7 +8,7 @@ import Alert from '../ui/alert';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 import { ReadonlyField, TextField } from '../ui/field';
-import { Modal, ModalActions, ModalHeader } from '../ui/modal';
+import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
@@ -185,7 +185,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
     return (
         <Modal
-            scroll
+            scroll='body'
             onClose={ onClose }
             panelClass='max-w-[calc(100vw-2rem)]'>
 
@@ -238,173 +238,177 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                     ) :
                     (
                         <>
-                            {
-                                accounts.map((item) =>
+                            <ModalBody>
+
                                 {
-                                    const isActive = item.index === active;
-                                    const name = item.name.length > 0 ? item.name : defaultAccountName(item.index);
-                                    const hasBadge = item.emoji !== undefined && item.emoji.length > 0;
-
-                                    if (picking === item.index)
+                                    accounts.map((item) =>
                                     {
-                                        return (
-                                            <div
-                                                key={ item.index }
-                                                className='flex flex-col gap-2'>
+                                        const isActive = item.index === active;
+                                        const name = item.name.length > 0 ? item.name : defaultAccountName(item.index);
+                                        const hasBadge = item.emoji !== undefined && item.emoji.length > 0;
 
-                                                <Text text={ T('Dashboard.Accounts.Emoji') } />
+                                        if (picking === item.index)
+                                        {
+                                            return (
+                                                <div
+                                                    key={ item.index }
+                                                    className='flex shrink-0 flex-col gap-2'>
 
-                                                <div className='grid grid-cols-8 gap-1'>
+                                                    <Text text={ T('Dashboard.Accounts.Emoji') } />
 
-                                                    {
-                                                        emojiList.map((emoji) => (
-                                                            <Button
-                                                                key={ emoji }
-                                                                variant='muted'
-                                                                onClick={ () => { onBadge(item.index, emoji); } }
-                                                                className='size-8 rounded-lg text-medium'
-                                                                text={ emoji } />
-                                                        ))
-                                                    }
+                                                    <div className='grid grid-cols-8 gap-1'>
 
-                                                </div>
-
-                                                <Button
-                                                    variant='normal'
-                                                    size='action'
-                                                    onClick={ () => { onBadge(item.index, undefined); } }
-                                                    text={ T('Dashboard.Accounts.EmojiClear') } />
-
-                                            </div>
-                                        );
-                                    }
-
-                                    if (editing === item.index)
-                                    {
-                                        return (
-                                            <div
-                                                key={ item.index }
-                                                className='flex gap-2'>
-
-                                                <div className='flex-1'>
-
-                                                    <TextField
-                                                        autoFocus
-                                                        value={ draft }
-                                                        placeholder={ name }
-                                                        onValue={ setDraft }
-                                                        onEnter={ onSave }
-                                                        className='h-12' />
-
-                                                </div>
-
-                                                <Button
-                                                    variant='primary'
-                                                    onClick={ onSave }
-                                                    className='h-12 rounded-xl px-4 text-small'
-                                                    text={ T('Dashboard.Accounts.Save') } />
-
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <div
-                                            key={ item.index }
-                                            className={ `flex items-center gap-2 rounded-xl p-2 duration-300 ${ isActive ? 'bg-btn-primary/15' : '' }` }>
-
-                                            { /*
-                                              * The disc is its own control so tapping it opens the
-                                              * badge picker, which means it cannot stay inside the
-                                              * select button — a button inside a button is invalid.
-                                              * The pair is wrapped so both gaps stay what they were.
-                                              */ }
-                                            <div className='flex min-w-0 flex-1 items-center gap-3'>
-
-                                                <Button
-                                                    onClick={ () => { setEditing(-1); setPicking(item.index); } }
-                                                    aria-label={ T('Dashboard.Accounts.Emoji') }
-                                                    className='shrink-0 cursor-pointer'>
-
-                                                    { /* An emoji needs the extra step to read at disc size; a bare index does not. */ }
-                                                    { /*
-                                                      * The badge tile does not change with the
-                                                      * active account: the row's tint and its tick
-                                                      * already say which one that is, and a branded
-                                                      * fill under an emoji only fights it.
-                                                      */ }
-                                                    <IconBox
-                                                        tone='badge'
-                                                        size='size-9'
-                                                        className={ hasBadge ? 'text-medium' : 'text-small' }>
-
-                                                        { hasBadge ? item.emoji : item.index }
-
-                                                    </IconBox>
-
-                                                </Button>
-
-                                                <Button
-                                                    onClick={ () => { onSelect(item.index); } }
-                                                    className='flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start'>
-
-                                                    <div className='flex min-w-0 flex-1 flex-col'>
-
-                                                        <Text
-                                                            variant='body'
-                                                            className='truncate'
-                                                            text={ name } />
-
-                                                        { /*
-                                                          * `dir` sits on the span, not the block: on
-                                                          * the block it would also flip `text-start`
-                                                          * to the left under Persian, leaving the
-                                                          * address hanging under a right-aligned name.
-                                                          */ }
-                                                        <Text className='truncate font-mono'>
-
-                                                            <span dir='ltr'>
-
-                                                                { shortAddress(addresses[item.index] ?? '') }
-
-                                                            </span>
-
-                                                        </Text>
+                                                        {
+                                                            emojiList.map((emoji) => (
+                                                                <Button
+                                                                    key={ emoji }
+                                                                    variant='muted'
+                                                                    onClick={ () => { onBadge(item.index, emoji); } }
+                                                                    className='size-8 rounded-lg text-medium'
+                                                                    text={ emoji } />
+                                                            ))
+                                                        }
 
                                                     </div>
 
-                                                    {
-                                                        isActive &&
-                                                        (
-                                                            <FiCheck size={ 18 } className='shrink-0 text-txt-normal' />
-                                                        )
-                                                    }
+                                                    <Button
+                                                        variant='normal'
+                                                        size='action'
+                                                        onClick={ () => { onBadge(item.index, undefined); } }
+                                                        text={ T('Dashboard.Accounts.EmojiClear') } />
+
+                                                </div>
+                                            );
+                                        }
+
+                                        if (editing === item.index)
+                                        {
+                                            return (
+                                                <div
+                                                    key={ item.index }
+                                                    className='flex shrink-0 gap-2'>
+
+                                                    <div className='flex-1'>
+
+                                                        <TextField
+                                                            autoFocus
+                                                            value={ draft }
+                                                            placeholder={ name }
+                                                            onValue={ setDraft }
+                                                            onEnter={ onSave }
+                                                            className='h-12' />
+
+                                                    </div>
+
+                                                    <Button
+                                                        variant='primary'
+                                                        onClick={ onSave }
+                                                        className='h-12 rounded-xl px-4 text-small'
+                                                        text={ T('Dashboard.Accounts.Save') } />
+
+                                                </div>
+                                            );
+                                        }
+
+                                        return (
+                                            <div
+                                                key={ item.index }
+                                                className={ `flex shrink-0 items-center gap-2 rounded-xl p-2 duration-300 ${ isActive ? 'bg-btn-primary/15' : '' }` }>
+
+                                                { /*
+                                                  * The disc is its own control so tapping it opens the
+                                                  * badge picker, which means it cannot stay inside the
+                                                  * select button — a button inside a button is invalid.
+                                                  * The pair is wrapped so both gaps stay what they were.
+                                                  */ }
+                                                <div className='flex min-w-0 flex-1 items-center gap-3'>
+
+                                                    <Button
+                                                        onClick={ () => { setEditing(-1); setPicking(item.index); } }
+                                                        aria-label={ T('Dashboard.Accounts.Emoji') }
+                                                        className='shrink-0 cursor-pointer'>
+
+                                                        { /* An emoji needs the extra step to read at disc size; a bare index does not. */ }
+                                                        { /*
+                                                          * The badge tile does not change with the
+                                                          * active account: the row's tint and its tick
+                                                          * already say which one that is, and a branded
+                                                          * fill under an emoji only fights it.
+                                                          */ }
+                                                        <IconBox
+                                                            tone='badge'
+                                                            size='size-9'
+                                                            className={ hasBadge ? 'text-medium' : 'text-small' }>
+
+                                                            { hasBadge ? item.emoji : item.index }
+
+                                                        </IconBox>
+
+                                                    </Button>
+
+                                                    <Button
+                                                        onClick={ () => { onSelect(item.index); } }
+                                                        className='flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start'>
+
+                                                        <div className='flex min-w-0 flex-1 flex-col'>
+
+                                                            <Text
+                                                                variant='body'
+                                                                className='truncate'
+                                                                text={ name } />
+
+                                                            { /*
+                                                              * `dir` sits on the span, not the block: on
+                                                              * the block it would also flip `text-start`
+                                                              * to the left under Persian, leaving the
+                                                              * address hanging under a right-aligned name.
+                                                              */ }
+                                                            <Text className='truncate font-mono'>
+
+                                                                <span dir='ltr'>
+
+                                                                    { shortAddress(addresses[item.index] ?? '') }
+
+                                                                </span>
+
+                                                            </Text>
+
+                                                        </div>
+
+                                                        {
+                                                            isActive &&
+                                                            (
+                                                                <FiCheck size={ 18 } className='shrink-0 text-txt-normal' />
+                                                            )
+                                                        }
+
+                                                    </Button>
+
+                                                </div>
+
+                                                <Button
+                                                    variant='muted'
+                                                    size='icon'
+                                                    aria-label={ T('Dashboard.Accounts.Rename') }
+                                                    onClick={ () => { onEdit(item.index, name); } }
+                                                    className='shrink-0'>
+
+                                                    <FiEdit2 size={ 14 } />
 
                                                 </Button>
 
                                             </div>
+                                        );
+                                    })
+                                }
 
-                                            <Button
-                                                variant='muted'
-                                                size='icon'
-                                                aria-label={ T('Dashboard.Accounts.Rename') }
-                                                onClick={ () => { onEdit(item.index, name); } }
-                                                className='shrink-0'>
-
-                                                <FiEdit2 size={ 14 } />
-
-                                            </Button>
-
-                                        </div>
-                                    );
-                                })
-                            }
+                            </ModalBody>
 
                             <Button
                                 variant='normal'
                                 size='action'
                                 onClick={ () => { setAdding(true); setError(''); setDraftIndex(''); } }
-                                className='mt-1'
+                                className='mt-1 shrink-0'
                                 leftIcon={ <FiPlus size={ 16 } /> }
                                 text={ T('Dashboard.Accounts.Add') } />
                         </>
