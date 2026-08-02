@@ -185,7 +185,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
     return (
         <Modal
-            scroll='body'
+            scroll
             onClose={ onClose }
             panelClass='max-w-[calc(100vw-2rem)]'>
 
@@ -252,7 +252,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                             return (
                                                 <div
                                                     key={ item.index }
-                                                    className='flex shrink-0 flex-col gap-2'>
+                                                    className='flex flex-col gap-2'>
 
                                                     <Text text={ T('Dashboard.Accounts.Emoji') } />
 
@@ -286,7 +286,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                             return (
                                                 <div
                                                     key={ item.index }
-                                                    className='flex shrink-0 gap-2'>
+                                                    className='flex gap-2'>
 
                                                     <div className='flex-1'>
 
@@ -313,7 +313,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                         return (
                                             <div
                                                 key={ item.index }
-                                                className={ `flex shrink-0 items-center gap-2 rounded-xl p-2 duration-300 ${ isActive ? 'bg-btn-primary/15' : '' }` }>
+                                                className={ `flex items-center gap-2 rounded-xl p-2 transition-colors duration-300 ${ isActive ? 'bg-btn-primary/15' : '' }` }>
 
                                                 { /*
                                                   * The disc is its own control so tapping it opens the
@@ -404,13 +404,16 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
                             </ModalBody>
 
-                            <Button
-                                variant='normal'
-                                size='action'
-                                onClick={ () => { setAdding(true); setError(''); setDraftIndex(''); } }
-                                className='mt-1 shrink-0'
-                                leftIcon={ <FiPlus size={ 16 } /> }
-                                text={ T('Dashboard.Accounts.Add') } />
+                            <ModalActions>
+
+                                <Button
+                                    variant='normal'
+                                    size='action'
+                                    onClick={ () => { setAdding(true); setError(''); setDraftIndex(''); } }
+                                    leftIcon={ <FiPlus size={ 16 } /> }
+                                    text={ T('Dashboard.Accounts.Add') } />
+
+                            </ModalActions>
                         </>
                     )
             }

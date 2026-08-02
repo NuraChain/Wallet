@@ -101,7 +101,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
     return (
         <Modal
-            scroll='body'
+            scroll
             onClose={ onClose }
             panelClass='gap-2'>
 
@@ -164,15 +164,10 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                     {
                                         const isActive = item.id === network.id;
 
-                                        // A row holds a fixed-height control, so it has to say it does
-                                        // not shrink: inside a scroll container the flex algorithm
-                                        // still squeezes items down to their content before it lets
-                                        // the region scroll, and the rows would lose their height
-                                        // instead of moving under the header.
                                         return (
                                             <div
                                                 key={ item.id }
-                                                className='flex shrink-0 items-center gap-1'>
+                                                className='flex items-center gap-1'>
 
                                                 <Button
                                                     variant='muted'
@@ -225,13 +220,16 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
                             </ModalBody>
 
-                            <Button
-                                variant='normal'
-                                size='action'
-                                onClick={ () => { setAdding(true); } }
-                                className='mt-1 shrink-0'
-                                leftIcon={ <FiPlus size={ 16 } /> }
-                                text={ T('Dashboard.Network.Add') } />
+                            <ModalActions>
+
+                                <Button
+                                    variant='normal'
+                                    size='action'
+                                    onClick={ () => { setAdding(true); } }
+                                    leftIcon={ <FiPlus size={ 16 } /> }
+                                    text={ T('Dashboard.Network.Add') } />
+
+                            </ModalActions>
                         </>
                     )
             }

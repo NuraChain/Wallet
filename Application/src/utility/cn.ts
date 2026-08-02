@@ -28,6 +28,10 @@ const weightMap = new Set([ 'thin', 'extralight', 'light', 'normal', 'medium', '
  *
  * A class matching nothing here is simply never dropped, which makes an unlisted family fail the safe
  * way: an override that quietly stops working is a bug, a class that survives is at worst noise.
+ *
+ * `flex` is deliberately absent while `shrink`, `grow` and `basis` are listed: the bare `flex` is a
+ * display, `flex-col` a direction, `flex-wrap` a wrap and `flex-1` the shorthand, so one prefix would
+ * collapse four properties into one group and `flex flex-col` would lose its display.
  */
 const groupList =
 [
@@ -97,7 +101,10 @@ const groupList =
     'items',
     'justify',
     'self',
-    'order'
+    'order',
+    'shrink',
+    'grow',
+    'basis'
 ] as const;
 
 /**

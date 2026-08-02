@@ -21,24 +21,20 @@ import { inset } from '../../layout/container';
  * overview), where the panel then sizes itself against the viewport instead of its content.
  *
  * `scroll` is the cap-and-scroll every long dialog wants; seven of them spelled the same two
- * utilities into `panelClass` by hand.
- *
- * `scroll='body'` caps the panel the same way but moves the scrolling into a `ModalBody`, so the
- * header and the footer stay put and only the list between them moves. A dialog whose content grows
- * without bound wants that one: scrolling the whole panel takes the title and the action row with it,
- * and every fixed-height control in the column (an `action` button is `h-11`) is a flex item that
- * shrinks to its text once the content no longer fits.
+ * utilities into `panelClass` by hand. It stays the panel's own overflow, which is the behaviour a
+ * dialog should fall back to: wrapping the growing part in a `ModalBody` is what holds the header and
+ * the footer still, and anything left outside that region can still scroll rather than being clipped.
  * @param {object} props Component props.
  * @param {() => void} props.onClose Called when the backdrop is clicked.
  * @param {string} [props.z] Stacking class for backdrop and frame, where a surface layers differently.
  * @param {'center' | 'screen'} [props.frame] Shrink-wrapped centring, or a padded full-screen frame.
- * @param {boolean | 'body'} [props.scroll] Caps the panel against the viewport and scrolls its content, or `'body'` to scroll only a `ModalBody` inside it.
+ * @param {boolean} [props.scroll] Caps the panel against the viewport and scrolls its content.
  * @param {number} [props.scale] Entrance scale of the panel.
  * @param {string} [props.panelClass] Extra panel classes; conflicting utilities override the defaults.
  * @param {ReactNode} props.children The dialog content.
  * @returns {JSX.Element} The modal.
  */
-export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, scale = 0.9, panelClass = '', children }: { onClose: () => void; z?: string; frame?: 'center' | 'screen'; scroll?: boolean | 'body'; scale?: number; panelClass?: string; children: ReactNode })
+export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, scale = 0.9, panelClass = '', children }: { onClose: () => void; z?: string; frame?: 'center' | 'screen'; scroll?: boolean; scale?: number; panelClass?: string; children: ReactNode })
 {
     return (
         <>
@@ -63,7 +59,7 @@ export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, s
                     initial={ { opacity: 0, scale } }
                     animate={ { opacity: 1, scale: 1 } }
                     exit={ { opacity: 0, scale } }
-                    className={ cn(glassPanel, 'flex w-80 flex-col gap-3 rounded-2xl p-4', scroll !== false && `max-h-[80vh] ${ scroll === 'body' ? 'overflow-hidden' : 'overflow-y-auto' }`, panelClass) }>
+                    className={ cn(glassPanel, 'flex w-80 flex-col gap-3 rounded-2xl p-4', scroll && 'max-h-[80vh] overflow-y-auto', panelClass) }>
 
                     { children }
 
@@ -137,15 +133,27 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
 }
 
 /**
- * ModalBody - The one part of a dialog that scrolls, under `Modal`'s `scroll='body'`.
+ * ModalBody - The one part of a dialog that scrolls, so its header and actions do not.
  *
  * `min-h-0` is what makes it work: a flex item's automatic minimum is its content, so without it the
  * column refuses to shrink below the full list and the panel's cap is spent squeezing everything else
  * instead. `flex-1` then hands the leftover height to this region, which is why the header above it
  * and the actions below it keep the height they asked for.
  *
+ * `*:shrink-0` is the same rule turned outward, and it belongs here rather than on every row: a row
+ * that holds a fixed-height control (an `action` button is `h-11`) is itself a flex item, and the
+ * algorithm squeezes it down to its text before it lets this region scroll. A row that forgot the
+ * class did not fail loudly, it just lost its height — so the region states it once for all of them.
+ *
  * The gap matches the panel's own, so rows sit the same distance apart whether they are inside this
  * region or not.
+ *
+ * The padding is 8px on every side, and the negative margin of the same size pays for it out of the
+ * panel's own padding rather than out of the content, so the rows keep the width they have in a
+ * dialog that does not scroll. It buys two things: the scrollbar stops sitting against the last
+ * character, and a focused row can draw its outline. A scroll container clips at its padding box, and
+ * `Button`'s focus ring is `outline-2 outline-offset-2` — 4px outside the row — so with no padding
+ * the ring on the first row was cut off by the very region meant to hold it.
  * @param {object} props Component props.
  * @param {string} [props.className] Extra classes; conflicting utilities override the defaults.
  * @param {ReactNode} props.children The scrolling content.
@@ -154,7 +162,7 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
 export function ModalBody({ className = '', children }: { className?: string; children: ReactNode })
 {
     return (
-        <div className={ cn('flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain', className) }>
+        <div className={ cn('-m-2 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-2 *:shrink-0', className) }>
 
             { children }
 
