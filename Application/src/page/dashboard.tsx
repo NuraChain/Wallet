@@ -76,7 +76,10 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
     const closeModal = useCallback(() => { setModal('none'); }, [ ]);
     const backToSettings = useCallback(() => { setModal('settings'); }, [ ]);
 
-    const name = accounts.find((item) => item.index === account)?.name ?? defaultAccountName(account);
+    const current = accounts.find((item) => item.index === account);
+
+    const name = current?.name ?? defaultAccountName(account);
+    const emoji = current?.emoji ?? '';
 
     const tracked = useMemo(() => tokenMap[network.chainId] ?? [], [ tokenMap, network.chainId ]);
 
@@ -185,11 +188,21 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
         void saveActiveAccount(index);
     };
 
-    const onRenameAccount = (index: number, value: string) =>
+    /**
+     * onUpdateAccount - Changes one account's label or badge.
+     *
+     * A patch rather than a value, because the switcher edits two independent things and neither
+     * should have to restate the other. An index that is not in the list yet is added with the
+     * default label, which is what happens when a badge is set on a freshly derived account.
+     * @param {number} index The derivation index being changed.
+     * @param {Partial<Account>} patch The fields to change.
+     * @returns {void}
+     */
+    const onUpdateAccount = (index: number, patch: Partial<Account>) =>
     {
         const next = accounts.some((item) => item.index === index) ?
-            accounts.map((item) => (item.index === index ? { ...item, name: value } : item)) :
-            [ ...accounts, { index, name: value } ].sort((left, right) => left.index - right.index);
+            accounts.map((item) => (item.index === index ? { ...item, ...patch } : item)) :
+            [ ...accounts, { index, name: defaultAccountName(index), ...patch } ].sort((left, right) => left.index - right.index);
 
         setAccounts(next);
 
@@ -306,7 +319,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             accounts={ accounts }
                             active={ account }
                             onSelect={ onSelectAccount }
-                            onRename={ onRenameAccount }
+                            onUpdate={ onUpdateAccount }
                             onClose={ closeModal } />
                     )
                 }
@@ -459,6 +472,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                                         <DashboardWallet
                                                             address={ address }
                                                             name={ name }
+                                                            emoji={ emoji }
                                                             network={ network }
                                                             nativeFormatted={ native.formatted }
                                                             nativeLoading={ native.loading }

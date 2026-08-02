@@ -4,13 +4,25 @@ import { getValue, setValue } from './storage';
 /**
  * A single derivable account.
  *
- * `index` is the BIP44 address index used by `WalletManager` (`m/44'/60'/0'/0/{index}`), so the whole account list is reproducible from the one mnemonic — nothing extra is persisted beyond the label.
+ * `index` is the BIP44 address index used by `WalletManager` (`m/44'/60'/0'/0/{index}`), so the whole account list is reproducible from the one mnemonic — nothing extra is persisted beyond the label and the chosen badge.
+ *
+ * `emoji` is absent until the user picks one, and the account falls back to showing its index. It is never empty: clearing the badge removes the field rather than storing a blank.
  */
 export interface Account
 {
     index: number;
     name: string;
+    emoji?: string;
 }
+
+/**
+ * Longest badge accepted from storage.
+ *
+ * An emoji is rarely one code unit — a flag is two, and anything with a skin tone or a variation
+ * selector is more — so the cap is generous, but it still stops a hand-edited store from putting a
+ * paragraph on the account disc.
+ */
+const emojiLimit = 16;
 
 /**
  * Highest derivation index the wallet will accept, exclusive.
@@ -21,6 +33,15 @@ export interface Account
  * about the label ("Account 100") and the input staying comprehensible, not about the key space.
  */
 export const accountLimit = 100;
+
+/**
+ * Lowest derivation index the add form offers.
+ *
+ * Index 0 comes with the wallet and is always present, so it is the one index that can never be
+ * added — offering it only ever produced the "already in your list" error. Loading still accepts 0,
+ * because that is the account every wallet starts with.
+ */
+export const accountFirst = 1;
 
 /**
  * defaultAccountName - Builds the fallback label for a slot ("Account 1", "Account 2", ...).
@@ -60,7 +81,13 @@ const normalize = (parsed: unknown) =>
             continue;
         }
 
-        accounts.push({ index, name: typeof name === 'string' && name.trim().length > 0 ? name : defaultAccountName(index) });
+        const emoji = 'emoji' in entry ? entry.emoji : undefined;
+
+        accounts.push({
+            index,
+            name: typeof name === 'string' && name.trim().length > 0 ? name : defaultAccountName(index),
+            ...typeof emoji === 'string' && emoji.length > 0 && emoji.length <= emojiLimit ? { emoji } : {}
+        });
     }
 
     return accounts.sort((left, right) => left.index - right.index);

@@ -94,7 +94,9 @@
             "IndexNote": "Each index derives a different account from the same recovery phrase.",
             "Back": "Back",
             "Create": "Add",
-            "ErrorIndex": "Enter a whole number between 0 and %s",
+            "ErrorIndex": "Enter a whole number between %s and %s",
+            "Emoji": "Pick an icon",
+            "EmojiClear": "Use the number",
             "ErrorExists": "That index is already in your list"
         },
         "Address": "Address",

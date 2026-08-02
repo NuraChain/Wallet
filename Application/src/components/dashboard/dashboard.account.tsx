@@ -12,7 +12,42 @@ import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
-import { accountLimit, defaultAccountName, type Account } from '../../utility/account';
+import { accountFirst, accountLimit, defaultAccountName, type Account } from '../../utility/account';
+
+/**
+ * The badges an account can wear.
+ *
+ * A fixed palette rather than a free text field: a keyboard's emoji picker is not reachable on every
+ * platform this ships to, and one tap beats typing. They are chosen to stay distinguishable at 20px
+ * and to avoid anything that renders as a flat box on an older Android WebView.
+ */
+const emojiList =
+[
+    '🦊',
+    '🐺',
+    '🐱',
+    '🐼',
+    '🦁',
+    '🐸',
+    '🐙',
+    '🦄',
+    '🚀',
+    '⭐',
+    '🔥',
+    '💎',
+    '🌙',
+    '⚡',
+    '🍀',
+    '🌈',
+    '🎯',
+    '👑',
+    '🔑',
+    '🏦',
+    '💼',
+    '🧊',
+    '🍉',
+    '🎲'
+];
 
 /**
  * DashboardAccount - Account switcher: pick which derived account the dashboard is looking at, label them, and add more.
@@ -25,14 +60,15 @@ import { accountLimit, defaultAccountName, type Account } from '../../utility/ac
  * @param {Account[]} props.accounts The accounts created so far.
  * @param {number} props.active The active derivation index.
  * @param {(index: number) => void} props.onSelect Activates an index, creating the account if it is new.
- * @param {(index: number, name: string) => void} props.onRename Renames an account.
+ * @param {(index: number, patch: Partial<Account>) => void} props.onUpdate Changes an account's label or badge.
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The account modal.
  */
-export default function DashboardAccount({ mnemonic, accounts, active, onSelect, onRename, onClose }: { mnemonic: string; accounts: Account[]; active: number; onSelect: (index: number) => void; onRename: (index: number, name: string) => void; onClose: () => void })
+export default function DashboardAccount({ mnemonic, accounts, active, onSelect, onUpdate, onClose }: { mnemonic: string; accounts: Account[]; active: number; onSelect: (index: number) => void; onUpdate: (index: number, patch: Partial<Account>) => void; onClose: () => void })
 {
     const [ draft, setDraft ] = useState('');
     const [ editing, setEditing ] = useState(-1);
+    const [ picking, setPicking ] = useState(-1);
     const [ adding, setAdding ] = useState(false);
     const [ error, setError ] = useState('');
     const [ draftIndex, setDraftIndex ] = useState('');
@@ -51,6 +87,10 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
     /**
      * parseIndex - Reads the typed index, or `undefined` when it is not a usable one.
+     *
+     * The range starts at one rather than zero: index 0 is created with the wallet and is always in
+     * the list, so it is the one index that can never be added. Offering it only ever produced the
+     * "already in your list" error.
      * @param {string} value The raw input.
      * @returns {number | undefined} The index, or `undefined` when out of range or not an integer.
      */
@@ -65,7 +105,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
         const parsed = Number(trimmed);
 
-        if (!Number.isInteger(parsed) || parsed < 0 || parsed >= accountLimit)
+        if (!Number.isInteger(parsed) || parsed < accountFirst || parsed >= accountLimit)
         {
             return undefined;
         }
@@ -84,6 +124,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
     const onEdit = (index: number, name: string) =>
     {
+        setPicking(-1);
         setEditing(index);
         setDraft(name);
     };
@@ -94,10 +135,25 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
         if (trimmed.length > 0)
         {
-            onRename(editing, trimmed);
+            onUpdate(editing, { name: trimmed });
         }
 
         setEditing(-1);
+    };
+
+    /**
+     * onBadge - Applies a chosen badge and closes the picker.
+     *
+     * `undefined` clears it, which drops the field rather than storing a blank, so the account goes
+     * back to showing its derivation index.
+     * @param {number} index The account being changed.
+     * @param {string | undefined} emoji The badge, or `undefined` to clear it.
+     */
+    const onBadge = (index: number, emoji: string | undefined) =>
+    {
+        onUpdate(index, { emoji });
+
+        setPicking(-1);
     };
 
     const onCreate = () =>
@@ -106,7 +162,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
         if (index === undefined)
         {
-            setError(T('Dashboard.Accounts.ErrorIndex', String(accountLimit - 1)));
+            setError(T('Dashboard.Accounts.ErrorIndex', String(accountFirst), String(accountLimit - 1)));
 
             return;
         }
@@ -187,6 +243,41 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                 {
                                     const isActive = item.index === active;
                                     const name = item.name.length > 0 ? item.name : defaultAccountName(item.index);
+                                    const hasBadge = item.emoji !== undefined && item.emoji.length > 0;
+
+                                    if (picking === item.index)
+                                    {
+                                        return (
+                                            <div
+                                                key={ item.index }
+                                                className='flex flex-col gap-2'>
+
+                                                <Text text={ T('Dashboard.Accounts.Emoji') } />
+
+                                                <div className='grid grid-cols-8 gap-1'>
+
+                                                    {
+                                                        emojiList.map((emoji) => (
+                                                            <Button
+                                                                key={ emoji }
+                                                                variant='muted'
+                                                                onClick={ () => { onBadge(item.index, emoji); } }
+                                                                className='size-8 rounded-lg text-medium'
+                                                                text={ emoji } />
+                                                        ))
+                                                    }
+
+                                                </div>
+
+                                                <Button
+                                                    variant='normal'
+                                                    size='action'
+                                                    onClick={ () => { onBadge(item.index, undefined); } }
+                                                    text={ T('Dashboard.Accounts.EmojiClear') } />
+
+                                            </div>
+                                        );
+                                    }
 
                                     if (editing === item.index)
                                     {
@@ -222,41 +313,76 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                             key={ item.index }
                                             className={ `flex items-center gap-2 rounded-xl p-2 duration-300 ${ isActive ? 'bg-btn-primary/15' : '' }` }>
 
-                                            <Button
-                                                onClick={ () => { onSelect(item.index); } }
-                                                className='flex flex-1 cursor-pointer items-center gap-3 text-start'>
+                                            { /*
+                                              * The disc is its own control so tapping it opens the
+                                              * badge picker, which means it cannot stay inside the
+                                              * select button — a button inside a button is invalid.
+                                              * The pair is wrapped so both gaps stay what they were.
+                                              */ }
+                                            <div className='flex min-w-0 flex-1 items-center gap-3'>
 
-                                                <IconBox
-                                                    tone={ isActive ? 'primary' : 'secondary' }
-                                                    size='size-9'
-                                                    className='text-small'>
+                                                <Button
+                                                    onClick={ () => { setEditing(-1); setPicking(item.index); } }
+                                                    aria-label={ T('Dashboard.Accounts.Emoji') }
+                                                    className='shrink-0 cursor-pointer'>
 
-                                                    { item.index }
+                                                    { /* An emoji needs the extra step to read at disc size; a bare index does not. */ }
+                                                    { /*
+                                                      * The badge tile does not change with the
+                                                      * active account: the row's tint and its tick
+                                                      * already say which one that is, and a branded
+                                                      * fill under an emoji only fights it.
+                                                      */ }
+                                                    <IconBox
+                                                        tone='badge'
+                                                        size='size-9'
+                                                        className={ hasBadge ? 'text-medium' : 'text-small' }>
 
-                                                </IconBox>
+                                                        { hasBadge ? item.emoji : item.index }
 
-                                                <div className='flex min-w-0 flex-1 flex-col'>
+                                                    </IconBox>
 
-                                                    <Text
-                                                        variant='body'
-                                                        className='truncate'
-                                                        text={ name } />
+                                                </Button>
 
-                                                    <Text
-                                                        dir='ltr'
-                                                        className='font-mono'
-                                                        text={ shortAddress(addresses[item.index] ?? '') } />
+                                                <Button
+                                                    onClick={ () => { onSelect(item.index); } }
+                                                    className='flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start'>
 
-                                                </div>
+                                                    <div className='flex min-w-0 flex-1 flex-col'>
 
-                                                {
-                                                    isActive &&
-                                                    (
-                                                        <FiCheck size={ 18 } className='shrink-0 text-txt-normal' />
-                                                    )
-                                                }
+                                                        <Text
+                                                            variant='body'
+                                                            className='truncate'
+                                                            text={ name } />
 
-                                            </Button>
+                                                        { /*
+                                                          * `dir` sits on the span, not the block: on
+                                                          * the block it would also flip `text-start`
+                                                          * to the left under Persian, leaving the
+                                                          * address hanging under a right-aligned name.
+                                                          */ }
+                                                        <Text className='truncate font-mono'>
+
+                                                            <span dir='ltr'>
+
+                                                                { shortAddress(addresses[item.index] ?? '') }
+
+                                                            </span>
+
+                                                        </Text>
+
+                                                    </div>
+
+                                                    {
+                                                        isActive &&
+                                                        (
+                                                            <FiCheck size={ 18 } className='shrink-0 text-txt-normal' />
+                                                        )
+                                                    }
+
+                                                </Button>
+
+                                            </div>
 
                                             <Button
                                                 variant='muted'

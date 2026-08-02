@@ -12,6 +12,10 @@
     --color-glass-line: var(--glass-border);
     --color-scrim: var(--scrim);
 
+    --color-badge: var(--badge);
+    --color-badge-line: var(--badge-border);
+    --color-badge-text: var(--badge-text);
+
     --color-btn-muted: var(--btn-muted);
     --color-btn-muted-hover: var(--btn-muted-hover);
     --color-btn-muted-active: var(--btn-muted-active);
@@ -92,6 +96,16 @@
     /* What every dialog and sheet dims the page with. One value so the two surfaces cannot drift. */
     --scrim: oklch(0% 0 0 / 0.25);
 
+    /*
+     * The account badge: a pale tile that does not follow the theme, because an emoji is a
+     * full-colour glyph and only reads against a light neutral. Same reasoning as the QR tile, which
+     * is likewise fixed. The foreground is pinned dark for the same reason — it has to stay legible
+     * on a light tile in both themes — and the hairline stops the tile dissolving into a light panel.
+     */
+    --badge: oklch(100% 0 0);
+    --badge-border: oklch(0% 0 0 / 0.08);
+    --badge-text: oklch(20% 0.02 260);
+
     --glass-border: oklch(100% 0 0 / 0.6);
     --glass-highlight: oklch(100% 0 0 / 0.5);
     --glass-shadow: oklch(30% 0.03 260 / 0.12);
@@ -153,6 +167,11 @@
     --scrollbar-thumb-hover: oklch(100% 0 0 / 0.4);
 
     --scrim: oklch(0% 0 0 / 0.25);
+
+    /* Deliberately the same as the light theme — see the note there. */
+    --badge: oklch(100% 0 0);
+    --badge-border: oklch(0% 0 0 / 0.08);
+    --badge-text: oklch(20% 0.02 260);
 
     --glass-border: oklch(100% 0 0 / 0.14);
     --glass-highlight: oklch(100% 0 0 / 0.12);

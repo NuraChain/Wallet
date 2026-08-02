@@ -65,6 +65,7 @@ function AssetAmount({ amount, value }: { amount: string; value?: string })
  * @param {object} props Component props.
  * @param {string} props.address The account address.
  * @param {string} props.name The account label.
+ * @param {string} props.emoji The account's chosen badge, or an empty string for none.
  * @param {Network} props.network The active network.
  * @param {string} props.nativeFormatted Native balance as a decimal string.
  * @param {boolean} props.nativeLoading Whether the native balance is still loading.
@@ -84,7 +85,7 @@ function AssetAmount({ amount, value }: { amount: string; value?: string })
  * @param {() => void} props.onOverview Opens the full history page.
  * @returns {JSX.Element} The wallet tab.
  */
-export default function DashboardWallet({ address, name, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
+export default function DashboardWallet({ address, name, emoji, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; emoji: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
 {
     // The icon carries the feedback, so it only has to stay swapped long enough to register.
     const clipboard = useClipboard();
@@ -133,9 +134,12 @@ export default function DashboardWallet({ address, name, network, nativeFormatte
                     onClick={ onAccounts }
                     className={ chipClass }>
 
-                    <IconBox tone='primary' size='size-7'>
+                    { /* The badge the account switcher set, or the generic person until one is chosen. */ }
+                    <IconBox tone='badge' size='size-7' className={ emoji.length > 0 ? 'text-small' : '' }>
 
-                        <HiOutlineUser size={ 14 } />
+                        {
+                            emoji.length > 0 ? emoji : <HiOutlineUser size={ 14 } />
+                        }
 
                     </IconBox>
 
