@@ -204,19 +204,18 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                         key={ item.label }
                                         className='flex items-center justify-between gap-2 text-tiny'>
 
-                                        <span className='text-txt-muted'>
+                                        <Text text={ item.label } />
 
-                                            { item.label }
-
-                                        </span>
-
-                                        <span
+                                        { /*
+                                          * `captionStrong` is the muted caption above at the same size
+                                          * in the normal colour, which is the whole difference between
+                                          * a label and its value here.
+                                          */ }
+                                        <Text
+                                            variant='captionStrong'
                                             dir={ item.mono ? 'ltr' : undefined }
-                                            className={ item.mono ? 'font-mono text-txt-normal' : 'text-txt-normal' }>
-
-                                            { item.value }
-
-                                        </span>
+                                            className={ item.mono ? 'font-mono' : '' }
+                                            text={ item.value } />
 
                                     </div>
                                 ))

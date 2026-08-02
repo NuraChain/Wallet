@@ -143,11 +143,14 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
 
                     </IconBox>
 
-                    <span className='min-w-0 flex-1 truncate text-start font-medium'>
-
-                        { name }
-
-                    </span>
+                    { /*
+                      * `captionStrong` is the chip's own pairing — the `text-tiny` on the capsule and
+                      * the `text-txt-normal` on its fill — so naming it here changes nothing on screen.
+                      */ }
+                    <Text
+                        variant='captionStrong'
+                        className='min-w-0 flex-1 truncate text-start font-medium'
+                        text={ name } />
 
                     <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />
 
@@ -164,11 +167,10 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                         symbol={ network.symbol }
                         className='size-7 shrink-0 text-tiny' />
 
-                    <span className='min-w-0 flex-1 truncate text-start font-medium'>
-
-                        { network.name }
-
-                    </span>
+                    <Text
+                        variant='captionStrong'
+                        className='min-w-0 flex-1 truncate text-start font-medium'
+                        text={ network.name } />
 
                     <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />
 

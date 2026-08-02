@@ -243,11 +243,9 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                                                         <item.icon size={ 14 } className='shrink-0' />
 
-                                                        <span className='truncate'>
-
-                                                            { T(item.label) }
-
-                                                        </span>
+                                                        <Text
+                                                            className='truncate'
+                                                            text={ T(item.label) } />
 
                                                     </Button>
                                                 ))

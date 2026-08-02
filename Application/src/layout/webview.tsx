@@ -4,6 +4,7 @@ import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
 import { motion } from 'motion/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
+import Text from '../components/ui/text';
 import Spinner from '../components/ui/spinner';
 
 import { T } from '../utility/language';
@@ -313,11 +314,7 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
 
                         <Spinner size={ 22 } />
 
-                        <span>
-
-                            { T('Dashboard.Browser.Loading') }
-
-                        </span>
+                        <Text text={ T('Dashboard.Browser.Loading') } />
 
                         <span className='relative h-0.5 w-32 overflow-hidden rounded-full bg-base-3'>
 
