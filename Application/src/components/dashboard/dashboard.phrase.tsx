@@ -155,14 +155,23 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                 onValue={ setPassword }
                                 onEnter={ () => { void onUnlock(); } } />
 
+                            { /*
+                              * The spinner replaces the label rather than joining it, matching the
+                              * unlock screen. The button fills the dialog's width either way, so
+                              * nothing moves when the label steps out.
+                              *
+                              * The label it replaced becomes the accessible name for as long as it
+                              * is gone, so a screen reader still hears what the button is doing.
+                              */ }
                             <Button
                                 variant='primary'
                                 size='action'
                                 disabled={ isLoading }
                                 loading={ isLoading }
                                 onClick={ () => { void onUnlock(); } }
+                                aria-label={ isLoading ? T('Dashboard.Phrase.Pending') : undefined }
                                 className='mt-1 disabled:opacity-60'
-                                text={ isLoading ? T('Dashboard.Phrase.Pending') : T('Dashboard.Phrase.Unlock') } />
+                                text={ isLoading ? '' : T('Dashboard.Phrase.Unlock') } />
                         </>
                     ) :
                     (

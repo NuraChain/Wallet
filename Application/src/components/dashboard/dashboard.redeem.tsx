@@ -122,14 +122,23 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                 placeholder={ T('Dashboard.Redeem.CodeHint') }
                                 className='text-center font-mono text-tiny' />
 
+                            { /*
+                              * The spinner replaces the label rather than joining it, matching the
+                              * unlock and recovery-phrase screens. The button fills the dialog's
+                              * width either way, so nothing moves when the label steps out.
+                              *
+                              * The label it replaced becomes the accessible name for as long as it
+                              * is gone, so a screen reader still hears what the button is doing.
+                              */ }
                             <Button
                                 variant='primary'
                                 size='action'
                                 disabled={ isLoading }
                                 loading={ isLoading }
                                 onClick={ () => { void onSubmit(); } }
+                                aria-label={ isLoading ? T('Dashboard.Redeem.Pending') : undefined }
                                 className='mt-1 disabled:opacity-60'
-                                text={ isLoading ? T('Dashboard.Redeem.Pending') : T('Dashboard.Redeem.Submit') } />
+                                text={ isLoading ? '' : T('Dashboard.Redeem.Submit') } />
                         </>
                     )
             }
