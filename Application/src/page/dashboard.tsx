@@ -440,7 +440,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                             variant='browser'
                                             role='tabpanel'
                                             id={ `dashboard-panel-${ item.key }` }
-                                            aria-hidden={ index !== active }
+                                            aria-hidden={ index === active ? undefined : true }
                                             aria-labelledby={ `dashboard-tab-${ item.key }` }>
 
                                             <DashboardBrowser
@@ -463,7 +463,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                                 variant='tab'
                                                 role='tabpanel'
                                                 id={ `dashboard-panel-${ item.key }` }
-                                                aria-hidden={ index !== active }
+                                                aria-hidden={ index === active ? undefined : true }
                                                 aria-labelledby={ `dashboard-tab-${ item.key }` }>
 
                                                 {
