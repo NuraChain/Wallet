@@ -20,8 +20,6 @@ npm run lint           # eslint .    (lint:fix to autofix)
 
 There is no test suite. `npm run build` runs `tsc` as the typecheck gate. Prefer `npm run desktop` over `npm run dev` for anything touching Tauri APIs (`@tauri-apps/*`, `invoke`, store, platform) — those throw outside a Tauri window.
 
-The React DevTools browser extension cannot reach this UI: it renders inside WebView2 (Windows) or the system WebView (Android), and neither loads extensions. The standalone `react-devtools` app is the only route that works here, and it is deliberately **not** wired in — anyone who wants it has to add the injection themselves.
-
 ## Architecture
 
 ### Two halves, thin native surface
