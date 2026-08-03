@@ -33,6 +33,14 @@ const mobileAgent = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36
 const desktopAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
 
 /**
+ * How long the frame is followed after something that could have moved it, in animation frames.
+ *
+ * Long enough to outlast a tab slide, which runs for 350ms, and bounded so nothing is left running
+ * once the frame has come to rest.
+ */
+const settleFrames = 90;
+
+/**
  * WebFrame - A rectangle of the layout that a real browser view is painted into.
  *
  * Pages render in a child webview parented to the app window, not an iframe: most dApps and explorers
@@ -105,6 +113,61 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
         chainRef.current = chainRef.current.then(task, task);
     }, []);
 
+    /**
+     * Follows the frame for a moment and reports every rectangle it comes to rest at.
+     *
+     * The frame can be moved by something no observer will report. Opening a transaction from the wallet
+     * hands the address over and *then* slides to the browser tab, and that slide is a CSS transform:
+     * the frame ends up somewhere else without ever changing size, so `ResizeObserver` says nothing and
+     * neither does `resize`. The view was therefore placed where the frame stood before the slide —
+     * off screen — and stayed there, leaving the loading placeholder underneath it on display for good.
+     *
+     * Polling is the only way to see it. It is bounded, it only runs after something that could have
+     * moved the frame, and it reports a rectangle only when it differs from the last one, so a frame
+     * already at rest costs a comparison per frame and nothing else.
+     * @param {(rect: DOMRect) => void} apply Receives each new rectangle.
+     * @returns {() => void} Stops the watch early.
+     */
+    const settle = useCallback((apply: (rect: DOMRect) => void) =>
+    {
+        let stopped = false;
+        let seen = 0;
+        let last = '';
+
+        const tick = () =>
+        {
+            if (stopped)
+            {
+                return;
+            }
+
+            const rect = frameRef.current?.getBoundingClientRect();
+
+            if (rect !== undefined && rect.width >= 1 && rect.height >= 1)
+            {
+                const key = `${ rect.x },${ rect.y },${ rect.width },${ rect.height }`;
+
+                if (key !== last)
+                {
+                    last = key;
+
+                    apply(rect);
+                }
+            }
+
+            seen += 1;
+
+            if (seen < settleFrames)
+            {
+                requestAnimationFrame(tick);
+            }
+        };
+
+        requestAnimationFrame(tick);
+
+        return () => { stopped = true; };
+    }, []);
+
     // Android: a real `android.webkit.WebView` driven from Kotlin. Tauri's child webview does not
     // exist on Android, and the iframe fallback is refused by anything sending `X-Frame-Options`.
     useEffect(() =>
@@ -160,6 +223,11 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
         move();
 
+        // The address can arrive before this tab is on screen — that is exactly what opening a
+        // transaction from the wallet does — so the view is followed until the slide that brings the
+        // frame into place has finished.
+        const cancel = settle(move);
+
         const observer = new ResizeObserver(move);
 
         if (frameRef.current !== null)
@@ -171,13 +239,15 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
         return () =>
         {
+            cancel();
+
             observer.disconnect();
 
             window.removeEventListener('resize', move);
 
             native.close();
         };
-    }, [ isNativeLive, label, url, desktop ]);
+    }, [ isNativeLive, label, url, desktop, settle ]);
 
     // Android visibility. The view is a sibling of the app's own webview rather than something drawn
     // inside it, so nothing in the layout can cover it — leaving the tab, switching to another one or
@@ -185,8 +255,24 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
     // coming back instant.
     useEffect(() =>
     {
-        getNativeTab(label)?.setVisible(enabled);
-    }, [ enabled, isNativeLive, label ]);
+        const native = getNativeTab(label);
+
+        if (native === undefined)
+        {
+            return undefined;
+        }
+
+        native.setVisible(enabled);
+
+        if (!enabled)
+        {
+            return undefined;
+        }
+
+        // Becoming visible almost always means the tab has just slid in, and where it came to rest is
+        // not where it was when the page was opened.
+        return settle((rect) => { native.setBounds(rect.x, rect.y, rect.width, rect.height); });
+    }, [ enabled, isNativeLive, label, settle ]);
 
     // A `reload` bump recreates the desktop child webview, but the native view is long-lived and has
     // a real reload of its own.
@@ -389,13 +475,19 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
         window.addEventListener('resize', sync);
 
+        // Runs on every change of `enabled` as well, because a tab sliding into place moves the frame
+        // without resizing it and this is the only thing that notices.
+        const cancel = settle(() => { sync(); });
+
         return () =>
         {
+            cancel();
+
             observer.disconnect();
 
             window.removeEventListener('resize', sync);
         };
-    }, [ isLive, label ]);
+    }, [ isLive, enabled, label, settle ]);
 
     return (
         <div
