@@ -85,12 +85,12 @@ function AssetAmount({ amount, value }: { amount: string; value?: string })
  * @param {() => void} props.onAccounts Opens the account switcher.
  * @param {() => void} props.onTokens Opens the token manager.
  * @param {() => void} props.onSettings Opens the settings modal.
- * @param {{ items: Transaction[]; loading: boolean }} props.history The account's transaction history.
+ * @param {{ items: Transaction[]; loading: boolean; notice: string }} props.history The account's transaction history, and why it is empty when the explorer said so.
  * @param {(hash: string) => void} props.onTransaction Opens one transaction on the explorer.
  * @param {() => void} props.onOverview Opens the full history page.
  * @returns {JSX.Element} The wallet tab.
  */
-export default function DashboardWallet({ address, name, emoji, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; emoji: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
+export default function DashboardWallet({ address, name, emoji, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; emoji: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean; notice: string }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
 {
     // The icon carries the feedback, so it only has to stay swapped long enough to register.
     const clipboard = useClipboard();
@@ -335,6 +335,7 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
             <DashboardActivity
                 items={ history.items }
                 loading={ history.loading }
+                notice={ history.notice }
                 canOpen={ network.explorerUrl.length > 0 }
                 onOpen={ onTransaction }
                 onOverview={ onOverview } />

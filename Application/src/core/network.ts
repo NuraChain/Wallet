@@ -1,4 +1,4 @@
-import { JsonRpcProvider } from 'ethers';
+import { FallbackProvider, JsonRpcProvider, type AbstractProvider } from 'ethers';
 
 import { setValue, getValue } from '../utility/storage';
 
@@ -21,8 +21,24 @@ export interface Network
      */
     coin?: string;
     rpcUrl: string;
+    /**
+     * Further RPC endpoints for the same chain, tried in order when the one before it does not answer.
+     *
+     * A public endpoint is not a dependency anyone controls: it can rate-limit, start asking for a key
+     * or simply stop resolving, and a wallet with one of them configured shows no balance at all when
+     * that happens. Kept separate from `rpcUrl` rather than folded into a list so that a custom network
+     * stored before this existed still reads back correctly.
+     */
+    rpcBackups?: string[];
     explorerUrl: string;
     explorerApi?: string;
+    /**
+     * Key sent as `apikey` with every explorer call, for the explorers that demand one.
+     *
+     * Blockscout asks for nothing, so the built-in chains that use it leave this unset. Etherscan and
+     * the explorers folded into it — BscScan among them — reject an unkeyed call outright.
+     */
+    explorerKey?: string;
     decimals: number;
     custom: boolean;
 }
@@ -40,9 +56,9 @@ export const defaultNetworks: Network[] =
         chainId: 1010,
         symbol: 'NC',
         coin: 'Nura Coin',
-        rpcUrl: 'https://rpc.ashbringer.org/',
-        explorerUrl: 'https://nura-chain.cloud.blockscout.com',
-        explorerApi: 'https://nura-chain.cloud.blockscout.com/api',
+        rpcUrl: 'https://rpc.nurachain.net/',
+        explorerUrl: 'https://explorer.nurachain.net',
+        explorerApi: 'https://explorer.nurachain.net/api',
         decimals: 18,
         custom: false
     },
@@ -51,7 +67,12 @@ export const defaultNetworks: Network[] =
         name: 'Ethereum',
         chainId: 1,
         symbol: 'ETH',
-        rpcUrl: 'https://eth.llamarpc.com',
+        // Ordered by what actually answered when this list was set: `publicnode` and `drpc` both
+        // replied in under a second, `llamarpc` did not resolve at all and `ankr` now returns
+        // Unauthorized without a key. The last two are kept as trailing fallbacks — they cost nothing
+        // while the ones above them answer, and either may come back.
+        rpcUrl: 'https://ethereum.publicnode.com',
+        rpcBackups: [ 'https://eth.drpc.org', 'https://cloudflare-eth.com', 'https://eth.llamarpc.com', 'https://rpc.ankr.com/eth' ],
         explorerUrl: 'https://etherscan.io',
         explorerApi: 'https://eth.blockscout.com/api',
         decimals: 18,
@@ -63,7 +84,17 @@ export const defaultNetworks: Network[] =
         chainId: 56,
         symbol: 'BNB',
         rpcUrl: 'https://bsc-dataseed.binance.org',
+        rpcBackups: [ 'https://bsc-rpc.publicnode.com', 'https://bsc.publicnode.com' ],
         explorerUrl: 'https://bscscan.com',
+        // BscScan's API, at the address BscScan itself now publishes: its V1 host is retired and
+        // answers every call with a migration notice, and the `/api` path guessed from the explorer
+        // URL replies "Invalid API URL endpoint". Etherscan's own chain list gives this URL for chain
+        // 56, so it is the one that reaches BscScan's data.
+        //
+        // It needs `explorerKey`, and a plan that covers this chain: unkeyed, and on the free tier,
+        // it answers "Free API access is not supported for this chain". Until a key is set the history
+        // list stays empty, which is what it already did — but it now fails at the right address.
+        explorerApi: 'https://api.etherscan.io/v2/api?chainid=56',
         decimals: 18,
         custom: false
     }
@@ -71,7 +102,7 @@ export const defaultNetworks: Network[] =
 
 let customNetworks: Network[] = [];
 let networkCurrentId: string = defaultNetworks[0].id;
-let providerCache: { id: string; provider: JsonRpcProvider } | undefined;
+let providerCache: { id: string; provider: AbstractProvider } | undefined;
 
 /**
  * Return every known network: the built-in ones followed by user-added ones.
@@ -94,19 +125,34 @@ export const getNetwork = () => getNetworks().find((item) => item.id === network
  */
 export const getExplorerApi = (network: Network) =>
 {
-    if (network.explorerApi !== undefined && network.explorerApi.length > 0)
+    const guessed = network.explorerUrl.length === 0 ? '' : `${ network.explorerUrl.replace(/\/+$/, '') }/api`;
+
+    const base = network.explorerApi !== undefined && network.explorerApi.length > 0 ? network.explorerApi : guessed;
+
+    if (base.length === 0 || network.explorerKey === undefined || network.explorerKey.length === 0)
     {
-        return network.explorerApi;
+        return base;
     }
 
-    return network.explorerUrl.length === 0 ? '' : `${ network.explorerUrl.replace(/\/+$/, '') }/api`;
+    // Folded into the base rather than added by each caller: every one of them already appends its own
+    // query with the same `?`-or-`&` test, so a key carried here rides along with all of them.
+    return `${ base }${ base.includes('?') ? '&' : '?' }apikey=${ encodeURIComponent(network.explorerKey) }`;
 };
 
 /**
- * Build (and memoize) a static `JsonRpcProvider` for the active network.
+ * Build (and memoize) a provider for the active network, over every endpoint it lists.
  *
  * The provider is cached per network id, so switching networks and switching back does not leak a new provider each time. `staticNetwork` skips the `eth_chainId` round-trip on every call.
- * @returns {JsonRpcProvider} Provider bound to the active network.
+ *
+ * With more than one endpoint the calls go through a `FallbackProvider` at **quorum one**: the first
+ * endpoint to answer wins and the rest are only reached for if it does not. That is failover, and it is
+ * not the default — left alone, a fallback provider wants two endpoints to agree before it believes
+ * anything, which doubles every request and fails outright when only one is reachable, the very
+ * situation this exists for.
+ *
+ * Priority follows the order the endpoints are listed, so the first is the one normally used and the
+ * others are the ones tried when it stalls.
+ * @returns {AbstractProvider} Provider bound to the active network.
  */
 export const getProvider = () =>
 {
@@ -117,7 +163,13 @@ export const getProvider = () =>
         return providerCache.provider;
     }
 
-    const provider = new JsonRpcProvider(network.rpcUrl, network.chainId, { staticNetwork: true });
+    const endpoints = [ network.rpcUrl, ...network.rpcBackups ?? [] ].map((url) => url.trim()).filter((url) => url.length > 0);
+
+    const single = (url: string) => new JsonRpcProvider(url, network.chainId, { staticNetwork: true });
+
+    const provider: AbstractProvider = endpoints.length > 1 ?
+        new FallbackProvider(endpoints.map((url, index) => ({ provider: single(url), priority: index + 1, weight: 1, stallTimeout: 1500 })), network.chainId, { quorum: 1 }) :
+        single(endpoints[0] ?? network.rpcUrl);
 
     providerCache = { id: network.id, provider };
 
@@ -221,7 +273,11 @@ export const initNetwork = async() =>
 
             if (Array.isArray(parsed))
             {
-                customNetworks = parsed.filter((item) => typeof item.id === 'string' && typeof item.chainId === 'number' && typeof item.rpcUrl === 'string');
+                customNetworks = parsed
+                    .filter((item) => typeof item.id === 'string' && typeof item.chainId === 'number' && typeof item.rpcUrl === 'string')
+                    // A network stored before backups existed has none, and a corrupted list should
+                    // cost the extra endpoints rather than the whole network.
+                    .map((item) => ({ ...item, rpcBackups: Array.isArray(item.rpcBackups) ? item.rpcBackups.filter((url): url is string => typeof url === 'string' && url.length > 0) : [] }));
             }
         }
         catch

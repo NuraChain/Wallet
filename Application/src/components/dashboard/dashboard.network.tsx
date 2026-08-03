@@ -25,7 +25,9 @@ const fieldMap =
     { key: 'Rpc', numeric: false },
     { key: 'ChainId', numeric: true },
     { key: 'Symbol', numeric: false },
-    { key: 'Explorer', numeric: false }
+    { key: 'Explorer', numeric: false },
+    { key: 'Api', numeric: false },
+    { key: 'ApiKey', numeric: false }
 ] as const;
 
 /**
@@ -42,7 +44,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 {
     const [ adding, setAdding ] = useState(false);
     const [ error, setError ] = useState('');
-    const [ draft, setDraft ] = useState({ Name: '', Rpc: '', ChainId: '', Symbol: '', Explorer: '' });
+    const [ draft, setDraft ] = useState({ Name: '', Rpc: '', ChainId: '', Symbol: '', Explorer: '', Api: '', ApiKey: '' });
 
     // The network list is module state, not React state, so mutating it does not re-render anything
     // on its own. Notifying the parent is not enough either: it only tracks the *active* network, and
@@ -72,6 +74,10 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
     {
         const chain = Number(draft.ChainId);
 
+        // One field, any number of endpoints: a public RPC is the part of a network most likely to
+        // stop answering, so the form takes a list separated by whatever the user reached for.
+        const endpoints = draft.Rpc.split(/[\s,]+/u).map((url) => url.trim()).filter((url) => url.length > 0);
+
         if (draft.Name.trim().length === 0 || draft.Symbol.trim().length === 0)
         {
             setError(T('Dashboard.Network.Invalid'));
@@ -79,7 +85,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
             return;
         }
 
-        if (!draft.Rpc.startsWith('http'))
+        if (endpoints.length === 0 || endpoints.some((url) => !url.startsWith('http')))
         {
             setError(T('Dashboard.Network.InvalidRpc'));
 
@@ -93,7 +99,20 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
             return;
         }
 
-        await addNetwork({ name: draft.Name.trim(), symbol: draft.Symbol.trim().toUpperCase(), rpcUrl: draft.Rpc.trim(), explorerUrl: draft.Explorer.trim(), chainId: chain, decimals: 18 });
+        // Both optional, and both only worth sending when filled: an empty `explorerApi` has to stay
+        // absent so the address is still guessed from the explorer URL, which is what every network
+        // added before these two fields existed relies on.
+        await addNetwork({
+            name: draft.Name.trim(),
+            symbol: draft.Symbol.trim().toUpperCase(),
+            rpcUrl: endpoints[0],
+            ...endpoints.length > 1 ? { rpcBackups: endpoints.slice(1) } : {},
+            explorerUrl: draft.Explorer.trim(),
+            ...draft.Api.trim().length > 0 ? { explorerApi: draft.Api.trim() } : {},
+            ...draft.ApiKey.trim().length > 0 ? { explorerKey: draft.ApiKey.trim() } : {},
+            chainId: chain,
+            decimals: 18
+        });
 
         onChange();
         onClose();

@@ -1,6 +1,6 @@
 import type { Transaction } from '../../hook/history';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 
 import TransactionRow from './dashboard.transaction';
@@ -18,6 +18,15 @@ import { T } from '../../utility/language';
  */
 const filters = [ 'All', 'Sent', 'Received' ] as const;
 
+/**
+ * How many rows are on screen to begin with, and how many more each time the end is reached.
+ *
+ * The transactions are all in memory already — the explorer hands over a page of fifty at once — so
+ * this is about what is rendered rather than what is fetched. Fifty glass panels, each with its own
+ * backdrop blur, is a lot of compositing for a list where the answer is almost always in the first few.
+ */
+const step = 5;
+
 type Filter = typeof filters[number];
 
 /**
@@ -31,15 +40,20 @@ type Filter = typeof filters[number];
  * @param {object} props Component props.
  * @param {Transaction[]} props.items Every transaction fetched for the account.
  * @param {boolean} props.loading Whether the history is still being fetched.
+ * @param {string} props.notice Why the explorer returned nothing, when it said so itself.
  * @param {boolean} props.canOpen Whether the network has an explorer to open rows on.
  * @param {(hash: string) => void} props.onOpen Opens one transaction on the explorer.
  * @param {() => void} props.onClose Closes the page.
  * @returns {JSX.Element} The full history page.
  */
-export default function DashboardHistory({ items, loading, canOpen, onOpen, onClose }: { items: Transaction[]; loading: boolean; canOpen: boolean; onOpen: (hash: string) => void; onClose: () => void })
+export default function DashboardHistory({ items, loading, notice, canOpen, onOpen, onClose }: { items: Transaction[]; loading: boolean; notice: string; canOpen: boolean; onOpen: (hash: string) => void; onClose: () => void })
 {
     const [ query, setQuery ] = useState('');
     const [ filter, setFilter ] = useState<Filter>('All');
+    const [ shown, setShown ] = useState(step);
+
+    const listRef = useRef<HTMLDivElement>(null);
+    const endRef = useRef<HTMLDivElement>(null);
 
     const results = useMemo(() =>
     {
@@ -65,6 +79,41 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
             return [ item.hash, item.from, item.to, item.symbol ].some((field) => field.toLowerCase().includes(needle));
         });
     }, [ items, query, filter ]);
+
+    const visible = results.slice(0, shown);
+
+    // Back to the first few whenever the list itself changes. Searching after having scrolled deep into
+    // the previous result set would otherwise open on forty rows of the new one.
+    useEffect(() =>
+    {
+        setShown(step);
+    }, [ query, filter ]);
+
+    // Reveals the next few when the end of the list reaches the bottom of its own scroller — `root` is
+    // the scrolling panel, not the window, which is what the list actually moves inside. The sentinel
+    // only exists while something is still held back, so there is nothing to observe once the whole
+    // list is out; re-running on `shown` is what re-attaches it after each reveal.
+    useEffect(() =>
+    {
+        const sentinel = endRef.current;
+
+        if (sentinel === null || shown >= results.length)
+        {
+            return undefined;
+        }
+
+        const observer = new IntersectionObserver((entries) =>
+        {
+            if (entries.some((entry) => entry.isIntersecting))
+            {
+                setShown((current) => current + step);
+            }
+        }, { root: listRef.current });
+
+        observer.observe(sentinel);
+
+        return () => { observer.disconnect(); };
+    }, [ shown, results.length ]);
 
     return (
         <Modal
@@ -107,10 +156,12 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
 
             </div>
 
-            <div className='scroll-hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto'>
+            <div
+                ref={ listRef }
+                className='scroll-hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto'>
 
                 {
-                    results.map((item) => (
+                    visible.map((item) => (
                         <TransactionRow
                             key={ item.id }
                             item={ item }
@@ -131,7 +182,22 @@ export default function DashboardHistory({ items, loading, canOpen, onOpen, onCl
                 {
                     !loading && results.length === 0 &&
                     (
-                        <EmptyState text={ items.length === 0 ? T('Dashboard.Activity.Empty') : T('Dashboard.Activity.NoMatch') } />
+                        <EmptyState text={ items.length === 0 ? T(notice.length > 0 ? 'Dashboard.Activity.Unavailable' : 'Dashboard.Activity.Empty') : T('Dashboard.Activity.NoMatch') } />
+                    )
+                }
+
+                { /*
+                  * Nothing to look at: it exists to be scrolled into view. `shrink-0` so the flex column
+                  * cannot collapse it to nothing, which would leave it permanently at the edge of the
+                  * scroller and firing.
+                  */ }
+                {
+                    shown < results.length &&
+                    (
+                        <div
+                            ref={ endRef }
+                            aria-hidden='true'
+                            className='h-4 shrink-0' />
                     )
                 }
 

@@ -25,12 +25,13 @@ const preview = 5;
  * @param {object} props Component props.
  * @param {Transaction[]} props.items Every transaction fetched for the account.
  * @param {boolean} props.loading Whether the history is still being fetched.
+ * @param {string} props.notice Why the explorer returned nothing, when it said so itself.
  * @param {boolean} props.canOpen Whether the network has an explorer to open rows on.
  * @param {(hash: string) => void} props.onOpen Opens one transaction on the explorer.
  * @param {() => void} props.onOverview Opens the full history page.
  * @returns {JSX.Element} The activity section.
  */
-export default function DashboardActivity({ items, loading, canOpen, onOpen, onOverview }: { items: Transaction[]; loading: boolean; canOpen: boolean; onOpen: (hash: string) => void; onOverview: () => void })
+export default function DashboardActivity({ items, loading, notice, canOpen, onOpen, onOverview }: { items: Transaction[]; loading: boolean; notice: string; canOpen: boolean; onOpen: (hash: string) => void; onOverview: () => void })
 {
     return (
         <div className='flex flex-col gap-2'>
@@ -66,9 +67,24 @@ export default function DashboardActivity({ items, loading, canOpen, onOpen, onO
             }
 
             {
-                !loading && items.length === 0 &&
+                !loading && items.length === 0 && notice.length === 0 &&
                 (
                     <EmptyState panel text={ T('Dashboard.Activity.Empty') } />
+                )
+            }
+
+            { /*
+              * An empty list and an unreadable one look identical, and only one of them is the user's
+              * doing — so the two say different things. It stays the ordinary empty state either way:
+              * a network whose explorer will never answer without a paid plan is a standing condition,
+              * not a fault, and the explorer's own sentence in a red panel read as something breaking.
+              * The reason itself is not printed; it is English marketing copy from a third party, and
+              * nothing the user can act on from here.
+              */ }
+            {
+                !loading && items.length === 0 && notice.length > 0 &&
+                (
+                    <EmptyState panel text={ T('Dashboard.Activity.Unavailable') } />
                 )
             }
 

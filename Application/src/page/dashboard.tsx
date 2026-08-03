@@ -34,7 +34,7 @@ import { usePrices } from '../hook/price';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { getDirection, getLanguage, T } from '../utility/language';
-import { loadTokens, readToken, saveTokens, type TokenMap } from '../core/token';
+import { discoverTokens, loadTokens, readToken, saveTokens, type TokenMap } from '../core/token';
 import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
 
 import 'swiper/css';
@@ -67,6 +67,12 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
     const [ link, setLink ] = useState({ url: '', ticket: 0 });
     const [ network, setNetworkState ] = useState(getNetwork());
     const [ tokenMap, setTokenMap ] = useState<TokenMap>({});
+    const [ loaded, setLoaded ] = useState(false);
+    const [ scan, setScan ] = useState(0);
+
+    // The discovery pass below reads the tracked list without being re-run by it: adding what it finds
+    // changes `tokenMap`, and a dependency on that would send it straight round again.
+    const tokenRef = useRef(tokenMap);
     const [ accounts, setAccounts ] = useState<Account[]>([ { index: 0, name: defaultAccountName(0) } ]);
 
     const address = useMemo(() => new WalletManager(mnemonic, account).retrieve().Public, [ mnemonic, account ]);
@@ -90,7 +96,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
     const native = useBalance(address, network);
     const tokens = useTokens(address, network, tracked);
     const prices = usePrices(network, native.formatted, tokens.tokens);
-    const history = useHistory(address, network);
+    const history = useHistory(address, network, tracked);
 
     useEffect(() =>
     {
@@ -102,10 +108,65 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
             setAccount(stored.active);
 
             setTokenMap(await loadTokens());
+            setLoaded(true);
         };
 
         void run();
     }, []);
+
+    useEffect(() =>
+    {
+        tokenRef.current = tokenMap;
+    }, [ tokenMap ]);
+
+    /**
+     * Adds the tokens this account actually holds, so a balance shows up without being asked for.
+     *
+     * Held back until the stored list has been read: discovering a token first would have it written
+     * and then overwritten by the load landing behind it. What is found is merged rather than
+     * assigned, so a token added by hand in the meantime is not dropped.
+     */
+    useEffect(() =>
+    {
+        if (!loaded)
+        {
+            return undefined;
+        }
+
+        let live = true;
+
+        const run = async() =>
+        {
+            const found = await discoverTokens(address, network, tokenRef.current[network.chainId] ?? []);
+
+            if (!live || found.length === 0)
+            {
+                return;
+            }
+
+            const held = tokenRef.current;
+            const list = held[network.chainId] ?? [];
+            const fresh = found.filter((item) => !list.some((entry) => entry.address.toLowerCase() === item.address.toLowerCase()));
+
+            if (fresh.length === 0)
+            {
+                return;
+            }
+
+            const next = { ...held, [network.chainId]: [ ...list, ...fresh ] };
+
+            setTokenMap(next);
+
+            await saveTokens(next);
+        };
+
+        void run();
+
+        return () =>
+        {
+            live = false;
+        };
+    }, [ loaded, address, network.chainId, scan ]);
 
     /**
      * onAddToken - Resolves a pasted contract address into a tracked token.
@@ -166,6 +227,9 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
         native.refresh();
         tokens.refresh();
         history.refresh();
+
+        // A token that arrived since the last look is found by the same pull that refreshes the rest.
+        setScan((value) => value + 1);
 
         // The hooks fire off their own requests; this is the shortest pause that still reads as work
         // rather than a flicker, since none of them expose a promise to await.
@@ -344,6 +408,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                             key='history'
                             items={ history.items }
                             loading={ history.loading }
+                            notice={ history.notice }
                             canOpen={ network.explorerUrl.length > 0 }
                             onOpen={ onTransaction }
                             onClose={ closeModal } />
