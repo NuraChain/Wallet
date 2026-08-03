@@ -2,7 +2,7 @@ import { Webview } from '@tauri-apps/api/webview';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
 import { motion } from 'motion/react';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import Text from '../components/ui/text';
 import Spinner from '../components/ui/spinner';
@@ -23,14 +23,30 @@ import { getNativeBrowser } from '../core/browser';
 const mobileAgent = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36';
 
 /**
+ * User agent for the desktop view the browser's settings can switch to.
+ *
+ * The same string with the Android parts taken out and no `Mobile` token, which is the piece sites
+ * actually branch on. It is what someone reaches for when a site's mobile layout hides the feature
+ * they came for; the page arrives wide and the view is left to zoom, since the window is the width
+ * it is either way.
+ */
+const desktopAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36';
+
+/**
  * WebFrame - A rectangle of the layout that a real browser view is painted into.
  *
  * Pages render in a child webview parented to the app window, not an iframe: most dApps and explorers
  * send `X-Frame-Options`/`frame-ancestors` and simply refuse to be framed, so an iframe stays blank on
  * exactly the sites this exists for. The child webview is an OS-level surface painted over the layout,
- * which is why it is torn down the moment `enabled` goes false — otherwise it would cover the nav bar
- * and any open modal. Where child webviews are unavailable (Android, or a build without Tauri's
- * `unstable` feature) creation fails and the iframe is used as a degraded fallback.
+ * so it cannot simply be left alone when `enabled` goes false — it would cover the nav bar and any
+ * open modal. Where child webviews are unavailable (Android, or a build without Tauri's `unstable`
+ * feature) creation fails and the iframe is used as a degraded fallback.
+ *
+ * `enabled` hides the view; it does not discard it. Tearing it down was the obvious way to get it out
+ * of the way, but the page went with it: switching to the wallet tab and back reloaded the site from
+ * its address, losing the scroll position, anything typed into it and any state a dApp was holding —
+ * and opening a modal over the browser did the same. The view now outlives both, and only a change of
+ * `url`, an empty `url` or unmounting actually closes it.
  *
  * The webview has no `navigate` API, so a new `url` — or a bump of `reload` — recreates it.
  *
@@ -40,6 +56,7 @@ const mobileAgent = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36
  * @param {string} props.label Unique label for the child webview.
  * @param {string} props.url The page to show; an empty string renders `children` instead.
  * @param {boolean} props.enabled Whether the frame is on screen and allowed to own a webview.
+ * @param {boolean} [props.desktop] Asks sites for the desktop layout instead of the mobile one.
  * @param {number} [props.reload] Bump to reload the current page.
  * @param {string} [props.title] Accessible title for the fallback iframe.
  * @param {string} [props.className] Classes for the frame element.
@@ -47,20 +64,46 @@ const mobileAgent = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36
  * @param {(notice: string) => void} [props.onFallback] Called with the failure reason when the native webview could not be created.
  * @returns {JSX.Element} The frame.
  */
-export default function WebFrame({ label, url, enabled, reload = 0, title = '', className = '', children, onFallback }: { label: string; url: string; enabled: boolean; reload?: number; title?: string; className?: string; children?: ReactNode; onFallback?: (notice: string) => void })
+export default function WebFrame({ label, url, enabled, desktop = false, reload = 0, title = '', className = '', children, onFallback }: { label: string; url: string; enabled: boolean; desktop?: boolean; reload?: number; title?: string; className?: string; children?: ReactNode; onFallback?: (notice: string) => void })
 {
     const frameRef = useRef<HTMLDivElement>(null);
     const chainRef = useRef<Promise<void>>(Promise.resolve());
 
+    // Creation deliberately does not re-run on `enabled`, so it cannot close over it and read anything
+    // current. This is how the newly created view learns whether it is meant to be on screen.
+    const enabledRef = useRef(enabled);
+
     const [ embedded, setEmbedded ] = useState(true);
 
-    const isNative = embedded && enabled && url.length > 0;
+    const bridge = getNativeBrowser();
+
+    // An APK older than this bundle has no way to hide its view, so there the old behaviour is still
+    // the only safe one: close on the way out and accept the reload on the way back.
+    const nativeHides = bridge?.setVisible !== undefined;
+
+    // Whether a view should exist at all, which is deliberately not the same question as whether it
+    // should be on screen. Only the Android fallback above folds `enabled` back into it.
+    const isLive = embedded && url.length > 0;
+    const isNativeLive = url.length > 0 && (nativeHides || enabled);
+
+    useEffect(() =>
+    {
+        enabledRef.current = enabled;
+    }, [ enabled ]);
 
     // A single failed creation should not strand the rest of the session on the iframe fallback.
     useEffect(() =>
     {
         setEmbedded(true);
     }, [ url ]);
+
+    // Creation, teardown and visibility all address one webview by label, so they run in order — a
+    // close still in flight from the previous URL would otherwise land after the new view was created
+    // and kill it, and a `hide` can be asked for before the view it means to hide exists.
+    const queue = useCallback((task: () => Promise<void>) =>
+    {
+        chainRef.current = chainRef.current.then(task, task);
+    }, []);
 
     // Android: a real `android.webkit.WebView` driven from Kotlin. Tauri's child webview does not
     // exist on Android, and the iframe fallback is refused by anything sending `X-Frame-Options`.
@@ -73,12 +116,16 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
             return undefined;
         }
 
-        if (!enabled || url.length === 0)
+        if (!isNativeLive)
         {
             native.close();
 
             return undefined;
         }
+
+        // Told before the page is opened, so the first request already carries the agent the setting
+        // asks for rather than loading once and reloading into it.
+        native.setDesktop?.(desktop);
 
         let opened = false;
 
@@ -127,7 +174,15 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
 
             native.close();
         };
-    }, [ enabled, url ]);
+    }, [ isNativeLive, url, desktop ]);
+
+    // Android visibility. The view is a sibling of the app's own webview rather than something drawn
+    // inside it, so nothing in the layout can cover it — leaving the tab or opening a modal has to say
+    // so explicitly. Bounds are left where they were, which is what makes coming back instant.
+    useEffect(() =>
+    {
+        getNativeBrowser()?.setVisible?.(enabled);
+    }, [ enabled, isNativeLive ]);
 
     // A `reload` bump recreates the desktop child webview, but the native view is long-lived and has
     // a real reload of its own.
@@ -160,12 +215,36 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
             }
         };
 
+        // The frame is not always measurable on the first pass — the effect can run before layout has
+        // settled. Giving up there left the page never opening and the placeholder up for good, which
+        // is what made the tab stick on "loading"; the Android path above already waited for a usable
+        // rectangle, and this one now does the same instead of returning on the first miss.
+        const measure = async() =>
+        {
+            for (let attempt = 0; attempt < 40; attempt += 1)
+            {
+                const rect = frameRef.current?.getBoundingClientRect();
+
+                if (rect !== undefined && rect.width >= 1 && rect.height >= 1)
+                {
+                    return rect;
+                }
+
+                // eslint-disable-next-line no-await-in-loop
+                await new Promise((resolve) => { setTimeout(resolve, 50); });
+            }
+
+            return undefined;
+        };
+
         const create = async() =>
         {
-            const rect = frameRef.current?.getBoundingClientRect();
+            const rect = await measure();
 
-            if (rect === undefined || rect.width < 1 || rect.height < 1)
+            if (rect === undefined)
             {
+                onFallback?.('the browser frame never reported a usable size');
+
                 return;
             }
 
@@ -173,7 +252,7 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
 
             try
             {
-                const view = new Webview(getCurrentWindow(), label, { url, x: rect.x, y: rect.y, width: rect.width, height: rect.height, focus: false, userAgent: mobileAgent });
+                const view = new Webview(getCurrentWindow(), label, { url, x: rect.x, y: rect.y, width: rect.width, height: rect.height, focus: false, userAgent: desktop ? desktopAgent : mobileAgent });
 
                 void view.once('tauri://error', (event) => { failure = String(event.payload); });
             }
@@ -190,8 +269,19 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
                 await new Promise((resolve) => { setTimeout(resolve, 100); });
 
                 // eslint-disable-next-line no-await-in-loop
-                if (await Webview.getByLabel(label) !== null)
+                const view = await Webview.getByLabel(label);
+
+                if (view !== null)
                 {
+                    // A webview is born visible and there is no option to create it otherwise, so a
+                    // page opened from somewhere else — an activity row handing over a link — would
+                    // flash over the tab being left before the visibility pass below caught up.
+                    if (!enabledRef.current)
+                    {
+                        // eslint-disable-next-line no-await-in-loop
+                        await view.hide();
+                    }
+
                     return;
                 }
             }
@@ -201,14 +291,7 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
             onFallback?.(failure.length > 0 ? failure : 'child webview was never created');
         };
 
-        // Creation and teardown share one label, so they are serialized — otherwise a close still in
-        // flight from the previous URL would land after the new webview was created and kill it.
-        const queue = (task: () => Promise<void>) =>
-        {
-            chainRef.current = chainRef.current.then(task, task);
-        };
-
-        if (!isNative)
+        if (!isLive)
         {
             queue(destroy);
 
@@ -222,11 +305,43 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
         });
 
         return () => { queue(destroy); };
-    }, [ isNative, label, url, reload ]);
+    }, [ isLive, label, url, reload, desktop, queue ]);
+
+    // Desktop visibility. Queued behind creation for the same reason everything else is: asking a
+    // webview that does not exist yet to hide would do nothing and leave it to appear over the modal
+    // that wanted it gone.
+    useEffect(() =>
+    {
+        if (!isLive || getNativeBrowser() !== undefined)
+        {
+            return undefined;
+        }
+
+        queue(async() =>
+        {
+            try
+            {
+                const view = await Webview.getByLabel(label);
+
+                if (view === null)
+                {
+                    return;
+                }
+
+                await (enabled ? view.show() : view.hide());
+            }
+            catch
+            {
+                // the webview can be closing while a visibility change lands
+            }
+        });
+
+        return undefined;
+    }, [ isLive, enabled, label, url, reload, queue ]);
 
     useEffect(() =>
     {
-        if (!isNative || getNativeBrowser() !== undefined)
+        if (!isLive || getNativeBrowser() !== undefined)
         {
             return undefined;
         }
@@ -276,7 +391,7 @@ export default function WebFrame({ label, url, enabled, reload = 0, title = '', 
 
             window.removeEventListener('resize', sync);
         };
-    }, [ isNative, label ]);
+    }, [ isLive, label ]);
 
     return (
         <div

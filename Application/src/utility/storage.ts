@@ -2,7 +2,7 @@ import { load } from '@tauri-apps/plugin-store';
 
 interface EncryptedPayload { salt: string; iv: string; cipher: string }
 
-type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name' | 'Wallet.Accounts' | 'Wallet.Active' | 'Wallet.Tokens';
+type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name' | 'Wallet.Accounts' | 'Wallet.Active' | 'Wallet.Tokens' | 'Browser.View' | 'Browser.History';
 
 const storage = await load('application.bin');
 

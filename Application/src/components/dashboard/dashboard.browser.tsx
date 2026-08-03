@@ -3,34 +3,26 @@ import type { Network } from '../../core/network';
 import { useEffect, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 import { AnimatePresence, motion } from 'motion/react';
-import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch } from 'react-icons/fi';
+import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch, FiSettings } from 'react-icons/fi';
 
 import WebFrame from '../../layout/webview';
+import TokenIcon from '../token.icon';
+import DashboardBrowserSettings from './dashboard.browser.settings';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
-import IconBox from '../ui/iconbox';
+import EmptyState from '../ui/state';
+import SectionHeader from '../ui/section';
 import { TextField } from '../ui/field';
 
 import { T } from '../../utility/language';
-import { getNativeBrowser, onNativeBrowserState, type BrowserState } from '../../core/browser';
+import { addBrowserVisit, clearBrowserHistory, getBrowserHistory, getBrowserView, getNativeBrowser, getSiteHost, getSiteIcon, onNativeBrowserState, setBrowserView, suggestedSites, type BrowserState, type BrowserVisit, type BrowserView } from '../../core/browser';
 
 /**
  * Label of the child webview that renders the page. Only ever one exists at a time.
  */
 const frameLabel = 'nura-browser';
-
-/**
- * Shortcuts shown on the browser start screen, next to the active network's explorer.
- */
-const bookmarks: { name: string; url: string }[] =
-[
-    { name: 'Uniswap', url: 'https://app.uniswap.org' },
-    { name: 'CoinGecko', url: 'https://www.coingecko.com' },
-    { name: 'DeFiLlama', url: 'https://defillama.com' },
-    { name: 'OpenSea', url: 'https://opensea.io' }
-];
 
 /**
  * Turn whatever was typed in the address bar into a loadable URL.
@@ -65,9 +57,14 @@ const toUrl = (value: string) =>
  * DashboardBrowser - In-app web browser for dApps and explorers.
  *
  * The page itself is painted by `WebFrame`, which owns the child webview and its iframe fallback.
- * What lives here is the chrome around it: the toolbar, the start screen of shortcuts, and a history
- * stack kept in this component rather than the webview's own, since the child-webview API exposes no
- * `navigate` and every step is a fresh view.
+ * What lives here is the chrome around it: the toolbar, the start screen, and a navigation stack kept
+ * in this component rather than the webview's own, since the child-webview API exposes no `navigate`
+ * and every step is a fresh view.
+ *
+ * Two lists make up the start screen. The suggested sites are fixed and come from `core/browser`; the
+ * visited ones are what this tab has opened before, persisted so they survive the tab being torn down
+ * — which happens on every switch away, since the webview cannot be left painted over another tab.
+ * Both are shortcuts, and neither is the in-session back stack the toolbar arrows walk.
  *
  * This tab runs edge to edge and the dashboard's nav bar stays down while it is open, so the toolbar
  * is also the only way out — hence the exit button sitting ahead of the navigation controls.
@@ -88,6 +85,9 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     const [ notice, setNotice ] = useState('');
     const [ entries, setEntries ] = useState<string[]>([]);
     const [ live, setLive ] = useState<BrowserState | undefined>(undefined);
+    const [ settings, setSettings ] = useState(false);
+    const [ view, setView ] = useState<BrowserView>('mobile');
+    const [ visits, setVisits ] = useState<BrowserVisit[]>([]);
 
     const current = index < 0 ? '' : entries[index];
 
@@ -101,6 +101,20 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
     useEffect(() => onNativeBrowserState(setLive), []);
 
+    // Read once on mount rather than at module scope: this is the only surface that needs either
+    // value, and a store read that fails here costs a start screen its shortcuts instead of leaving
+    // the whole app unresolved the way the awaits in `app.tsx` do.
+    useEffect(() =>
+    {
+        const load = async() =>
+        {
+            setView(await getBrowserView());
+            setVisits(await getBrowserHistory());
+        };
+
+        void load();
+    }, []);
+
     // A page reached by following links is not on the stack, so its address has to come from the view.
     useEffect(() =>
     {
@@ -110,9 +124,22 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         }
     }, [ live?.url ]);
 
-    const links = network.explorerUrl.length > 0 ?
-        [ { name: T('Dashboard.Browser.Explorer'), url: `${ network.explorerUrl }/address/${ address }` }, ...bookmarks ] :
-        bookmarks;
+    // The explorer entry is the one suggestion that is not a fixed address: it points at the active
+    // network's explorer, on this account, so the row means something different on each chain — and
+    // it drops out entirely on a network that declares none.
+    const explorer = network.explorerUrl.length > 0 ? `${ network.explorerUrl }/address/${ address }` : '';
+
+    const suggested = suggestedSites
+        .map((item) =>
+        {
+            if (item.explorer)
+            {
+                return { name: T('Dashboard.Browser.Explorer'), url: explorer };
+            }
+
+            return { name: item.name, url: item.url };
+        })
+        .filter((item) => item.url.length > 0);
 
     const onOpen = (value: string) =>
     {
@@ -129,6 +156,11 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         setIndex(next.length - 1);
         setDraft(url);
         setNotice('');
+
+        // Recorded here rather than from the webview's own navigation events: this is what the user
+        // asked for, while the events also fire for redirects and for every link followed inside a
+        // page, which would fill the list with places nobody chose to go.
+        void addBrowserVisit(url).then(setVisits);
     };
 
     // A link handed over from another tab (an activity row, say) lands on the history stack exactly as
@@ -143,17 +175,17 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
     const onStep = (offset: number) =>
     {
-        const view = getNativeBrowser();
+        const bridge = getNativeBrowser();
 
-        if (view !== undefined)
+        if (bridge !== undefined)
         {
             if (offset < 0)
             {
-                view.back();
+                bridge.back();
             }
             else
             {
-                view.forward();
+                bridge.forward();
             }
 
             return;
@@ -176,8 +208,22 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         setDraft('');
     };
 
+    const onView = (chosen: BrowserView) =>
+    {
+        setView(chosen);
+
+        void setBrowserView(chosen);
+    };
+
+    const onClear = () =>
+    {
+        setVisits([]);
+
+        void clearBrowserHistory();
+    };
+
     return (
-        <div className='flex min-h-0 flex-1 flex-col'>
+        <div className='relative flex min-h-0 flex-1 flex-col'>
 
             { /* `base-1` is the 0.25-alpha token in both themes; `base-2` sits at 0.6/0.55 and read as solid. */ }
             <div className='flex shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
@@ -294,6 +340,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                 url={ current }
                 label={ frameLabel }
                 enabled={ enabled }
+                desktop={ view === 'desktop' }
                 reload={ counter }
                 title={ T('Dashboard.Browser.Title') }
                 onFallback={ (value) => { setNotice(value); } }
@@ -301,23 +348,40 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                 <div className='flex size-full flex-col gap-3 overflow-y-auto p-4'>
 
-                    <Text text={ T('Dashboard.Browser.Shortcuts') } />
+                    <SectionHeader title={ T('Dashboard.Browser.Suggested') }>
+
+                        <Button
+                            variant='chip'
+                            size='iconChip'
+                            aria-label={ T('Dashboard.Browser.Settings') }
+                            onClick={ () => { setSettings(true); } }>
+
+                            <FiSettings size={ 16 } />
+
+                        </Button>
+
+                    </SectionHeader>
 
                     <div className='grid grid-cols-2 gap-2'>
 
                         {
-                            links.map((item) => (
+                            suggested.map((item) => (
                                 <Button
                                     key={ item.url }
                                     variant='muted'
                                     onClick={ () => { onOpen(item.url); } }
-                                    className='h-14 rounded-xl px-3 text-start'>
+                                    className='h-14 gap-3 rounded-xl px-3 text-start'>
 
-                                    <IconBox tone='primary' size='size-8' className='text-tiny'>
-
-                                        { item.name.slice(0, 1) }
-
-                                    </IconBox>
+                                    { /*
+                                      * The site's own icon, with its initial underneath for the ones
+                                      * that answer with nothing — the same treatment a token gets in
+                                      * the holdings list, and the same component drawing it.
+                                      */ }
+                                    <TokenIcon
+                                        primary
+                                        src={ getSiteIcon(item.url) }
+                                        symbol={ item.name }
+                                        className='size-8 text-tiny' />
 
                                     <Text
                                         variant='body'
@@ -329,6 +393,57 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                         }
 
                     </div>
+
+                    <SectionHeader title={ T('Dashboard.Browser.Recent') } />
+
+                    {
+                        visits.length === 0 ?
+                            <EmptyState panel text={ T('Dashboard.Browser.RecentEmpty') } /> :
+                            (
+                                <div className='grid grid-cols-2 gap-2'>
+
+                                    {
+                                        visits.map((item) => (
+                                            <Button
+                                                key={ item.url }
+                                                title={ item.url }
+                                                variant='muted'
+                                                onClick={ () => { onOpen(item.url); } }
+                                                className='h-14 gap-3 rounded-xl px-3 text-start'>
+
+                                                <TokenIcon
+                                                    src={ getSiteIcon(item.url) }
+                                                    symbol={ getSiteHost(item.url).toUpperCase() }
+                                                    className='size-8 text-tiny' />
+
+                                                { /*
+                                                  * The host alone names the row, which is what makes two
+                                                  * of these fit on a line. The full address used to sit
+                                                  * under it and cannot survive half a row — it truncated
+                                                  * to an ellipsis and took the host's width with it, so
+                                                  * it moved to the tooltip. Left-to-right inside a column
+                                                  * the interface may be running right-to-left, the same
+                                                  * treatment the account switcher gives an address.
+                                                  */ }
+                                                <Text
+                                                    variant='body'
+                                                    className='flex-1 truncate'>
+
+                                                    <span dir='ltr'>
+
+                                                        { getSiteHost(item.url) }
+
+                                                    </span>
+
+                                                </Text>
+
+                                            </Button>
+                                        ))
+                                    }
+
+                                </div>
+                            )
+                    }
 
                     {
                         notice.length > 0 &&
@@ -352,6 +467,28 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                 </div>
 
             </WebFrame>
+
+            { /*
+              * Mounted inside the tab, unlike every other dialog in the app, because this one belongs
+              * to the browser rather than to the wallet. It opens from the start screen only, where no
+              * page is loaded and so no browser view is painted over the layout to cover it.
+              */ }
+            <AnimatePresence>
+
+                {
+                    settings &&
+                    (
+                        <DashboardBrowserSettings
+                            key='browser-settings'
+                            view={ view }
+                            visits={ visits.length }
+                            onView={ onView }
+                            onClear={ onClear }
+                            onClose={ () => { setSettings(false); } } />
+                    )
+                }
+
+            </AnimatePresence>
 
         </div>
     );

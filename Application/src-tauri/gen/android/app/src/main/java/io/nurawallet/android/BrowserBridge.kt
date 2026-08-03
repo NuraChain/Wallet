@@ -3,12 +3,14 @@ package io.nurawallet.android
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Color
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
@@ -31,6 +33,21 @@ import org.json.JSONObject
 class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
     private var page: WebView? = null
+
+    /** Whether pages are asked for the desktop layout; set from the browser's settings dialog. */
+    private var desktop: Boolean = false
+
+    companion object {
+        /**
+         * The agent used while desktop mode is on.
+         *
+         * Sites branch on the `Mobile` token, so the switch is a matter of which string is sent, not
+         * of the window changing size. It mirrors the desktop agent the Windows child webview uses
+         * (see `desktopAgent` in layout/webview.tsx) so one setting means one layout on both.
+         */
+        private const val DESKTOP_AGENT =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+    }
 
     /** Density used to turn the CSS pixels the layout reports into device pixels. */
     private val density get() = activity.resources.displayMetrics.density
@@ -55,6 +72,28 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         }
     }
 
+    /**
+     * Puts the current mode's agent on a view.
+     *
+     * Mobile is whatever the system WebView already reports (minus the `; wv` marker `build` strips),
+     * so turning desktop mode off restores the device's own string rather than a guess at it.
+     */
+    private fun applyAgent(view: WebView) {
+        if (desktop) {
+            view.settings.userAgentString = DESKTOP_AGENT
+        } else {
+            // Dropping the "; wv" marker makes this read as ordinary Chrome for Android rather than
+            // an embedded WebView, which some sites serve a stripped-down page to. The string still
+            // carries "Mobile", so the mobile layout is what arrives.
+            view.settings.userAgentString = WebSettings.getDefaultUserAgent(activity).replace("; wv", "")
+        }
+
+        // A desktop page laid out for a 1280px window has to be scaled into a phone-width view, which
+        // is what these two do together; on mobile they are harmless and already the defaults here.
+        view.settings.useWideViewPort = true
+        view.settings.loadWithOverviewMode = true
+    }
+
     private fun layout(view: WebView, x: Double, y: Double, width: Double, height: Double) {
         val params = FrameLayout.LayoutParams(px(width), px(height))
 
@@ -77,11 +116,7 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         view.settings.displayZoomControls = false
         view.settings.mediaPlaybackRequiresUserGesture = false
         view.settings.javaScriptCanOpenWindowsAutomatically = true
-        // Dropping the "; wv" marker makes this read as ordinary Chrome for Android rather than an
-        // embedded WebView, which some sites serve a stripped-down page to. The string still carries
-        // "Mobile", so the mobile layout is what arrives - the desktop webview has to ask for that
-        // explicitly instead (see mobileAgent in layout/webview.tsx).
-        view.settings.userAgentString = view.settings.userAgentString?.replace("; wv", "")
+        applyAgent(view)
 
         // This view renders untrusted pages, and the app's private storage next door holds the
         // encrypted mnemonic. Nothing here is allowed to touch the filesystem or content providers.
@@ -146,6 +181,11 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
             layout(view, x, y, width, height)
 
+            // A page being opened is a page meant to be seen. Without this a view left hidden by
+            // `setVisible` would take the new address and stay off screen.
+            view.visibility = View.VISIBLE
+            view.onResume()
+
             if (view.url != url) {
                 view.loadUrl(url)
             }
@@ -168,6 +208,57 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
             }
 
             page = null
+        }
+    }
+
+    /**
+     * Takes the page off screen without discarding it.
+     *
+     * This view is a sibling of the app's own webview, not something drawn inside it, so no amount of
+     * layout on the React side can cover it — leaving the browser tab or opening a dialog over it has
+     * to say so here. It used to be `close`d for that, which also threw the page away: coming back
+     * reloaded the site from its address and lost the scroll position, anything typed into it and any
+     * state a dApp was holding. Hiding keeps the instance, so returning is instant.
+     *
+     * `onPause` stops the hidden page's timers, animation and media. It is the per-view call, not
+     * `pauseTimers`, which is process-wide and would stop the app's own webview along with it.
+     */
+    @JavascriptInterface
+    fun setVisible(visible: Boolean) {
+        activity.runOnUiThread {
+            page?.let { view ->
+                view.visibility = if (visible) View.VISIBLE else View.GONE
+
+                if (visible) {
+                    view.onResume()
+                } else {
+                    view.onPause()
+                }
+            }
+        }
+    }
+
+    /**
+     * Switches the layout pages are asked for.
+     *
+     * Called before `open`, so a page that has not been created yet simply comes up in the right
+     * mode. A page already on screen is reloaded, since the agent is only read when a request is
+     * made and the one on screen was fetched under the old one.
+     */
+    @JavascriptInterface
+    fun setDesktop(desktop: Boolean) {
+        if (this.desktop == desktop) {
+            return
+        }
+
+        this.desktop = desktop
+
+        activity.runOnUiThread {
+            page?.let { view ->
+                applyAgent(view)
+
+                view.reload()
+            }
         }
     }
 
