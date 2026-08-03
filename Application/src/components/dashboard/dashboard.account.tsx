@@ -313,7 +313,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                         return (
                                             <div
                                                 key={ item.index }
-                                                className={ `flex items-center gap-2 rounded-xl p-2 transition-colors duration-300 ${ isActive ? 'bg-btn-primary/15' : '' }` }>
+                                                className={ `flex items-center gap-2 rounded-xl p-2 transition-colors duration-300 ${ isActive ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
 
                                                 { /*
                                                   * The disc is its own control so tapping it opens the

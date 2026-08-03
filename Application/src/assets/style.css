@@ -54,6 +54,7 @@
     --color-txt-normal: var(--txt-normal);
     --color-txt-reverse: var(--txt-reverse);
     --color-txt-error: var(--txt-error);
+    --color-txt-success: var(--txt-success);
 
     --text-tiny: 12px;
     --text-small: 14px;
@@ -154,6 +155,9 @@
     --txt-normal: oklch(20% 0.02 260);
     --txt-reverse: oklch(98% 0 0);
     --txt-error: oklch(55% 0.22 25);
+    /* The credit half of the pair `--txt-error` is now the debit half of: same lightness and a
+       comparable chroma, so a received amount carries no more weight on the row than a sent one. */
+    --txt-success: oklch(52% 0.16 150);
 }
 
 [data-theme='dark'] {
@@ -222,6 +226,7 @@
     --txt-normal: oklch(96% 0.005 260);
     --txt-reverse: oklch(98% 0 0);
     --txt-error: oklch(72% 0.19 25);
+    --txt-success: oklch(72% 0.16 150);
 }
 
 * {

@@ -29,7 +29,7 @@ export default function Checkbox({ checked, text, onToggle, children }: { checke
             <button
                 type='button'
                 onClick={ onToggle }
-                className={ `${ glassInput } flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm` }>
+                className={ `${ glassInput } flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm hover:bg-btn-muted-hover` }>
 
                 {
                     checked && <FiCheck size={ 16 } className='text-txt-muted' />

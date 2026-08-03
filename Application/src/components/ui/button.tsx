@@ -49,7 +49,7 @@ const fillDanger = `${ fillBase } border border-btn-danger-border bg-btn-danger 
  * surface rather than jumping off it. Used for the dashboard's account / network / settings row,
  * where three controls sit side by side and none of them is the action the user came for.
  */
-const fillChip = 'cursor-pointer border border-glass-line bg-base-3 text-txt-normal outline-2 outline-offset-2 outline-double outline-transparent backdrop-blur-[10px] backdrop-saturate-[150%] transition-[background-color,transform,opacity] duration-200 ease-initial hover:bg-base-2 focus:outline-btn-muted-outline active:scale-95 active:bg-base-2';
+const fillChip = 'cursor-pointer border border-glass-line bg-base-3 text-txt-normal outline-2 outline-offset-2 outline-double outline-transparent backdrop-blur-[10px] backdrop-saturate-[150%] transition-[background-color,transform,opacity] duration-200 ease-initial hover:bg-btn-normal-hover focus:outline-btn-muted-outline active:scale-95 active:bg-btn-normal-active';
 
 /**
  * Class recipe for every button in the app.

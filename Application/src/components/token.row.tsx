@@ -18,13 +18,19 @@ import { glassPanel } from './ui/panel';
  * @param {boolean} [props.primary] Tints the icon fallback with the primary colour.
  * @param {string} props.subtitle Muted line under the title.
  * @param {boolean} [props.panel] Draws the row as a glass card.
+ * @param {boolean} [props.hover] Picks the row out under the pointer.
  * @param {ReactNode} [props.children] End-of-row content.
  * @returns {JSX.Element} The row.
  */
-export default function TokenRow({ src, symbol, primary = false, subtitle, panel = false, children }: { src: string; symbol: string; primary?: boolean; subtitle: string; panel?: boolean; children?: ReactNode })
+export default function TokenRow({ src, symbol, primary = false, subtitle, panel = false, hover = false, children }: { src: string; symbol: string; primary?: boolean; subtitle: string; panel?: boolean; hover?: boolean; children?: ReactNode })
 {
     return (
-        <div className={ cn('flex items-center gap-3 rounded-xl', panel ? `${ glassPanel } p-3` : 'p-2') }>
+        // Asked for rather than always on: these rows are a list to read in the wallet tab, where a
+        // surface that lights up under the pointer promises a click that does not happen. In the token
+        // manager each one carries its own remove control, so saying which row the pointer is on is
+        // the difference between removing that token and its neighbour. `btn-muted-hover` is the same
+        // fill the nav tab and the window controls use, so nothing new is painted here.
+        <div className={ cn('flex items-center gap-3 rounded-xl', panel ? `${ glassPanel } p-3` : 'p-2', hover && 'transition-[background-color] duration-200 ease-initial hover:bg-btn-muted-hover') }>
 
             <TokenIcon
                 src={ src }

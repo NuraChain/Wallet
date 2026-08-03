@@ -405,7 +405,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                     <Button
                                         aria-label={ T('Dashboard.Browser.Reload') }
                                         onClick={ () => { patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false })); } }
-                                        className='absolute inset-e-2.5 cursor-pointer text-txt-muted'>
+                                        className='absolute inset-e-2.5 cursor-pointer text-txt-muted hover:text-txt-normal'>
 
                                         { /* Spinning the reload glyph is the in-flight cue; it is the same
                                           * control either way, so nothing moves when the load ends. */ }

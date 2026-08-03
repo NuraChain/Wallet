@@ -205,7 +205,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                 (
                                     <Button
                                         onClick={ () => { setRevealed(true); } }
-                                        className='absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl bg-base-2/60 text-txt-normal'>
+                                        className='absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl bg-base-2/60 text-txt-normal hover:bg-base-2/70'>
 
                                         <FiEye size={ 20 } />
 
