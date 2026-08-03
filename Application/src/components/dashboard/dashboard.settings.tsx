@@ -71,6 +71,15 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
                 onClick={ onPhrase }
                 trailing={ chevron } />
 
+            { /*
+              * Last line before the actions, quiet and centred: it is the sort of thing looked for
+              * only when reporting a problem, and the number is the one baked in from `Cargo.toml`.
+              */ }
+            <Text
+                dir='ltr'
+                className='pt-1 text-center'
+                text={ T('Dashboard.Settings.Version', __APP_VERSION__) } />
+
             { /* Both are session-ending actions, so they share one row rather than a line each. */ }
             <ModalActions>
 

@@ -221,6 +221,7 @@
             "Theme": "پوسته",
             "ThemeLight": "روشن",
             "ThemeDark": "تیره",
+            "Version": "نسخه %s",
             "Logout": "خروج از حساب"
         },
         "Phrase": {

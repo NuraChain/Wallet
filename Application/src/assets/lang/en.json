@@ -221,6 +221,7 @@
             "Theme": "Theme",
             "ThemeLight": "Light",
             "ThemeDark": "Dark",
+            "Version": "Version %s",
             "Logout": "Log out"
         },
         "Phrase": {
