@@ -56,6 +56,19 @@ android {
 
     buildTypes {
         getByName("debug") {
+            // Signed with the release key when there is one, so a dev build can replace an installed
+            // release build instead of being refused by it. Android will not update a package across a
+            // change of signing key: it answers INSTALL_FAILED_UPDATE_INCOMPATIBLE, and the only way
+            // out is uninstalling first — which takes the app's private storage with it, and that is
+            // where the encrypted recovery phrase lives. Matching the signature avoids ever having to
+            // make that trade on a device holding a wallet.
+            //
+            // Without a keystore this stays on the default debug key, which is the same thing every
+            // other Android project does.
+            if (keystorePath != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+
             isDebuggable = true
             isJniDebuggable = true
             isMinifyEnabled = false
