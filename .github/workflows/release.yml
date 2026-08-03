@@ -55,11 +55,9 @@ jobs:
             libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev patchelf \
             libayatana-appindicator3-dev build-essential file
 
-      # `npm ci` needs a lockfile and package-lock.json is git-ignored in this repo,
-      # so dependencies resolve fresh on every run.
       - name: Install dependencies
         working-directory: ${{ env.APP_DIR }}
-        run: npm install
+        run: npm ci
 
       - name: Build
         working-directory: ${{ env.APP_DIR }}
@@ -154,7 +152,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ${{ env.APP_DIR }}
-        run: npm install
+        run: npm ci
 
       # Parts of src-tauri/gen/android are git-ignored because Tauri regenerates
       # them (buildSrc, tauri.settings.gradle, app/tauri.build.gradle.kts), and
