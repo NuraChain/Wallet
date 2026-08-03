@@ -10,7 +10,7 @@ import Button from '../components/ui/button';
 
 import { T } from '../utility/language';
 
-import Logo from '../assets/image/logo.svg';
+import Logo from '../assets/image/logo.png';
 
 /**
  * Size the mobile view snaps back to: the phone-shaped frame the layout is designed around, and what
