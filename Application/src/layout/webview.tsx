@@ -8,7 +8,7 @@ import Text from '../components/ui/text';
 import Spinner from '../components/ui/spinner';
 
 import { T } from '../utility/language';
-import { getNativeBrowser } from '../core/browser';
+import { getNativeBrowser, getNativeTab, nativeHoldsTabs } from '../core/browser';
 
 /**
  * User agent the child webview presents.
@@ -60,7 +60,7 @@ const desktopAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.
  * @param {number} [props.reload] Bump to reload the current page.
  * @param {string} [props.title] Accessible title for the fallback iframe.
  * @param {string} [props.className] Classes for the frame element.
- * @param {ReactNode} [props.children] Rendered in place of the page while `url` is empty.
+ * @param {ReactNode} [props.children] Rendered in place of the page whenever they are passed; the caller decides when the page area is covered.
  * @param {(notice: string) => void} [props.onFallback] Called with the failure reason when the native webview could not be created.
  * @returns {JSX.Element} The frame.
  */
@@ -75,16 +75,16 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
     const [ embedded, setEmbedded ] = useState(true);
 
-    const bridge = getNativeBrowser();
-
-    // An APK older than this bundle has no way to hide its view, so there the old behaviour is still
-    // the only safe one: close on the way out and accept the reload on the way back.
-    const nativeHides = bridge?.setVisible !== undefined;
+    // An APK older than this bundle has no way to hide its view, and one older still can only hold a
+    // single page — in both cases the frontmost tab is the only one allowed a view, and leaving takes
+    // it down. `hides` and `nativeHoldsTabs()` are separate questions because they arrived separately.
+    const nativeHides = getNativeTab(label)?.hides === true;
+    const nativeTabs = nativeHoldsTabs();
 
     // Whether a view should exist at all, which is deliberately not the same question as whether it
-    // should be on screen. Only the Android fallback above folds `enabled` back into it.
+    // should be on screen. Only the Android fallbacks above fold `enabled` back into it.
     const isLive = embedded && url.length > 0;
-    const isNativeLive = url.length > 0 && (nativeHides || enabled);
+    const isNativeLive = url.length > 0 && (nativeHides || enabled) && (nativeTabs || enabled);
 
     useEffect(() =>
     {
@@ -109,7 +109,7 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
     // exist on Android, and the iframe fallback is refused by anything sending `X-Frame-Options`.
     useEffect(() =>
     {
-        const native = getNativeBrowser();
+        const native = getNativeTab(label);
 
         if (native === undefined)
         {
@@ -124,8 +124,9 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
         }
 
         // Told before the page is opened, so the first request already carries the agent the setting
-        // asks for rather than loading once and reloading into it.
-        native.setDesktop?.(desktop);
+        // asks for rather than loading once and reloading into it. The layout is one setting for the
+        // whole browser, not a property of a tab, so it stays on the bridge itself.
+        getNativeBrowser()?.setDesktop?.(desktop);
 
         let opened = false;
 
@@ -152,7 +153,9 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
             opened = true;
 
-            native.open(url, next.x, next.y, next.width, next.height);
+            // Read through the ref: this effect deliberately does not re-run on `enabled`, so the
+            // value it closed over can be a tab switch out of date.
+            native.open(url, enabledRef.current, next.x, next.y, next.width, next.height);
         };
 
         move();
@@ -174,15 +177,16 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
             native.close();
         };
-    }, [ isNativeLive, url, desktop ]);
+    }, [ isNativeLive, label, url, desktop ]);
 
     // Android visibility. The view is a sibling of the app's own webview rather than something drawn
-    // inside it, so nothing in the layout can cover it — leaving the tab or opening a modal has to say
-    // so explicitly. Bounds are left where they were, which is what makes coming back instant.
+    // inside it, so nothing in the layout can cover it — leaving the tab, switching to another one or
+    // opening a modal has to say so explicitly. Bounds are left where they were, which is what makes
+    // coming back instant.
     useEffect(() =>
     {
-        getNativeBrowser()?.setVisible?.(enabled);
-    }, [ enabled, isNativeLive ]);
+        getNativeTab(label)?.setVisible(enabled);
+    }, [ enabled, isNativeLive, label ]);
 
     // A `reload` bump recreates the desktop child webview, but the native view is long-lived and has
     // a real reload of its own.
@@ -190,9 +194,9 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
     {
         if (reload > 0)
         {
-            getNativeBrowser()?.reload();
+            getNativeTab(label)?.reload();
         }
-    }, [ reload ]);
+    }, [ reload, label ]);
 
     useEffect(() =>
     {
@@ -398,12 +402,20 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
             ref={ frameRef }
             className={ className }>
 
+            { /*
+              * Children cover the page area when the caller passes them, and the caller decides when
+              * that is — a tab with no address, or the start screen laid over a page that is being
+              * kept alive behind it. What hides the page itself is the native hide, since the view is
+              * painted over the layout and no amount of DOM will cover it; this only decides what is
+              * underneath. The iframe fallback is the one path that does not survive being covered,
+              * which is the degraded path already.
+              */ }
             {
-                url.length === 0 && children
+                children !== undefined && children
             }
 
             {
-                url.length > 0 && !embedded &&
+                children === undefined && url.length > 0 && !embedded &&
                 (
                     <iframe
                         key={ `${ url }-${ reload }` }
@@ -423,7 +435,7 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
                 // The child webview reports no progress, so the indicator is deliberately
                 // indeterminate: a spinner and a sweeping bar that say work is happening without
                 // implying a position. It sat here as motionless text before, which reads as a hang.
-                url.length > 0 && embedded && getNativeBrowser() === undefined &&
+                children === undefined && url.length > 0 && embedded && getNativeBrowser() === undefined &&
                 (
                     <div className='flex size-full flex-col items-center justify-center gap-3 text-tiny text-txt-muted'>
 

@@ -1,28 +1,21 @@
 import type { Network } from '../../core/network';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 import { AnimatePresence, motion } from 'motion/react';
-import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch, FiSettings } from 'react-icons/fi';
+import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch } from 'react-icons/fi';
 
 import WebFrame from '../../layout/webview';
-import TokenIcon from '../token.icon';
+import DashboardBrowserTabs from './dashboard.browser.tabs';
+import DashboardBrowserStart from './dashboard.browser.start';
 import DashboardBrowserSettings from './dashboard.browser.settings';
 
-import Text from '../ui/text';
-import Alert from '../ui/alert';
 import Button from '../ui/button';
-import EmptyState from '../ui/state';
-import SectionHeader from '../ui/section';
 import { TextField } from '../ui/field';
 
+import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
-import { addBrowserVisit, clearBrowserHistory, getBrowserHistory, getBrowserView, getNativeBrowser, getSiteHost, getSiteIcon, onNativeBrowserState, setBrowserView, suggestedSites, type BrowserState, type BrowserVisit, type BrowserView } from '../../core/browser';
-
-/**
- * Label of the child webview that renders the page. Only ever one exists at a time.
- */
-const frameLabel = 'nura-browser';
+import { addBrowserVisit, atBrowserStart, clearBrowserHistory, frameLabel, getBrowserHistory, getBrowserView, getNativeBrowser, getNativeTab, onNativeBrowserState, setBrowserView, suggestedSites, type BrowserState, type BrowserTab, type BrowserVisit, type BrowserView } from '../../core/browser';
 
 /**
  * Turn whatever was typed in the address bar into a loadable URL.
@@ -61,10 +54,13 @@ const toUrl = (value: string) =>
  * in this component rather than the webview's own, since the child-webview API exposes no `navigate`
  * and every step is a fresh view.
  *
+ * Tabs are held here, one navigation stack each, and every one of them keeps its own view alive: the
+ * frame belonging to the tab in front is the only one shown, the rest are hidden where they stand. So
+ * picking a tab is instant and nothing is reloaded, which is the whole point of having tabs at all.
+ *
  * Two lists make up the start screen. The suggested sites are fixed and come from `core/browser`; the
- * visited ones are what this tab has opened before, persisted so they survive the tab being torn down
- * — which happens on every switch away, since the webview cannot be left painted over another tab.
- * Both are shortcuts, and neither is the in-session back stack the toolbar arrows walk.
+ * visited ones are every site opened from this wallet, persisted across restarts. Both are shortcuts,
+ * shared by all tabs, and neither is the per-tab back stack the toolbar arrows walk.
  *
  * This tab runs edge to edge and the dashboard's nav bar stays down while it is open, so the toolbar
  * is also the only way out — hence the exit button sitting ahead of the navigation controls.
@@ -79,27 +75,74 @@ const toUrl = (value: string) =>
  */
 export default function DashboardBrowser({ address, network, enabled, request, ticket, onExit }: { address: string; network: Network; enabled: boolean; request: string; ticket: number; onExit: () => void })
 {
-    const [ index, setIndex ] = useState(-1);
-    const [ draft, setDraft ] = useState('');
-    const [ counter, setCounter ] = useState(0);
-    const [ notice, setNotice ] = useState('');
-    const [ entries, setEntries ] = useState<string[]>([]);
-    const [ live, setLive ] = useState<BrowserState | undefined>(undefined);
     const [ settings, setSettings ] = useState(false);
     const [ view, setView ] = useState<BrowserView>('mobile');
     const [ visits, setVisits ] = useState<BrowserVisit[]>([]);
+    const [ active, setActive ] = useState(1);
+    const [ tabs, setTabs ] = useState<BrowserTab[]>([ { id: 1, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
 
-    const current = index < 0 ? '' : entries[index];
+    // A counter and not state: an id has to be unique against every tab that has ever existed, and two
+    // clicks landing in one commit would read the same value out of a render. Ids are never recycled
+    // because one names a child webview — handing a new tab a label a closing tab still answers to
+    // would let the teardown of the old one land on the new one's view.
+    const mintRef = useRef(2);
+
+    // Keyed by tab rather than held flat, because every tab has a page of its own to report on. Maps
+    // and not objects for the sake of one line: closing a tab has to forget its entry, and a numeric
+    // key survives a `Map` unchanged where an object would turn it into a string.
+    const [ live, setLive ] = useState<Map<number, BrowserState>>(new Map());
+    const [ notice, setNotice ] = useState<Map<number, string>>(new Map());
+
+    // Closing the last tab leaves a fresh one behind, so there is always a tab in front to read from.
+    const tab = tabs.find((item) => item.id === active) ?? tabs[0];
+
+    const current = tab.index < 0 ? '' : tab.entries[tab.index];
+
+    // The start screen and the tab strip are one surface: the strip is how a tab is picked, and it
+    // belongs with the shortcuts rather than over a page that is trying to be read.
+    const start = atBrowserStart(tab);
+
+    const state = live.get(tab.id);
 
     const native = getNativeBrowser() !== undefined;
 
     // The native view keeps its own history, so links followed inside a page are navigable too — the
     // component's stack only ever sees what was typed or handed over. Off Android there is no such
     // view and the stack is all there is.
-    const canBack = native ? live?.canBack === true : index >= 0;
-    const canForward = native ? live?.canForward === true : index < entries.length - 1;
+    // On the start screen the step back is out of it, onto the page it was laid over — so the control
+    // is live there whatever the page's own history says.
+    const canBack = tab.home || (native ? state?.canBack === true : tab.index >= 0);
+    const canForward = native ? state?.canForward === true : tab.index < tab.entries.length - 1;
 
-    useEffect(() => onNativeBrowserState(setLive), []);
+    /**
+     * Rewrites one tab and leaves the others alone.
+     */
+    const patch = (id: number, change: (item: BrowserTab) => BrowserTab) =>
+    {
+        setTabs((list) => list.map((item) => (item.id === id ? change(item) : item)));
+    };
+
+    // Registered against the current tab list rather than once on mount: the bridge names the tab an
+    // update belongs to and that name has to be resolved to one of these. An APK from before tabs
+    // sends no name and only ever had one page, so its updates belong to whichever tab is in front.
+    useEffect(() => onNativeBrowserState((update) =>
+    {
+        const target = update.id === undefined ? active : tabs.find((item) => frameLabel(item.id) === update.id)?.id;
+
+        if (target === undefined)
+        {
+            return;
+        }
+
+        setLive((map) => new Map(map).set(target, update));
+
+        // A page reached by following links is not on the stack, so its address has to come from the
+        // view that navigated there.
+        if (update.url.length > 0)
+        {
+            patch(target, (item) => ({ ...item, draft: update.url }));
+        }
+    }), [ tabs, active ]);
 
     // Read once on mount rather than at module scope: this is the only surface that needs either
     // value, and a store read that fails here costs a start screen its shortcuts instead of leaving
@@ -114,15 +157,6 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
         void load();
     }, []);
-
-    // A page reached by following links is not on the stack, so its address has to come from the view.
-    useEffect(() =>
-    {
-        if (live !== undefined && live.url.length > 0)
-        {
-            setDraft(live.url);
-        }
-    }, [ live?.url ]);
 
     // The explorer entry is the one suggestion that is not a fixed address: it points at the active
     // network's explorer, on this account, so the row means something different on each chain — and
@@ -150,12 +184,14 @@ export default function DashboardBrowser({ address, network, enabled, request, t
             return;
         }
 
-        const next = [ ...entries.slice(0, index + 1), url ];
+        patch(active, (item) =>
+        {
+            const next = [ ...item.entries.slice(0, item.index + 1), url ];
 
-        setEntries(next);
-        setIndex(next.length - 1);
-        setDraft(url);
-        setNotice('');
+            return { ...item, entries: next, index: next.length - 1, draft: url, home: false };
+        });
+
+        setNotice((map) => new Map(map).set(active, ''));
 
         // Recorded here rather than from the webview's own navigation events: this is what the user
         // asked for, while the events also fire for redirects and for every link followed inside a
@@ -175,7 +211,16 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
     const onStep = (offset: number) =>
     {
-        const bridge = getNativeBrowser();
+        // Leaving the start screen is the step the user took to get here, so it is the one back undoes
+        // before the page's own history is touched.
+        if (tab.home && offset < 0)
+        {
+            patch(active, (item) => ({ ...item, home: false }));
+
+            return;
+        }
+
+        const bridge = getNativeTab(frameLabel(active));
 
         if (bridge !== undefined)
         {
@@ -191,21 +236,98 @@ export default function DashboardBrowser({ address, network, enabled, request, t
             return;
         }
 
-        const next = index + offset;
+        const next = tab.index + offset;
 
-        if (next < 0 || next >= entries.length)
+        if (next < 0 || next >= tab.entries.length)
         {
             return;
         }
 
-        setIndex(next);
-        setDraft(entries[next]);
+        patch(active, (item) => ({ ...item, index: next, draft: item.entries[next], home: false }));
     };
 
+    /**
+     * Shows the start screen over the tab, leaving the page it holds alone.
+     *
+     * This used to clear the stack, which emptied the address and took the view down with it — going
+     * home meant losing the page and reloading it from scratch on the way back. The page now stays
+     * where it is, hidden behind the start screen, and picking the tab in the strip returns to it.
+     */
     const onHome = () =>
     {
-        setIndex(-1);
-        setDraft('');
+        patch(active, (item) => ({ ...item, home: true }));
+    };
+
+    /**
+     * Brings a tab to the front, showing whatever page it holds.
+     *
+     * Picking a tab is also the way back out of the start screen, since the strip is only on screen
+     * while that is what the front tab shows. A tab with no page of its own simply stays there.
+     */
+    const onPickTab = (id: number) =>
+    {
+        setActive(id);
+
+        patch(id, (item) => ({ ...item, home: false }));
+    };
+
+    /**
+     * Opens a tab and brings it to the front, on its start screen.
+     *
+     * Ids are minted rather than reused, since one names a child webview and a recycled id would hand
+     * a new tab the view the closed one left behind.
+     */
+    const onAddTab = () =>
+    {
+        const id = mintRef.current;
+
+        mintRef.current += 1;
+
+        setTabs([ ...tabs, { id, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
+
+        setActive(id);
+    };
+
+    /**
+     * Closes a tab, and with it the view that tab owned — unmounting the frame is what tears it down.
+     *
+     * Closing the one in front falls to its left neighbour, which is where the eye already is. Closing
+     * the last tab leaves an empty one rather than an empty browser: there is no state in which this
+     * page has no tab, so nothing downstream has to describe one.
+     */
+    const onCloseTab = (id: number) =>
+    {
+        const at = tabs.findIndex((item) => item.id === id);
+
+        if (at < 0)
+        {
+            return;
+        }
+
+        const rest = tabs.filter((item) => item.id !== id);
+
+        if (rest.length === 0)
+        {
+            const fresh = mintRef.current;
+
+            mintRef.current += 1;
+
+            setTabs([ { id: fresh, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
+
+            setActive(fresh);
+        }
+        else
+        {
+            setTabs(rest);
+
+            if (id === active)
+            {
+                setActive(rest[Math.max(0, at - 1)].id);
+            }
+        }
+
+        setLive((map) => { const next = new Map(map); next.delete(id); return next; });
+        setNotice((map) => { const next = new Map(map); next.delete(id); return next; });
     };
 
     const onView = (chosen: BrowserView) =>
@@ -270,11 +392,11 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                 <div className='min-w-0 flex-1'>
 
                     <TextField
-                        dir={ draft.length > 0 ? 'ltr' : undefined }
-                        value={ draft }
+                        dir={ tab.draft.length > 0 ? 'ltr' : undefined }
+                        value={ tab.draft }
                         placeholder={ T('Dashboard.Browser.Placeholder') }
-                        onValue={ setDraft }
-                        onEnter={ () => { onOpen(draft); } }
+                        onValue={ (value) => { patch(active, (item) => ({ ...item, draft: value })); } }
+                        onEnter={ () => { onOpen(tab.draft); } }
                         className='h-9 truncate rounded-xl ps-8 pe-8 text-tiny'
                         leading={ <FiSearch size={ 14 } className='pointer-events-none absolute inset-s-2.5 text-txt-muted' /> }
                         trailing={
@@ -282,12 +404,12 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                 (
                                     <Button
                                         aria-label={ T('Dashboard.Browser.Reload') }
-                                        onClick={ () => { setCounter((value) => value + 1); } }
+                                        onClick={ () => { patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false })); } }
                                         className='absolute inset-e-2.5 cursor-pointer text-txt-muted'>
 
                                         { /* Spinning the reload glyph is the in-flight cue; it is the same
                                           * control either way, so nothing moves when the load ends. */ }
-                                        <FiRotateCw size={ 14 } className={ live?.loading === true ? 'animate-spin' : '' } />
+                                        <FiRotateCw size={ 14 } className={ state?.loading === true ? 'animate-spin' : '' } />
 
                                     </Button>
                                 ) :
@@ -299,7 +421,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                 <Button
                     variant='chip'
                     size='iconChip'
-                    disabled={ current.length === 0 }
+                    disabled={ start }
                     aria-label={ T('Dashboard.Browser.Home') }
                     onClick={ onHome }
                     className='shrink-0 disabled:opacity-40'>
@@ -309,6 +431,19 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                 </Button>
 
             </div>
+
+            {
+                start &&
+                (
+                    <DashboardBrowserTabs
+                        tabs={ tabs }
+                        active={ active }
+                        onPick={ onPickTab }
+                        onClose={ onCloseTab }
+                        onAdd={ onAddTab }
+                        onSettings={ () => { setSettings(true); } } />
+                )
+            }
 
             { /*
               * Real load progress from the WebView, on the toolbar's bottom edge where a browser puts
@@ -320,7 +455,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                 <AnimatePresence>
 
                     {
-                        live !== undefined && live.loading &&
+                        state !== undefined && state.loading &&
                         (
                             <motion.div
                                 key='progress'
@@ -328,7 +463,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                 exit={ { opacity: 0 } }
                                 transition={ { duration: 0.25 } }
                                 className='absolute inset-y-0 inset-s-0 bg-btn-primary'
-                                style={ { width: `${ Math.max(live.progress, 6) }%` } } />
+                                style={ { width: `${ Math.max(state.progress, 6) }%` } } />
                         )
                     }
 
@@ -336,137 +471,56 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
             </div>
 
-            <WebFrame
-                url={ current }
-                label={ frameLabel }
-                enabled={ enabled }
-                desktop={ view === 'desktop' }
-                reload={ counter }
-                title={ T('Dashboard.Browser.Title') }
-                onFallback={ (value) => { setNotice(value); } }
-                className='min-h-0 flex-1 overflow-hidden bg-base-1'>
+            { /*
+              * One frame per tab, all stacked on the same rectangle and all measurable, with only the
+              * one in front left visible. `invisible` rather than `hidden` on purpose: a frame with no
+              * box reports no size, and both platforms position their view from that box — a tab
+              * brought forward would have nowhere to paint. What actually keeps a background page off
+              * the screen is the native hide inside `WebFrame`; this only stops the DOM underneath one
+              * frame showing through another.
+              */ }
+            <div className='relative min-h-0 flex-1'>
 
-                <div className='flex size-full flex-col gap-3 overflow-y-auto p-4'>
-
-                    <SectionHeader title={ T('Dashboard.Browser.Suggested') }>
-
-                        <Button
-                            variant='chip'
-                            size='iconChip'
-                            aria-label={ T('Dashboard.Browser.Settings') }
-                            onClick={ () => { setSettings(true); } }>
-
-                            <FiSettings size={ 16 } />
-
-                        </Button>
-
-                    </SectionHeader>
-
-                    <div className='grid grid-cols-2 gap-2'>
-
-                        {
-                            suggested.map((item) => (
-                                <Button
-                                    key={ item.url }
-                                    variant='muted'
-                                    onClick={ () => { onOpen(item.url); } }
-                                    className='h-14 gap-3 rounded-xl px-3 text-start'>
-
-                                    { /*
-                                      * The site's own icon, with its initial underneath for the ones
-                                      * that answer with nothing — the same treatment a token gets in
-                                      * the holdings list, and the same component drawing it.
-                                      */ }
-                                    <TokenIcon
-                                        primary
-                                        src={ getSiteIcon(item.url) }
-                                        symbol={ item.name }
-                                        className='size-8 text-tiny' />
-
-                                    <Text
-                                        variant='body'
-                                        className='flex-1 truncate'
-                                        text={ item.name } />
-
-                                </Button>
-                            ))
-                        }
-
-                    </div>
-
-                    <SectionHeader title={ T('Dashboard.Browser.Recent') } />
-
+                {
+                    tabs.map((item) =>
                     {
-                        visits.length === 0 ?
-                            <EmptyState panel text={ T('Dashboard.Browser.RecentEmpty') } /> :
-                            (
-                                <div className='grid grid-cols-2 gap-2'>
+                        const front = item.id === active;
 
-                                    {
-                                        visits.map((item) => (
-                                            <Button
-                                                key={ item.url }
-                                                title={ item.url }
-                                                variant='muted'
-                                                onClick={ () => { onOpen(item.url); } }
-                                                className='h-14 gap-3 rounded-xl px-3 text-start'>
+                        // Not `enabled` for a tab showing its start screen: the view is hidden so the
+                        // shortcuts underneath can be seen, but the address is left in place so the
+                        // page is kept rather than closed.
+                        const shown = front && !atBrowserStart(item);
 
-                                                <TokenIcon
-                                                    src={ getSiteIcon(item.url) }
-                                                    symbol={ getSiteHost(item.url).toUpperCase() }
-                                                    className='size-8 text-tiny' />
+                        return (
+                            <WebFrame
+                                key={ item.id }
+                                url={ item.index < 0 ? '' : item.entries[item.index] }
+                                label={ frameLabel(item.id) }
+                                enabled={ enabled && shown }
+                                desktop={ view === 'desktop' }
+                                reload={ item.reload }
+                                title={ T('Dashboard.Browser.Title') }
+                                onFallback={ (value) => { setNotice((map) => new Map(map).set(item.id, value)); } }
+                                className={ cn('absolute inset-0 overflow-hidden bg-base-1', front ? 'visible' : 'invisible') }>
 
-                                                { /*
-                                                  * The host alone names the row, which is what makes two
-                                                  * of these fit on a line. The full address used to sit
-                                                  * under it and cannot survive half a row — it truncated
-                                                  * to an ellipsis and took the host's width with it, so
-                                                  * it moved to the tooltip. Left-to-right inside a column
-                                                  * the interface may be running right-to-left, the same
-                                                  * treatment the account switcher gives an address.
-                                                  */ }
-                                                <Text
-                                                    variant='body'
-                                                    className='flex-1 truncate'>
+                                {
+                                    front && !shown ?
+                                        (
+                                            <DashboardBrowserStart
+                                                suggested={ suggested }
+                                                visits={ visits }
+                                                notice={ notice.get(item.id) ?? '' }
+                                                onOpen={ onOpen } />
+                                        ) :
+                                        undefined
+                                }
 
-                                                    <span dir='ltr'>
+                            </WebFrame>
+                        );
+                    })
+                }
 
-                                                        { getSiteHost(item.url) }
-
-                                                    </span>
-
-                                                </Text>
-
-                                            </Button>
-                                        ))
-                                    }
-
-                                </div>
-                            )
-                    }
-
-                    {
-                        notice.length > 0 &&
-                        (
-                            <div className='mt-auto flex flex-col gap-1'>
-
-                                <Text
-                                    className='text-txt-muted/70'
-                                    text={ T('Dashboard.Browser.Hint') } />
-
-                                <Alert
-                                    dir='ltr'
-                                    variant='danger'
-                                    className='px-2 py-1 text-start font-mono'
-                                    text={ notice } />
-
-                            </div>
-                        )
-                    }
-
-                </div>
-
-            </WebFrame>
+            </div>
 
             { /*
               * Mounted inside the tab, unlike every other dialog in the app, because this one belongs

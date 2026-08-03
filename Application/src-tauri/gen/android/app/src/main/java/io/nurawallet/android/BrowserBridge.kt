@@ -32,12 +32,27 @@ import org.json.JSONObject
  */
 class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
-    private var page: WebView? = null
+    /**
+     * Every open tab's page, keyed by the id the frontend addresses it with.
+     *
+     * A map rather than the single field this started as: the browser holds tabs now, and each keeps
+     * its page alive while it waits its turn so that picking a tab shows what was already there
+     * instead of loading it again. Insertion-ordered so the teardown below is predictable.
+     */
+    private val pages = LinkedHashMap<String, WebView>()
 
     /** Whether pages are asked for the desktop layout; set from the browser's settings dialog. */
     private var desktop: Boolean = false
 
     companion object {
+        /**
+         * The id the single-page methods act on.
+         *
+         * They predate tabs and take no id, so they are kept pointing at one reserved entry in the
+         * map. That is what a bundle older than this APK still calls, and it goes on working.
+         */
+        private const val SOLE = "sole"
+
         /**
          * The agent used while desktop mode is on.
          *
@@ -57,9 +72,16 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     /** Only plain web schemes are ever loaded; see `shouldOverrideUrlLoading`. */
     private fun isWeb(scheme: String?) = scheme?.lowercase() == "https" || scheme?.lowercase() == "http"
 
-    /** Pushes navigation state back into the app so the toolbar can reflect it. */
-    private fun publish(view: WebView, loading: Boolean, progress: Int) {
+    /**
+     * Pushes navigation state back into the app so the toolbar can reflect it.
+     *
+     * The id rides along because several pages can be loading at once while the toolbar only ever
+     * speaks for the tab in front. Without it a background tab's progress would drive the bar of
+     * whichever tab happens to be showing.
+     */
+    private fun publish(id: String, view: WebView, loading: Boolean, progress: Int) {
         val state = JSONObject()
+            .put("id", id)
             .put("url", view.url ?: "")
             .put("title", view.title ?: "")
             .put("canBack", view.canGoBack())
@@ -94,6 +116,22 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         view.settings.loadWithOverviewMode = true
     }
 
+    /**
+     * Shows or hides one page.
+     *
+     * `onPause` stops a hidden page's timers, animation and media. It is the per-view call, not
+     * `pauseTimers`, which is process-wide and would stop the app's own webview along with it.
+     */
+    private fun applyVisible(view: WebView, visible: Boolean) {
+        view.visibility = if (visible) View.VISIBLE else View.GONE
+
+        if (visible) {
+            view.onResume()
+        } else {
+            view.onPause()
+        }
+    }
+
     private fun layout(view: WebView, x: Double, y: Double, width: Double, height: Double) {
         val params = FrameLayout.LayoutParams(px(width), px(height))
 
@@ -104,7 +142,7 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun build(): WebView {
+    private fun build(id: String): WebView {
         val view = WebView(activity)
 
         view.settings.javaScriptEnabled = true
@@ -140,16 +178,16 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !isWeb(request.url.scheme)
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
-                publish(view, true, 0)
+                publish(id, view, true, 0)
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
-                publish(view, false, 100)
+                publish(id, view, false, 100)
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (request.isForMainFrame) {
-                    publish(view, false, 100)
+                    publish(id, view, false, 100)
                 }
             }
         }
@@ -158,15 +196,46 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
             // The real driver of the progress bar: every tick is forwarded, not just completion, so
             // the UI can show how far along the load actually is.
             override fun onProgressChanged(view: WebView, newProgress: Int) {
-                publish(view, newProgress < 100, newProgress)
+                publish(id, view, newProgress < 100, newProgress)
             }
         }
 
         return view
     }
 
+    // The single-page API, kept exactly as it was and pointed at one reserved entry. A bundle older
+    // than this APK calls these and nothing else, and goes on working with the one tab it knows about.
+
     @JavascriptInterface
-    fun open(url: String, x: Double, y: Double, width: Double, height: Double) {
+    fun open(url: String, x: Double, y: Double, width: Double, height: Double) = openTab(SOLE, url, true, x, y, width, height)
+
+    @JavascriptInterface
+    fun setBounds(x: Double, y: Double, width: Double, height: Double) = boundsTab(SOLE, x, y, width, height)
+
+    @JavascriptInterface
+    fun close() = closeTab(SOLE)
+
+    @JavascriptInterface
+    fun setVisible(visible: Boolean) = visibleTab(SOLE, visible)
+
+    @JavascriptInterface
+    fun reload() = reloadTab(SOLE)
+
+    @JavascriptInterface
+    fun back() = backTab(SOLE)
+
+    @JavascriptInterface
+    fun forward() = forwardTab(SOLE)
+
+    /**
+     * Opens a page in the named tab, building that tab's view the first time it is asked for.
+     *
+     * `visible` is passed in rather than assumed because a tab being given an address is not always a
+     * tab the user is looking at — switching the desktop setting reopens every tab at once. Deciding
+     * it here means a background page is never briefly painted over the one in front.
+     */
+    @JavascriptInterface
+    fun openTab(id: String, url: String, visible: Boolean, x: Double, y: Double, width: Double, height: Double) {
         // The very first load bypasses `shouldOverrideUrlLoading`, so the scheme is checked here too.
         if (!isWeb(runCatching { android.net.Uri.parse(url).scheme }.getOrNull())) {
             return
@@ -174,17 +243,14 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
         activity.runOnUiThread {
             val root = activity.findViewById<ViewGroup>(android.R.id.content)
-            val view = page ?: build().also {
-                page = it
+            val view = pages[id] ?: build(id).also {
+                pages[id] = it
                 root.addView(it)
             }
 
             layout(view, x, y, width, height)
 
-            // A page being opened is a page meant to be seen. Without this a view left hidden by
-            // `setVisible` would take the new address and stay off screen.
-            view.visibility = View.VISIBLE
-            view.onResume()
+            applyVisible(view, visible)
 
             if (view.url != url) {
                 view.loadUrl(url)
@@ -193,57 +259,58 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     }
 
     @JavascriptInterface
-    fun setBounds(x: Double, y: Double, width: Double, height: Double) {
-        activity.runOnUiThread { page?.let { layout(it, x, y, width, height) } }
+    fun boundsTab(id: String, x: Double, y: Double, width: Double, height: Double) {
+        activity.runOnUiThread { pages[id]?.let { layout(it, x, y, width, height) } }
     }
 
+    /** Closes one tab's page. The others are untouched, which is the whole point of the map. */
     @JavascriptInterface
-    fun close() {
+    fun closeTab(id: String) {
         activity.runOnUiThread {
-            page?.let { view ->
+            pages.remove(id)?.let { view ->
                 (view.parent as? ViewGroup)?.removeView(view)
 
                 view.stopLoading()
                 view.destroy()
             }
-
-            page = null
         }
     }
 
     /**
-     * Takes the page off screen without discarding it.
+     * Takes a page off screen without discarding it.
      *
-     * This view is a sibling of the app's own webview, not something drawn inside it, so no amount of
-     * layout on the React side can cover it — leaving the browser tab or opening a dialog over it has
-     * to say so here. It used to be `close`d for that, which also threw the page away: coming back
-     * reloaded the site from its address and lost the scroll position, anything typed into it and any
-     * state a dApp was holding. Hiding keeps the instance, so returning is instant.
-     *
-     * `onPause` stops the hidden page's timers, animation and media. It is the per-view call, not
-     * `pauseTimers`, which is process-wide and would stop the app's own webview along with it.
+     * These views are siblings of the app's own webview, not something drawn inside it, so no amount
+     * of layout on the React side can cover them — leaving the browser, picking another tab or opening
+     * a dialog has to say so here. Pages used to be closed for that, which also threw them away:
+     * coming back reloaded the site and lost the scroll position, anything typed into it and any state
+     * a dApp was holding. Hiding keeps the instance, so returning to a tab is instant.
      */
     @JavascriptInterface
-    fun setVisible(visible: Boolean) {
-        activity.runOnUiThread {
-            page?.let { view ->
-                view.visibility = if (visible) View.VISIBLE else View.GONE
+    fun visibleTab(id: String, visible: Boolean) {
+        activity.runOnUiThread { pages[id]?.let { applyVisible(it, visible) } }
+    }
 
-                if (visible) {
-                    view.onResume()
-                } else {
-                    view.onPause()
-                }
-            }
-        }
+    @JavascriptInterface
+    fun reloadTab(id: String) {
+        activity.runOnUiThread { pages[id]?.reload() }
+    }
+
+    @JavascriptInterface
+    fun backTab(id: String) {
+        activity.runOnUiThread { pages[id]?.let { if (it.canGoBack()) it.goBack() } }
+    }
+
+    @JavascriptInterface
+    fun forwardTab(id: String) {
+        activity.runOnUiThread { pages[id]?.let { if (it.canGoForward()) it.goForward() } }
     }
 
     /**
      * Switches the layout pages are asked for.
      *
-     * Called before `open`, so a page that has not been created yet simply comes up in the right
-     * mode. A page already on screen is reloaded, since the agent is only read when a request is
-     * made and the one on screen was fetched under the old one.
+     * One setting for the whole browser rather than a property of a tab, so every open page is put on
+     * the new agent and reloaded — the agent is only read when a request is made, and what is on
+     * screen was fetched under the old one. Hidden tabs reload where they stand and stay hidden.
      */
     @JavascriptInterface
     fun setDesktop(desktop: Boolean) {
@@ -254,26 +321,11 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         this.desktop = desktop
 
         activity.runOnUiThread {
-            page?.let { view ->
+            for (view in pages.values) {
                 applyAgent(view)
 
                 view.reload()
             }
         }
-    }
-
-    @JavascriptInterface
-    fun reload() {
-        activity.runOnUiThread { page?.reload() }
-    }
-
-    @JavascriptInterface
-    fun back() {
-        activity.runOnUiThread { page?.let { if (it.canGoBack()) it.goBack() } }
-    }
-
-    @JavascriptInterface
-    fun forward() {
-        activity.runOnUiThread { page?.let { if (it.canGoForward()) it.goForward() } }
     }
 }

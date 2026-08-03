@@ -186,6 +186,9 @@
         "Browser": {
             "Title": "Browser",
             "Placeholder": "Search or enter address",
+            "TabEmpty": "New tab",
+            "TabClose": "Close tab",
+            "TabNew": "New tab",
             "Suggested": "Suggested",
             "Recent": "Visited",
             "RecentEmpty": "Sites you open will be listed here.",

@@ -2,8 +2,11 @@ import { getValue, removeValue, setValue } from '../utility/storage';
 
 /**
  * Navigation state the Android bridge pushes back after every page event.
+ *
+ * `id` names the tab the update belongs to. It is absent from an APK that predates tabs, which only
+ * ever had one page to report on — the listener attributes those to whichever tab is in front.
  */
-export interface BrowserState { url: string; title: string; canBack: boolean; canForward: boolean; loading: boolean; progress: number }
+export interface BrowserState { id?: string; url: string; title: string; canBack: boolean; canForward: boolean; loading: boolean; progress: number }
 
 /**
  * Which layout the browser asks sites for. Sniffing is done on the user agent, so this is the one
@@ -15,6 +18,41 @@ export type BrowserView = 'mobile' | 'desktop';
  * One entry in the visited list: where it went and when it was last opened.
  */
 export interface BrowserVisit { url: string; time: number }
+
+/**
+ * One open tab.
+ *
+ * Everything the toolbar reads is per-tab, so it all lives here rather than beside the tab list:
+ * `entries` and `index` are that tab's own back/forward stack, `draft` is what its address bar holds,
+ * and `reload` is the ticket its view watches. `id` is assigned once and never reused, which is what
+ * lets it name a child webview and survive its neighbours being closed.
+ *
+ * `home` is the start screen shown over a tab that still has a page. It is separate from having no
+ * address because the page underneath is kept alive and returned to — going home used to clear the
+ * stack, which discarded the view and made the trip one-way.
+ */
+export interface BrowserTab { id: number; entries: string[]; index: number; draft: string; reload: number; home: boolean }
+
+/**
+ * atBrowserStart - Whether a tab is showing the start screen rather than a page.
+ *
+ * True either because the tab has never been given an address or because it was sent home. Both the
+ * frame and the tab strip read this, and they have to agree: the strip belongs to the start screen, so
+ * it is on screen exactly when the start screen is.
+ * @param {BrowserTab} tab The tab to test.
+ * @returns {boolean} True when the start screen is what that tab shows.
+ */
+export const atBrowserStart = (tab: BrowserTab) => tab.home || tab.index < 0;
+
+/**
+ * frameLabel - Names the view belonging to a tab.
+ *
+ * One label, one webview: two tabs sharing a label would tear down each other's page, so the id is
+ * what keeps them apart. It doubles as the tab id the Android bridge is addressed by.
+ * @param {number} id The tab id.
+ * @returns {string} The label for that tab's view.
+ */
+export const frameLabel = (id: number) => `nura-browser-${ id }`;
 
 /**
  * A site offered on the start screen.
@@ -203,6 +241,45 @@ interface BrowserBridge {
      * layout and would otherwise cover the wallet tab.
      */
     setVisible?: (visible: boolean) => void;
+
+    /**
+     * The same operations again, each naming which page it means.
+     *
+     * Separate names rather than extra arguments on the ones above: the bridge is matched by name and
+     * arity across the JavascriptInterface boundary, so widening a signature would break a bundle
+     * running against the APK that shipped the narrow one. A build with these is a build that can hold
+     * more than one page at a time; a build without them gets the single-page path, where only the
+     * frontmost tab owns a view and the rest are addresses waiting to be reopened.
+     */
+    openTab?: (id: string, url: string, visible: boolean, x: number, y: number, width: number, height: number) => void;
+    boundsTab?: (id: string, x: number, y: number, width: number, height: number) => void;
+    closeTab?: (id: string) => void;
+    visibleTab?: (id: string, visible: boolean) => void;
+    reloadTab?: (id: string) => void;
+    backTab?: (id: string) => void;
+    forwardTab?: (id: string) => void;
+}
+
+/**
+ * One tab's worth of the native browser, with the compatibility question already answered.
+ *
+ * `hides` is what the caller has to branch on: a view that cannot be hidden has to be closed when it
+ * leaves the screen, because it is painted over the layout rather than inside it.
+ */
+export interface NativeTab {
+    /**
+     * `visible` is stated at open time rather than left to a follow-up call: a tab can be given an
+     * address while another one is in front, and a page that appears first and is hidden afterwards
+     * is a page that flashes over the tab the user is actually looking at.
+     */
+    open: (url: string, visible: boolean, x: number, y: number, width: number, height: number) => void;
+    setBounds: (x: number, y: number, width: number, height: number) => void;
+    close: () => void;
+    setVisible: (visible: boolean) => void;
+    reload: () => void;
+    back: () => void;
+    forward: () => void;
+    hides: boolean;
 }
 
 declare global
@@ -222,6 +299,66 @@ declare global
  * @returns {BrowserBridge | undefined} The bridge, or `undefined` off Android.
  */
 export const getNativeBrowser = () => window.__nuraBrowser;
+
+/**
+ * nativeHoldsTabs - Whether the installed bridge can hold more than one page at once.
+ *
+ * Off Android this is `false` and means nothing: the desktop path gives every tab its own child
+ * webview and never asks.
+ * @returns {boolean} True when the tab-aware bridge methods are present.
+ */
+export const nativeHoldsTabs = () => window.__nuraBrowser?.openTab !== undefined;
+
+/**
+ * getNativeTab - The bridge as one tab sees it.
+ *
+ * Every call site works in terms of a single page it owns, so the choice between the tab-aware methods
+ * and the single-page ones is made once, here, rather than at each of the seven places that drive a
+ * view. Against a bridge without tabs each facade addresses the one page the APK can hold — which is
+ * why the caller must keep all but the frontmost tab closed there.
+ * @param {string} id Identifies the tab; the frame's webview label is used, so it is unique per tab.
+ * @returns {NativeTab | undefined} The facade, or `undefined` off Android.
+ */
+export const getNativeTab = (id: string): NativeTab | undefined =>
+{
+    const bridge = window.__nuraBrowser;
+
+    if (bridge === undefined)
+    {
+        return undefined;
+    }
+
+    const { openTab, boundsTab, closeTab, visibleTab, reloadTab, backTab, forwardTab } = bridge;
+
+    if (openTab !== undefined && boundsTab !== undefined && closeTab !== undefined && visibleTab !== undefined && reloadTab !== undefined && backTab !== undefined && forwardTab !== undefined)
+    {
+        return {
+            open: (url, visible, x, y, width, height) => { openTab(id, url, visible, x, y, width, height); },
+            setBounds: (x, y, width, height) => { boundsTab(id, x, y, width, height); },
+            close: () => { closeTab(id); },
+            setVisible: (visible) => { visibleTab(id, visible); },
+            reload: () => { reloadTab(id); },
+            back: () => { backTab(id); },
+            forward: () => { forwardTab(id); },
+            hides: true
+        };
+    }
+
+    const { setVisible } = bridge;
+
+    // Without tab support only the frontmost tab is ever given a view, so it is always the visible one
+    // and the flag has nothing to say here.
+    return {
+        open: (url, visible, x, y, width, height) => { bridge.open(url, x, y, width, height); },
+        setBounds: (x, y, width, height) => { bridge.setBounds(x, y, width, height); },
+        close: () => { bridge.close(); },
+        setVisible: (visible) => { setVisible?.(visible); },
+        reload: () => { bridge.reload(); },
+        back: () => { bridge.back(); },
+        forward: () => { bridge.forward(); },
+        hides: setVisible !== undefined
+    };
+};
 
 /**
  * onNativeBrowserState - Subscribes to navigation updates from the native browser.
