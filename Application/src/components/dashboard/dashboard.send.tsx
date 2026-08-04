@@ -2,22 +2,25 @@ import type { TokenBalance } from '../../core/token';
 
 import { useMemo, useState } from 'react';
 import { isAddress, parseUnits } from 'ethers';
+import { IoChevronDown } from 'react-icons/io5';
 import { FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
 
 import WalletManager from '../../core/wallet';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
-import Panel from '../ui/panel';
 import Button from '../ui/button';
 import Spinner from '../ui/spinner';
+import TokenIcon from '../token.icon';
 import SectionHeader from '../ui/section';
 
-import { TextField } from '../ui/field';
+import Panel, { glassPanel } from '../ui/panel';
+import { glassInput, TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { getProvider, type Network } from '../../core/network';
+import { getNativeLogo, getTokenLogo } from '../../core/price';
 import { shortAddress, trimAmount } from '../../utility/format';
 
 type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
@@ -26,6 +29,10 @@ interface Asset
 {
     key: string;
     symbol: string;
+    /** The longer name under the symbol — the coin's, or the token contract's. */
+    name: string;
+    /** Logo URL, handed to `TokenIcon`, which falls back to the symbol's initial. */
+    logo: string;
     decimals: number;
     value: bigint;
     formatted: string;
@@ -36,6 +43,8 @@ interface Asset
  * DashboardSend - Guided transfer flow for the native coin or a curated ERC20 token.
  *
  * The signing/broadcast step is reached only after an explicit review screen showing the recipient, amount, asset, and network. The wallet is derived from the mnemonic in-memory for the single send and never persisted.
+ *
+ * Which asset is being sent is the first thing chosen. An account can hold several tokens on one network, and the coin was previously the only thing this screen would ever send — everything below the picker reads from the choice, and a token routes to its contract's `transfer` rather than to a plain value transfer.
  * @param {object} props Component props.
  * @param {string} props.mnemonic The unlocked mnemonic used to derive the signer.
  * @param {number} props.index The active account's derivation index, so the transfer is signed by the account the user is looking at.
@@ -50,8 +59,8 @@ interface Asset
 export default function DashboardSend({ mnemonic, index, network, nativeValue, nativeFormatted, tokens, onSent, onClose }: { mnemonic: string; index: number; network: Network; nativeValue: bigint; nativeFormatted: string; tokens: TokenBalance[]; onSent: () => void; onClose: () => void })
 {
     const assets = useMemo<Asset[]>(() => [
-        { key: 'native', symbol: network.symbol, decimals: network.decimals, value: nativeValue, formatted: nativeFormatted },
-        ...tokens.map((item) => ({ key: item.token.address, symbol: item.token.symbol, decimals: item.token.decimals, value: item.value, formatted: item.formatted, token: { address: item.token.address, decimals: item.token.decimals } }))
+        { key: 'native', symbol: network.symbol, name: network.coin ?? network.name, logo: getNativeLogo(network.chainId), decimals: network.decimals, value: nativeValue, formatted: nativeFormatted },
+        ...tokens.map((item) => ({ key: item.token.address, symbol: item.token.symbol, name: item.token.name, logo: getTokenLogo(network.chainId, item.token.address), decimals: item.token.decimals, value: item.value, formatted: item.formatted, token: { address: item.token.address, decimals: item.token.decimals } }))
     ], [ network, nativeValue, nativeFormatted, tokens ]);
 
     const [ step, setStep ] = useState<Step>('form');
@@ -59,8 +68,30 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
     const [ hash, setHash ] = useState('');
     const [ to, setTo ] = useState('');
     const [ amount, setAmount ] = useState('');
+    const [ chosen, setChosen ] = useState('native');
+    const [ picking, setPicking ] = useState(false);
 
-    const asset = assets[0];
+    // Falls back to the coin rather than to nothing: the tracked list can lose a token while this
+    // dialog is open — the holdings refresh behind it — and a send screen with no asset is not a state
+    // worth having.
+    const asset = assets.find((item) => item.key === chosen) ?? assets[0];
+
+    /**
+     * Switches which asset is being sent, and clears the amount.
+     *
+     * The amount is deliberately not carried over. Each asset has its own balance and its own decimals,
+     * so the same digits mean a different transfer against a different one — leaving `5` in the box
+     * while the asset under it changes from a stablecoin to the network's coin is the kind of thing
+     * that gets signed before it is read.
+     * @param {string} key The asset to switch to.
+     */
+    const onAsset = (key: string) =>
+    {
+        setChosen(key);
+        setPicking(false);
+        setAmount('');
+        setError('');
+    };
 
     /**
      * What the confirmation screen restates before anything is signed. Three label/value rows drawn
@@ -145,6 +176,107 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                     <div className='flex flex-col gap-3'>
 
                         <Alert text={ error } />
+
+                        { /*
+                          * First, because it decides what everything under it means: the balance the
+                          * Max control offers, the decimals the amount is parsed at, and whether this
+                          * ends up a coin transfer or a call to a contract.
+                          *
+                          * Drawn as the same glass field the recipient is typed into, so the thing that
+                          * opens a list reads as part of the form rather than as another button. The
+                          * list itself is absolute: it lies over what follows instead of pushing the
+                          * dialog taller as it opens.
+                          */ }
+                        <div className='relative flex flex-col gap-1'>
+
+                            <Text text={ T('Dashboard.Send.Asset') } />
+
+                            <Button
+                                aria-haspopup='listbox'
+                                aria-expanded={ picking }
+                                onClick={ () => { setPicking(!picking); } }
+                                className={ `${ glassInput } flex h-14 w-full cursor-pointer items-center gap-3 rounded-xl px-3` }>
+
+                                <TokenIcon
+                                    primary={ asset.token === undefined }
+                                    src={ asset.logo }
+                                    symbol={ asset.symbol }
+                                    className='size-9' />
+
+                                <div className='flex min-w-0 flex-1 flex-col text-start'>
+
+                                    <Text variant='body' className='truncate' text={ asset.symbol } />
+
+                                    <Text className='truncate' text={ asset.name } />
+
+                                </div>
+
+                                <Text
+                                    dir='ltr'
+                                    variant='captionStrong'
+                                    className='shrink-0 font-mono'
+                                    text={ trimAmount(asset.formatted) } />
+
+                                <IoChevronDown size={ 12 } className={ `shrink-0 opacity-40 duration-200 ${ picking ? 'rotate-180' : '' }` } />
+
+                            </Button>
+
+                            {
+                                picking &&
+                                (
+                                    <>
+                                        { /*
+                                          * Catches the tap that should close the list. Behind it in the
+                                          * stack, so a tap on a row still reaches the row.
+                                          */ }
+                                        <div
+                                            aria-hidden='true'
+                                            className='fixed inset-0 z-10'
+                                            onClick={ () => { setPicking(false); } } />
+
+                                        <div
+                                            role='listbox'
+                                            className={ `${ glassPanel } scroll-hidden absolute inset-x-0 top-full z-20 mt-1 flex max-h-56 flex-col gap-1 overflow-y-auto rounded-xl p-1` }>
+
+                                            {
+                                                assets.map((item) => (
+                                                    <Button
+                                                        key={ item.key }
+                                                        role='option'
+                                                        aria-selected={ item.key === asset.key }
+                                                        onClick={ () => { onAsset(item.key); } }
+                                                        className={ `flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 duration-200 ${ item.key === asset.key ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
+
+                                                        <TokenIcon
+                                                            primary={ item.token === undefined }
+                                                            src={ item.logo }
+                                                            symbol={ item.symbol }
+                                                            className='size-8' />
+
+                                                        <div className='flex min-w-0 flex-1 flex-col text-start'>
+
+                                                            <Text variant='body' className='truncate' text={ item.symbol } />
+
+                                                            <Text className='truncate' text={ item.name } />
+
+                                                        </div>
+
+                                                        <Text
+                                                            dir='ltr'
+                                                            variant='captionStrong'
+                                                            className='shrink-0 font-mono'
+                                                            text={ trimAmount(item.formatted) } />
+
+                                                    </Button>
+                                                ))
+                                            }
+
+                                        </div>
+                                    </>
+                                )
+                            }
+
+                        </div>
 
                         <div className='flex flex-col gap-1'>
 

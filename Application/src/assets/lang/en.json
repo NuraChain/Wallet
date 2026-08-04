@@ -138,6 +138,7 @@
         },
         "Send": {
             "Title": "Send",
+            "Asset": "Asset",
             "Recipient": "Recipient",
             "Amount": "Amount",
             "Max": "Max: %s",
