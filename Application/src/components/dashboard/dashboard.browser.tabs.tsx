@@ -76,8 +76,9 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
 
     const at = tabs.findIndex((item) => item.id === active);
 
-    // Nothing to list until something is actually open. A fresh browser holds one tab that has never
-    // been given an address, and a lone chip reading "New tab" beside a new-tab button says nothing.
+    // Nothing to show until something is actually open. A fresh browser holds one tab that has never
+    // been given an address, so the whole strip would be a new-tab button beside a chip reading "New
+    // tab" — controls for a thing the user has not started doing yet. It arrives with the first page.
     //
     // The test is whether any tab has a page, not whether this one does: once a second tab exists the
     // empty one is a real place to switch back to, and leaving it out would put the tab in front among
@@ -132,6 +133,11 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
         swiperRef.current?.slideTo(at);
     }, [ at, tabs.length, shown ]);
 
+    if (!listed)
+    {
+        return undefined;
+    }
+
     return (
         <div className='flex shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
 
@@ -146,92 +152,87 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
 
             </Button>
 
-            {
-                listed &&
-                (
-                    <div
-                        ref={ boxRef }
-                        className='min-w-0 flex-1'>
+            <div
+                ref={ boxRef }
+                className='min-w-0 flex-1'>
 
-                        <Swiper
-                            key={ getLanguage().code }
-                            dir={ getDirection() }
-                            speed={ 250 }
-                            spaceBetween={ chipGap }
-                            slidesPerView={ shown }
-                            initialSlide={ at < 0 ? 0 : at }
-                            onSwiper={ (swiper) => { swiperRef.current = swiper; } }
-                            className='w-full'>
+                <Swiper
+                    key={ getLanguage().code }
+                    dir={ getDirection() }
+                    speed={ 250 }
+                    spaceBetween={ chipGap }
+                    slidesPerView={ shown }
+                    initialSlide={ at < 0 ? 0 : at }
+                    onSwiper={ (swiper) => { swiperRef.current = swiper; } }
+                    className='w-full'>
 
-                            {
-                                tabs.map((item) =>
-                                {
-                                    const url = item.index < 0 ? '' : item.entries[item.index];
+                    {
+                        tabs.map((item) =>
+                        {
+                            const url = item.index < 0 ? '' : item.entries[item.index];
 
-                                    const name = url.length > 0 ? getSiteHost(url) : T('Dashboard.Browser.TabEmpty');
+                            const name = url.length > 0 ? getSiteHost(url) : T('Dashboard.Browser.TabEmpty');
 
-                                    return (
-                                        <SwiperSlide key={ item.id }>
+                            return (
+                                <SwiperSlide key={ item.id }>
 
-                                            <div className={ cn(chipBase, item.id === active ? chipLive : chipIdle) }>
+                                    <div className={ cn(chipBase, item.id === active ? chipLive : chipIdle) }>
 
-                                                <Button
-                                                    aria-current={ item.id === active }
-                                                    title={ url.length > 0 ? url : name }
-                                                    onClick={ () => { onPick(item.id); } }
-                                                    className='flex min-w-0 flex-1 cursor-pointer items-center gap-1.5'>
+                                        <Button
+                                            aria-current={ item.id === active }
+                                            title={ url.length > 0 ? url : name }
+                                            onClick={ () => { onPick(item.id); } }
+                                            className='flex min-w-0 flex-1 cursor-pointer items-center gap-1.5'>
 
-                                                    {
-                                                        url.length > 0 &&
-                                                        (
-                                                            <TokenIcon
-                                                                kind='unknown'
-                                                                src={ getSiteIcon(url) }
-                                                                symbol={ name.toUpperCase() }
-                                                                className='size-4 text-[0.5rem]' />
-                                                        )
-                                                    }
+                                            {
+                                                url.length > 0 &&
+                                                (
+                                                    <TokenIcon
+                                                        kind='unknown'
+                                                        src={ getSiteIcon(url) }
+                                                        symbol={ name.toUpperCase() }
+                                                        className='size-4 text-[0.5rem]' />
+                                                )
+                                            }
 
-                                                    <Text
-                                                        variant={ item.id === active ? 'captionStrong' : 'caption' }
-                                                        className='min-w-0 flex-1 truncate text-start'>
+                                            <Text
+                                                variant={ item.id === active ? 'captionStrong' : 'caption' }
+                                                className='min-w-0 flex-1 truncate text-start'>
 
-                                                        <span dir='ltr'>
+                                                <span dir='ltr'>
 
-                                                            { name }
+                                                    { name }
 
-                                                        </span>
+                                                </span>
 
-                                                    </Text>
+                                            </Text>
 
-                                                </Button>
+                                        </Button>
 
-                                                { /*
+                                        { /*
                                                   * Always present, including on the last tab: closing it leaves
                                                   * an empty tab behind rather than an empty strip, so the
                                                   * control never has to explain why it is missing.
                                                   */ }
-                                                <Button
-                                                    aria-label={ T('Dashboard.Browser.TabClose') }
-                                                    onClick={ () => { onClose(item.id); } }
-                                                    className='flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-txt-muted hover:bg-base-2'>
+                                        <Button
+                                            aria-label={ T('Dashboard.Browser.TabClose') }
+                                            onClick={ () => { onClose(item.id); } }
+                                            className='flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-txt-muted hover:bg-base-2'>
 
-                                                    <IoClose size={ 13 } />
+                                            <IoClose size={ 13 } />
 
-                                                </Button>
+                                        </Button>
 
-                                            </div>
+                                    </div>
 
-                                        </SwiperSlide>
-                                    );
-                                })
-                            }
+                                </SwiperSlide>
+                            );
+                        })
+                    }
 
-                        </Swiper>
+                </Swiper>
 
-                    </div>
-                )
-            }
+            </div>
 
         </div>
     );
