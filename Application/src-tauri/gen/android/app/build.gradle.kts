@@ -27,6 +27,30 @@ val keystoreProperties = Properties().apply {
 
 val keystorePath: String? = keystoreProperties.getProperty("storeFile")
 
+// The version, from the one file that declares it. `tauri.properties` above is written by the Tauri
+// CLI during its own build and is git-ignored, so it is absent on a fresh clone and whenever Gradle is
+// driven directly — and the literals that used to stand in for it then were `1` and `1.0`, which is
+// what the installed app actually reported however many times Cargo.toml was bumped.
+//
+// Only the first `version` line is taken: dependencies declare theirs as `name = { version = ... }`,
+// which does not start the line.
+val cargoVersion: String = rootProject.file("../../Cargo.toml")
+    .takeIf { it.exists() }
+    ?.readLines()
+    ?.firstOrNull { it.trimStart().startsWith("version") }
+    ?.substringAfter('"')
+    ?.substringBefore('"')
+    ?: "1.0"
+
+// Android orders updates by this number and refuses to go backwards, so it has to rise with the
+// version and mean the same thing however the build was started. The weighting is the Tauri CLI's own,
+// which matters on the day one build writes `tauri.properties` and the next one does not.
+val cargoVersionCode: Int = cargoVersion.split('.').let { parts ->
+    val part = { index: Int -> parts.getOrNull(index)?.trim()?.toIntOrNull() ?: 0 }
+
+    part(0) * 1000000 + part(1) * 1000 + part(2)
+}
+
 android {
     compileSdk = 36
     ndkVersion = "29.0.13113456 rc1"
@@ -37,8 +61,10 @@ android {
         applicationId = "io.nurawallet.android"
         minSdk = 24
         targetSdk = 36
-        versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
-        versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+        // What the CLI wrote wins, since that is where an explicit `versionCode` in the Tauri config
+        // lands; Cargo.toml answers for every build the CLI did not prepare.
+        versionCode = tauriProperties.getProperty("tauri.android.versionCode")?.toIntOrNull() ?: cargoVersionCode
+        versionName = tauriProperties.getProperty("tauri.android.versionName") ?: cargoVersion
     }
 
     signingConfigs {
