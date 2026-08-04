@@ -2,7 +2,7 @@ import type { Swiper as SwiperType } from 'swiper';
 
 import { IoClose } from 'react-icons/io5';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { FiPlus, FiSettings } from 'react-icons/fi';
+import { FiPlus } from 'react-icons/fi';
 import { useEffect, useRef, useState } from 'react';
 
 import Text from '../ui/text';
@@ -48,9 +48,10 @@ const chipGap = 6;
  * which one is in front, and getting rid of one — without a dialog in between. It rides with the start
  * screen, appearing and going away with it, since that is where a tab is picked.
  *
- * One row: settings, then new-tab, then the list. The two controls come first because they are always
- * in the same place, while the list beside them is the part that moves — a control the list can scroll
- * out of reach is one the user has to go looking for.
+ * One row: new-tab, then the list. The button comes first because it is always in the same place,
+ * while the list beside it is the part that moves — a control the list can scroll out of reach is one
+ * the user has to go looking for. Settings used to sit here too and now lives on the toolbar, where the
+ * home control has nothing to do while the start screen is up.
  *
  * How many tabs are on screen is measured rather than assumed. The list is a Swiper told how many
  * slides fit the width it actually has, recomputed whenever that width changes, and the rest scroll in
@@ -64,10 +65,9 @@ const chipGap = 6;
  * @param {(id: number) => void} props.onPick Brings a tab to the front.
  * @param {(id: number) => void} props.onClose Closes a tab.
  * @param {() => void} props.onAdd Opens a new, empty tab.
- * @param {() => void} props.onSettings Opens the browser's settings dialog.
  * @returns {JSX.Element} The tab strip.
  */
-export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, onAdd, onSettings }: { tabs: BrowserTab[]; active: number; onPick: (id: number) => void; onClose: (id: number) => void; onAdd: () => void; onSettings: () => void })
+export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, onAdd }: { tabs: BrowserTab[]; active: number; onPick: (id: number) => void; onClose: (id: number) => void; onAdd: () => void })
 {
     const boxRef = useRef<HTMLDivElement>(null);
     const swiperRef = useRef<SwiperType>(undefined);
@@ -90,9 +90,9 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
     // strip, two halve it — and scrolling only starts once they genuinely outgrow it.
     const shown = Math.max(1, Math.min(perView, tabs.length));
 
-    // Measured off the box the list actually occupies, not the window: the two controls beside it take
-    // a fixed bite out of the row, and the strip is the same component on a 360px phone and a resized
-    // desktop window. A width of zero is what an unmeasured frame reports, so it is left alone.
+    // Measured off the box the list actually occupies, not the window: the new-tab button beside it
+    // takes a fixed bite out of the row, and the strip is the same component on a 360px phone and a
+    // resized desktop window. A width of zero is what an unmeasured frame reports, so it is left alone.
     useEffect(() =>
     {
         const measure = () =>
@@ -134,17 +134,6 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
 
     return (
         <div className='flex shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
-
-            <Button
-                variant='chip'
-                size='iconChip'
-                aria-label={ T('Dashboard.Browser.Settings') }
-                onClick={ onSettings }
-                className='size-8 shrink-0'>
-
-                <FiSettings size={ 15 } />
-
-            </Button>
 
             <Button
                 variant='chip'

@@ -3,7 +3,7 @@ import type { Network } from '../../core/network';
 import { useEffect, useRef, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 import { AnimatePresence, motion } from 'motion/react';
-import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch } from 'react-icons/fi';
+import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch, FiSettings } from 'react-icons/fi';
 
 import WebFrame from '../../layout/webview';
 import DashboardBrowserTabs from './dashboard.browser.tabs';
@@ -418,15 +418,23 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                 </div>
 
+                { /*
+                  * One control, two jobs, because on the start screen the first of them has nothing to
+                  * do: home is already what is showing, so the button sat there greyed out taking up
+                  * the width. It turns into the way into the browser's settings there instead, and
+                  * goes back to being home the moment a page is up — which is the only time home means
+                  * anything.
+                  */ }
                 <Button
                     variant='chip'
                     size='iconChip'
-                    disabled={ start }
-                    aria-label={ T('Dashboard.Browser.Home') }
-                    onClick={ onHome }
-                    className='shrink-0 disabled:opacity-40'>
+                    aria-label={ T(start ? 'Dashboard.Browser.Settings' : 'Dashboard.Browser.Home') }
+                    onClick={ start ? () => { setSettings(true); } : onHome }
+                    className='shrink-0'>
 
-                    <FiHome size={ 16 } />
+                    {
+                        start ? <FiSettings size={ 16 } /> : <FiHome size={ 16 } />
+                    }
 
                 </Button>
 
@@ -440,8 +448,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                         active={ active }
                         onPick={ onPickTab }
                         onClose={ onCloseTab }
-                        onAdd={ onAddTab }
-                        onSettings={ () => { setSettings(true); } } />
+                        onAdd={ onAddTab } />
                 )
             }
 
