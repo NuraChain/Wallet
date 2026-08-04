@@ -199,6 +199,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                                 <TokenIcon
                                     primary={ asset.token === undefined }
+                                    kind={ asset.token === undefined ? 'network' : 'token' }
                                     src={ asset.logo }
                                     symbol={ asset.symbol }
                                     className='size-9' />
@@ -249,6 +250,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                                                         <TokenIcon
                                                             primary={ item.token === undefined }
+                                                            kind={ item.token === undefined ? 'network' : 'token' }
                                                             src={ item.logo }
                                                             symbol={ item.symbol }
                                                             className='size-8' />

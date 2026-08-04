@@ -185,6 +185,7 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
                                                         url.length > 0 &&
                                                         (
                                                             <TokenIcon
+                                                                kind='unknown'
                                                                 src={ getSiteIcon(url) }
                                                                 symbol={ name.toUpperCase() }
                                                                 className='size-4 text-[0.5rem]' />

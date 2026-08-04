@@ -48,6 +48,7 @@ export default function DashboardBrowserStart({ suggested, visits, notice, onOpe
                               */ }
                             <TokenIcon
                                 primary
+                                kind='unknown'
                                 src={ getSiteIcon(item.url) }
                                 symbol={ item.name }
                                 className='size-8 text-tiny' />
@@ -81,6 +82,7 @@ export default function DashboardBrowserStart({ suggested, visits, notice, onOpe
                                         className='h-14 gap-3 rounded-xl px-3 text-start'>
 
                                         <TokenIcon
+                                            kind='unknown'
                                             src={ getSiteIcon(item.url) }
                                             symbol={ getSiteHost(item.url).toUpperCase() }
                                             className='size-8 text-tiny' />

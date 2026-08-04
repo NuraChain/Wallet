@@ -120,6 +120,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                 tokens.map((item) => (
                                     <TokenRow
                                         hover
+                                        kind='token'
                                         key={ item.token.address }
                                         src={ getTokenLogo(network.chainId, item.token.address) }
                                         symbol={ item.token.symbol }

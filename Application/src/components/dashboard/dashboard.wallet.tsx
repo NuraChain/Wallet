@@ -168,6 +168,7 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
 
                     <TokenIcon
                         primary
+                        kind='network'
                         src={ getNativeLogo(network.chainId) }
                         symbol={ network.symbol }
                         className='size-7 shrink-0 text-tiny' />
@@ -303,6 +304,7 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                 <TokenRow
                     panel
                     primary
+                    kind='network'
                     src={ getNativeLogo(network.chainId) }
                     symbol={ network.symbol }
                     subtitle={ network.coin ?? network.name }>
@@ -318,6 +320,7 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                         <TokenRow
                             key={ item.token.address }
                             panel
+                            kind='token'
                             src={ getTokenLogo(network.chainId, item.token.address) }
                             symbol={ item.token.symbol }
                             subtitle={ item.token.name }>

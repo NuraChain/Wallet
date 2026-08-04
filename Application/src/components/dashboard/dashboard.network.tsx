@@ -202,6 +202,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                       */ }
                                                     <TokenIcon
                                                         primary
+                                                        kind='network'
                                                         src={ getNativeLogo(item.chainId) }
                                                         symbol={ item.symbol }
                                                         className='size-7 text-tiny' />
