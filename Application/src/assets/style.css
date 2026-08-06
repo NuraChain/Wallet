@@ -346,3 +346,20 @@ body {
 .swiper-pagination-bullet-active {
     transform: scaleX(1.25) scaleY(1.25);
 }
+
+/*
+ * The browser tab strip, whose chips size themselves.
+ *
+ * `slidesPerView: 'auto'` means Swiper reads each slide's width out of the stylesheet instead of
+ * writing one, so the width has to be here: the library sets `.swiper-slide { width: 100% }` from its
+ * own unlayered sheet, which outranks any Tailwind utility on the element no matter what the call site
+ * passes. Set from a utility, every chip would be the full width of the strip and the list would show
+ * one tab at a time.
+ *
+ * `flex-grow` is what keeps a short list looking deliberate: two chips share the row, and past the
+ * point where they all fit at their own width the row overflows and Swiper scrolls it.
+ */
+.tab-strip .swiper-slide {
+    width: 7.5rem;
+    flex-grow: 1;
+}

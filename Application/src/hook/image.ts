@@ -35,7 +35,13 @@ export const useCachedImage = (url: string, kind: ImageKind = 'unknown') =>
         {
             if (live)
             {
-                setSource(value);
+                // Falls back to the address itself when the cache comes back with nothing. The cache
+                // reads bytes, so it needs the host's permission to be read cross-origin; an `img` tag
+                // does not, and most sites serve their favicon without that header. Cached is still the
+                // normal path — this is what stops a site with the icon right there from being drawn as
+                // a letter. A URL that is genuinely dead fails the same way it always did, through the
+                // icon's own error handler.
+                setSource(value.length > 0 ? value : url);
             }
         });
 

@@ -465,8 +465,13 @@ const release = () =>
 /**
  * accepts - Whether a body is an image this cache will store.
  *
- * Both the declared type and the leading bytes have to agree. SVG is the exception with no signature
- * to check — it is text — so it is taken on the header alone.
+ * The server has to claim an image and the body has to look like one, but they are not required to
+ * name the same format. Favicons are why: a file called `favicon.ico` is served as `image/x-icon` by
+ * habit and is a PNG about as often as it is an icon, and pairing the two checks rejected the icon of
+ * every site that does this while letting nothing extra through. What the check is for is refusing an
+ * HTML error page dressed as an icon, and matching any known signature does that.
+ *
+ * SVG is the exception with no signature to check — it is text — so it is taken on the header alone.
  * @param {string} mime The declared content type.
  * @param {Uint8Array} bytes The start of the body.
  * @returns {boolean} True when it is storable.
@@ -483,7 +488,7 @@ const accepts = (mime: string, bytes: Uint8Array) =>
         return true;
     }
 
-    return signatures.some((item) => item.mime === mime && item.bytes.every((byte, index) => bytes[index] === byte));
+    return signatures.some((item) => item.bytes.every((byte, index) => bytes[index] === byte));
 };
 
 /**
@@ -507,6 +512,10 @@ const download = async(url: string, known: CacheEntry | undefined) =>
         headers.set('If-Modified-Since', known.modified);
     }
 
+    // The plain `fetch`, deliberately: this module has to run in an ordinary browser tab as well as in
+    // the app, so nothing here may depend on a native surface. The cost is that a cross-origin reply
+    // carrying no `Access-Control-Allow-Origin` cannot be read, which is every site's favicon — those
+    // throw here, are never stored, and fall back to being loaded by the `img` tag itself.
     const response = await fetch(url, { headers, redirect: 'follow' });
 
     if (response.status === 304)

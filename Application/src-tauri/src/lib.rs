@@ -16,10 +16,7 @@ pub fn run() {
                 let _ = window.set_focus();
             }
         }));
-    }
 
-    #[cfg(desktop)]
-    {
         builder = builder.on_tray_icon_event(|app, event| match event {
             tauri::tray::TrayIconEvent::DoubleClick { .. } => {
                 if let Some(window) = tauri::Manager::get_webview_window(app, "main") {
@@ -34,12 +31,10 @@ pub fn run() {
 
             _ => {}
         });
-    }
 
     // Only the recovery-phrase export writes files, and only into the two directories the capability
     // grants. Android does the same job through MediaStore instead, so it never registers this.
-    #[cfg(desktop)]
-    {
+
         builder = builder.plugin(tauri_plugin_fs::init());
     }
 

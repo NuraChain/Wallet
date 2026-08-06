@@ -1,9 +1,10 @@
 import type { Swiper as SwiperType } from 'swiper';
 
 import { IoClose } from 'react-icons/io5';
-import { Swiper, SwiperSlide } from 'swiper/react';
 import { FiPlus } from 'react-icons/fi';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { FreeMode, Mousewheel } from 'swiper/modules';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
@@ -14,6 +15,7 @@ import { getDirection, getLanguage, T } from '../../utility/language';
 import { getSiteHost, getSiteIcon, type BrowserTab } from '../../core/browser';
 
 import 'swiper/css';
+import 'swiper/css/free-mode';
 
 /**
  * The chip a tab is drawn as.
@@ -24,19 +26,15 @@ import 'swiper/css';
  *
  * The colours are the same pair every selected/unselected surface in the app uses, so the strip reads
  * as the nav bar does rather than introducing a third idea of what "active" looks like.
+ *
+ * The width is not here: the slide around it owns that, from `style.css`, because Swiper reads it out
+ * of the stylesheet and the library's own rule would outrank a utility written on the element.
  */
 const chipBase = 'flex h-9 w-full items-center gap-1.5 rounded-xl border ps-2.5 pe-1 transition-[background-color,border-color] duration-300 ease-initial';
 const chipIdle = 'border-glass-line bg-base-3 hover:bg-base-2';
 const chipLive = 'border-btn-primary-border bg-btn-primary/15';
 
-/**
- * The narrowest a chip is allowed to get, and the space between two of them.
- *
- * Together these decide how many tabs the strip shows: the list is handed a whole number of chips that
- * fit the width it was given, so the chips divide that width evenly instead of carrying a fixed size
- * that leaves a stripe of dead space on one screen and overflows another.
- */
-const chipMin = 120;
+/** The space between two chips, in pixels, since Swiper takes this as a number rather than a class. */
 const chipGap = 6;
 
 /**
@@ -50,13 +48,15 @@ const chipGap = 6;
  *
  * One row: new-tab, then the list. The button comes first because it is always in the same place,
  * while the list beside it is the part that moves — a control the list can scroll out of reach is one
- * the user has to go looking for. Settings used to sit here too and now lives on the toolbar, where the
- * home control has nothing to do while the start screen is up.
+ * the user has to go looking for.
  *
- * How many tabs are on screen is measured rather than assumed. The list is a Swiper told how many
- * slides fit the width it actually has, recomputed whenever that width changes, and the rest scroll in
- * from either side. The effect below brings the front tab into view when it is chosen from somewhere
- * else — picking one, or closing the one that was there.
+ * The list is a Swiper in **free mode at `slidesPerView: 'auto'`**, and every part of that matters.
+ * `auto` means the chips size themselves and Swiper counts nothing: it once took a slide count measured
+ * off the row by a `ResizeObserver`, and a count taken while the strip was mounting is what left the
+ * list showing the tab in front and nothing else. Free mode is what makes it a scrolling row rather
+ * than a carousel that snaps a chip to the edge. Between them, dragging with a mouse and turning the
+ * wheel over it — the two things a phone gets from touch for free — are the library's own `simulateTouch`
+ * and `Mousewheel`, so there is no drag handling written here to disagree with it.
  *
  * A tab that has never been given an address has no host to show, so it is named for what it is.
  * @param {object} props Component props.
@@ -69,10 +69,7 @@ const chipGap = 6;
  */
 export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, onAdd }: { tabs: BrowserTab[]; active: number; onPick: (id: number) => void; onClose: (id: number) => void; onAdd: () => void })
 {
-    const boxRef = useRef<HTMLDivElement>(null);
     const swiperRef = useRef<SwiperType>(undefined);
-
-    const [ perView, setPerView ] = useState(2);
 
     const at = tabs.findIndex((item) => item.id === active);
 
@@ -85,43 +82,9 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
     // the chips that are missing.
     const listed = tabs.some((item) => item.index >= 0);
 
-    // Never more slots than there are tabs. The width says how many chips fit, but handing Swiper that
-    // number with fewer tabs open divides the row anyway and leaves the empty remainder sitting there
-    // looking like a blank tab. Capped, the chips share out whatever room there is — one tab spans the
-    // strip, two halve it — and scrolling only starts once they genuinely outgrow it.
-    const shown = Math.max(1, Math.min(perView, tabs.length));
-
-    // Measured off the box the list actually occupies, not the window: the new-tab button beside it
-    // takes a fixed bite out of the row, and the strip is the same component on a 360px phone and a
-    // resized desktop window. A width of zero is what an unmeasured frame reports, so it is left alone.
-    useEffect(() =>
-    {
-        const measure = () =>
-        {
-            const width = boxRef.current?.getBoundingClientRect().width ?? 0;
-
-            if (width < 1)
-            {
-                return;
-            }
-
-            setPerView(Math.max(1, Math.floor((width + chipGap) / (chipMin + chipGap))));
-        };
-
-        measure();
-
-        const observer = new ResizeObserver(measure);
-
-        if (boxRef.current !== null)
-        {
-            observer.observe(boxRef.current);
-        }
-
-        return () => { observer.disconnect(); };
-    }, [ listed ]);
-
-    // Told to update first: the slide list changes as tabs are opened and closed, and sliding to an
-    // index Swiper has not measured yet lands on the wrong one.
+    // Brings the tab in front into view when it was chosen from somewhere else — opening one, or
+    // closing the one that was there. Told to update first, since a slide added in this same commit is
+    // one Swiper has not measured yet and sliding to it would land on the wrong chip.
     useEffect(() =>
     {
         if (at < 0)
@@ -131,7 +94,7 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
 
         swiperRef.current?.update();
         swiperRef.current?.slideTo(at);
-    }, [ at, tabs.length, shown ]);
+    }, [ at, tabs.length ]);
 
     if (!listed)
     {
@@ -152,19 +115,29 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
 
             </Button>
 
-            <div
-                ref={ boxRef }
-                className='min-w-0 flex-1'>
+            <div className='min-w-0 flex-1'>
 
+                { /*
+                  * `observer` and `observeParents` are Swiper's own answer to being measured too early.
+                  * The strip is mounted and unmounted with the start screen, and a Swiper that
+                  * initialises before its row has a width lays every chip out against zero and leaves
+                  * the row looking empty. These re-measure when the element or anything above it
+                  * changes, which is the same job the old `ResizeObserver` was doing by hand.
+                  */ }
                 <Swiper
+                    freeMode
+                    observer
+                    observeParents
                     key={ getLanguage().code }
                     dir={ getDirection() }
                     speed={ 250 }
+                    modules={ [ FreeMode, Mousewheel ] }
+                    slidesPerView='auto'
                     spaceBetween={ chipGap }
-                    slidesPerView={ shown }
                     initialSlide={ at < 0 ? 0 : at }
+                    mousewheel={ { forceToAxis: true } }
                     onSwiper={ (swiper) => { swiperRef.current = swiper; } }
-                    className='w-full'>
+                    className='tab-strip w-full'>
 
                     {
                         tabs.map((item) =>
@@ -210,10 +183,10 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
                                         </Button>
 
                                         { /*
-                                                  * Always present, including on the last tab: closing it leaves
-                                                  * an empty tab behind rather than an empty strip, so the
-                                                  * control never has to explain why it is missing.
-                                                  */ }
+                                          * Always present, including on the last tab: closing it leaves
+                                          * an empty tab behind rather than an empty strip, so the
+                                          * control never has to explain why it is missing.
+                                          */ }
                                         <Button
                                             aria-label={ T('Dashboard.Browser.TabClose') }
                                             onClick={ () => { onClose(item.id); } }

@@ -56,7 +56,7 @@ export const defaultNetworks: Network[] =
         chainId: 1010,
         symbol: 'NC',
         coin: 'Nura Coin',
-        rpcUrl: 'https://rpc.nurachain.net/',
+        rpcUrl: 'https://rpc.nurachain.net',
         explorerUrl: 'https://explorer.nurachain.net',
         explorerApi: 'https://explorer.nurachain.net/api',
         decimals: 18,

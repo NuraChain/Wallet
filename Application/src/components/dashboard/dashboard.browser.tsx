@@ -15,7 +15,7 @@ import { TextField } from '../ui/field';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
-import { addBrowserVisit, atBrowserStart, clearBrowserHistory, frameLabel, getBrowserHistory, getBrowserView, getNativeBrowser, getNativeTab, onNativeBrowserState, setBrowserView, suggestedSites, type BrowserState, type BrowserTab, type BrowserVisit, type BrowserView } from '../../core/browser';
+import { addBrowserVisit, atBrowserStart, clearBrowserHistory, frameLabel, getBrowserFavorites, getBrowserHistory, getBrowserView, getNativeBrowser, getNativeTab, onNativeBrowserState, setBrowserFavorites, setBrowserView, type BrowserFavorite, type BrowserState, type BrowserTab, type BrowserVisit, type BrowserView } from '../../core/browser';
 
 /**
  * Turn whatever was typed in the address bar into a loadable URL.
@@ -78,6 +78,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     const [ settings, setSettings ] = useState(false);
     const [ view, setView ] = useState<BrowserView>('mobile');
     const [ visits, setVisits ] = useState<BrowserVisit[]>([]);
+    const [ favorites, setFavorites ] = useState<BrowserFavorite[]>([]);
     const [ active, setActive ] = useState(1);
     const [ tabs, setTabs ] = useState<BrowserTab[]>([ { id: 1, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
 
@@ -153,27 +154,16 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         {
             setView(await getBrowserView());
             setVisits(await getBrowserHistory());
+            setFavorites(await getBrowserFavorites());
         };
 
         void load();
     }, []);
 
-    // The explorer entry is the one suggestion that is not a fixed address: it points at the active
-    // network's explorer, on this account, so the row means something different on each chain — and
-    // it drops out entirely on a network that declares none.
-    const explorer = network.explorerUrl.length > 0 ? `${ network.explorerUrl }/address/${ address }` : '';
-
-    const suggested = suggestedSites
-        .map((item) =>
-        {
-            if (item.explorer)
-            {
-                return { name: T('Dashboard.Browser.Explorer'), url: explorer };
-            }
-
-            return { name: item.name, url: item.url };
-        })
-        .filter((item) => item.url.length > 0);
+    // The one shortcut the start screen is handed rather than stores: it points at the active network's
+    // explorer, on this account, so it means something different on each chain — and it is absent
+    // entirely on a network that declares none. Everything else in that grid is a favourite.
+    const explorer = network.explorerUrl.length > 0 ? { name: T('Dashboard.Browser.Explorer'), url: `${ network.explorerUrl }/address/${ address }` } : undefined;
 
     const onOpen = (value: string) =>
     {
@@ -184,14 +174,38 @@ export default function DashboardBrowser({ address, network, enabled, request, t
             return;
         }
 
-        patch(active, (item) =>
+        // Opened from the start screen of a tab that already holds a page, this becomes a new tab
+        // rather than a navigation. That screen is only over a live page because Home put it there and
+        // deliberately kept the page alive underneath; loading into the same tab would throw away the
+        // one thing that decision was for, and it is why the strip only ever had one chip in it — every
+        // site opened after the first replaced the site before it, so no second tab was ever created.
+        //
+        // A tab with no page of its own is not in that position: it is the empty tab the `+` just made,
+        // and filling it is exactly what it is for. Navigating from a page that is on screen is an
+        // ordinary navigation and stays in place, the way an address bar is supposed to behave.
+        const spawn = tab.home && tab.index >= 0;
+
+        const id = spawn ? mintRef.current : active;
+
+        if (spawn)
         {
-            const next = [ ...item.entries.slice(0, item.index + 1), url ];
+            mintRef.current += 1;
 
-            return { ...item, entries: next, index: next.length - 1, draft: url, home: false };
-        });
+            setTabs([ ...tabs, { id, entries: [ url ], index: 0, draft: url, reload: 0, home: false } ]);
 
-        setNotice((map) => new Map(map).set(active, ''));
+            setActive(id);
+        }
+        else
+        {
+            patch(active, (item) =>
+            {
+                const next = [ ...item.entries.slice(0, item.index + 1), url ];
+
+                return { ...item, entries: next, index: next.length - 1, draft: url, home: false };
+            });
+        }
+
+        setNotice((map) => new Map(map).set(id, ''));
 
         // Recorded here rather than from the webview's own navigation events: this is what the user
         // asked for, while the events also fire for redirects and for every link followed inside a
@@ -342,6 +356,26 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         setVisits([]);
 
         void clearBrowserHistory();
+    };
+
+    // Written through the same call that updates the screen, so the list on disk is whatever is being
+    // looked at. An edit replaces the entry holding that id and an addition goes on the end, which is
+    // the one place the two cases differ.
+    const onFavorites = (next: BrowserFavorite[]) =>
+    {
+        setFavorites(next);
+
+        void setBrowserFavorites(next);
+    };
+
+    const onFavoriteSave = (item: BrowserFavorite) =>
+    {
+        onFavorites(favorites.some((held) => held.id === item.id) ? favorites.map((held) => (held.id === item.id ? item : held)) : [ ...favorites, item ]);
+    };
+
+    const onFavoriteRemove = (id: string) =>
+    {
+        onFavorites(favorites.filter((item) => item.id !== id));
     };
 
     return (
@@ -514,10 +548,13 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                     front && !shown ?
                                         (
                                             <DashboardBrowserStart
-                                                suggested={ suggested }
+                                                explorer={ explorer }
+                                                favorites={ favorites }
                                                 visits={ visits }
                                                 notice={ notice.get(item.id) ?? '' }
-                                                onOpen={ onOpen } />
+                                                onOpen={ onOpen }
+                                                onFavoriteSave={ onFavoriteSave }
+                                                onFavoriteRemove={ onFavoriteRemove } />
                                         ) :
                                         undefined
                                 }

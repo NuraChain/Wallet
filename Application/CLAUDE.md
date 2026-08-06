@@ -27,7 +27,7 @@ There is no test suite. `npm run build` runs `tsc` as the typecheck gate. Prefer
 ## Architecture
 
 ### Two halves, thin native surface
-The Rust backend ([src-tauri/src/](src-tauri/src/)) is deliberately minimal — it exposes **no commands at all**. [lib.rs](src-tauri/src/lib.rs) only registers plugins (single-instance and fs on desktop only, os and store everywhere) and the desktop tray handler. Everything — wallet derivation, password hashing, encryption, UI — lives in the frontend. New native capability means: add a `#[tauri::command]`, register it in an `invoke_handler` in [lib.rs](src-tauri/src/lib.rs), and add the matching permission to **each** per-platform capabilities block (see below).
+The Rust backend ([src-tauri/src/](src-tauri/src/)) is deliberately minimal — it exposes **no commands at all**. [lib.rs](src-tauri/src/lib.rs) only registers plugins (single-instance and fs on desktop only, os, store and http everywhere) and the desktop tray handler. Everything — wallet derivation, password hashing, encryption, UI — lives in the frontend. New native capability means: add a `#[tauri::command]`, register it in an `invoke_handler` in [lib.rs](src-tauri/src/lib.rs), and add the matching permission to **each** per-platform capabilities block (see below).
 
 Tauri is built with the **`unstable` feature**, which is what gates the multiwebview API. Without it `new Webview(...)` always fails and the browser tab silently degrades to an iframe.
 
@@ -42,7 +42,7 @@ Navigation is **not** a router. It's a custom event bus ([src/utility/event.ts](
 The dashboard owns the unlocked mnemonic and passes derived state down: [src/page/dashboard.tsx](src/page/dashboard.tsx) holds the active account (a derivation index), the account list, the active network and the live balances, then feeds all three tabs and every transfer modal from that one source.
 
 ### Storage & crypto boundary
-[src/utility/storage.ts](src/utility/storage.ts) is the single persistence layer over `@tauri-apps/plugin-store` (`application.bin`). Keys are constrained to the `StorageKey` union — `App.{Language,Theme,Network,Networks}`, `Wallet.{Mnemonic,Password,Name,Accounts,Active,Tokens}`, `Browser.{View,History}`. Three plaintext accessors (`getValue`/`setValue`/`removeValue`), a batch `removeValues` (logout clears five keys in one file write, so the store either still has the wallet or has none of it), and an encrypted pair:
+[src/utility/storage.ts](src/utility/storage.ts) is the single persistence layer over `@tauri-apps/plugin-store` (`application.bin`). Keys are constrained to the `StorageKey` union — `App.{Language,Theme,Network,Networks}`, `Wallet.{Mnemonic,Password,Name,Accounts,Active,Tokens}`, `Browser.{View,History,Favorites}`. Three plaintext accessors (`getValue`/`setValue`/`removeValue`), a batch `removeValues` (logout clears five keys in one file write, so the store either still has the wallet or has none of it), and an encrypted pair:
 
 - `setValueEncrypted`/`getValueEncrypted` — AES-GCM 256 with a PBKDF2-SHA256 (102400 iters) key derived from a passphrase; fresh random salt+IV per write, stored as base64 `{ salt, iv, cipher }`. The passphrase is never persisted; a wrong passphrase surfaces as a thrown error (GCM auth tag). Note the payload carries **no parameter marker** — the KDF settings are implicit in the code, so changing them breaks every stored blob.
 
@@ -63,7 +63,14 @@ The browser tab is the one feature with a real native surface on both platforms,
 
 Mobile/desktop layout is a **user-agent switch**, not a resize: the strings live in `webview.tsx` and are mirrored by `DESKTOP_AGENT` in `BrowserBridge.kt`. Change one, change the other. Visited history is plaintext under `Browser.History`, capped at 40 entries; site icons are fetched from each site's own `/favicon.ico` rather than an icon service, deliberately — one party learning a wallet's browsing history is the trade this app does not make.
 
-The four `suggestedSites` in [src/core/browser.ts](src/core/browser.ts) are **placeholder `example.com` addresses** except `Explorer`, which resolves against the active network.
+The start screen has two shortcut lists: the favourites under `Browser.Favorites`, and the visited list. Favourites are **seeded, not fixed** — `defaultFavorites` in [src/core/browser.ts](src/core/browser.ts) is returned only when the key is absent, so a stored empty list stays empty. They are edited in place behind an edit toggle, keyed by a random `id` rather than by URL because the URL is the field being edited. The active network's explorer is the one shortcut not in that list — it has no fixed address to store — so it is passed in, rendered at the head of the same grid, and steps out in edit mode since editing cannot reach it.
+
+### The image cache
+[src/core/image.ts](src/core/image.ts) is the only thing in the app that downloads a remote image; [useCachedImage](src/hook/image.ts) and `TokenIcon` are the only things that call it. Memory (LRU) → disk (OPFS under `image-cache/`, SHA-256 filenames, a `metadata.json` index) → network, with per-kind TTLs, stale-while-revalidate, `ETag`/`Last-Modified` conditional refresh, bounded retries and a download semaphore.
+
+**Downloads use the plain `fetch` and no native surface** — this module has to run in an ordinary browser tab too (see *SPA portability*). The cost is CORS: reading response bytes requires `Access-Control-Allow-Origin`, which CDN logos send and **no site's favicon does**. So token and network logos cache; site icons cannot, throw in `download()`, and are never stored. When the cache returns empty the hook falls back to the raw URL and the `img` tag loads it directly — the icon still shows, and the webview's own HTTP cache handles the repeat. Routing this through `tauri-plugin-http` would make favicons cacheable and was tried; it was reverted because it ties the cache to Tauri.
+
+`accepts()` requires an `image/*` content type **and** a recognised magic-byte signature, but deliberately does not require the two to name the same format: a `favicon.ico` is served as `image/x-icon` and is a PNG about as often as not.
 
 ### Hand-written Kotlin inside a generated directory
 `src-tauri/gen/android/` is Tauri-generated but holds three hand-written files that are committed and must survive: [MainActivity.kt](src-tauri/gen/android/app/src/main/java/io/nurawallet/android/MainActivity.kt) (edge-to-edge transparent system bars, high-refresh-rate request, bridge registration), `BrowserBridge.kt`, and `ExportBridge.kt` (recovery-phrase export via MediaStore, which no webview can reach — desktop uses the fs plugin instead, see [src/core/export.ts](src/core/export.ts)). CI re-runs `tauri android init` to restore the git-ignored scaffolding; that has been verified to leave these byte-identical. Don't assume anything under `gen/` is disposable.
@@ -117,6 +124,14 @@ On Windows the app is **frameless** (`decorations: false`) and runs a custom [sr
 
 ## Goals
 
+### SPA portability
+
+A plain web build of this frontend is a wanted output, not just the Tauri shell. **Do not reach for a native surface when a web API can do the job**, and do not add a Tauri plugin to solve a problem the browser has an answer for — even a worse answer. Prefer the degraded-but-portable path and say what it costs.
+
+This is why the image cache lives in OPFS rather than the `fs` plugin, why it downloads with the plain `fetch` and accepts that favicons cannot be byte-cached, and why anything platform-shaped (`useIsWindows`, the browser bridge, the export bridge) is behind a check that fails to `false` outside a Tauri window.
+
+**Not there yet:** [storage.ts](src/utility/storage.ts) top-level-awaits `@tauri-apps/plugin-store`, so importing anything that touches storage throws in a plain tab and the app never mounts. A real SPA build needs a storage backend that falls back to `localStorage`/IndexedDB. That is the one blocker; everything else already degrades.
+
 ### One theme, everywhere
 
 Every colour, size and surface comes from the tokens in [style.css](src/assets/style.css), so that flipping `data-theme` restyles the whole app and nothing is hand-painted.
@@ -139,4 +154,3 @@ Both exceptions are the reason this cannot be a lint rule — a hard ban on lite
 - **The Argon2id parameters are a broken compatibility contract.** Verification recomputes the hash with whatever [password.ts](src/core/password.ts) says today and compares it against one written under yesterday's constants, so a wallet created before they were raised past `m=32768 / t=2 / p=1` can no longer be unlocked. Fixing it properly means storing the parameters alongside the hash and verifying with the set the hash was written under, then re-hashing at the new cost after a successful unlock. Note that the encrypted-mnemonic payload in `storage.ts` has the same weakness and no version marker either, so a real fix covers both. Until then, treat these constants as frozen.
 - **[app.tsx](src/app.tsx) has no startup failure surface.** `initTheme()`, `initLanguage()` and `initNetwork()` are awaited at module scope, so a rejection leaves the module unresolved and the window blank with no diagnostic.
 - The keydown listener in [app.tsx](src/app.tsx) matches a list of shortcuts and then does nothing — its `preventDefault()` is commented out.
-- Three of the four browser start-screen suggestions are `example.com` placeholders.

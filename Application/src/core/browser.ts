@@ -55,28 +55,38 @@ export const atBrowserStart = (tab: BrowserTab) => tab.home || tab.index < 0;
 export const frameLabel = (id: number) => `nura-browser-${ id }`;
 
 /**
- * A site offered on the start screen.
+ * A shortcut the user keeps.
  *
- * `explorer` marks the one entry whose address is not fixed — it follows the active network, so the
- * row points at Blockscout on Nura and Etherscan on Ethereum rather than at a chain the user is not
- * currently on. It is dropped from the list on a network that declares no explorer.
+ * The id is what edits and removals address, rather than the URL: the URL is the field most likely to
+ * be the one being changed, and a list keyed on the thing being edited loses track of the row halfway
+ * through the edit.
  */
-export interface SuggestedSite { name: string; url: string; explorer: boolean }
+export interface BrowserFavorite { id: string; name: string; url: string }
 
 /**
- * The start screen's suggested sites, in the order they are shown.
+ * The favourites a wallet starts with, in the order they are shown.
  *
- * PLACEHOLDER ADDRESSES: three of these four are `example.com` stand-ins waiting for the real ones —
- * the names are what was asked for, the destinations are not known here. Replace the `url` fields
- * below and nothing else has to change. `Explorer` is the exception and is already real: it resolves
- * against the active network at render.
+ * There is one shortcut list on the start screen and this is what fills it. A separate row of fixed
+ * "suggestions" sat above it and said the same thing twice — a shortcut someone can change and a
+ * shortcut someone cannot are not two categories worth two headings, and the second one only meant
+ * "the ones you may not touch".
+ *
+ * So they are seeded, not fixed: everything here can be renamed, re-aimed or removed, and the stored
+ * list is what is shown from then on. The names are written rather than translated, because they name
+ * products rather than describe them.
+ *
+ * The one shortcut not in this list is the active network's explorer, which cannot be: it has no fixed
+ * address to store. It follows the chain and the account, and the start screen puts it at the head of
+ * the same grid.
  */
-export const suggestedSites: SuggestedSite[] =
+const defaultFavorites: BrowserFavorite[] =
 [
-    { name: 'AuctionHouse', url: 'https://example.com/auction-house', explorer: false },
-    { name: 'Explorer', url: '', explorer: true },
-    { name: 'Fast Gold', url: 'https://example.com/fast-gold', explorer: false },
-    { name: 'Swap Dex', url: 'https://example.com/swap-dex', explorer: false }
+    { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
+    { id: 'google', name: 'Google', url: 'https://google.com' },
+    { id: 'market', name: 'Poly Market', url: 'https://market.nurachain.net' },
+    { id: 'github', name: 'GitHub', url: 'https://github.com/NuraChain/Explorer' },
+    { id: 'discord', name: 'Discord', url: 'https://discord.gg/ykW3PU64h9' },
+    { id: 'telegram', name: 'Telegram', url: 'https://t.me/nurachain' }
 ];
 
 /**
@@ -212,6 +222,60 @@ export const addBrowserVisit = async(url: string): Promise<BrowserVisit[]> =>
  * @returns {Promise<void>} Resolves once the key is gone.
  */
 export const clearBrowserHistory = async() => removeValue('Browser.History');
+
+/**
+ * getBrowserFavorites - The kept shortcuts, in the order they are shown.
+ *
+ * A missing key means the wallet has never touched this list, so it gets the seed. A stored empty list
+ * is a different thing and is honoured: someone who removed every favourite is not asking for them
+ * back on the next launch.
+ *
+ * Anything that does not parse as the list it wrote is treated as no list at all, matching the history
+ * reader — a shortcut grid is not worth failing the start screen over.
+ * @returns {Promise<BrowserFavorite[]>} The stored favourites, or the seeded ones.
+ */
+export const getBrowserFavorites = async(): Promise<BrowserFavorite[]> =>
+{
+    const stored = await getValue('Browser.Favorites');
+
+    if (stored === undefined)
+    {
+        return defaultFavorites;
+    }
+
+    try
+    {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const parsed = JSON.parse(stored) as BrowserFavorite[];
+
+        if (!Array.isArray(parsed))
+        {
+            return [];
+        }
+
+        return parsed.filter((item) => typeof item?.id === 'string' && typeof item.name === 'string' && typeof item.url === 'string' && item.url.length > 0);
+    }
+    catch
+    {
+        return [];
+    }
+};
+
+/**
+ * setBrowserFavorites - Writes the kept shortcuts.
+ * @param {BrowserFavorite[]} list The list to store, in display order.
+ * @returns {Promise<void>} Resolves once written.
+ */
+export const setBrowserFavorites = async(list: BrowserFavorite[]) => setValue('Browser.Favorites', JSON.stringify(list));
+
+/**
+ * makeFavoriteId - A fresh id for a favourite the user is adding.
+ *
+ * Random rather than counted, because the counter would have to be stored too and a list that has had
+ * entries removed cannot recover it from what is left.
+ * @returns {string} An id no existing favourite holds.
+ */
+export const makeFavoriteId = () => crypto.randomUUID();
 
 /**
  * The Kotlin side of the native browser, injected as `__nuraBrowser` on the app's own webview only.
