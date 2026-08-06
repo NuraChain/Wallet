@@ -6,7 +6,7 @@ import { TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
-import { getSiteHost, makeFavoriteId, type BrowserFavorite } from '../../core/browser';
+import { getSiteHost, type BrowserFavorite } from '../../core/browser';
 
 /**
  * DashboardBrowserFavorite - The form behind adding a favourite and behind editing one.
@@ -58,7 +58,9 @@ export default function DashboardBrowserFavorite({ item, onSave, onClose }: { it
 
         const label = name.trim();
 
-        onSave({ id: item?.id ?? makeFavoriteId(), name: label.length > 0 ? label : getSiteHost(full), url: full });
+        // A random id rather than a counted one: a counter would have to be stored too, and a list that
+        // has had entries removed cannot recover it from what is left.
+        onSave({ id: item?.id ?? crypto.randomUUID(), name: label.length > 0 ? label : getSiteHost(full), url: full });
     };
 
     return (

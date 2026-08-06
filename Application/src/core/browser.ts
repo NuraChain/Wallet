@@ -269,15 +269,6 @@ export const getBrowserFavorites = async(): Promise<BrowserFavorite[]> =>
 export const setBrowserFavorites = async(list: BrowserFavorite[]) => setValue('Browser.Favorites', JSON.stringify(list));
 
 /**
- * makeFavoriteId - A fresh id for a favourite the user is adding.
- *
- * Random rather than counted, because the counter would have to be stored too and a list that has had
- * entries removed cannot recover it from what is left.
- * @returns {string} An id no existing favourite holds.
- */
-export const makeFavoriteId = () => crypto.randomUUID();
-
-/**
  * The Kotlin side of the native browser, injected as `__nuraBrowser` on the app's own webview only.
  *
  * Coordinates are CSS pixels; the bridge converts them to device pixels itself.
