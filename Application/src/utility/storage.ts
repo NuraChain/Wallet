@@ -1,10 +1,50 @@
+import { isTauri } from '@tauri-apps/api/core';
 import { load } from '@tauri-apps/plugin-store';
 
 interface EncryptedPayload { salt: string; iv: string; cipher: string }
 
 type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name' | 'Wallet.Accounts' | 'Wallet.Active' | 'Wallet.Tokens' | 'Browser.View' | 'Browser.History' | 'Browser.Favorites';
 
-const storage = await load('application.bin');
+/**
+ * The four calls this module makes of whatever is holding the keys.
+ *
+ * Deliberately the shape the store plugin already has rather than a shape of this module's choosing,
+ * so the Tauri half is the plugin itself with nothing wrapped around it and only the web half is code.
+ */
+interface Backend
+{
+    get: (key: string) => Promise<string | undefined>;
+    set: (key: string, value: string) => Promise<void>;
+    delete: (key: string) => Promise<unknown>;
+    save: () => Promise<void>;
+}
+
+/**
+ * `localStorage`, wearing that shape, for a plain browser tab.
+ *
+ * Served outside a Tauri window there is no store plugin and no `application.bin`, and awaiting `load`
+ * at module scope rejected — which left this module unresolved and every importer of it, which is most
+ * of the app, never evaluated. A blank window with no diagnostic.
+ *
+ * `localStorage` rather than IndexedDB because the whole wallet is a dozen string keys: synchronous,
+ * no schema, no migration, no open-request dance. `save` is a no-op since every write is already
+ * durable, so the batched `removeValues` is one write there too by not being anything.
+ *
+ * This is the same exposure the desktop store has — both sit in plaintext next to the app, which is
+ * why the mnemonic is encrypted before it reaches either and why nothing else stored here is secret.
+ */
+const webStorage: Backend =
+{
+    get: async(key: string) => Promise.resolve(localStorage.getItem(key) ?? undefined),
+    set: async(key: string, value: string) => { localStorage.setItem(key, value); return Promise.resolve(); },
+    delete: async(key: string) => { localStorage.removeItem(key); return Promise.resolve(true); },
+    save: async() => Promise.resolve()
+};
+
+// The plugin is still loaded eagerly inside Tauri, so the desktop and Android paths keep the exact
+// timing they had: storage is open before any importer runs. `isTauri()` reads a global and cannot
+// throw, so the branch is safe to take before the plugin is ever touched.
+const storage: Backend = isTauri() ? await load('application.bin') : webStorage;
 
 /**
  * deriveKey - Derives a non-extractable AES-GCM 256 key from a passphrase and salt via PBKDF2-SHA256
@@ -24,7 +64,7 @@ const deriveKey = async(passphrase: string, salt: Uint8Array<ArrayBuffer>) =>
  * @param {StorageKey} key - The storage key name
  * @returns {Promise<string | undefined>} Stored string or undefined if not set
  */
-export const getValue = async(key: StorageKey) => storage.get<string>(key);
+export const getValue = async(key: StorageKey) => storage.get(key);
 
 /**
  * setValue - Stores a plaintext value in persistent storage
