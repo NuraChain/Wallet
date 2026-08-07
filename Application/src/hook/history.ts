@@ -1,7 +1,8 @@
 import { formatUnits } from 'ethers';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getExplorerApi, type Network } from '../core/network';
+import { historyKey, readHistory, touchHistory, writeHistory } from '../core/history.cache';
 import type { Token } from '../core/token';
 
 /**
@@ -350,6 +351,73 @@ const readCovalent = async(address: string, network: Network, tokens: Token[]): 
 };
 
 /**
+ * What one full read produced: the rows, newest first, and why there were none if there were none.
+ */
+interface HistoryRead { sorted: Transaction[]; reason: string }
+
+/**
+ * One read per cache key, however many callers ask for it while it is running.
+ *
+ * The same shape the image cache uses, for the same reason: the work is keyed, so a second caller
+ * arriving mid-flight has nothing to gain from a second request and everything to lose from another
+ * round trip against a rate-limited explorer.
+ */
+const inflight = new Map<string, Promise<HistoryRead>>();
+
+/**
+ * load - Fetches one account's history, coalescing concurrent reads of the same key.
+ *
+ * The network logic is untouched and still lives in `readAction` and `readCovalent` — this only decides
+ * who gets to run it. Every path resolves rather than rejects, so no caller has to tell "failed" from
+ * "empty" here; `reason` carries that distinction.
+ * @param {string} key The cache key this read belongs to.
+ * @param {string} address Account address to query.
+ * @param {Network} network Active network.
+ * @param {Token[]} tokens Tracked tokens, for the GoldRush fallback.
+ * @param {string} api The resolved explorer API base.
+ * @returns {Promise<HistoryRead>} The ordered rows and the reason there were none.
+ */
+const load = async(key: string, address: string, network: Network, tokens: Token[], api: string): Promise<HistoryRead> =>
+{
+    const held = inflight.get(key);
+
+    if (held !== undefined)
+    {
+        return held;
+    }
+
+    const request = (async(): Promise<HistoryRead> =>
+    {
+        const answers = api.length === 0 ?
+            [ { items: [], notice: 'this network has no explorer API configured' } ] :
+            await Promise.all([ 'txlist', 'tokentx' ].map(async(action) => readAction(action, address, network).catch((cause: unknown): ExplorerAnswer => ({ items: [], notice: cause instanceof Error ? cause.message : String(cause) }))));
+
+        const found = answers.flatMap((item) => item.items);
+
+        // Asked only where the explorer came up empty, so the chains it already serves cost no
+        // credits. An account that genuinely has no transactions pays one wasted request for that.
+        const merged = found.length > 0 ? found : await readCovalent(address, network, tokens).catch((): Transaction[] => []);
+
+        const sorted = merged.sort((left, right) => right.timestamp - left.timestamp);
+
+        // Only worth saying when there is nothing to show. One call failing while another returned
+        // rows is not something the user needs told about.
+        return { sorted, reason: sorted.length > 0 ? '' : answers.map((item) => item.notice).find((text) => text.length > 0) ?? '' };
+    })();
+
+    inflight.set(key, request);
+
+    try
+    {
+        return await request;
+    }
+    finally
+    {
+        inflight.delete(key);
+    }
+};
+
+/**
  * Read the transaction history for an account on a network.
  *
  * Plain JSON-RPC cannot enumerate past transactions, so history comes from the network's Etherscan-compatible explorer API (Blockscout for the built-in chains, which needs no key). Native transfers and ERC20 transfers are fetched separately and merged newest-first.
@@ -373,6 +441,10 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
     const [ loading, setLoading ] = useState(true);
     const [ nonce, setNonce ] = useState(0);
 
+    // What the nonce was last time the effect ran. A bump means the user asked for this read, which is
+    // the one case a fresh cache entry is not allowed to answer.
+    const lastNonce = useRef(nonce);
+
     const refresh = useCallback(() =>
     {
         setNonce((current) => current + 1);
@@ -382,41 +454,72 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
 
     const tokenKey = tokens.map((item) => item.address).join(',');
 
+    const key = historyKey(address, network.chainId, api, tokens.map((item) => item.address));
+
     useEffect(() =>
     {
         let active = true;
 
+        // Stale-while-revalidate. A held answer is rendered on the spot and the network runs behind it,
+        // so switching to an account visited earlier in the session shows its list immediately instead
+        // of blanking to the loading line and back. `loading` is only raised when there is nothing to
+        // show — raising it over a list already on screen is exactly the flicker this is here to avoid.
+        //
+        // A manual refresh (the `nonce` bump behind pull-to-refresh) always goes to the network, since
+        // the point of the gesture is to distrust what is held.
+        const hit = readHistory(key);
+        const forced = nonce !== lastNonce.current;
+
+        lastNonce.current = nonce;
+
+        if (hit !== undefined)
+        {
+            touchHistory(key);
+
+            setItems(hit.entry.items.slice(0, pageSize));
+            setNotice(hit.entry.notice);
+            setLoading(false);
+
+            if (hit.fresh && !forced)
+            {
+                return () => { active = false; };
+            }
+        }
+
         const run = async() =>
         {
-            setLoading(true);
+            setLoading(hit === undefined);
 
-            const answers = api.length === 0 ?
-                [ { items: [], notice: 'this network has no explorer API configured' } ] :
-                await Promise.all([ 'txlist', 'tokentx' ].map(async(action) => readAction(action, address, network).catch((cause: unknown): ExplorerAnswer => ({ items: [], notice: cause instanceof Error ? cause.message : String(cause) }))));
-
-            if (!active)
-            {
-                return;
-            }
-
-            const found = answers.flatMap((item) => item.items);
-
-            // Asked only where the explorer came up empty, so the chains it already serves cost no
-            // credits. An account that genuinely has no transactions pays one wasted request for that.
-            const merged = found.length > 0 ? found : await readCovalent(address, network, tokens).catch((): Transaction[] => []);
+            // Coalesced on the cache key: switching away from an account and straight back while its
+            // read is still running joins the request already in flight instead of starting a second
+            // one. A manual refresh arriving mid-read joins it too, which is the right answer — the
+            // fetch it would have started is the fetch already happening.
+            const { sorted, reason } = await load(key, address, network, tokens, api);
 
             if (!active)
             {
                 return;
             }
 
-            const sorted = merged.sort((left, right) => right.timestamp - left.timestamp);
+            // Nothing back *and* a reason is the explorer refusing or the network being away — not the
+            // account being empty. Rows already held are kept rather than cleared, which is what stops
+            // a dropped connection turning a populated list into an empty one. Nothing is written
+            // either: a failure is not an answer, and storing it would age out the good rows behind it.
+            if (sorted.length === 0 && reason.length > 0 && hit !== undefined && hit.entry.items.length > 0)
+            {
+                setLoading(false);
 
-            // Only worth saying when there is nothing to show. One call failing while another returned
-            // rows is not something the user needs told about.
-            setNotice(sorted.length > 0 ? '' : answers.map((item) => item.notice).find((text) => text.length > 0) ?? '');
+                return;
+            }
 
-            setItems(sorted.slice(0, pageSize));
+            // Merged rather than assigned: the explorer answers a fixed window, so a later read that
+            // comes back thinner must not throw away rows the account still has. What comes back is
+            // deduplicated and ordered newest-first by the cache, and that is what renders.
+            const stored = writeHistory(key, sorted, reason);
+
+            setNotice(reason);
+
+            setItems(stored.slice(0, pageSize));
             setLoading(false);
         };
 
@@ -426,7 +529,7 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
         {
             active = false;
         };
-    }, [ address, network.id, api, tokenKey, nonce ]);
+    }, [ address, network.id, api, tokenKey, nonce, key ]);
 
     return { items, loading, notice, refresh };
 };

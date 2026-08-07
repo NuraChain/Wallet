@@ -10,6 +10,26 @@
 // eslint-disable-next-line @typescript-eslint/naming-convention
 declare const __APP_VERSION__: string;
 
+/**
+ * The build-mode flags Vite substitutes into the bundle.
+ *
+ * Declared here rather than by referencing `vite/client`, for the same reason the asset modules below
+ * are hand-written: that package's types redeclare `*.css`, `*.png` and the rest, and pulling them in
+ * would collide with the declarations this file already makes. Only what the app reads is declared —
+ * `DEV` is `false` in a production build, which is what lets the development-only branches be dropped.
+ */
+interface ImportMetaEnv
+{
+    readonly DEV: boolean;
+    readonly PROD: boolean;
+    readonly MODE: string;
+}
+
+interface ImportMeta
+{
+    readonly env: ImportMetaEnv;
+}
+
 declare module '*.css'
 {
     const value: string;

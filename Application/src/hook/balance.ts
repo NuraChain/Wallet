@@ -1,7 +1,8 @@
 import { formatEther } from 'ethers';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getProvider, type Network } from '../core/network';
+import { balanceKey, readBalances, readNative, writeBalances, writeNative } from '../core/token.cache';
 import { readTokenBalances, type Token, type TokenBalance } from '../core/token';
 
 /**
@@ -29,6 +30,8 @@ export const useBalance = (address: string, network: Network) =>
 
     const fresh = held.key === key;
 
+    const lastNonce = useRef(nonce);
+
     const refresh = useCallback(() =>
     {
         setNonce((current) => current + 1);
@@ -38,9 +41,28 @@ export const useBalance = (address: string, network: Network) =>
     {
         let active = true;
 
+        // Stale-while-revalidate, matching the token rows below this figure so the two arrive together
+        // rather than the list beating the headline. Session-only, like every balance here.
+        const hit = readNative(key);
+        const forced = nonce !== lastNonce.current;
+
+        lastNonce.current = nonce;
+
+        if (hit !== undefined)
+        {
+            setHeld({ key, value: hit.value });
+            setLoading(false);
+            setError(false);
+
+            if (hit.fresh && !forced)
+            {
+                return () => { active = false; };
+            }
+        }
+
         const run = async() =>
         {
-            setLoading(true);
+            setLoading(hit === undefined);
             setError(false);
 
             try
@@ -49,6 +71,8 @@ export const useBalance = (address: string, network: Network) =>
 
                 if (active)
                 {
+                    writeNative(key, balance);
+
                     setHeld({ key, value: balance });
                 }
             }
@@ -108,6 +132,13 @@ export const useTokens = (address: string, network: Network, list: Token[]) =>
 
     const fresh = held.key === key;
 
+    // The cache key carries the contract list the tag deliberately leaves out: what was read is only an
+    // answer for the tokens it was handed, while the tag answers a different question — whether these
+    // rows belong to the account on screen.
+    const cacheKey = balanceKey(address, network.id, list);
+
+    const lastNonce = useRef(nonce);
+
     const refresh = useCallback(() =>
     {
         setNonce((current) => current + 1);
@@ -117,9 +148,30 @@ export const useTokens = (address: string, network: Network, list: Token[]) =>
     {
         let active = true;
 
+        // Stale-while-revalidate. Held balances are shown at once and the chain is re-read behind them,
+        // so returning to an account already visited this session shows its last known amounts instead
+        // of an empty list. Nothing here is written to disk — see the note in `token.cache.ts`; a
+        // balance from a previous launch is not a balance worth rendering as current.
+        const hit = readBalances(cacheKey, list);
+        const forced = nonce !== lastNonce.current;
+
+        lastNonce.current = nonce;
+
+        if (hit !== undefined)
+        {
+            setHeld({ key, tokens: hit.tokens });
+            setLoading(false);
+            setError(false);
+
+            if (hit.fresh && !forced)
+            {
+                return () => { active = false; };
+            }
+        }
+
         const run = async() =>
         {
-            setLoading(true);
+            setLoading(hit === undefined);
             setError(false);
 
             try
@@ -128,6 +180,8 @@ export const useTokens = (address: string, network: Network, list: Token[]) =>
 
                 if (active)
                 {
+                    writeBalances(cacheKey, result);
+
                     setHeld({ key, tokens: result });
                 }
             }
@@ -153,7 +207,7 @@ export const useTokens = (address: string, network: Network, list: Token[]) =>
         {
             active = false;
         };
-    }, [ key, listKey, nonce ]);
+    }, [ key, listKey, nonce, cacheKey ]);
 
     return { tokens: fresh ? held.tokens : [], loading: loading || !fresh, error, refresh };
 };

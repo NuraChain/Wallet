@@ -11,6 +11,8 @@ import { T } from '../../utility/language';
 import { passwordCheck } from '../../core/password';
 import { openPage } from '../../utility/context';
 import { removeValues } from '../../utility/storage';
+import { invalidateHistory } from '../../core/history.cache';
+import { invalidateTokenCache } from '../../core/token.cache';
 
 /**
  * Everything the wallet leaves on the device. Logging out means all of it goes.
@@ -65,6 +67,12 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
             }
 
             await removeValues(...clearList);
+
+            // The cached transaction lists go with them. They are keyed by account address and sit
+            // outside the wallet store, so clearing that store alone would leave one wallet's history
+            // readable after the wallet itself is gone.
+            invalidateHistory();
+            invalidateTokenCache();
 
             openPage(IntroPage);
         }

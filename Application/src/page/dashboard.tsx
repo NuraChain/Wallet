@@ -35,6 +35,7 @@ import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { getDirection, getLanguage, T } from '../utility/language';
 import { discoverTokens, loadTokens, readToken, saveTokens, type TokenMap } from '../core/token';
+import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
 
 import 'swiper/css';
@@ -69,6 +70,9 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
     const [ tokenMap, setTokenMap ] = useState<TokenMap>({});
     const [ loaded, setLoaded ] = useState(false);
     const [ scan, setScan ] = useState(0);
+
+    // What `scan` was when the sweep last ran, so a manual refresh is told apart from a re-render.
+    const lastScan = useRef(0);
 
     // The discovery pass below reads the tracked list without being re-run by it: adding what it finds
     // changes `tokenMap`, and a dependency on that would send it straight round again.
@@ -135,9 +139,25 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
 
         let live = true;
 
+        // The sweep is the most expensive thing this page does — an explorer call, then a `balanceOf`
+        // against every contract it names — and it ran again on every return to a chain, including one
+        // swept seconds earlier. Held off inside its window unless the user asked, which is what the
+        // `scan` bump behind pull-to-refresh means.
+        const sweepKey = discoveryKey(address, network.chainId);
+        const forced = scan !== lastScan.current;
+
+        lastScan.current = scan;
+
+        if (!forced && !discoveryDue(sweepKey))
+        {
+            return undefined;
+        }
+
         const run = async() =>
         {
             const found = await discoverTokens(address, network, tokenRef.current[network.chainId] ?? []);
+
+            markDiscovered(sweepKey);
 
             if (!live || found.length === 0)
             {
