@@ -10,7 +10,7 @@ import type { Token, TokenBalance } from './token';
  * read minutes later. `discovery` is long because the *set* of contracts an account holds changes far
  * more slowly than the amounts in them.
  */
-export const tokenCacheConfig =
+const tokenCacheConfig =
 {
     /** How long held balances answer a read without going back to the chain. */
     balances: 30 * 1000,

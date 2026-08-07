@@ -2,23 +2,12 @@ import { formatUnits } from 'ethers';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getExplorerApi, type Network } from '../core/network';
-import { historyKey, readHistory, touchHistory, writeHistory } from '../core/history.cache';
+import { historyKey, readHistory, touchHistory, writeHistory, type Transaction } from '../core/history.cache';
 import type { Token } from '../core/token';
 
-/**
- * A single account transaction as shown in the activity list.
- */
-export interface Transaction
-{
-    id: string;
-    hash: string;
-    from: string;
-    to: string;
-    value: string;
-    symbol: string;
-    timestamp: number;
-    incoming: boolean;
-}
+// Re-exported because this is where every consumer already imports it from; the definition moved to
+// `core` so the cache is not importing a type back out of the hook that consumes it.
+export type { Transaction };
 
 /**
  * One row of an Etherscan-compatible `txlist` / `tokentx` response. Every field arrives as a string, and the token-only fields are absent on native transfers.

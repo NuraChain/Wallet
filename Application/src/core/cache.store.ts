@@ -6,7 +6,7 @@
  * transaction that happened stays happened, so history belongs in `local`, while a balance read
  * minutes ago is only true of that moment and must not come back looking current after a restart.
  */
-export type CacheArea = 'local' | 'session';
+type CacheArea = 'local' | 'session';
 
 /**
  * Fallback for a webview that refuses Web Storage.
@@ -167,7 +167,7 @@ export const writeRaw = (area: CacheArea, key: string, value: string) =>
  * @param {CacheArea} area Which storage to clear from.
  * @param {string} key The full key, prefix included.
  */
-export const removeRaw = (area: CacheArea, key: string) =>
+const removeRaw = (area: CacheArea, key: string) =>
 {
     dirty.get(area)?.delete(key);
 
@@ -196,7 +196,7 @@ export const removeRaw = (area: CacheArea, key: string) =>
  * @param {string} prefix The namespace to match.
  * @returns {string[]} The matching full keys.
  */
-export const keysUnder = (area: CacheArea, prefix: string) =>
+const keysUnder = (area: CacheArea, prefix: string) =>
 {
     const found: string[] = [];
 

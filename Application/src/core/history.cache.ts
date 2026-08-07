@@ -1,6 +1,23 @@
 import { cacheLog, clearUnder, prune, readRaw, writeRaw } from './cache.store';
 
-import type { Transaction } from '../hook/history';
+/**
+ * A single account transaction as shown in the activity list.
+ *
+ * Defined here rather than beside the hook that fetches it: the cache stores these, so owning the shape
+ * keeps `core` from importing a type back out of the layer that consumes it. `hook/history` re-exports
+ * it, so every existing import site is unchanged.
+ */
+export interface Transaction
+{
+    id: string;
+    hash: string;
+    from: string;
+    to: string;
+    value: string;
+    symbol: string;
+    timestamp: number;
+    incoming: boolean;
+}
 
 /**
  * Every tunable this cache has, in one place.
@@ -15,7 +32,7 @@ import type { Transaction } from '../hook/history';
  * still rendered rather than blanked, because a stale list beats an empty screen — the network result
  * replaces it when it lands.
  */
-export const cacheConfig =
+const cacheConfig =
 {
     /** How long a fetched list is served without revalidating. */
     history: 2 * 60 * 1000,
@@ -43,7 +60,7 @@ const prefix = 'tx-cache/v1/';
  * refuses the request produces no rows *and* a reason, and restoring the rows without the reason would
  * turn "unreadable" back into "no transactions" on the next launch.
  */
-export interface HistoryEntry
+interface HistoryEntry
 {
     items: Transaction[];
     notice: string;
@@ -52,7 +69,7 @@ export interface HistoryEntry
 }
 
 /** What a read found, and whether the caller still needs to go to the network. */
-export interface HistoryHit
+interface HistoryHit
 {
     entry: HistoryEntry;
     fresh: boolean;
@@ -99,7 +116,7 @@ const identity = (item: Transaction) => `${ item.hash }|${ item.symbol }|${ item
  * @param {Transaction[]} found What the network just returned.
  * @returns {Transaction[]} One ordered, deduplicated list.
  */
-export const mergeTransactions = (held: Transaction[], found: Transaction[]) =>
+const mergeTransactions = (held: Transaction[], found: Transaction[]) =>
 {
     const byIdentity = new Map<string, Transaction>();
 
