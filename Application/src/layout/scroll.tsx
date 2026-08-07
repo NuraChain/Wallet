@@ -28,6 +28,18 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
     const originRef = useRef<number | undefined>(undefined);
     const refreshRef = useRef(onRefresh);
 
+    // Whether a wheel gesture is mid-flight, and the timer that decides it has ended. Together they are
+    // the wheel's stand-in for `touchstart`/`touchend`, which it has neither of.
+    const wheelRef = useRef(false);
+    const settleRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+    // When the last wheel event arrived, which is how a deliberate pull is told from the momentum of
+    // the scroll that reached the top.
+    const lastWheelRef = useRef(0);
+
+    // Read inside the wheel listener, which is bound once and cannot see the state directly.
+    const refreshingRef = useRef(false);
+
     const [ pull, setPull ] = useState(0);
     const [ dragging, setDragging ] = useState(false);
     const [ refreshing, setRefreshing ] = useState(false);
@@ -36,6 +48,10 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
     // Kept in a ref so the touch listeners below can stay bound for the life of the component instead
     // of being torn down and re-attached every time the parent re-renders with a new closure.
     refreshRef.current = onRefresh;
+
+    // Mirrored for the same reason: a wheel fires continuously, so it has to be able to tell that a
+    // refresh is already running rather than stacking another one on top of it.
+    refreshingRef.current = refreshing;
 
     const measure = useCallback(() =>
     {
@@ -84,6 +100,14 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
      * Distance the content travels before a release counts as a refresh.
      */
     const threshold = 64;
+
+    /**
+     * How long the wheel has to go quiet before the pull is treated as let go.
+     *
+     * Long enough to ride out the gap between two notches of a stepped mouse wheel and the tail of a
+     * trackpad flick, short enough that the indicator does not hang there after the user has stopped.
+     */
+    const settleDelay = 140;
 
     useEffect(() =>
     {
@@ -147,12 +171,17 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
             move(Math.min(distance / 2, threshold * 1.4));
         };
 
-        const onTouchEnd = () =>
+        /**
+         * What a let-go decides, whichever gesture let go.
+         *
+         * Shared rather than duplicated because a wheel has no equivalent of `touchend` — it simply
+         * stops arriving — so the two gestures differ in when they release, never in what releasing
+         * means.
+         */
+        const release = () =>
         {
             const distance = pullRef.current;
             const handler = refreshRef.current;
-
-            originRef.current = undefined;
 
             if (distance < threshold || handler === undefined)
             {
@@ -174,10 +203,95 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
             });
         };
 
+        const onTouchEnd = () =>
+        {
+            originRef.current = undefined;
+
+            release();
+        };
+
+        /**
+         * The same gesture with a wheel or a trackpad, which is what the desktop build has instead.
+         *
+         * A wheel reports movement rather than position, so the pull accumulates from the deltas rather
+         * than being measured against a starting point — halved and capped exactly as the touch path
+         * does, so the two feel the same and the indicator travels the same distance.
+         *
+         * There is no event for letting go of a wheel: it just stops arriving. So the release runs on a
+         * short timer that every event pushes back, which is also what keeps trackpad momentum from
+         * releasing early in the middle of one flick.
+         */
+        const onWheel = (event: WheelEvent) =>
+        {
+            if (refreshRef.current === undefined || refreshingRef.current)
+            {
+                return;
+            }
+
+            // Scrolled away from the top and the gesture belongs to the scroller, the same rule the
+            // touch path follows.
+            if (element.scrollTop > 0)
+            {
+                if (pullRef.current > 0)
+                {
+                    wheelRef.current = false;
+
+                    move(0);
+                }
+
+                return;
+            }
+
+            // A pull has to be its own gesture, not the tail of the one that arrived here. Scrolling up
+            // through a long list throws momentum past the top, and without this that overshoot would
+            // accumulate into a refresh nobody asked for — two notches of a stepped wheel is already
+            // past the threshold. So a pull only starts from a wheel that has been quiet, and once it
+            // has started the rest of the gesture continues it.
+            const now = Date.now();
+            const idle = now - lastWheelRef.current > settleDelay;
+
+            lastWheelRef.current = now;
+
+            if (pullRef.current === 0 && !idle)
+            {
+                return;
+            }
+
+            // Down while pulled shortens the pull before it starts scrolling again, so a correction
+            // mid-gesture behaves like dragging back up rather than being ignored.
+            const next = event.deltaY < 0 ?
+                Math.min(pullRef.current + -event.deltaY / 2, threshold * 1.4) :
+                Math.max(pullRef.current - event.deltaY / 2, 0);
+
+            if (next === 0 && pullRef.current === 0)
+            {
+                return;
+            }
+
+            wheelRef.current = true;
+
+            move(next);
+
+            if (settleRef.current !== undefined)
+            {
+                clearTimeout(settleRef.current);
+            }
+
+            settleRef.current = setTimeout(() =>
+            {
+                settleRef.current = undefined;
+
+                wheelRef.current = false;
+
+                release();
+            }, settleDelay);
+        };
+
         element.addEventListener('touchstart', onTouchStart, { passive: true });
         element.addEventListener('touchmove', onTouchMove, { passive: false });
         element.addEventListener('touchend', onTouchEnd, { passive: true });
         element.addEventListener('touchcancel', onTouchEnd, { passive: true });
+        element.addEventListener('wheel', onWheel, { passive: true });
 
         return () =>
         {
@@ -185,6 +299,12 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
             element.removeEventListener('touchmove', onTouchMove);
             element.removeEventListener('touchend', onTouchEnd);
             element.removeEventListener('touchcancel', onTouchEnd);
+            element.removeEventListener('wheel', onWheel);
+
+            if (settleRef.current !== undefined)
+            {
+                clearTimeout(settleRef.current);
+            }
         };
     }, [ ]);
 
@@ -282,7 +402,7 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
                 ref={ viewportRef }
                 onScroll={ onScroll }
                 style={ { transform: `translateY(${ pull }px)` } }
-                className={ `scroll-hidden size-full overflow-y-auto overscroll-contain ${ pull > 0 && originRef.current === undefined ? 'transition-transform duration-300' : '' }` }>
+                className={ `scroll-hidden size-full overflow-y-auto overscroll-contain ${ pull > 0 && originRef.current === undefined && !wheelRef.current ? 'transition-transform duration-300' : '' }` }>
 
                 {
                     children
