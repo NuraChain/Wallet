@@ -28,6 +28,16 @@ interface CacheEntry
     url: string;
     hash: string;
     file: string;
+
+    /**
+     * What sort of image this is, kept so a clear can be scoped to one of them.
+     *
+     * The lifetime it implies is already folded into `expires`, so nothing reads this to decide
+     * freshness — it is here only so the browser tab can drop the site icons it put there without
+     * taking the wallet's token and network logos with them. Absent on entries written before this
+     * field existed, which is why every reader treats a missing value as `unknown`.
+     */
+    kind?: ImageKind;
     etag: string;
     modified: string;
     expires: number;
@@ -621,6 +631,7 @@ const keep = async(url: string, kind: ImageKind, blob: Blob, head: { mime: strin
         url,
         hash,
         file,
+        kind,
         etag: head.etag,
         modified: head.modified,
         expires: expiryFor(kind, head.control),
@@ -649,7 +660,7 @@ const revalidated = async(url: string, kind: ImageKind, known: CacheEntry | unde
         return;
     }
 
-    entries.set(url, { ...known, expires: Date.now() + lifetime[kind], used: Date.now() });
+    entries.set(url, { ...known, kind, expires: Date.now() + lifetime[kind], used: Date.now() });
 
     await writeMeta();
 };
@@ -965,20 +976,67 @@ export const imageCache =
     },
 
     /**
+     * clearKind - Drops every image of one sort, leaving the rest alone.
+     *
+     * What lets the browser tab clear the site icons it cached without touching the wallet's token and
+     * network logos, which the same cache holds and the same screen would otherwise have to re-download
+     * for a button pressed somewhere else entirely.
+     *
+     * Entries written before the kind was recorded carry none, and are treated as `unknown` — which is
+     * what site icons are stored as, so the one clear that exists still reaches the older ones.
+     * @param {ImageKind} kind The sort to drop.
+     * @returns {Promise<number>} How many entries were removed.
+     */
+    clearKind: async(kind: ImageKind) =>
+    {
+        await start();
+
+        const matching = [ ...entries.values() ].filter((entry) => (entry.kind ?? 'unknown') === kind);
+
+        for (const entry of matching)
+        {
+            entries.delete(entry.url);
+
+            forget(entry.url);
+
+            // eslint-disable-next-line no-await-in-loop
+            await dropFile(entry.file);
+        }
+
+        if (matching.length > 0)
+        {
+            await writeMeta();
+        }
+
+        return matching.length;
+    },
+
+    /**
      * getCacheSize - How much disk the cache is using.
+     *
+     * A `kind` narrows it to one sort, which is what a screen offering to clear only its own images has
+     * to show before it offers to.
+     * @param {ImageKind} [kind] Restrict the total to one sort of image.
      * @returns {Promise<{ bytes: number; count: number }>} Total bytes and number of images.
      */
-    getCacheSize: async() =>
+    getCacheSize: async(kind?: ImageKind) =>
     {
         await start();
 
         let bytes = 0;
+        let count = 0;
 
         for (const entry of entries.values())
         {
+            if (kind !== undefined && (entry.kind ?? 'unknown') !== kind)
+            {
+                continue;
+            }
+
             bytes += entry.size;
+            count += 1;
         }
 
-        return { bytes, count: entries.size };
+        return { bytes, count };
     }
 };

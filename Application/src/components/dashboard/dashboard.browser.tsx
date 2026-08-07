@@ -15,6 +15,7 @@ import { TextField } from '../ui/field';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
+import { imageCache } from '../../core/image';
 import { addBrowserVisit, atBrowserStart, clearBrowserHistory, frameLabel, getBrowserFavorites, getBrowserHistory, getBrowserView, getNativeBrowser, getNativeTab, onNativeBrowserState, setBrowserFavorites, setBrowserView, type BrowserFavorite, type BrowserState, type BrowserTab, type BrowserVisit, type BrowserView } from '../../core/browser';
 
 /**
@@ -79,6 +80,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     const [ view, setView ] = useState<BrowserView>('mobile');
     const [ visits, setVisits ] = useState<BrowserVisit[]>([]);
     const [ favorites, setFavorites ] = useState<BrowserFavorite[]>([]);
+    const [ icons, setIcons ] = useState({ bytes: 0, count: 0 });
     const [ active, setActive ] = useState(1);
     const [ tabs, setTabs ] = useState<BrowserTab[]>([ { id: 1, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
 
@@ -159,6 +161,20 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
         void load();
     }, []);
+
+    // Measured when the settings dialog opens rather than held all the time: it is a figure only that
+    // dialog shows, and reading it walks the cache index. Scoped to `unknown`, which is the kind the
+    // browser's own tiles and chips store their icons under — the wallet's token and network logos
+    // share this cache and are deliberately not counted here or cleared below.
+    useEffect(() =>
+    {
+        if (!settings)
+        {
+            return;
+        }
+
+        void imageCache.getCacheSize('unknown').then(setIcons);
+    }, [ settings ]);
 
     // The one shortcut the start screen is handed rather than stores: it points at the active network's
     // explorer, on this account, so it means something different on each chain — and it is absent
@@ -349,6 +365,20 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         setView(chosen);
 
         void setBrowserView(chosen);
+    };
+
+    // Cleared and re-measured in one step, so the count the dialog shows is what the cache now holds
+    // rather than what it held when the dialog opened.
+    const onClearCache = () =>
+    {
+        const run = async() =>
+        {
+            await imageCache.clearKind('unknown');
+
+            setIcons(await imageCache.getCacheSize('unknown'));
+        };
+
+        void run();
     };
 
     const onClear = () =>
@@ -580,8 +610,11 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                             key='browser-settings'
                             view={ view }
                             visits={ visits.length }
+                            icons={ icons.count }
+                            iconBytes={ icons.bytes }
                             onView={ onView }
                             onClear={ onClear }
+                            onClearCache={ onClearCache }
                             onClose={ () => { setSettings(false); } } />
                     )
                 }
