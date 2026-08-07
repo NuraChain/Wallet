@@ -3,6 +3,44 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+        <title>Nura Wallet</title>
+
+        <!--
+            Installed to the home screen, the manifest is what makes this open without browser chrome
+            on Android and in desktop Chrome. iOS reads some of it too, but not the parts that decide
+            the icon or the status bar, which is what the Apple-prefixed tags below are for.
+        -->
+        <link rel="manifest" href="/manifest.webmanifest" />
+        <link rel="icon" type="image/png" href="/icon.png" />
+
+        <!--
+            iOS ignores the manifest's icons entirely and takes the home screen icon from here. The
+            file is deliberately opaque: iOS fills transparency with black and then applies its own
+            rounded mask, so a pre-rounded icon with clear corners shows slivers where the two
+            roundings disagree. A full-bleed square lets the system do the rounding.
+        -->
+        <link rel="apple-touch-icon" href="/icon.png" />
+        <meta name="apple-mobile-web-app-title" content="Nura" />
+
+        <!--
+            `capable` is what drops Safari's address and tab bars once launched from the home screen.
+            `black-translucent` puts the page under the status bar rather than beside it, which is the
+            same edge-to-edge treatment the Android build asks for in MainActivity.kt — the layout
+            already pays for it through the `env(safe-area-inset-*)` padding in `container.tsx`, and
+            `viewport-fit=cover` above is what makes those values non-zero.
+        -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+        <!--
+            The manifest carries one theme colour and the app has two, so the browser UI tint is set
+            here instead, where it can follow the same `prefers-color-scheme` the theme defaults to.
+            Both values are `--base-bg` from `style.css`, converted out of oklch.
+        -->
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#edf2f8" />
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c121a" />
     </head>
     <body>
         <div id="root"></div>
