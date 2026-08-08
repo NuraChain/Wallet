@@ -8,7 +8,7 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
 
-    globalIgnores([ 'dist/', 'public/', 'src-tauri/', 'node_modules/' ]),
+    globalIgnores([ 'dist/', 'src-tauri/', 'node_modules/' ]),
 
     js.configs.all,
     stylistic.configs.all,

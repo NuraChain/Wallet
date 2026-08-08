@@ -13,7 +13,6 @@ import UnlockPage from './page/unlock';
 
 import { initTheme } from './utility/theme';
 import { initNetwork } from './core/network';
-import { initOffline } from './core/offline';
 import { getValue } from './utility/storage';
 import { openPage } from './utility/context';
 import { useIsWindows } from './hook/platform';
@@ -138,8 +137,4 @@ if (rootElement)
     await initNetwork();
 
     createRoot(rootElement).render(<Application />);
-
-    // After the first render rather than before it: the worker is an enhancement for the web build and
-    // nothing on screen waits for it, unlike the three awaits above.
-    initOffline();
 }
