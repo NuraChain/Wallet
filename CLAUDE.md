@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Nura Wallet — a cross-platform (Windows, Linux, Android) Ethereum wallet built with **Tauri 2** (Rust shell) and a **React 19 + TypeScript + Tailwind CSS 4** frontend. Keys never leave the device: mnemonics are AES-GCM encrypted in the browser before being persisted, and the passphrase is hashed with Argon2id in the browser via WebAssembly.
 
-The app lives in `Application/`, not at the repository root — every command below runs from there, and CI sets `APP_DIR: Application` for the same reason.
+The app is the repository root — `package.json`, `src/` and `src-tauri/` all sit at the top level, so every command below runs from there and CI needs no working directory of its own. It used to live one level down in `Application/`, which is worth knowing only because a stale checkout or an old link may still say so.
 
 ## Commands
 
@@ -22,7 +22,7 @@ npm run lint           # eslint .    (lint:fix to autofix)
 
 There is no test suite. `npm run build` runs `tsc` as the typecheck gate. Prefer `npm run desktop` over `npm run dev` for anything touching Tauri APIs (`@tauri-apps/*`, store, webview, platform) — those throw outside a Tauri window, and the browser tab in particular has no child-webview to paint into.
 
-`package-lock.json` is committed and CI installs from it with `npm ci`. Releases are cut by pushing a `v*` tag: [.github/workflows/release.yml](../.github/workflows/release.yml) builds every platform and attaches the renamed installers to a draft release. Thirteen files, from four jobs:
+`package-lock.json` is committed and CI installs from it with `npm ci`. Releases are cut by pushing a `v*` tag: [.github/workflows/release.yml](.github/workflows/release.yml) builds every platform and attaches the renamed installers to a draft release. Thirteen files, from four jobs:
 
 - **windows** — `.exe` (NSIS) and `.msi`, x64 only. Windows on ARM emulates x64, so a second toolchain would buy nothing.
 - **linux** — a matrix of two *natively* built architectures, x86_64 on `ubuntu-22.04` and aarch64 on `ubuntu-22.04-arm` (free for public repos), each bundling `.deb`, `.rpm` and `.AppImage`. That is the whole reachable set, not a shortlist: i386 has no `libwebkit2gtk` in Ubuntu's partial multiarch so it cannot link, and armhf has no runner — it would need either a cross sysroot for webkit or the emulated runner Tauri's docs suggest, which risks the six-hour job limit. The arch label differs per format on purpose (dpkg says `amd64`/`arm64`, rpm and AppImage say `x86_64`/`aarch64`).
@@ -131,7 +131,7 @@ On Windows the app is **frameless** (`decorations: false`) and runs a custom [sr
 - TypeScript is `strict` with `noEmit` (Vite/tsc split); bundler module resolution, `resolveJsonModule` on.
 - JSDoc blocks are used liberally on exported utilities and components, and comments explain *why* — keep and extend them when editing.
 - `src-tauri/` is excluded from tsconfig and eslint; its `target/` and parts of `gen/android/` are git-ignored.
-- Commits follow **Conventional Commits** with a lowercase, imperative, ≤50-character subject (see [contributing.md](../contributing.md)).
+- Commits follow **Conventional Commits** with a lowercase, imperative, ≤50-character subject (see [contributing.md](contributing.md)).
 
 ## Goals
 

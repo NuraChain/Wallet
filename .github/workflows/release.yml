@@ -23,10 +23,6 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 
-env:
-  # The app is not at the repository root.
-  APP_DIR: Application
-
 jobs:
   version:
     name: Check the version
@@ -52,10 +48,10 @@ jobs:
         env:
           TAGGED: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          NUMBER=$(grep -m1 '^version' "$APP_DIR/src-tauri/Cargo.toml" | cut -d'"' -f2)
+          NUMBER=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
 
           if [ -z "$NUMBER" ]; then
-            echo "::error::No version line was found in $APP_DIR/src-tauri/Cargo.toml, so every asset would be named Nura-Wallet--<arch>."
+            echo "::error::No version line was found in src-tauri/Cargo.toml, so every asset would be named Nura-Wallet--<arch>."
             exit 1
           fi
 
@@ -80,22 +76,20 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: ${{ env.APP_DIR }}/src-tauri
+          workspaces: src-tauri
 
       - name: Install dependencies
-        working-directory: ${{ env.APP_DIR }}
         run: npm ci
 
       # Windows on ARM runs x64 binaries under emulation, so one x64 build leaves
       # nobody without an installer and there is no second toolchain to keep alive.
       - name: Build
-        working-directory: ${{ env.APP_DIR }}
         run: npm run tauri build
 
       # upload-artifact roots the archive at the common ancestor of every search
@@ -114,7 +108,6 @@ jobs:
       # `Nura.Wallet_1.0.0_x64-setup.exe`. Every artifact is renamed to one scheme
       # here instead, so the whole download list reads as one product.
       - name: Stage the installers
-        working-directory: ${{ env.APP_DIR }}
         shell: bash
         env:
           VERSION: ${{ needs.version.outputs.number }}
@@ -144,7 +137,7 @@ jobs:
         with:
           name: windows
           if-no-files-found: error
-          path: ${{ env.APP_DIR }}/release-files
+          path: release-files
 
   linux:
     name: ${{ matrix.label }}
@@ -187,7 +180,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -195,7 +188,7 @@ jobs:
       # - and cannot poison - each other's entry.
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: ${{ env.APP_DIR }}/src-tauri
+          workspaces: src-tauri
 
       # webkit2gtk is the webview Tauri renders into; the rest are what its bundler
       # needs. libfuse2 is for the AppImage specifically: the bundler downloads
@@ -208,17 +201,14 @@ jobs:
             libayatana-appindicator3-dev build-essential file libfuse2
 
       - name: Install dependencies
-        working-directory: ${{ env.APP_DIR }}
         run: npm ci
 
       # Which of the three formats are produced is declared in
       # src-tauri/tauri.linux.conf.json, so a local build makes the same set.
       - name: Build
-        working-directory: ${{ env.APP_DIR }}
         run: npm run tauri build
 
       - name: Stage the installers
-        working-directory: ${{ env.APP_DIR }}
         shell: bash
         env:
           VERSION: ${{ needs.version.outputs.number }}
@@ -247,7 +237,7 @@ jobs:
         with:
           name: ${{ matrix.artifact }}
           if-no-files-found: error
-          path: ${{ env.APP_DIR }}/release-files
+          path: release-files
 
   android:
     name: android (.apk)
@@ -287,7 +277,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - uses: actions/setup-java@v4
         with:
@@ -307,10 +297,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: ${{ env.APP_DIR }}/src-tauri
+          workspaces: src-tauri
 
       - name: Install dependencies
-        working-directory: ${{ env.APP_DIR }}
         run: npm ci
 
       # Parts of src-tauri/gen/android are git-ignored because Tauri regenerates
@@ -324,7 +313,6 @@ jobs:
       # style from the `@style/Theme` the manifest points at, so none of them affect
       # the build.
       - name: Restore generated Android scaffolding
-        working-directory: ${{ env.APP_DIR }}
         run: npm run tauri android init
 
       # Gradle signs during the build when this file is present, which also gets the
@@ -332,7 +320,7 @@ jobs:
       # It is written once and covers every flavour both builds below produce.
       - name: Configure release signing
         if: env.ANDROID_KEYSTORE != ''
-        working-directory: ${{ env.APP_DIR }}/src-tauri/gen/android
+        working-directory: src-tauri/gen/android
         run: |
           echo "$ANDROID_KEYSTORE" | base64 -d > release.jks
           {
@@ -356,11 +344,9 @@ jobs:
       # first run already compiled into the shared cargo target directory, so only
       # Gradle's packaging and R8 actually repeat.
       - name: Build the universal APK
-        working-directory: ${{ env.APP_DIR }}
         run: npm run tauri android build -- --apk
 
       - name: Build the per-ABI APKs
-        working-directory: ${{ env.APP_DIR }}
         run: npm run tauri android build -- --apk --split-per-abi
 
       # Its own step, and `always()`, because the collect step below only runs when
@@ -369,7 +355,7 @@ jobs:
       # for whatever ran next.
       - name: Remove the keystore
         if: always()
-        working-directory: ${{ env.APP_DIR }}/src-tauri/gen/android
+        working-directory: src-tauri/gen/android
         run: rm -f keystore.properties release.jks
 
       # A tag that got this far with a broken keystore still fails here: the guard
@@ -380,7 +366,6 @@ jobs:
       # the version, like every desktop installer does, and the staging directory
       # is deliberately not `dist` - that is Vite's output.
       - name: Collect the APKs
-        working-directory: ${{ env.APP_DIR }}
         env:
           VERSION: ${{ needs.version.outputs.number }}
           TAGGED: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -424,7 +409,7 @@ jobs:
         with:
           name: android
           if-no-files-found: error
-          path: ${{ env.APP_DIR }}/release-files
+          path: release-files
 
   release:
     name: Attach to the release
