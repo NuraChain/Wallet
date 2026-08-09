@@ -98,14 +98,32 @@ export const getLanguage = () =>
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export const T = (name: string, ...args: (string | number)[]): string =>
 {
-    let template = resolve(name) ?? `[${ name }]`;
+    const template = resolve(name) ?? `[${ name }]`;
 
-    for (const arg of args)
+    let index = 0;
+
+    // One global pass through a replacer function, and both halves of that matter, because a custom
+    // network's ticker reaches this as `%s` and is typed by the user.
+    //
+    // A function rather than a string, because a string replacement reads `$&`, `` $` ``, `$'` and
+    // `$1` in the *replacement* as patterns — a symbol containing `$&` would splice the matched `%s`
+    // back into its own translation instead of the value.
+    //
+    // One pass rather than one per argument, because replacing them one at a time re-scans what the
+    // previous one already wrote. A ticker of `A%sB` would put a live `%s` earlier in the string than
+    // the template's own next slot, so the following argument would land inside the ticker and the
+    // real slot would survive as a literal `%s`. A replacer's output is never rescanned, so a value
+    // can only ever be a value.
+    return template.replace(/%s/gu, () =>
     {
-        template = template.replace(/%s/, arg.toString());
-    }
+        const arg = args[index];
 
-    return template;
+        index += 1;
+
+        // More placeholders than arguments leaves the surplus visible rather than blanking it, which
+        // is the same way a missing key renders — a gap in a translation should look like one.
+        return arg === undefined ? '%s' : arg.toString();
+    });
 };
 
 /**
