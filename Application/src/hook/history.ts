@@ -1,6 +1,7 @@
 import { formatUnits } from 'ethers';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { readRaw, writeRaw } from '../core/cache.store';
 import { getExplorerApi, type Network } from '../core/network';
 import { historyKey, readHistory, touchHistory, writeHistory, type Transaction } from '../core/history.cache';
 import type { Token } from '../core/token';
@@ -144,6 +145,25 @@ const covalentBase = 'https://api.covalenthq.com/v1';
 const covalentTokens = 4;
 
 /**
+ * What GoldRush answers for a chain it does not index, and where that answer is remembered.
+ *
+ * Learned rather than listed. The obvious shape here is a constant naming the covered chains, and it
+ * is the wrong one: GoldRush indexes most of the EVM space and adds to it continuously, so a list
+ * written today switches the fallback off for chains it covers tomorrow — and it would take every
+ * network the user adds by hand with it, which is the whole population this fallback exists to serve.
+ * Asking once and believing the answer is never out of date. It costs one read's worth of requests per
+ * chain to find out — the native and per-token reads go out together, so they all learn it at once —
+ * and nothing at all on every read after that.
+ *
+ * The memory expires, because it has to be wrong in both directions to be honest: a chain that gets
+ * indexed later should start working on its own, without anyone clearing anything. A month is long
+ * enough that the wasted request is nothing and short enough that nobody waits on a new listing.
+ */
+const notImplemented = 501;
+const unsupportedKey = 'history/v1/unsupported/';
+const unsupportedFor = 30 * 24 * 60 * 60 * 1000;
+
+/**
  * One row of a GoldRush response. Snake case because that is what the API sends.
  */
 interface CovalentRow
@@ -172,17 +192,27 @@ interface CovalentTransfer
 
 /**
  * covalentGet - Ask GoldRush for one list, and treat every failure as an empty one.
- * @param {string} path The path under the version root, starting with a slash.
+ *
+ * The chain is a parameter rather than part of `path` so that a `501` can be attributed to it. That is
+ * the one status worth remembering, and it is remembered here because this is the only place it is
+ * visible — every caller above sees an empty list and cannot tell "no rows" from "not this chain".
+ * @param {number} chainId The chain to ask about.
+ * @param {string} path The path under the chain, starting with a slash.
  * @returns {Promise<unknown[]>} The `items` array, or an empty list.
  */
-const covalentGet = async(path: string): Promise<unknown[]> =>
+const covalentGet = async(chainId: number, path: string): Promise<unknown[]> =>
 {
     try
     {
-        const response = await fetch(`${ covalentBase }${ path }`, { headers: { Authorization: `Bearer ${ covalentKey }` } });
+        const response = await fetch(`${ covalentBase }/${ chainId }${ path }`, { headers: { Authorization: `Bearer ${ covalentKey }` } });
 
         if (!response.ok)
         {
+            if (response.status === notImplemented)
+            {
+                writeRaw('local', unsupportedKey + String(chainId), String(Date.now()));
+            }
+
             return [];
         }
 
@@ -231,7 +261,7 @@ const covalentSeconds = (value: unknown) =>
  */
 const readCovalentNative = async(address: string, network: Network): Promise<Transaction[]> =>
 {
-    const items = await covalentGet(`/${ network.chainId }/address/${ encodeURIComponent(address) }/transactions_v3/?no-logs=true`);
+    const items = await covalentGet(network.chainId, `/address/${ encodeURIComponent(address) }/transactions_v3/?no-logs=true`);
 
     const owner = address.toLowerCase();
 
@@ -276,7 +306,7 @@ const readCovalentNative = async(address: string, network: Network): Promise<Tra
  */
 const readCovalentToken = async(address: string, network: Network, token: Token): Promise<Transaction[]> =>
 {
-    const items = await covalentGet(`/${ network.chainId }/address/${ encodeURIComponent(address) }/transfers_v2/?contract-address=${ encodeURIComponent(token.address) }`);
+    const items = await covalentGet(network.chainId, `/address/${ encodeURIComponent(address) }/transfers_v2/?contract-address=${ encodeURIComponent(token.address) }`);
 
     const owner = address.toLowerCase();
 
@@ -321,6 +351,23 @@ const readCovalentToken = async(address: string, network: Network, token: Token)
             } ];
         });
     });
+};
+
+/**
+ * supportsChain - Whether GoldRush is worth asking about a chain.
+ *
+ * Optimistic until proven otherwise: a chain nobody has heard a `501` about is asked, which is what
+ * keeps every network the user adds by hand working without anyone maintaining a list. Nura — the
+ * default network, whose explorer is the one this falls back from — answers `501` on the first read
+ * and is then left alone, which is the round trip per history read this exists to stop paying.
+ * @param {number} chainId The chain about to be asked about.
+ * @returns {boolean} False only while a recent `501` is on record.
+ */
+const supportsChain = (chainId: number) =>
+{
+    const marked = Number(readRaw('local', unsupportedKey + String(chainId)) ?? '0');
+
+    return !Number.isFinite(marked) || Date.now() - marked > unsupportedFor;
 };
 
 /**
@@ -385,7 +432,7 @@ const load = async(key: string, address: string, network: Network, tokens: Token
 
         // Asked only where the explorer came up empty, so the chains it already serves cost no
         // credits. An account that genuinely has no transactions pays one wasted request for that.
-        const merged = found.length > 0 ? found : await readCovalent(address, network, tokens).catch((): Transaction[] => []);
+        const merged = found.length > 0 || !supportsChain(network.chainId) ? found : await readCovalent(address, network, tokens).catch((): Transaction[] => []);
 
         const sorted = merged.sort((left, right) => right.timestamp - left.timestamp);
 
