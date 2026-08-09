@@ -9,17 +9,69 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# Read-only by default, so a compromised dependency in one of the three build jobs
+# is holding a token that cannot write to the repository. Only the job that creates
+# the release is granted `contents: write`, and it runs no build of its own.
 permissions:
-  contents: write
+  contents: read
+
+# Retagging - moving a tag after a failed run, or pushing v1.0.4 twice - starts a
+# second run against the same ref while the first is still going, and both would
+# race to attach assets to one draft release. Queue them instead. The run in flight
+# is deliberately not cancelled: it may already be halfway through publishing.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 env:
   # The app is not at the repository root.
   APP_DIR: Application
 
 jobs:
+  version:
+    name: Check the version
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      number: ${{ steps.read.outputs.number }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Cargo.toml is the one place a version is declared, and every asset below is
+      # named after it - but the release is created for the *tag*, and nothing tied
+      # the two together. Tagging v1.0.5 without bumping Cargo.toml first therefore
+      # attached a full set of `Nura-Wallet-1.0.4-*` files to a release called
+      # v1.0.5, and no step failed. The bump is its own commit here, so that is an
+      # easy order to get wrong.
+      #
+      # Reading it once also stops the staging steps from each re-deriving it, which
+      # is how three copies of one `grep` ended up in the file.
+      - name: Read the version and check it against the tag
+        id: read
+        env:
+          TAGGED: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          NUMBER=$(grep -m1 '^version' "$APP_DIR/src-tauri/Cargo.toml" | cut -d'"' -f2)
+
+          if [ -z "$NUMBER" ]; then
+            echo "::error::No version line was found in $APP_DIR/src-tauri/Cargo.toml, so every asset would be named Nura-Wallet--<arch>."
+            exit 1
+          fi
+
+          echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
+          echo "Cargo.toml declares $NUMBER."
+
+          if [ "$TAGGED" = "true" ] && [ "$GITHUB_REF_NAME" != "v$NUMBER" ]; then
+            echo "::error::The tag is $GITHUB_REF_NAME but Cargo.toml declares $NUMBER, so every asset would be named after a version this release is not. Bump Cargo.toml and retag."
+            exit 1
+          fi
+
   windows:
     name: windows (.exe / .msi)
+    needs: version
     runs-on: windows-latest
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +79,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -62,9 +116,10 @@ jobs:
       - name: Stage the installers
         working-directory: ${{ env.APP_DIR }}
         shell: bash
+        env:
+          VERSION: ${{ needs.version.outputs.number }}
         run: |
           mkdir -p release-files
-          VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
           BUNDLE=src-tauri/target/release/bundle
 
           # The glob is expanded by the caller, so $1 after the shift is either the
@@ -93,7 +148,9 @@ jobs:
 
   linux:
     name: ${{ matrix.label }}
+    needs: version
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -102,7 +159,7 @@ jobs:
           # free for public repositories, and native beats every alternative by a
           # wide margin here: cross-compiling against webkit2gtk needs a complete
           # multiarch sysroot, and the emulated runner Tauri's own docs suggest
-          # takes hours for a Rust build and risks the six-hour job limit.
+          # takes hours for a Rust build and risks the job timeout.
           #
           # Those two are the whole reachable set, not a shortlist. i386 has no
           # libwebkit2gtk in Ubuntu's partial multiarch, so a 32-bit x86 build
@@ -129,6 +186,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -161,9 +220,10 @@ jobs:
       - name: Stage the installers
         working-directory: ${{ env.APP_DIR }}
         shell: bash
+        env:
+          VERSION: ${{ needs.version.outputs.number }}
         run: |
           mkdir -p release-files
-          VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
           BUNDLE=src-tauri/target/release/bundle
 
           stage() {
@@ -191,12 +251,21 @@ jobs:
 
   android:
     name: android (.apk)
+    needs: version
     runs-on: ubuntu-latest
+    timeout-minutes: 90
 
     # The `secrets` context is not available to a step's `if`, but job-level `env`
     # may read it and `env` is available there. This mapping is that bridge; without
     # it the signing step cannot ask whether a keystore was configured.
+    #
+    # The two SDK versions are here because they were written twice - once for
+    # sdkmanager and once in the path the collect step resolves apksigner from - and
+    # bumping one without the other leaves the build fine and the verification step
+    # looking for a binary that is not there.
     env:
+      NDK_VERSION: 29.0.13113456
+      BUILD_TOOLS_VERSION: 36.0.0
       ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -217,6 +286,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ env.APP_DIR }}/package-lock.json
 
       - uses: actions/setup-java@v4
         with:
@@ -227,8 +298,8 @@ jobs:
 
       - name: Install the NDK
         run: |
-          sdkmanager --install "ndk;29.0.13113456" "platforms;android-36" "build-tools;36.0.0"
-          echo "NDK_HOME=$ANDROID_HOME/ndk/29.0.13113456" >> "$GITHUB_ENV"
+          sdkmanager --install "ndk;$NDK_VERSION" "platforms;android-36" "build-tools;$BUILD_TOOLS_VERSION"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -292,9 +363,17 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: npm run tauri android build -- --apk --split-per-abi
 
-      # The keystore is deleted before anything else runs so it cannot reach an
-      # artifact. A tag that got this far with a broken keystore still fails here:
-      # the guard above only proves a secret was set, not that Gradle used it.
+      # Its own step, and `always()`, because the collect step below only runs when
+      # both builds succeeded - so a build that failed after the keystore was
+      # written used to leave the key and its passwords sitting in the workspace
+      # for whatever ran next.
+      - name: Remove the keystore
+        if: always()
+        working-directory: ${{ env.APP_DIR }}/src-tauri/gen/android
+        run: rm -f keystore.properties release.jks
+
+      # A tag that got this far with a broken keystore still fails here: the guard
+      # above only proves a secret was set, not that Gradle used it.
       #
       # Gradle names the files app-<flavour>-release.apk, which says nothing about
       # the product on a downloads page. Each is renamed to carry the product and
@@ -302,13 +381,18 @@ jobs:
       # is deliberately not `dist` - that is Vite's output.
       - name: Collect the APKs
         working-directory: ${{ env.APP_DIR }}
+        env:
+          VERSION: ${{ needs.version.outputs.number }}
+          TAGGED: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
           OUT=src-tauri/gen/android/app/build/outputs/apk
-          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
-          VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
-          TAGGED="${{ startsWith(github.ref, 'refs/tags/v') }}"
-          rm -f src-tauri/gen/android/keystore.properties src-tauri/gen/android/release.jks
+          APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner"
           mkdir -p release-files
+
+          if [ ! -x "$APKSIGNER" ]; then
+            echo "::error::No apksigner at $APKSIGNER, so nothing here can tell a signed APK from one nobody can install. Check that BUILD_TOOLS_VERSION matches what sdkmanager installed."
+            exit 1
+          fi
 
           # <flavour>:<abi>. The name on the left is the Gradle product flavour and
           # therefore the output directory; the name on the right is the ABI a phone
@@ -346,8 +430,12 @@ jobs:
     name: Attach to the release
     needs: [ windows, linux, android ]
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     # Only a tag produces a release; a manual run just leaves the artifacts on the run.
     if: startsWith(github.ref, 'refs/tags/v')
+    # The one job that writes, and the only one that runs no build.
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/download-artifact@v4
@@ -357,8 +445,18 @@ jobs:
 
       # Every job stages exactly the files meant to ship, so the whole directory
       # is attached rather than a list of extensions that can silently miss one.
+      # The count is checked because `merge-multiple` flattens four artifacts into
+      # one directory: two names colliding there would overwrite rather than fail,
+      # and the release would just be short a download.
       - name: List what will be attached
-        run: ls -lR artifacts
+        run: |
+          ls -lR artifacts
+          COUNT=$(find artifacts -type f | wc -l)
+          echo "$COUNT files staged for the release."
+
+          if [ "$COUNT" -ne 13 ]; then
+            echo "::warning::Expected 13 assets (2 Windows, 6 Linux, 5 Android) but found $COUNT. Check the staging warnings in the build jobs above."
+          fi
 
       - uses: softprops/action-gh-release@v2
         with:
