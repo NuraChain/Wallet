@@ -49,6 +49,11 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
                                 onClick={ () => { void handleSelect(lang.code); } }
                                 className={ `h-12 gap-2 rounded-xl px-4 text-start duration-300 ${ isActive ? 'disabled:cursor-default!' : '' }` }>
 
+                                { /* `fi-<country>` is flag-icons' own class rather than a Tailwind utility, so the
+                                     scanner has nothing to miss here and there is nothing to purge. The rule cannot
+                                     tell the two apart, which is why `no-unknown-classes` is off in the lint config
+                                     for the same pair of classes. */ }
+                                { /* eslint-disable-next-line better-tailwindcss/no-concatenated-classes */ }
                                 <div className={ `fi fi-${ lang.country } size-4!` } />
 
                                 <div className='flex-1'>
