@@ -8,6 +8,7 @@ import Button from './button';
 
 import { inset } from '../../layout/container';
 import { glassPanel } from './panel';
+import { Vertical } from './stack';
 
 /**
  * Sheet - The top drop-down glass sheet the intro flows open.
@@ -65,7 +66,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
 export function SheetHeader({ title, subtitle }: { title: string; subtitle: string })
 {
     return (
-        <div className='flex flex-col'>
+        <Vertical>
 
             <Text
                 variant='title'
@@ -76,6 +77,6 @@ export function SheetHeader({ title, subtitle }: { title: string; subtitle: stri
                 className='text-center sm:text-small'
                 text={ subtitle } />
 
-        </div>
+        </Vertical>
     );
 }

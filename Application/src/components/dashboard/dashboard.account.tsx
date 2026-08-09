@@ -13,6 +13,7 @@ import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
 import { accountFirst, accountLimit, defaultAccountName, type Account } from '../../utility/account';
+import { Horizontal, Vertical } from '../ui/stack';
 
 /**
  * The badges an account can wear.
@@ -197,7 +198,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
             {
                 adding ?
                     (
-                        <div className='flex flex-col gap-2'>
+                        <Vertical className='gap-2'>
 
                             <Alert text={ error } />
 
@@ -234,7 +235,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
                             </ModalActions>
 
-                        </div>
+                        </Vertical>
                     ) :
                     (
                         <>
@@ -250,9 +251,9 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                         if (picking === item.index)
                                         {
                                             return (
-                                                <div
+                                                <Vertical
                                                     key={ item.index }
-                                                    className='flex flex-col gap-2'>
+                                                    className='gap-2'>
 
                                                     <Text text={ T('Dashboard.Accounts.Emoji') } />
 
@@ -277,16 +278,16 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                                         onClick={ () => { onBadge(item.index, undefined); } }
                                                         text={ T('Dashboard.Accounts.EmojiClear') } />
 
-                                                </div>
+                                                </Vertical>
                                             );
                                         }
 
                                         if (editing === item.index)
                                         {
                                             return (
-                                                <div
+                                                <Horizontal
                                                     key={ item.index }
-                                                    className='flex gap-2'>
+                                                    className='gap-2'>
 
                                                     <div className='flex-1'>
 
@@ -306,14 +307,14 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                                         className='h-12 rounded-xl px-4 text-small'
                                                         text={ T('Dashboard.Accounts.Save') } />
 
-                                                </div>
+                                                </Horizontal>
                                             );
                                         }
 
                                         return (
-                                            <div
+                                            <Horizontal
                                                 key={ item.index }
-                                                className={ `flex items-center gap-2 rounded-xl p-2 transition-colors duration-300 ${ isActive ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
+                                                className={ `items-center gap-2 rounded-xl p-2 transition-colors duration-300 ${ isActive ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
 
                                                 { /*
                                                   * The disc is its own control so tapping it opens the
@@ -321,7 +322,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                                   * select button — a button inside a button is invalid.
                                                   * The pair is wrapped so both gaps stay what they were.
                                                   */ }
-                                                <div className='flex min-w-0 flex-1 items-center gap-3'>
+                                                <Horizontal className='min-w-0 flex-1 items-center gap-3'>
 
                                                     <Button
                                                         onClick={ () => { setEditing(-1); setPicking(item.index); } }
@@ -350,7 +351,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
                                                         onClick={ () => { onSelect(item.index); } }
                                                         className='flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start'>
 
-                                                        <div className='flex min-w-0 flex-1 flex-col'>
+                                                        <Vertical className='min-w-0 flex-1'>
 
                                                             <Text
                                                                 variant='body'
@@ -373,7 +374,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
                                                             </Text>
 
-                                                        </div>
+                                                        </Vertical>
 
                                                         {
                                                             isActive &&
@@ -384,7 +385,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
                                                     </Button>
 
-                                                </div>
+                                                </Horizontal>
 
                                                 <Button
                                                     variant='muted'
@@ -397,7 +398,7 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
                                                 </Button>
 
-                                            </div>
+                                            </Horizontal>
                                         );
                                     })
                                 }

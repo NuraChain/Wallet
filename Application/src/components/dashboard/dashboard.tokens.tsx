@@ -15,6 +15,7 @@ import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 import { T } from '../../utility/language';
 import { getTokenLogo } from '../../core/price';
 import { trimAmount } from '../../utility/format';
+import { Vertical } from '../ui/stack';
 
 /**
  * DashboardTokens - The token list the wallet tab reads from, plus the form that fills it.
@@ -79,7 +80,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
             {
                 adding ?
                     (
-                        <div className='flex flex-col gap-2'>
+                        <Vertical className='gap-2'>
 
                             <Alert text={ error } />
 
@@ -112,7 +113,7 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
 
                             </ModalActions>
 
-                        </div>
+                        </Vertical>
                     ) :
                     (
                         <>

@@ -13,6 +13,7 @@ import { T } from '../../utility/language';
 import { passwordCheck } from '../../core/password';
 import { getExporter, phraseToPng } from '../../core/export';
 import { getValueEncrypted } from '../../utility/storage';
+import { Horizontal, Vertical } from '../ui/stack';
 
 /**
  * The two files the phrase can be written as. Same button, same dimensions; only the glyph, the label
@@ -183,9 +184,9 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
                                 {
                                     words.map((word, index) => (
-                                        <div
+                                        <Horizontal
                                             key={ `${ index }-${ word }` }
-                                            className='flex items-center gap-1 rounded-lg bg-base-1 px-2 py-1.5'>
+                                            className='items-center gap-1 rounded-lg bg-base-1 px-2 py-1.5'>
 
                                             <Text text={ String(index + 1) } />
 
@@ -194,7 +195,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                                 className='truncate font-mono'
                                                 text={ word } />
 
-                                        </div>
+                                        </Horizontal>
                                     ))
                                 }
 
@@ -220,7 +221,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                             {
                                 revealed && exporter !== undefined &&
                                 (
-                                    <div className='mt-3 flex flex-col gap-2'>
+                                    <Vertical className='mt-3 gap-2'>
 
                                         { /*
                                           * Spelled out every time rather than shown once: a file
@@ -231,7 +232,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                             variant='danger'
                                             text={ T('Dashboard.Phrase.ExportDanger') } />
 
-                                        <div className='flex gap-2'>
+                                        <Horizontal className='gap-2'>
 
                                             {
                                                 exportMap.map((item) => (
@@ -251,7 +252,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                                 ))
                                             }
 
-                                        </div>
+                                        </Horizontal>
 
                                         {
                                             notice.length > 0 &&
@@ -262,7 +263,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                             )
                                         }
 
-                                    </div>
+                                    </Vertical>
                                 )
                             }
 

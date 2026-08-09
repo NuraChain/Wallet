@@ -7,6 +7,7 @@ import type { ImageKind } from '../core/image';
 
 import { cn } from '../utility/cn';
 import { glassPanel } from './ui/panel';
+import { Vertical } from './ui/stack';
 
 /**
  * TokenRow - An asset as a list row: logo, symbol over name, and whatever the list puts on the end.
@@ -41,7 +42,7 @@ export default function TokenRow({ src, symbol, kind = 'unknown', primary = fals
                 symbol={ symbol }
                 primary={ primary } />
 
-            <div className='flex min-w-0 flex-1 flex-col'>
+            <Vertical className='min-w-0 flex-1'>
 
                 <Text
                     variant='body'
@@ -52,7 +53,7 @@ export default function TokenRow({ src, symbol, kind = 'unknown', primary = fals
                     className='truncate'
                     text={ subtitle } />
 
-            </div>
+            </Vertical>
 
             { children }
 

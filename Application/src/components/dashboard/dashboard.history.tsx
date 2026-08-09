@@ -12,6 +12,7 @@ import { TextField } from '../ui/field';
 import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
+import { Horizontal } from '../ui/stack';
 
 /**
  * The direction filters offered above the list.
@@ -140,7 +141,7 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
                 className='h-10 ps-9 pe-3'
                 leading={ <FiSearch size={ 16 } className='pointer-events-none absolute inset-s-3 text-txt-muted' /> } />
 
-            <div className='flex gap-2'>
+            <Horizontal className='gap-2'>
 
                 {
                     filters.map((item) => (
@@ -154,7 +155,7 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
                     ))
                 }
 
-            </div>
+            </Horizontal>
 
             <div
                 ref={ listRef }

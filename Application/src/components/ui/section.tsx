@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import Text from './text';
+import { Horizontal } from './stack';
 
 /**
  * SectionHeader - Muted section title with a trailing control.
@@ -15,12 +16,12 @@ import Text from './text';
 export default function SectionHeader({ title, children }: { title: string; children?: ReactNode })
 {
     return (
-        <div className='flex items-center justify-between gap-2'>
+        <Horizontal className='items-center justify-between gap-2'>
 
             <Text text={ title } />
 
             { children }
 
-        </div>
+        </Horizontal>
     );
 }

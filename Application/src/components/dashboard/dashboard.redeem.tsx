@@ -10,6 +10,7 @@ import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { isRedeemCode, redeemCode } from '../../core/redeem';
+import { Vertical } from '../ui/stack';
 
 /**
  * DashboardRedeem - Redeems a code against the active account.
@@ -84,7 +85,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
             {
                 done.length > 0 ?
                     (
-                        <div className='flex flex-col items-center gap-2 py-4'>
+                        <Vertical className='items-center gap-2 py-4'>
 
                             <FiCheckCircle size={ 36 } className='text-btn-primary' />
 
@@ -101,7 +102,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                                 className='mt-2'
                                 text={ T('Dashboard.Redeem.Close') } />
 
-                        </div>
+                        </Vertical>
                     ) :
                     (
                         <>

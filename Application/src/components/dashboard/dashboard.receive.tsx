@@ -11,6 +11,7 @@ import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { useClipboard } from '../../hook/clipboard';
+import { Horizontal } from '../ui/stack';
 
 /**
  * What each outcome of the copy says. `idle` says nothing, so the line is absent until the button has
@@ -76,13 +77,13 @@ export default function DashboardReceive({ address, network, onClose }: { addres
                 onClose={ onClose } />
 
             { /* Pure black on white: a themed QR is an unscannable QR. */ }
-            <div className='flex size-56 items-center justify-center rounded-2xl bg-white p-3'>
+            <Horizontal className='size-56 items-center justify-center rounded-2xl bg-white p-3'>
 
                 {
                     qr.length > 0 && <img src={ qr } alt='' className='size-full' />
                 }
 
-            </div>
+            </Horizontal>
 
             <Text
                 className='text-center'

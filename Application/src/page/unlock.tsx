@@ -15,6 +15,7 @@ import { glassPanel } from '../components/ui/panel';
 import { passwordCheck } from '../core/password';
 import { openPage } from '../utility/context';
 import { getValueEncrypted } from '../utility/storage';
+import { Horizontal, Vertical } from '../components/ui/stack';
 
 export default function UnlockPage()
 {
@@ -85,9 +86,9 @@ export default function UnlockPage()
             transition={ { type: 'tween' } }
             className='flex size-full items-center justify-center bg-base-1 px-4'>
 
-            <div className={ `${ glassPanel } flex w-full max-w-md flex-col gap-4 rounded-3xl p-6` }>
+            <Vertical className={ `${ glassPanel } w-full max-w-md gap-4 rounded-3xl p-6` }>
 
-                <div className='flex items-center justify-between gap-2'>
+                <Horizontal className='items-center justify-between gap-2'>
 
                     <div>
 
@@ -133,7 +134,7 @@ export default function UnlockPage()
 
                     </div>
 
-                </div>
+                </Horizontal>
 
                 {
                     showHint &&
@@ -176,7 +177,7 @@ export default function UnlockPage()
                     className='mx-auto h-12 w-fit min-w-40 rounded-xl px-8 py-2 disabled:opacity-60'
                     text={ isLoading ? '' : T('Unlock.Submit') } />
 
-            </div>
+            </Vertical>
 
         </motion.div>
     );

@@ -21,6 +21,7 @@ import { T } from '../../utility/language';
 import { useClipboard } from '../../hook/clipboard';
 import { getNativeCoinId, getNativeLogo, getTokenLogo, type PriceMap } from '../../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
+import { Horizontal, Vertical } from '../ui/stack';
 
 /**
  * The two selector capsules at the top of the tab are the same control with different contents, so
@@ -47,7 +48,7 @@ const chipLabelClass = 'min-w-0 flex-1 truncate text-start font-medium';
 function AssetAmount({ amount, value }: { amount: string; value?: string })
 {
     return (
-        <div dir='ltr' className='flex shrink-0 flex-col items-center'>
+        <Vertical dir='ltr' className='shrink-0 items-center'>
 
             <Text variant='body' className='font-mono' text={ amount } />
 
@@ -55,7 +56,7 @@ function AssetAmount({ amount, value }: { amount: string; value?: string })
                 value !== undefined && <Text className='font-mono' text={ value } />
             }
 
-        </div>
+        </Vertical>
     );
 }
 
@@ -130,9 +131,9 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
     };
 
     return (
-        <div className='mt-2 flex flex-col gap-4'>
+        <Vertical className='mt-2 gap-4'>
 
-            <div className='flex items-center gap-2'>
+            <Horizontal className='items-center gap-2'>
 
                 <Button
                     variant='chip'
@@ -193,9 +194,9 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
 
                 </Button>
 
-            </div>
+            </Horizontal>
 
-            <div className='flex flex-col items-center gap-2 py-2'>
+            <Vertical className='items-center gap-2 py-2'>
 
                 <Text
                     dir='ltr'
@@ -203,7 +204,7 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                     className='text-display'
                     text={ totalLoading || nativeLoading ? '…' : formatUsd(total) } />
 
-                <div className='flex flex-col items-center'>
+                <Vertical className='items-center'>
 
                     <Button
                         onClick={ () => { void clipboard.copy(address); } }
@@ -261,11 +262,11 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
 
                     </Button>
 
-                </div>
+                </Vertical>
 
-            </div>
+            </Vertical>
 
-            <div className='flex justify-center gap-3'>
+            <Horizontal className='justify-center gap-3'>
 
                 {
                     actionMap.map((item) => (
@@ -274,11 +275,11 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                             onClick={ item.onClick }
                             className='flex cursor-pointer flex-col items-center gap-1'>
 
-                            <div className={ `${ item.fill } flex size-14 items-center justify-center rounded-2xl` }>
+                            <Horizontal className={ `${ item.fill } size-14 items-center justify-center rounded-2xl` }>
 
                                 <item.icon size={ 22 } />
 
-                            </div>
+                            </Horizontal>
 
                             <Text text={ T(item.key) } />
 
@@ -286,9 +287,9 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                     ))
                 }
 
-            </div>
+            </Horizontal>
 
-            <div className='flex flex-col gap-2'>
+            <Vertical className='gap-2'>
 
                 <SectionHeader title={ T('Dashboard.Tokens.Title') }>
 
@@ -333,7 +334,7 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                     ))
                 }
 
-            </div>
+            </Vertical>
 
             <DashboardActivity
                 items={ history.items }
@@ -343,6 +344,6 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                 onOpen={ onTransaction }
                 onOverview={ onOverview } />
 
-        </div>
+        </Vertical>
     );
 }

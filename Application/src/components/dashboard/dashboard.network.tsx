@@ -12,6 +12,7 @@ import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 import { T } from '../../utility/language';
 import { getNativeLogo } from '../../core/price';
 import { addNetwork, getNetworks, removeNetwork, setNetwork, type Network } from '../../core/network';
+import { Horizontal, Vertical } from '../ui/stack';
 
 /**
  * The custom-network form. Every field is a plain text input that only differs by its placeholder and
@@ -131,7 +132,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
             {
                 adding ?
                     (
-                        <div className='flex flex-col gap-2'>
+                        <Vertical className='gap-2'>
 
                             <Alert text={ error } />
 
@@ -172,7 +173,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
                             </ModalActions>
 
-                        </div>
+                        </Vertical>
                     ) :
                     (
                         <>
@@ -184,9 +185,9 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                         const isActive = item.id === network.id;
 
                                         return (
-                                            <div
+                                            <Horizontal
                                                 key={ item.id }
-                                                className='flex items-center gap-1'>
+                                                className='items-center gap-1'>
 
                                                 <Button
                                                     variant='muted'
@@ -233,7 +234,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                     )
                                                 }
 
-                                            </div>
+                                            </Horizontal>
                                         );
                                     })
                                 }

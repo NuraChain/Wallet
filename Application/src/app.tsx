@@ -19,6 +19,7 @@ import { useIsWindows } from './hook/platform';
 import { T, initLanguage } from './utility/language';
 
 import './assets/style.css';
+import { Horizontal } from './components/ui/stack';
 
 /**
  * Root application.
@@ -92,13 +93,13 @@ function Application()
     }, [ ]);
 
     return (
-        <div className='relative flex size-full'>
+        <Horizontal className='relative size-full'>
 
             <TitleBar />
 
             <PageLayout />
 
-        </div>
+        </Horizontal>
     );
 }
 

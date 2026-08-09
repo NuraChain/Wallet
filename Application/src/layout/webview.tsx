@@ -9,6 +9,7 @@ import Spinner from '../components/ui/spinner';
 
 import { T } from '../utility/language';
 import { getNativeBrowser, getNativeTab, nativeHoldsTabs } from '../core/browser';
+import { Vertical } from '../components/ui/stack';
 
 /**
  * User agent the child webview presents.
@@ -529,7 +530,7 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
                 // implying a position. It sat here as motionless text before, which reads as a hang.
                 children === undefined && url.length > 0 && embedded && getNativeBrowser() === undefined &&
                 (
-                    <div className='flex size-full flex-col items-center justify-center gap-3 text-tiny text-txt-muted'>
+                    <Vertical className='size-full items-center justify-center gap-3 text-tiny text-txt-muted'>
 
                         <Spinner size={ 22 } />
 
@@ -544,7 +545,7 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
                         </span>
 
-                    </div>
+                    </Vertical>
                 )
             }
 

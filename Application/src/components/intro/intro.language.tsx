@@ -4,6 +4,7 @@ import Button from '../ui/button';
 import { Modal, ModalHeader } from '../ui/modal';
 
 import { T, getLanguage, setLanguage, languageRecord, type LanguageType } from '../../utility/language';
+import { Vertical } from '../ui/stack';
 
 export default function IntroLanguage({ onClose }: { onClose: () => void })
 {
@@ -33,7 +34,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
               * The active row is disabled because it is the one you are already on, not because it is
               * unavailable — so it keeps the ordinary cursor instead of the "no" one.
               */ }
-            <div className='flex flex-col gap-2 pt-2'>
+            <Vertical className='gap-2 pt-2'>
 
                 {
                     languageRecord.map((lang) =>
@@ -67,7 +68,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
                     })
                 }
 
-            </div>
+            </Vertical>
 
         </Modal>
     );

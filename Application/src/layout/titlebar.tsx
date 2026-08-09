@@ -11,6 +11,7 @@ import Button from '../components/ui/button';
 import { T } from '../utility/language';
 
 import Logo from '../assets/image/logo.png';
+import { Horizontal } from '../components/ui/stack';
 
 /**
  * Size the mobile view snaps back to: the phone-shaped frame the layout is designed around, and what
@@ -98,7 +99,7 @@ export default function TitleBar()
             onDoubleClick={ onToggleSize }
             className='absolute inset-x-0 z-20 flex h-8 cursor-pointer items-center justify-between'>
 
-            <div className='flex items-center gap-2 px-2'>
+            <Horizontal className='items-center gap-2 px-2'>
 
                 <img
                     src={ Logo }
@@ -108,9 +109,9 @@ export default function TitleBar()
                     variant='captionStrong'
                     text={ T('App.Name') } />
 
-            </div>
+            </Horizontal>
 
-            <div className='flex h-full'>
+            <Horizontal className='h-full'>
 
                 {
                     controlMap.map((item) => (
@@ -125,7 +126,7 @@ export default function TitleBar()
                     ))
                 }
 
-            </div>
+            </Horizontal>
 
         </div>
     );

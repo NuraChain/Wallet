@@ -22,6 +22,7 @@ import { T } from '../../utility/language';
 import { getProvider, type Network } from '../../core/network';
 import { getNativeLogo, getTokenLogo } from '../../core/price';
 import { shortAddress, trimAmount } from '../../utility/format';
+import { Horizontal, Vertical } from '../ui/stack';
 
 type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
 
@@ -173,7 +174,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
             {
                 step === 'form' &&
                 (
-                    <div className='flex flex-col gap-3'>
+                    <Vertical className='gap-3'>
 
                         <Alert text={ error } />
 
@@ -187,7 +188,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                           * list itself is absolute: it lies over what follows instead of pushing the
                           * dialog taller as it opens.
                           */ }
-                        <div className='relative flex flex-col gap-1'>
+                        <Vertical className='relative gap-1'>
 
                             <Text text={ T('Dashboard.Send.Asset') } />
 
@@ -204,13 +205,13 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                     symbol={ asset.symbol }
                                     className='size-9' />
 
-                                <div className='flex min-w-0 flex-1 flex-col text-start'>
+                                <Vertical className='min-w-0 flex-1 text-start'>
 
                                     <Text variant='body' className='truncate' text={ asset.symbol } />
 
                                     <Text className='truncate' text={ asset.name } />
 
-                                </div>
+                                </Vertical>
 
                                 <Text
                                     dir='ltr'
@@ -255,13 +256,13 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                                             symbol={ item.symbol }
                                                             className='size-8' />
 
-                                                        <div className='flex min-w-0 flex-1 flex-col text-start'>
+                                                        <Vertical className='min-w-0 flex-1 text-start'>
 
                                                             <Text variant='body' className='truncate' text={ item.symbol } />
 
                                                             <Text className='truncate' text={ item.name } />
 
-                                                        </div>
+                                                        </Vertical>
 
                                                         <Text
                                                             dir='ltr'
@@ -278,9 +279,9 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 )
                             }
 
-                        </div>
+                        </Vertical>
 
-                        <div className='flex flex-col gap-1'>
+                        <Vertical className='gap-1'>
 
                             <Text text={ T('Dashboard.Send.Recipient') } />
 
@@ -291,9 +292,9 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 onValue={ setTo }
                                 className='font-mono' />
 
-                        </div>
+                        </Vertical>
 
-                        <div className='flex flex-col gap-1'>
+                        <Vertical className='gap-1'>
 
                             <SectionHeader title={ T('Dashboard.Send.Amount') }>
 
@@ -313,7 +314,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                 onValue={ setAmount }
                                 className='font-mono' />
 
-                        </div>
+                        </Vertical>
 
                         <Button
                             variant='primary'
@@ -321,22 +322,22 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                             onClick={ onReview }
                             text={ T('Dashboard.Send.Review') } />
 
-                    </div>
+                    </Vertical>
                 )
             }
 
             {
                 step === 'review' &&
                 (
-                    <div className='flex flex-col gap-3'>
+                    <Vertical className='gap-3'>
 
                         <Panel className='flex flex-col gap-2 rounded-xl p-3'>
 
                             {
                                 reviewMap.map((item) => (
-                                    <div
+                                    <Horizontal
                                         key={ item.label }
-                                        className='flex items-center justify-between gap-2'>
+                                        className='items-center justify-between gap-2'>
 
                                         <Text text={ item.label } />
 
@@ -351,7 +352,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                                             className={ item.mono ? 'font-mono' : '' }
                                             text={ item.value } />
 
-                                    </div>
+                                    </Horizontal>
                                 ))
                             }
 
@@ -374,37 +375,38 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
                         </ModalActions>
 
-                    </div>
+                    </Vertical>
                 )
             }
 
             {
                 step === 'pending' &&
                 (
-                    <div className='flex flex-col items-center gap-3 py-6'>
+                    <Vertical className='items-center gap-3 py-6'>
 
                         <Spinner size={ 32 } className='text-txt-muted' />
 
                         <Text variant='bodyMuted' text={ T('Dashboard.Send.Pending') } />
 
-                    </div>
+                    </Vertical>
                 )
             }
 
             {
                 step === 'success' &&
                 (
-                    <div className='flex flex-col items-center gap-3 py-4'>
+                    <Vertical className='items-center gap-3 py-4'>
 
                         <FiCheckCircle size={ 40 } className='text-txt-normal' />
 
                         <Text variant='body' text={ T('Dashboard.Send.Success') } />
 
-                        <div dir='ltr' className='w-full rounded-xl bg-base-3 p-2 text-center font-mono text-tiny break-all text-txt-muted select-text!'>
-
-                            { hash }
-
-                        </div>
+                        { /* `text-tiny text-txt-muted` was this box spelling the caption pairing out by
+                          * hand, so it comes from the variant now and the rest rides in beside it. */ }
+                        <Text
+                            dir='ltr'
+                            className='w-full rounded-xl bg-base-3 p-2 text-center font-mono break-all select-text!'
+                            text={ hash } />
 
                         <Button
                             variant='primary'
@@ -413,14 +415,14 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                             onClick={ onClose }
                             text={ T('Dashboard.Send.Done') } />
 
-                    </div>
+                    </Vertical>
                 )
             }
 
             {
                 step === 'error' &&
                 (
-                    <div className='flex flex-col items-center gap-3 py-4'>
+                    <Vertical className='items-center gap-3 py-4'>
 
                         <Text
                             variant='body'
@@ -434,7 +436,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                             onClick={ () => { setStep('form'); } }
                             text={ T('Dashboard.Send.Back') } />
 
-                    </div>
+                    </Vertical>
                 )
             }
 

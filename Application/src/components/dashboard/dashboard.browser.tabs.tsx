@@ -16,6 +16,7 @@ import { getSiteHost, getSiteIcon, type BrowserTab } from '../../core/browser';
 
 import 'swiper/css';
 import 'swiper/css/free-mode';
+import { Horizontal } from '../ui/stack';
 
 /**
  * The chip a tab is drawn as.
@@ -102,7 +103,7 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
     }
 
     return (
-        <div className='flex shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
+        <Horizontal className='shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
 
             <Button
                 variant='chip'
@@ -207,6 +208,6 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
 
             </div>
 
-        </div>
+        </Horizontal>
     );
 }

@@ -7,6 +7,7 @@ import Button from '../ui/button';
 import { inset } from '../../layout/container';
 import { T } from '../../utility/language';
 import { glassPanel } from '../ui/panel';
+import { Vertical } from '../ui/stack';
 
 /**
  * DashboardNav - The floating pill navigation bar at the bottom of the dashboard.
@@ -58,7 +59,7 @@ export default function DashboardNav({ items, active, hidden, onSelect }: { item
                                 )
                             }
 
-                            <div className={ `relative flex flex-col items-center gap-1 duration-300 ${ isActive ? 'text-txt-reverse' : 'text-txt-muted group-hover:text-txt-normal' }` }>
+                            <Vertical className={ `relative items-center gap-1 duration-300 ${ isActive ? 'text-txt-reverse' : 'text-txt-muted group-hover:text-txt-normal' }` }>
 
                                 <item.icon size={ 16 } />
 
@@ -68,7 +69,7 @@ export default function DashboardNav({ items, active, hidden, onSelect }: { item
 
                                 </div>
 
-                            </div>
+                            </Vertical>
 
                         </Button>
                     );

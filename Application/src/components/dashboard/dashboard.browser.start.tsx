@@ -12,6 +12,7 @@ import DashboardBrowserFavorite from './dashboard.browser.favorite';
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { getSiteHost, getSiteIcon, type BrowserFavorite, type BrowserVisit } from '../../core/browser';
+import { Horizontal, Vertical } from '../ui/stack';
 
 /**
  * BrowserShortcut - One tile in a start-screen grid: a site's own icon and what to call it.
@@ -113,7 +114,7 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
     const [ editor, setEditor ] = useState<BrowserFavorite | boolean>(false);
 
     return (
-        <div className='flex size-full flex-col gap-3 overflow-y-auto p-4'>
+        <Vertical className='size-full gap-3 overflow-y-auto p-4'>
 
             <SectionHeader title={ T('Dashboard.Browser.Favorite') }>
 
@@ -147,9 +148,9 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
                                 favorites.map((item) => (
                                     editing ?
                                         (
-                                            <div
+                                            <Horizontal
                                                 key={ item.id }
-                                                className='flex items-center gap-2'>
+                                                className='items-center gap-2'>
 
                                                 <BrowserShortcut
                                                     primary
@@ -170,7 +171,7 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
 
                                                 </Button>
 
-                                            </div>
+                                            </Horizontal>
                                         ) :
                                         (
                                             <BrowserShortcut
@@ -234,7 +235,7 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
             {
                 notice.length > 0 &&
                 (
-                    <div className='mt-auto flex flex-col gap-1'>
+                    <Vertical className='mt-auto gap-1'>
 
                         <Text
                             className='text-txt-muted/70'
@@ -246,7 +247,7 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
                             className='px-2 py-1 text-start font-mono'
                             text={ notice } />
 
-                    </div>
+                    </Vertical>
                 )
             }
 
@@ -260,6 +261,6 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
                 )
             }
 
-        </div>
+        </Vertical>
     );
 }

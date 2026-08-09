@@ -10,6 +10,7 @@ import EmptyState from '../ui/state';
 import SectionHeader from '../ui/section';
 
 import { T } from '../../utility/language';
+import { Vertical } from '../ui/stack';
 
 /**
  * How many transactions the wallet tab shows before sending the user to the overview.
@@ -34,7 +35,7 @@ const preview = 5;
 export default function DashboardActivity({ items, loading, notice, canOpen, onOpen, onOverview }: { items: Transaction[]; loading: boolean; notice: string; canOpen: boolean; onOpen: (hash: string) => void; onOverview: () => void })
 {
     return (
-        <div className='flex flex-col gap-2'>
+        <Vertical className='gap-2'>
 
             <SectionHeader title={ T('Dashboard.Activity.Title') }>
 
@@ -88,6 +89,6 @@ export default function DashboardActivity({ items, loading, notice, canOpen, onO
                 )
             }
 
-        </div>
+        </Vertical>
     );
 }

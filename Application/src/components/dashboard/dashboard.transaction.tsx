@@ -9,6 +9,7 @@ import IconBox from '../ui/iconbox';
 import { T } from '../../utility/language';
 import { glassPanel } from '../ui/panel';
 import { formatDate, shortAddress, trimAmount } from '../../utility/format';
+import { Vertical } from '../ui/stack';
 
 /**
  * TransactionRow - One transaction as a tappable list row.
@@ -47,7 +48,7 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
 
             </IconBox>
 
-            <div className='flex min-w-0 flex-1 flex-col'>
+            <Vertical className='min-w-0 flex-1'>
 
                 <Text
                     variant='body'
@@ -58,9 +59,9 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
                     className='truncate font-mono'
                     text={ item.incoming ? shortAddress(item.from) : shortAddress(item.to) } />
 
-            </div>
+            </Vertical>
 
-            <div className='flex shrink-0 flex-col items-end'>
+            <Vertical className='shrink-0 items-end'>
 
                 <Text
                     dir='ltr'
@@ -70,7 +71,7 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
 
                 <Text text={ formatDate(item.timestamp) } />
 
-            </div>
+            </Vertical>
 
         </Button>
     );

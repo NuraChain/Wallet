@@ -4,6 +4,7 @@ import Text from '../ui/text';
 import Panel from '../ui/panel';
 
 import { T } from '../../utility/language';
+import { Vertical } from '../ui/stack';
 
 /**
  * DashboardApps - Placeholder for the upcoming dApp catalogue.
@@ -14,7 +15,7 @@ import { T } from '../../utility/language';
 export default function DashboardApps()
 {
     return (
-        <div className='flex flex-1 flex-col items-center justify-center gap-3'>
+        <Vertical className='flex-1 items-center justify-center gap-3'>
 
             <Panel className='flex size-16 items-center justify-center rounded-2xl text-txt-muted'>
 
@@ -31,6 +32,6 @@ export default function DashboardApps()
                 className='max-w-60 text-center'
                 text={ T('Dashboard.Apps.Soon') } />
 
-        </div>
+        </Vertical>
     );
 }

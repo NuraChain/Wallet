@@ -15,6 +15,7 @@ import { T } from '../../utility/language';
 import { passwordHash } from '../../core/password';
 import { openPage } from '../../utility/context';
 import { setValue, setValueEncrypted } from '../../utility/storage';
+import { Vertical } from '../ui/stack';
 
 export default function IntroImport({ onClose }: { onClose: () => void })
 {
@@ -98,7 +99,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
                 <SwiperSlide>
 
-                    <div className='flex flex-col gap-4 px-1 py-2'>
+                    <Vertical className='gap-4 px-1 py-2'>
 
                         <textarea
                             value={ mnemonic }
@@ -112,7 +113,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                             className='mx-auto h-12 w-full rounded-lg px-4 sm:w-fit sm:px-8'
                             text={ T('Intro.ImportWallet.Submit2') } />
 
-                    </div>
+                    </Vertical>
 
                 </SwiperSlide>
 
