@@ -17,19 +17,9 @@ env:
   APP_DIR: Application
 
 jobs:
-  desktop:
-    name: ${{ matrix.label }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            label: windows (.exe / .msi)
-            artifact: windows
-          - os: ubuntu-22.04
-            label: linux (.deb)
-            artifact: linux
+  windows:
+    name: windows (.exe / .msi)
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
@@ -40,43 +30,35 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      # Keyed on the lockfile-less install below, so the key uses Cargo.toml instead.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ${{ env.APP_DIR }}/src-tauri
-
-      # webkit2gtk is the webview Tauri renders into; the rest are what its bundler
-      # needs to produce a .deb.
-      - name: Install Linux build dependencies
-        if: matrix.os == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev patchelf \
-            libayatana-appindicator3-dev build-essential file
 
       - name: Install dependencies
         working-directory: ${{ env.APP_DIR }}
         run: npm ci
 
+      # Windows on ARM runs x64 binaries under emulation, so one x64 build leaves
+      # nobody without an installer and there is no second toolchain to keep alive.
       - name: Build
         working-directory: ${{ env.APP_DIR }}
         run: npm run tauri build
 
       # upload-artifact roots the archive at the common ancestor of every search
-      # path it is given, not of the files actually matched. Listing nsis/, msi/
-      # and deb/ together therefore rooted it at bundle/ and stored the installers
-      # one directory down, so the release job's `artifacts/*.exe` globs matched
-      # nothing and only the Android APK - uploaded from a single path, hence flat -
-      # reached the release. Collecting into one directory keeps the archive flat.
+      # path it is given, not of the files actually matched. Listing nsis/ and
+      # msi/ together therefore rooted it at bundle/ and stored the installers one
+      # directory down, so the release job's `artifacts/*.exe` globs matched
+      # nothing and only the Android APK - uploaded from a single path, hence flat
+      # - reached the release. Collecting into one directory keeps the archive flat.
       #
       # The directory must not be `dist`: that is Vite's build output, so staging
       # there uploaded index.html and the whole frontend bundle alongside the
       # installers, and index.html ended up attached to the release.
-      # Tauri names bundles after `productName`, which is "Nura Wallet" - and GitHub
-      # rewrites the space when it attaches an asset, so the release listed
+      #
+      # Tauri names bundles after `productName`, which is "Nura Wallet" - and
+      # GitHub rewrites the space when it attaches an asset, so the release listed
       # `Nura.Wallet_1.0.0_x64-setup.exe`. Every artifact is renamed to one scheme
-      # here instead, so the four downloads read as one product.
+      # here instead, so the whole download list reads as one product.
       - name: Stage the installers
         working-directory: ${{ env.APP_DIR }}
         shell: bash
@@ -84,17 +66,123 @@ jobs:
           mkdir -p release-files
           VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
           BUNDLE=src-tauri/target/release/bundle
-          for file in "$BUNDLE"/nsis/*-setup.exe; do
-            [ -e "$file" ] && cp "$file" "release-files/Nura-Wallet-$VERSION-x64-setup.exe"
-          done
-          for file in "$BUNDLE"/msi/*.msi; do
-            [ -e "$file" ] && cp "$file" "release-files/Nura-Wallet-$VERSION-x64.msi"
-          done
-          for file in "$BUNDLE"/deb/*.deb; do
-            [ -e "$file" ] && cp "$file" "release-files/Nura-Wallet-$VERSION-amd64.deb"
-          done
+
+          # The glob is expanded by the caller, so $1 after the shift is either the
+          # first match or the pattern itself when nothing matched - which is the
+          # case worth hearing about, since a bundler that quietly produced nothing
+          # otherwise reaches the release as a missing download and no failed step.
+          stage() {
+            local name=$1
+            shift
+            if [ -e "$1" ]; then
+              cp "$1" "release-files/$name"
+            else
+              echo "::warning::Nothing matched for $name, so it will be missing from this release."
+            fi
+          }
+
+          stage "Nura-Wallet-$VERSION-x64-setup.exe" "$BUNDLE"/nsis/*-setup.exe
+          stage "Nura-Wallet-$VERSION-x64.msi" "$BUNDLE"/msi/*.msi
           ls -l release-files
 
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          if-no-files-found: error
+          path: ${{ env.APP_DIR }}/release-files
+
+  linux:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Both architectures build natively. GitHub's arm64 Linux runners are
+          # free for public repositories, and native beats every alternative by a
+          # wide margin here: cross-compiling against webkit2gtk needs a complete
+          # multiarch sysroot, and the emulated runner Tauri's own docs suggest
+          # takes hours for a Rust build and risks the six-hour job limit.
+          #
+          # Those two are the whole reachable set, not a shortlist. i386 has no
+          # libwebkit2gtk in Ubuntu's partial multiarch, so a 32-bit x86 build
+          # cannot link at all, and armhf has no runner and would have to come
+          # back through one of the two paths above.
+          #
+          # The arch label differs per format because the packagers disagree about
+          # the name: dpkg says amd64/arm64, rpm and AppImage say x86_64/aarch64.
+          # Each file is named the way a user of that format expects to see it.
+          - os: ubuntu-22.04
+            label: linux x86_64 (.deb / .rpm / .AppImage)
+            artifact: linux-x86_64
+            deb: amd64
+            unix: x86_64
+          - os: ubuntu-22.04-arm
+            label: linux aarch64 (.deb / .rpm / .AppImage)
+            artifact: linux-aarch64
+            deb: arm64
+            unix: aarch64
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      # rust-cache keys on the host triple, so the two architectures do not share
+      # - and cannot poison - each other's entry.
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ env.APP_DIR }}/src-tauri
+
+      # webkit2gtk is the webview Tauri renders into; the rest are what its bundler
+      # needs. libfuse2 is for the AppImage specifically: the bundler downloads
+      # linuxdeploy and appimagetool as AppImages and has to be able to run them.
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev patchelf \
+            libayatana-appindicator3-dev build-essential file libfuse2
+
+      - name: Install dependencies
+        working-directory: ${{ env.APP_DIR }}
+        run: npm ci
+
+      # Which of the three formats are produced is declared in
+      # src-tauri/tauri.linux.conf.json, so a local build makes the same set.
+      - name: Build
+        working-directory: ${{ env.APP_DIR }}
+        run: npm run tauri build
+
+      - name: Stage the installers
+        working-directory: ${{ env.APP_DIR }}
+        shell: bash
+        run: |
+          mkdir -p release-files
+          VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
+          BUNDLE=src-tauri/target/release/bundle
+
+          stage() {
+            local name=$1
+            shift
+            if [ -e "$1" ]; then
+              cp "$1" "release-files/$name"
+            else
+              echo "::warning::Nothing matched for $name, so it will be missing from this release."
+            fi
+          }
+
+          stage "Nura-Wallet-$VERSION-${{ matrix.deb }}.deb" "$BUNDLE"/deb/*.deb
+          stage "Nura-Wallet-$VERSION-${{ matrix.unix }}.rpm" "$BUNDLE"/rpm/*.rpm
+          stage "Nura-Wallet-$VERSION-${{ matrix.unix }}.AppImage" "$BUNDLE"/appimage/*.AppImage
+          ls -l release-files
+
+      # One name per matrix leg: upload-artifact@v4 refuses to write an existing
+      # artifact, so both legs sharing `linux` would fail the second one to finish.
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
@@ -170,6 +258,7 @@ jobs:
 
       # Gradle signs during the build when this file is present, which also gets the
       # APK zipaligned - apksigner alone does not align, and Android requires it.
+      # It is written once and covers every flavour both builds below produce.
       - name: Configure release signing
         if: env.ANDROID_KEYSTORE != ''
         working-directory: ${{ env.APP_DIR }}/src-tauri/gen/android
@@ -182,36 +271,69 @@ jobs:
             echo "keyPassword=$ANDROID_KEY_PASSWORD"
           } > keystore.properties
 
-      - name: Build release APK
+      # Two builds, because the two shapes are mutually exclusive. The product
+      # flavours are declared in gen/android/buildSrc RustPlugin.kt: without
+      # --split-per-abi Gradle assembles the single `universal` flavour carrying
+      # all four ABIs, and with it, it assembles the four single-ABI flavours
+      # instead. Neither run produces the other's output, so both have to happen.
+      #
+      # Both are wanted: the universal APK is the one to hand someone who does not
+      # know what their phone is, and the per-ABI ones are a fraction of the size
+      # for someone who does.
+      #
+      # The second run is the cheap one. It needs the same four Rust targets the
+      # first run already compiled into the shared cargo target directory, so only
+      # Gradle's packaging and R8 actually repeat.
+      - name: Build the universal APK
         working-directory: ${{ env.APP_DIR }}
         run: npm run tauri android build -- --apk
+
+      - name: Build the per-ABI APKs
+        working-directory: ${{ env.APP_DIR }}
+        run: npm run tauri android build -- --apk --split-per-abi
 
       # The keystore is deleted before anything else runs so it cannot reach an
       # artifact. A tag that got this far with a broken keystore still fails here:
       # the guard above only proves a secret was set, not that Gradle used it.
       #
-      # Gradle names the file app-universal-release.apk, which says nothing about
-      # the product on a downloads page. It is renamed to carry the product and
+      # Gradle names the files app-<flavour>-release.apk, which says nothing about
+      # the product on a downloads page. Each is renamed to carry the product and
       # the version, like every desktop installer does, and the staging directory
       # is deliberately not `dist` - that is Vite's output.
-      - name: Collect the APK
+      - name: Collect the APKs
         working-directory: ${{ env.APP_DIR }}
         run: |
-          OUT=src-tauri/gen/android/app/build/outputs/apk/universal/release
-          APK=$(ls "$OUT"/*.apk | head -1)
+          OUT=src-tauri/gen/android/app/build/outputs/apk
           APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
           VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
+          TAGGED="${{ startsWith(github.ref, 'refs/tags/v') }}"
           rm -f src-tauri/gen/android/keystore.properties src-tauri/gen/android/release.jks
           mkdir -p release-files
-          if "$APKSIGNER" verify --print-certs "$APK"; then
-            cp "$APK" "release-files/Nura-Wallet-$VERSION-universal.apk"
-          elif [ "${{ startsWith(github.ref, 'refs/tags/v') }}" = "true" ]; then
-            echo "::error::The build produced an unsigned APK despite a keystore being configured. Check that ANDROID_KEYSTORE is valid base64 and that the alias and passwords match it."
-            exit 1
-          else
-            cp "$APK" "release-files/Nura-Wallet-$VERSION-universal-unsigned.apk"
-            echo "::warning::APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
-          fi
+
+          # <flavour>:<abi>. The name on the left is the Gradle product flavour and
+          # therefore the output directory; the name on the right is the ABI a phone
+          # reports for itself, which is the only one of the two a downloader can
+          # match against their device, so that is what the file is called.
+          for pair in universal:universal arm64:arm64-v8a arm:armeabi-v7a x86:x86 x86_64:x86_64; do
+            flavor=${pair%%:*}
+            abi=${pair##*:}
+            apk=$(ls "$OUT/$flavor/release"/*.apk 2>/dev/null | head -1)
+
+            if [ -z "$apk" ]; then
+              echo "::error::No APK was produced for the $flavor flavour. Check that the $abi ABI is still one of the four RustPlugin.kt declares."
+              exit 1
+            fi
+
+            if "$APKSIGNER" verify --print-certs "$apk"; then
+              cp "$apk" "release-files/Nura-Wallet-$VERSION-$abi.apk"
+            elif [ "$TAGGED" = "true" ]; then
+              echo "::error::The build produced an unsigned $abi APK despite a keystore being configured. Check that ANDROID_KEYSTORE is valid base64 and that the alias and passwords match it."
+              exit 1
+            else
+              cp "$apk" "release-files/Nura-Wallet-$VERSION-$abi-unsigned.apk"
+              echo "::warning::The $abi APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
+            fi
+          done
           ls -l release-files
 
       - uses: actions/upload-artifact@v4
@@ -222,7 +344,7 @@ jobs:
 
   release:
     name: Attach to the release
-    needs: [ desktop, android ]
+    needs: [ windows, linux, android ]
     runs-on: ubuntu-latest
     # Only a tag produces a release; a manual run just leaves the artifacts on the run.
     if: startsWith(github.ref, 'refs/tags/v')
