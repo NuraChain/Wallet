@@ -51,7 +51,7 @@ jobs:
           NUMBER=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
 
           if [ -z "$NUMBER" ]; then
-            echo "::error::No version line was found in src-tauri/Cargo.toml, so every asset would be named Nura-Wallet--<arch>."
+            echo "::error::No version line was found in src-tauri/Cargo.toml, so every asset would be named Nura-Wallet--<platform>-<arch>."
             exit 1
           fi
 
@@ -107,6 +107,12 @@ jobs:
       # GitHub rewrites the space when it attaches an asset, so the release listed
       # `Nura.Wallet_1.0.0_x64-setup.exe`. Every artifact is renamed to one scheme
       # here instead, so the whole download list reads as one product.
+      #
+      # That scheme is <product>-<version>-<platform>-<arch>.<ext>, and the platform
+      # is spelled out because the arch alone does not say which build a file came
+      # from: x86_64 and arm64 each name both a Linux package and an Android ABI,
+      # so the thirteen assets sort into three obvious groups only once the platform
+      # is in the name. Windows carries it too, for one scheme rather than two.
       - name: Stage the installers
         shell: bash
         env:
@@ -129,8 +135,8 @@ jobs:
             fi
           }
 
-          stage "Nura-Wallet-$VERSION-x64-setup.exe" "$BUNDLE"/nsis/*-setup.exe
-          stage "Nura-Wallet-$VERSION-x64.msi" "$BUNDLE"/msi/*.msi
+          stage "Nura-Wallet-$VERSION-Windows-x64-setup.exe" "$BUNDLE"/nsis/*-setup.exe
+          stage "Nura-Wallet-$VERSION-Windows-x64.msi" "$BUNDLE"/msi/*.msi
           ls -l release-files
 
       - uses: actions/upload-artifact@v4
@@ -226,9 +232,9 @@ jobs:
             fi
           }
 
-          stage "Nura-Wallet-$VERSION-${{ matrix.deb }}.deb" "$BUNDLE"/deb/*.deb
-          stage "Nura-Wallet-$VERSION-${{ matrix.unix }}.rpm" "$BUNDLE"/rpm/*.rpm
-          stage "Nura-Wallet-$VERSION-${{ matrix.unix }}.AppImage" "$BUNDLE"/appimage/*.AppImage
+          stage "Nura-Wallet-$VERSION-Linux-${{ matrix.deb }}.deb" "$BUNDLE"/deb/*.deb
+          stage "Nura-Wallet-$VERSION-Linux-${{ matrix.unix }}.rpm" "$BUNDLE"/rpm/*.rpm
+          stage "Nura-Wallet-$VERSION-Linux-${{ matrix.unix }}.AppImage" "$BUNDLE"/appimage/*.AppImage
           ls -l release-files
 
       # One name per matrix leg: upload-artifact@v4 refuses to write an existing
@@ -362,9 +368,9 @@ jobs:
       # above only proves a secret was set, not that Gradle used it.
       #
       # Gradle names the files app-<flavour>-release.apk, which says nothing about
-      # the product on a downloads page. Each is renamed to carry the product and
-      # the version, like every desktop installer does, and the staging directory
-      # is deliberately not `dist` - that is Vite's output.
+      # the product on a downloads page. Each is renamed to carry the product, the
+      # version and the platform, like every desktop installer does, and the staging
+      # directory is deliberately not `dist` - that is Vite's output.
       - name: Collect the APKs
         env:
           VERSION: ${{ needs.version.outputs.number }}
@@ -394,12 +400,12 @@ jobs:
             fi
 
             if "$APKSIGNER" verify --print-certs "$apk"; then
-              cp "$apk" "release-files/Nura-Wallet-$VERSION-$abi.apk"
+              cp "$apk" "release-files/Nura-Wallet-$VERSION-Android-$abi.apk"
             elif [ "$TAGGED" = "true" ]; then
               echo "::error::The build produced an unsigned $abi APK despite a keystore being configured. Check that ANDROID_KEYSTORE is valid base64 and that the alias and passwords match it."
               exit 1
             else
-              cp "$apk" "release-files/Nura-Wallet-$VERSION-$abi-unsigned.apk"
+              cp "$apk" "release-files/Nura-Wallet-$VERSION-Android-$abi-unsigned.apk"
               echo "::warning::The $abi APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
             fi
           done
