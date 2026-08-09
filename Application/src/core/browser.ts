@@ -1,5 +1,7 @@
 import { getValue, removeValue, setValue } from '../utility/storage';
 
+import { imageCache } from './image';
+
 /**
  * Navigation state the Android bridge pushes back after every page event.
  *
@@ -219,9 +221,21 @@ export const addBrowserVisit = async(url: string): Promise<BrowserVisit[]> =>
  * clearBrowserHistory - Forgets every visit.
  *
  * The key is removed rather than set to an empty list, so nothing is left behind to read.
- * @returns {Promise<void>} Resolves once the key is gone.
+ *
+ * The site icons go with it, because they are the same record written twice. Every icon the cache
+ * holds carries the address it came from in `metadata.json`, and every icon it *failed* to read leaves
+ * that address in the refusal list — which, since a cross-origin favicon can never be read, is one row
+ * per site visited. Clearing only `Browser.History` left both behind, so a wallet whose owner had
+ * asked it to forget where they had been could still be asked and would still answer. `unknown` is the
+ * kind site icons are stored under, so the wallet's token and network logos are not touched.
+ * @returns {Promise<void>} Resolves once the key and the icons taken from it are gone.
  */
-export const clearBrowserHistory = async() => removeValue('Browser.History');
+export const clearBrowserHistory = async() =>
+{
+    await removeValue('Browser.History');
+
+    await imageCache.clearKind('unknown');
+};
 
 /**
  * getBrowserFavorites - The kept shortcuts, in the order they are shown.

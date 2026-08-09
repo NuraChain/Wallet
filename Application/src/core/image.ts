@@ -1,3 +1,5 @@
+import { clearUnder, keysUnder, prune, readRaw, removeRaw, writeRaw } from './cache.store';
+
 /**
  * How long a kind of image stays fresh.
  *
@@ -68,8 +70,105 @@ const maxParallel = 6;
 const maxAttempts = 3;
 const backoffBase = 500;
 
-/** How long a URL that failed every attempt is left alone before anything tries it again. */
+/**
+ * How long a URL that could not be read is left alone before anything tries it again.
+ *
+ * Two speeds, because the two failures are not the same thing. A request that rejects *again* after
+ * the short window is almost always the same-origin policy: the server answered and the browser
+ * refused to hand the body over, which is what happens to every cross-origin favicon and will happen
+ * again in a second and in an hour. Retrying that is console errors and requests for an answer that
+ * cannot change, so it is remembered for a day — long enough to stop being noise, short enough that a
+ * host which starts sending the header is picked up without anyone clearing anything.
+ *
+ * Everything else gets the short one: a 5xx, a truncated body, a device that is offline — and every
+ * *first* refusal, whatever it looked like. Nothing available at the moment of a rejection separates a
+ * policy that will never relent from a network that is briefly lying; what separates them is whether
+ * it happens twice.
+ */
+const blockedCooldown = 24 * 60 * 60 * 1000;
 const failureCooldown = 5 * 60 * 1000;
+
+/**
+ * Unreadable - The request never produced a response anything could read.
+ *
+ * A distinct type rather than a check for `TypeError` at the catch, because that is what `fetch`
+ * rejects with and also what any unrelated bug throws — and every step after the request runs inside
+ * the same `try`. Hashing a URL for its cache filename goes through `crypto.subtle`, which is
+ * `undefined` outside a secure context, so a dev build reached over plain http from a LAN address
+ * threw a `TypeError` out of a download that had *succeeded* and had the whole image cache recorded as
+ * permanently refused. Only the one call that can legitimately mean "unreadable" raises this.
+ */
+class Unreadable extends Error
+{
+    /** What the request actually rejected with, kept because this type replaces it at the catch. */
+    public readonly reason: unknown;
+
+    public constructor(reason: unknown)
+    {
+        super('image could not be read');
+
+        this.name = 'Unreadable';
+
+        this.reason = reason;
+    }
+}
+
+/**
+ * Where refusals are remembered, and why they are on disk rather than in memory alone.
+ *
+ * The in-memory map only lived as long as the page did, so every reload paid the full round of retries
+ * again for the same unreadable icons. Persisted, a site's favicon is attempted once and then left
+ * alone until the window expires or the user clears the browser's cache from its settings — which is
+ * what makes that button mean something for icons that were never storable in the first place.
+ */
+const blockedPrefix = 'image-cache/v1/blocked/';
+
+/**
+ * blockedKey - The key one refusal is remembered under.
+ *
+ * The kind sits in the path so the namespace can be cleared and counted one kind at a time. Flat, the
+ * browser tab's "clear cache" reached the wallet's token-logo refusals as well — so pressing it made
+ * the wallet re-attempt every CDN logo it had deliberately stopped asking about — and the count beside
+ * that button totted up refusals belonging to screens it has nothing to do with.
+ * @param {ImageKind} kind What sort of image it is.
+ * @param {string} url The image address.
+ * @returns {string} The full storage key.
+ */
+const blockedKey = (kind: ImageKind, url: string) => `${ blockedPrefix }${ kind }/${ url }`;
+
+/**
+ * blockedScope - The namespace covering one kind, or every kind.
+ * @param {ImageKind} [kind] Restrict to one sort of image.
+ * @returns {string} The prefix to enumerate under.
+ */
+const blockedScope = (kind?: ImageKind) =>
+{
+    if (kind === undefined)
+    {
+        return blockedPrefix;
+    }
+
+    return `${ blockedPrefix }${ kind }/`;
+};
+
+/**
+ * liveBlocks - The refusals in a namespace that have not yet expired.
+ *
+ * Counted rather than merely enumerated, because an elapsed entry is one `fetchInto` would already let
+ * through: counting it would light up a destructive button that had nothing left to do. The same
+ * predicate the fetch path uses decides it here.
+ * @param {ImageKind} [kind] Restrict to one sort of image.
+ * @returns {string[]} The keys still holding anything back.
+ */
+const liveBlocks = (kind?: ImageKind) =>
+{
+    const now = Date.now();
+
+    return keysUnder('local', blockedScope(kind)).filter((key) => Number(readRaw('local', key) ?? '0') > now);
+};
+
+/** How many refusals are kept before the oldest are dropped. */
+const maxBlocked = 200;
 
 /** Where the files and the metadata live inside the origin private file system. */
 const cacheDirectory = 'image-cache';
@@ -526,7 +625,14 @@ const download = async(url: string, known: CacheEntry | undefined) =>
     // the app, so nothing here may depend on a native surface. The cost is that a cross-origin reply
     // carrying no `Access-Control-Allow-Origin` cannot be read, which is every site's favicon — those
     // throw here, are never stored, and fall back to being loaded by the `img` tag itself.
-    const response = await fetch(url, { headers, redirect: 'follow' });
+    //
+    // Tagged at the throw rather than sniffed at the catch, so that only a request which genuinely
+    // never resolved is treated as one. Everything below this line — reading the body, hashing the
+    // URL, writing the file — can throw a `TypeError` of its own without meaning anything of the sort.
+    const response = await fetch(url, { headers, redirect: 'follow' }).catch((cause: unknown) =>
+    {
+        throw new Unreadable(cause);
+    });
 
     if (response.status === 304)
     {
@@ -666,17 +772,80 @@ const revalidated = async(url: string, kind: ImageKind, known: CacheEntry | unde
 };
 
 /**
+ * blockedUntil - When a URL may next be attempted, from memory or from disk.
+ *
+ * The stored value is promoted into the map on the first read, so a list of rows all asking for the
+ * same unreadable icon costs one storage read rather than one per row.
+ * @param {ImageKind} kind What sort of image it is.
+ * @param {string} url The image address.
+ * @returns {number} The timestamp before which nothing should try, or 0.
+ */
+const blockedUntil = (kind: ImageKind, url: string) =>
+{
+    const key = blockedKey(kind, url);
+
+    const held = cooldown.get(key);
+
+    if (held !== undefined)
+    {
+        return held;
+    }
+
+    const stored = Number(readRaw('local', key) ?? '0');
+
+    if (!Number.isFinite(stored) || stored === 0)
+    {
+        return 0;
+    }
+
+    cooldown.set(key, stored);
+
+    return stored;
+};
+
+/**
+ * refusedBefore - Whether this URL has been refused at least once already.
+ *
+ * An elapsed row is deliberately left on disk rather than swept, because its continued presence *is*
+ * this answer. `liveBlocks` filters expiry back out for anything that counts them, and `prune` bounds
+ * the namespace, so keeping them costs a bounded number of small rows and buys the distinction below.
+ * @param {ImageKind} kind What sort of image it is.
+ * @param {string} url The image address.
+ * @returns {boolean} True when a refusal is already on record.
+ */
+const refusedBefore = (kind: ImageKind, url: string) => readRaw('local', blockedKey(kind, url)) !== undefined;
+
+/**
+ * blockUrl - Remembers that a URL could not be read, in memory and on disk.
+ * @param {ImageKind} kind What sort of image it is.
+ * @param {string} url The image address.
+ * @param {number} span How long to leave it alone.
+ */
+const blockUrl = (kind: ImageKind, url: string, span: number) =>
+{
+    const key = blockedKey(kind, url);
+    const until = Date.now() + span;
+
+    cooldown.set(key, until);
+
+    writeRaw('local', key, String(until));
+
+    // Bounded across every kind at once rather than per kind, so the ceiling means what it says. The
+    // stamp sorted on is the moment each block lifts, so the entries dropped first are the ones with
+    // least left to run.
+    prune('local', blockedPrefix, maxBlocked, (raw) => Number(raw) || 0);
+};
+
+/**
  * fetchInto - Downloads with retries and stores the result.
  * @param {string} url The image address.
  * @param {ImageKind} kind What sort of image it is.
  * @param {CacheEntry | undefined} known What is already held, if anything.
- * @returns {Promise<string>} An object URL, or an empty string when every attempt failed.
+ * @returns {Promise<string>} An object URL, or an empty string when it could not be read.
  */
 const fetchInto = async(url: string, kind: ImageKind, known: CacheEntry | undefined): Promise<string> =>
 {
-    const until = cooldown.get(url) ?? 0;
-
-    if (Date.now() < until)
+    if (Date.now() < blockedUntil(kind, url))
     {
         return '';
     }
@@ -704,12 +873,34 @@ const fetchInto = async(url: string, kind: ImageKind, known: CacheEntry | undefi
                 // eslint-disable-next-line no-await-in-loop
                 await keep(url, kind, result.blob, { mime: result.mime, etag: result.etag, modified: result.modified, control: '' });
 
-                cooldown.delete(url);
+                cooldown.delete(blockedKey(kind, url));
+
+                removeRaw('local', blockedKey(kind, url));
 
                 return URL.createObjectURL(result.blob);
             }
-            catch
+            catch (cause)
             {
+                // A rejected request — as opposed to an error this module threw about a status or a
+                // body — means nothing readable ever arrived: blocked by the origin policy, or no
+                // network. Neither improves by asking twice more, so it stops here.
+                //
+                // The day-long block is held back for the *second* refusal rather than spent on the
+                // first, because `navigator.onLine` reports a link, not a route. It reads `true` on a
+                // captive portal, on a routeless VPN and through a DNS outage, where every request
+                // rejects exactly as a cross-origin favicon does — so trusting it alone let one bad
+                // moment on a hotel wifi cost the byte cache for the whole app for a day. A refusal
+                // that repeats after the short window is the origin policy, which will never not
+                // repeat; one that does not is the bad moment, and it has already cleared itself.
+                if (cause instanceof Unreadable)
+                {
+                    const settled = navigator.onLine && refusedBefore(kind, url);
+
+                    blockUrl(kind, url, settled ? blockedCooldown : failureCooldown);
+
+                    return '';
+                }
+
                 const last = attempt === maxAttempts - 1;
 
                 if (last)
@@ -717,7 +908,7 @@ const fetchInto = async(url: string, kind: ImageKind, known: CacheEntry | undefi
                     // Backing off entirely rather than trying again on the next render: a missing icon
                     // is asked for by every row that shows it, and without this the failure repeats at
                     // the speed of the list.
-                    cooldown.set(url, Date.now() + failureCooldown);
+                    blockUrl(kind, url, failureCooldown);
 
                     return '';
                 }
@@ -927,6 +1118,8 @@ export const imageCache =
         memory.clear();
         cooldown.clear();
 
+        clearUnder('local', blockedPrefix);
+
         for (const entry of [ ...entries.values() ])
         {
             // eslint-disable-next-line no-await-in-loop
@@ -1008,6 +1201,26 @@ export const imageCache =
             await writeMeta();
         }
 
+        // The refusals go with them, and for icons they are most of what there is to clear: a favicon
+        // the origin policy would not let us read was never stored, so without this the button would
+        // report nothing to do and change nothing. Dropped, every site is attempted once more.
+        //
+        // Scoped to this kind on both sides, which is the whole promise in this function's name. Held
+        // flat, a press in the browser tab also dropped the wallet's token and network logo refusals,
+        // so the next render re-attempted every CDN logo the wallet had settled on leaving alone —
+        // from a button on a screen that has nothing to do with them.
+        const scope = blockedScope(kind);
+
+        clearUnder('local', scope);
+
+        for (const key of [ ...cooldown.keys() ])
+        {
+            if (key.startsWith(scope))
+            {
+                cooldown.delete(key);
+            }
+        }
+
         return matching.length;
     },
 
@@ -1016,8 +1229,13 @@ export const imageCache =
      *
      * A `kind` narrows it to one sort, which is what a screen offering to clear only its own images has
      * to show before it offers to.
+     * `blocked` is counted alongside, because for site icons it is most of what a clear would actually
+     * do: an icon the origin policy refused was never stored, so a screen that offered to clear only
+     * what it holds would sit disabled precisely when pressing it would help. It follows the same
+     * `kind` and counts only refusals still in force — an elapsed one would be retried on the next
+     * render regardless, so counting it would light the button up over nothing left to do.
      * @param {ImageKind} [kind] Restrict the total to one sort of image.
-     * @returns {Promise<{ bytes: number; count: number }>} Total bytes and number of images.
+     * @returns {Promise<{ bytes: number; count: number; blocked: number }>} Bytes, images, and refusals held.
      */
     getCacheSize: async(kind?: ImageKind) =>
     {
@@ -1037,6 +1255,6 @@ export const imageCache =
             count += 1;
         }
 
-        return { bytes, count };
+        return { bytes, count, blocked: liveBlocks(kind).length };
     }
 };

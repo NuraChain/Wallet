@@ -167,7 +167,7 @@ export const writeRaw = (area: CacheArea, key: string, value: string) =>
  * @param {CacheArea} area Which storage to clear from.
  * @param {string} key The full key, prefix included.
  */
-const removeRaw = (area: CacheArea, key: string) =>
+export const removeRaw = (area: CacheArea, key: string) =>
 {
     dirty.get(area)?.delete(key);
 
@@ -196,9 +196,23 @@ const removeRaw = (area: CacheArea, key: string) =>
  * @param {string} prefix The namespace to match.
  * @returns {string[]} The matching full keys.
  */
-const keysUnder = (area: CacheArea, prefix: string) =>
+export const keysUnder = (area: CacheArea, prefix: string) =>
 {
-    const found: string[] = [];
+    // Queued writes are listed alongside stored ones, because `readRaw` already prefers them and the
+    // two disagreeing is a hole rather than a nuance. A `clearUnder` could not see a key written in
+    // the last few hundred milliseconds, so it left it alone and the pending flush then wrote it back
+    // *after* the clear had finished — the entry surviving the very action that asked for it to go. It
+    // also kept `prune` from ever seeing a burst: a screenful of failures all queue inside one flush
+    // window, so the bound was measured against a namespace that still looked empty and never fired.
+    const found = new Set<string>();
+
+    for (const key of dirty.get(area)?.keys() ?? [])
+    {
+        if (key.startsWith(prefix))
+        {
+            found.add(key);
+        }
+    }
 
     const store = backend(area);
 
@@ -208,11 +222,11 @@ const keysUnder = (area: CacheArea, prefix: string) =>
         {
             if (key.startsWith(`${ area }:${ prefix }`))
             {
-                found.push(key.slice(area.length + 1));
+                found.add(key.slice(area.length + 1));
             }
         }
 
-        return found;
+        return [ ...found ];
     }
 
     try
@@ -223,16 +237,16 @@ const keysUnder = (area: CacheArea, prefix: string) =>
 
             if (key?.startsWith(prefix) === true)
             {
-                found.push(key);
+                found.add(key);
             }
         }
     }
     catch
     {
-        return found;
+        return [ ...found ];
     }
 
-    return found;
+    return [ ...found ];
 };
 
 /**

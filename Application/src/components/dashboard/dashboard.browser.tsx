@@ -17,6 +17,7 @@ import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { imageCache } from '../../core/image';
 import { addBrowserVisit, atBrowserStart, clearBrowserHistory, frameLabel, getBrowserFavorites, getBrowserHistory, getBrowserView, getNativeBrowser, getNativeTab, onNativeBrowserState, setBrowserFavorites, setBrowserView, type BrowserFavorite, type BrowserState, type BrowserTab, type BrowserVisit, type BrowserView } from '../../core/browser';
+import { Horizontal, Vertical } from '../ui/stack';
 
 /**
  * Turn whatever was typed in the address bar into a loadable URL.
@@ -80,7 +81,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     const [ view, setView ] = useState<BrowserView>('mobile');
     const [ visits, setVisits ] = useState<BrowserVisit[]>([]);
     const [ favorites, setFavorites ] = useState<BrowserFavorite[]>([]);
-    const [ icons, setIcons ] = useState({ bytes: 0, count: 0 });
+    const [ icons, setIcons ] = useState({ bytes: 0, count: 0, blocked: 0 });
     const [ active, setActive ] = useState(1);
     const [ tabs, setTabs ] = useState<BrowserTab[]>([ { id: 1, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
 
@@ -381,11 +382,22 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         void run();
     };
 
+    // Re-measured for the same reason the cache clear is, because forgetting the visits now takes the
+    // site icons with them — an icon carries the address it was fetched from, so it is the same record
+    // written twice. Both figures this dialog shows move together or one of them describes a state
+    // that is already gone.
     const onClear = () =>
     {
-        setVisits([]);
+        const run = async() =>
+        {
+            setVisits([]);
 
-        void clearBrowserHistory();
+            await clearBrowserHistory();
+
+            setIcons(await imageCache.getCacheSize('unknown'));
+        };
+
+        void run();
     };
 
     // Written through the same call that updates the screen, so the list on disk is whatever is being
@@ -409,10 +421,10 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     };
 
     return (
-        <div className='relative flex min-h-0 flex-1 flex-col'>
+        <Vertical className='relative min-h-0 flex-1'>
 
             { /* `base-1` is the 0.25-alpha token in both themes; `base-2` sits at 0.6/0.55 and read as solid. */ }
-            <div className='flex shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
+            <Horizontal className='shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
 
                 <Button
                     variant='chip'
@@ -502,7 +514,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
                 </Button>
 
-            </div>
+            </Horizontal>
 
             {
                 start &&
@@ -611,6 +623,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                             view={ view }
                             visits={ visits.length }
                             icons={ icons.count }
+                            blocked={ icons.blocked }
                             iconBytes={ icons.bytes }
                             onView={ onView }
                             onClear={ onClear }
@@ -621,6 +634,6 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
             </AnimatePresence>
 
-        </div>
+        </Vertical>
     );
 }

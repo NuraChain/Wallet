@@ -6,6 +6,7 @@ import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import type { BrowserView } from '../../core/browser';
+import { Horizontal } from '../ui/stack';
 
 /**
  * The two layouts, as the segmented control renders them.
@@ -53,6 +54,7 @@ const readableSize = (bytes: number) =>
  * @param {BrowserView} props.view The layout sites are currently asked for.
  * @param {number} props.visits How many sites the visited list holds.
  * @param {number} props.icons How many site icons are cached.
+ * @param {number} props.blocked How many addresses are being left alone after refusing to be read.
  * @param {number} props.iconBytes How much disk those icons take.
  * @param {(view: BrowserView) => void} props.onView Switches the layout.
  * @param {() => void} props.onClear Forgets every visit.
@@ -60,7 +62,7 @@ const readableSize = (bytes: number) =>
  * @param {() => void} props.onClose Closes the dialog.
  * @returns {JSX.Element} The browser settings dialog.
  */
-export default function DashboardBrowserSettings({ view, visits, icons, iconBytes, onView, onClear, onClearCache, onClose }: { view: BrowserView; visits: number; icons: number; iconBytes: number; onView: (view: BrowserView) => void; onClear: () => void; onClearCache: () => void; onClose: () => void })
+export default function DashboardBrowserSettings({ view, visits, icons, blocked, iconBytes, onView, onClear, onClearCache, onClose }: { view: BrowserView; visits: number; icons: number; blocked: number; iconBytes: number; onView: (view: BrowserView) => void; onClear: () => void; onClearCache: () => void; onClose: () => void })
 {
     return (
         <Modal
@@ -73,7 +75,7 @@ export default function DashboardBrowserSettings({ view, visits, icons, iconByte
 
             <Text text={ T('Dashboard.Browser.View') } />
 
-            <div className='flex gap-2 *:flex-1'>
+            <Horizontal className='gap-2 *:flex-1'>
 
                 {
                     viewMap.map((item) => (
@@ -93,7 +95,7 @@ export default function DashboardBrowserSettings({ view, visits, icons, iconByte
                     ))
                 }
 
-            </div>
+            </Horizontal>
 
             <Text text={ T('Dashboard.Browser.ViewNote') } />
 
@@ -127,9 +129,12 @@ export default function DashboardBrowserSettings({ view, visits, icons, iconByte
             <Text text={ T('Dashboard.Browser.Cache') } />
 
             { /*
-              * Same shape as the visited list above: the count is the whole state, and it is what says
-              * whether clearing would do anything, so the button is disabled at zero rather than
-              * clearing nothing.
+              * Unlike the visited list above, the count here is not the whole state. What the cache
+              * holds is only half of it: a favicon the origin policy refused was never stored, so on
+              * this screen the thing most worth clearing is precisely the thing this line cannot show.
+              * That is why `blocked` sits beside the count in deciding whether the button does
+              * anything, and why it is disabled only when there is neither — "0 icons, 0 B" next to a
+              * live button means refusals, which is the honest reading and not a stuck control.
               */ }
             <Text
                 variant='body'
@@ -147,7 +152,7 @@ export default function DashboardBrowserSettings({ view, visits, icons, iconByte
                 <Button
                     variant='danger'
                     size='action'
-                    disabled={ icons === 0 }
+                    disabled={ icons === 0 && blocked === 0 }
                     onClick={ onClearCache }
                     className='disabled:opacity-40'>
 
