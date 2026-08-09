@@ -4,6 +4,7 @@ import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
 import Text from './text';
 
 import { cn } from '../../utility/cn';
+import { Horizontal, Vertical } from './stack';
 
 /**
  * The frosted text input, as Tailwind utilities.
@@ -40,7 +41,7 @@ export const glassInput = 'border border-input-normal bg-input-bg outline-2 outl
 export function TextField({ label = '', onValue, onEnter, leading, trailing, className = '', ...rest }: { label?: string; onValue: (value: string) => void; onEnter?: () => void; leading?: ReactNode; trailing?: ReactNode; className?: string } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange'>)
 {
     const row = (
-        <div className='relative flex items-center'>
+        <Horizontal className='relative items-center'>
 
             { leading }
 
@@ -52,7 +53,7 @@ export function TextField({ label = '', onValue, onEnter, leading, trailing, cla
 
             { trailing }
 
-        </div>
+        </Horizontal>
     );
 
     if (label.length === 0)
@@ -99,11 +100,18 @@ export function PasswordField({ label, value, onValue, onEnter, size = 'regular'
 
             <Text text={ label } />
 
-            <div className='relative flex items-center'>
+            <Horizontal className='relative items-center'>
 
+                { /*
+                  * Logical, not physical: the lock leads the field and the reveal control trails it, and
+                  * in Persian that is the right-hand and left-hand edge respectively. Pinned to `left`
+                  * and `right` they stayed put while the text they belong to flipped, which put the lock
+                  * at the end of the field and the eye at its start. The padding is symmetric, so this
+                  * was never an overlap — only both controls on the wrong side.
+                  */ }
                 <HiOutlineLockClosed
                     size={ lockSize > 0 ? lockSize : defaultLock }
-                    className={ cn('absolute text-txt-muted', regular ? 'left-4' : 'left-3') } />
+                    className={ cn('absolute text-txt-muted', regular ? 'inset-s-4' : 'inset-s-3') } />
 
                 <input
                     value={ value }
@@ -116,7 +124,7 @@ export function PasswordField({ label, value, onValue, onEnter, size = 'regular'
                 <button
                     type='button'
                     onClick={ () => { setShow((current) => !current); } }
-                    className={ cn('absolute cursor-pointer rounded-lg text-txt-muted hover:text-txt-normal', regular ? 'right-4' : 'right-3') }>
+                    className={ cn('absolute cursor-pointer rounded-lg text-txt-muted hover:text-txt-normal', regular ? 'inset-e-4' : 'inset-e-3') }>
 
                     {
                         show ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
@@ -124,7 +132,7 @@ export function PasswordField({ label, value, onValue, onEnter, size = 'regular'
 
                 </button>
 
-            </div>
+            </Horizontal>
 
         </label>
     );
@@ -163,12 +171,12 @@ export function ReadonlyField({ label = '', value, className = '' }: { label?: s
     }
 
     return (
-        <div className='flex flex-col gap-2'>
+        <Vertical className='gap-2'>
 
             <Text text={ label } />
 
             { box }
 
-        </div>
+        </Vertical>
     );
 }
