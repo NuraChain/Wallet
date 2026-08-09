@@ -1,4 +1,11 @@
-import { clsx, type ClassValue } from 'clsx';
+/**
+ * ClassValue - Every shape a call site may hand to {@link cn}.
+ *
+ * These are the shapes `clsx` accepted, kept exactly so that dropping the dependency changed no call
+ * site. `number` is not decoration: `list.length && 'class'` is typed `0 | 'class'`, so a falsy branch
+ * reaches here as a number rather than a boolean, and it has to be dropped rather than printed.
+ */
+export type ClassValue = string | number | boolean | null | undefined | ClassValue[] | Record<string, unknown>;
 
 /**
  * Values of `text-*` that set a size rather than a colour.
@@ -223,13 +230,64 @@ const mergeClasses = (value: string) =>
 };
 
 /**
+ * flattenValue - Reduces a class value of any shape to a plain space-separated string.
+ *
+ * This is the half of `cn` that `clsx` used to do, and it keeps that library's one rule: anything
+ * falsy is dropped wherever it appears. That is what makes `condition && 'class'` work, and it is why
+ * `0` is discarded rather than emitted as a class named `0`.
+ *
+ * The truthiness tests are spelled out rather than written as `!value` because the lint config runs
+ * `strict-boolean-expressions`, which rejects an implicit coercion on a union this wide.
+ * @param {ClassValue} value A string, number, boolean, nullish value, array or record.
+ * @returns {string} The classes it contributes, or an empty string when it contributes none.
+ */
+const flattenValue = (value: ClassValue): string =>
+{
+    if (typeof value === 'string')
+    {
+        return value;
+    }
+
+    if (typeof value === 'number')
+    {
+        return value === 0 || Number.isNaN(value) ? '' : `${ value }`;
+    }
+
+    if (Array.isArray(value))
+    {
+        const parts: string[] = [];
+
+        for (const item of value)
+        {
+            const part = flattenValue(item);
+
+            if (part.length > 0)
+            {
+                parts.push(part);
+            }
+        }
+
+        return parts.join(' ');
+    }
+
+    // `typeof null` is also `object`, so the null check is what separates a record from a nullish
+    // conditional that collapsed to nothing.
+    if (typeof value === 'object' && value !== null)
+    {
+        return Object.keys(value).filter((key) => Boolean(value[key])).join(' ');
+    }
+
+    return '';
+};
+
+/**
  * cn - Combines class values and resolves Tailwind conflicts.
  *
- * `clsx` handles the conditional shapes (`value && 'class'`, arrays), then `mergeClasses` makes the last
- * conflicting utility win — so a caller's `className` can override a component's default the way a
- * prop override is expected to behave. Plain string concatenation would emit both classes and leave
- * the winner to stylesheet order, which is invisible at the call site and easy to get backwards.
+ * `flattenValue` handles the conditional shapes (`value && 'class'`, arrays), then `mergeClasses` makes
+ * the last conflicting utility win — so a caller's `className` can override a component's default the
+ * way a prop override is expected to behave. Plain string concatenation would emit both classes and
+ * leave the winner to stylesheet order, which is invisible at the call site and easy to get backwards.
  * @param {...ClassValue} values Class strings, conditionals, or arrays of either.
  * @returns {string} The merged class string.
  */
-export const cn = (...values: ClassValue[]) => mergeClasses(clsx(values));
+export const cn = (...values: ClassValue[]) => mergeClasses(flattenValue(values));
