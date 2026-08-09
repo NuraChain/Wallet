@@ -1,8 +1,5 @@
 name: Release
 
-# Pushing a version tag builds every platform and attaches the installers to the
-# release for that tag. Can also be started by hand against any branch to check
-# the build without publishing anything.
 on:
   push:
     tags:
@@ -13,7 +10,6 @@ permissions:
   contents: write
 
 env:
-  # The app is not at the repository root.
   APP_DIR: Application
 
 jobs:
@@ -40,13 +36,10 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      # Keyed on the lockfile-less install below, so the key uses Cargo.toml instead.
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: ${{ env.APP_DIR }}/src-tauri
 
-      # webkit2gtk is the webview Tauri renders into; the rest are what its bundler
-      # needs to produce a .deb.
       - name: Install Linux build dependencies
         if: matrix.os == 'ubuntu-22.04'
         run: |
@@ -63,20 +56,6 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: npm run tauri build
 
-      # upload-artifact roots the archive at the common ancestor of every search
-      # path it is given, not of the files actually matched. Listing nsis/, msi/
-      # and deb/ together therefore rooted it at bundle/ and stored the installers
-      # one directory down, so the release job's `artifacts/*.exe` globs matched
-      # nothing and only the Android APK - uploaded from a single path, hence flat -
-      # reached the release. Collecting into one directory keeps the archive flat.
-      #
-      # The directory must not be `dist`: that is Vite's build output, so staging
-      # there uploaded index.html and the whole frontend bundle alongside the
-      # installers, and index.html ended up attached to the release.
-      # Tauri names bundles after `productName`, which is "Nura Wallet" - and GitHub
-      # rewrites the space when it attaches an asset, so the release listed
-      # `Nura.Wallet_1.0.0_x64-setup.exe`. Every artifact is renamed to one scheme
-      # here instead, so the four downloads read as one product.
       - name: Stage the installers
         working-directory: ${{ env.APP_DIR }}
         shell: bash
@@ -102,12 +81,8 @@ jobs:
           path: ${{ env.APP_DIR }}/release-files
 
   android:
-    name: android (.apk)
+    name: android (signed APK + AAB)
     runs-on: ubuntu-latest
-
-    # The `secrets` context is not available to a step's `if`, but job-level `env`
-    # may read it and `env` is available there. This mapping is that bridge; without
-    # it the signing step cannot ask whether a keystore was configured.
     env:
       ANDROID_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -115,13 +90,10 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
     steps:
-      # Checked before anything is built: an unsigned APK cannot be installed, so
-      # a tag that produces one is a wasted release. Failing here costs seconds
-      # rather than discovering it twenty minutes later in the collect step.
-      - name: Require a keystore for a tagged build
-        if: startsWith(github.ref, 'refs/tags/v') && env.ANDROID_KEYSTORE == ''
+      - name: Require Android signing secrets for tagged releases
+        if: startsWith(github.ref, 'refs/tags/v') && (env.ANDROID_KEYSTORE == '' || env.ANDROID_KEYSTORE_PASSWORD == '' || env.ANDROID_KEY_ALIAS == '' || env.ANDROID_KEY_PASSWORD == '')
         run: |
-          echo "::error::No ANDROID_KEYSTORE secret is set, so this release would ship an APK nobody can install. Add ANDROID_KEYSTORE, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD to the repository secrets."
+          echo "::error::Android signing secrets are incomplete. Configure ANDROID_KEYSTORE, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD."
           exit 1
 
       - uses: actions/checkout@v4
@@ -137,7 +109,7 @@ jobs:
 
       - uses: android-actions/setup-android@v3
 
-      - name: Install the NDK
+      - name: Install Android SDK and NDK
         run: |
           sdkmanager --install "ndk;29.0.13113456" "platforms;android-36" "build-tools;36.0.0"
           echo "NDK_HOME=$ANDROID_HOME/ndk/29.0.13113456" >> "$GITHUB_ENV"
@@ -154,22 +126,10 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: npm ci
 
-      # Parts of src-tauri/gen/android are git-ignored because Tauri regenerates
-      # them (buildSrc, tauri.settings.gradle, app/tauri.build.gradle.kts), and
-      # without them Gradle cannot resolve the `rust` plugin.
-      #
-      # Verified locally that this leaves the hand-written files alone: MainActivity,
-      # BrowserBridge and values/themes.xml came back byte-identical. It does drop
-      # three unused files — .editorconfig, res/layout/activity_main.xml and a
-      # values-night/themes.xml declaring `Theme.nura_wallet`, which is a different
-      # style from the `@style/Theme` the manifest points at, so none of them affect
-      # the build.
       - name: Restore generated Android scaffolding
         working-directory: ${{ env.APP_DIR }}
         run: npm run tauri android init
 
-      # Gradle signs during the build when this file is present, which also gets the
-      # APK zipaligned - apksigner alone does not align, and Android requires it.
       - name: Configure release signing
         if: env.ANDROID_KEYSTORE != ''
         working-directory: ${{ env.APP_DIR }}/src-tauri/gen/android
@@ -186,33 +146,36 @@ jobs:
         working-directory: ${{ env.APP_DIR }}
         run: npm run tauri android build -- --apk
 
-      # The keystore is deleted before anything else runs so it cannot reach an
-      # artifact. A tag that got this far with a broken keystore still fails here:
-      # the guard above only proves a secret was set, not that Gradle used it.
-      #
-      # Gradle names the file app-universal-release.apk, which says nothing about
-      # the product on a downloads page. It is renamed to carry the product and
-      # the version, like every desktop installer does, and the staging directory
-      # is deliberately not `dist` - that is Vite's output.
-      - name: Collect the APK
+      - name: Build release AAB
         working-directory: ${{ env.APP_DIR }}
+        run: npm run tauri android build -- --aab
+
+      - name: Verify, collect and clean signing material
+        working-directory: ${{ env.APP_DIR }}
+        shell: bash
         run: |
-          OUT=src-tauri/gen/android/app/build/outputs/apk/universal/release
-          APK=$(ls "$OUT"/*.apk | head -1)
-          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
           VERSION=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
-          rm -f src-tauri/gen/android/keystore.properties src-tauri/gen/android/release.jks
+          APK=$(find src-tauri/gen/android/app/build/outputs/apk -type f -name '*.apk' | grep -E '/release/' | head -1)
+          AAB=$(find src-tauri/gen/android/app/build/outputs/bundle -type f -name '*.aab' | grep -E '/release|Release/' | head -1)
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+
+          test -n "$APK" || { echo "::error::Release APK was not found"; exit 1; }
+          test -n "$AAB" || { echo "::error::Release AAB was not found"; exit 1; }
+
+          "$APKSIGNER" verify --verbose --print-certs "$APK"
+          jarsigner -verify -verbose -certs "$AAB" >/dev/null
+
           mkdir -p release-files
-          if "$APKSIGNER" verify --print-certs "$APK"; then
-            cp "$APK" "release-files/Nura-Wallet-$VERSION-universal.apk"
-          elif [ "${{ startsWith(github.ref, 'refs/tags/v') }}" = "true" ]; then
-            echo "::error::The build produced an unsigned APK despite a keystore being configured. Check that ANDROID_KEYSTORE is valid base64 and that the alias and passwords match it."
-            exit 1
-          else
-            cp "$APK" "release-files/Nura-Wallet-$VERSION-universal-unsigned.apk"
-            echo "::warning::APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
-          fi
-          ls -l release-files
+          cp "$APK" "release-files/Nura-Wallet-$VERSION-universal.apk"
+          cp "$AAB" "release-files/Nura-Wallet-$VERSION.aab"
+
+          rm -f src-tauri/gen/android/keystore.properties src-tauri/gen/android/release.jks
+          ls -lh release-files
+
+      - name: Remove signing material on failure
+        if: always()
+        working-directory: ${{ env.APP_DIR }}/src-tauri/gen/android
+        run: rm -f keystore.properties release.jks
 
       - uses: actions/upload-artifact@v4
         with:
@@ -222,9 +185,8 @@ jobs:
 
   release:
     name: Attach to the release
-    needs: [ desktop, android ]
+    needs: [desktop, android]
     runs-on: ubuntu-latest
-    # Only a tag produces a release; a manual run just leaves the artifacts on the run.
     if: startsWith(github.ref, 'refs/tags/v')
 
     steps:
@@ -233,10 +195,8 @@ jobs:
           path: artifacts
           merge-multiple: true
 
-      # Every job stages exactly the files meant to ship, so the whole directory
-      # is attached rather than a list of extensions that can silently miss one.
-      - name: List what will be attached
-        run: ls -lR artifacts
+      - name: List release files
+        run: ls -lh artifacts
 
       - uses: softprops/action-gh-release@v2
         with:
