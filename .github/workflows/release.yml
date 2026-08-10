@@ -64,7 +64,7 @@ jobs:
           fi
 
   windows:
-    name: windows (.exe / .msi)
+    name: windows (.exe)
     needs: version
     runs-on: windows-latest
     timeout-minutes: 60
@@ -89,15 +89,22 @@ jobs:
 
       # Windows on ARM runs x64 binaries under emulation, so one x64 build leaves
       # nobody without an installer and there is no second toolchain to keep alive.
+      #
+      # Only the NSIS installer is built. tauri.windows.conf.json restricts the
+      # targets rather than this job dropping the MSI at the staging step, because
+      # a discarded MSI still costs the WiX download and a second bundling pass -
+      # the point of removing it is the time back, not just the shorter list.
       - name: Build
         run: npm run tauri build
 
       # upload-artifact roots the archive at the common ancestor of every search
-      # path it is given, not of the files actually matched. Listing nsis/ and
-      # msi/ together therefore rooted it at bundle/ and stored the installers one
-      # directory down, so the release job's `artifacts/*.exe` globs matched
-      # nothing and only the Android APK - uploaded from a single path, hence flat
-      # - reached the release. Collecting into one directory keeps the archive flat.
+      # path it is given, not of the files actually matched. Listing nsis/ and msi/
+      # together - as this job did when it still built both - therefore rooted it
+      # at bundle/ and stored the installers one directory down, so the release
+      # job's `artifacts/*.exe` globs matched nothing and only the Android APK -
+      # uploaded from a single path, hence flat - reached the release. Collecting
+      # into one directory keeps the archive flat, and still matters here: the
+      # Linux job stages three bundle directories at once.
       #
       # The directory must not be `dist`: that is Vite's build output, so staging
       # there uploaded index.html and the whole frontend bundle alongside the
@@ -111,7 +118,7 @@ jobs:
       # That scheme is <product>-<version>-<platform>-<arch>.<ext>, and the platform
       # is spelled out because the arch alone does not say which build a file came
       # from: x86_64 and arm64 each name both a Linux package and an Android ABI,
-      # so the thirteen assets sort into three obvious groups only once the platform
+      # so the twelve assets sort into three obvious groups only once the platform
       # is in the name. Windows carries it too, for one scheme rather than two.
       - name: Stage the installers
         shell: bash
@@ -136,7 +143,6 @@ jobs:
           }
 
           stage "Nura-Wallet-$VERSION-Windows-x64-setup.exe" "$BUNDLE"/nsis/*-setup.exe
-          stage "Nura-Wallet-$VERSION-Windows-x64.msi" "$BUNDLE"/msi/*.msi
           ls -l release-files
 
       - uses: actions/upload-artifact@v4
@@ -445,8 +451,8 @@ jobs:
           COUNT=$(find artifacts -type f | wc -l)
           echo "$COUNT files staged for the release."
 
-          if [ "$COUNT" -ne 13 ]; then
-            echo "::warning::Expected 13 assets (2 Windows, 6 Linux, 5 Android) but found $COUNT. Check the staging warnings in the build jobs above."
+          if [ "$COUNT" -ne 12 ]; then
+            echo "::warning::Expected 12 assets (1 Windows, 6 Linux, 5 Android) but found $COUNT. Check the staging warnings in the build jobs above."
           fi
 
       - uses: softprops/action-gh-release@v2
