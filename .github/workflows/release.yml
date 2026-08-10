@@ -28,38 +28,41 @@ jobs:
     name: Check the version
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    outputs:
-      number: ${{ steps.read.outputs.number }}
 
     steps:
       - uses: actions/checkout@v4
 
-      # Cargo.toml is the one place a version is declared, and every asset below is
-      # named after it - but the release is created for the *tag*, and nothing tied
-      # the two together. Tagging v1.0.5 without bumping Cargo.toml first therefore
-      # attached a full set of `Nura-Wallet-1.0.4-*` files to a release called
-      # v1.0.5, and no step failed. The bump is its own commit here, so that is an
-      # easy order to get wrong.
+      # Cargo.toml is the one place a version is declared, but the release is
+      # created for the *tag*, and nothing tied the two together. Tagging v1.0.5
+      # without bumping Cargo.toml first therefore shipped binaries declaring
+      # 1.0.4 under a release called v1.0.5, and no step failed. The bump is its
+      # own commit here, so that is an easy order to get wrong.
       #
-      # Reading it once also stops the staging steps from each re-deriving it, which
-      # is how three copies of one `grep` ended up in the file.
-      - name: Read the version and check it against the tag
-        id: read
+      # This matters more now that the assets do not carry the number: a file on
+      # disk cannot be told apart from the previous release's, so the tag, the
+      # release page and the version Tauri and Vite bake into the app are the only
+      # places it survives at all. Every one of those comes from this line, so a
+      # tag that disagrees with it is a release lying about what it contains, and
+      # nothing downstream would show it.
+      #
+      # No output is published: the staging steps name files by platform and arch
+      # alone, so nothing downstream consumes the number and this job is purely a
+      # gate the three build jobs wait on.
+      - name: Check the version against the tag
         env:
           TAGGED: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
           NUMBER=$(grep -m1 '^version' src-tauri/Cargo.toml | cut -d'"' -f2)
 
           if [ -z "$NUMBER" ]; then
-            echo "::error::No version line was found in src-tauri/Cargo.toml, so every asset would be named Nura-Wallet--<platform>-<arch>."
+            echo "::error::No version line was found in src-tauri/Cargo.toml, so the app would report no version of its own and the release would have nothing to check the tag against."
             exit 1
           fi
 
-          echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
           echo "Cargo.toml declares $NUMBER."
 
           if [ "$TAGGED" = "true" ] && [ "$GITHUB_REF_NAME" != "v$NUMBER" ]; then
-            echo "::error::The tag is $GITHUB_REF_NAME but Cargo.toml declares $NUMBER, so every asset would be named after a version this release is not. Bump Cargo.toml and retag."
+            echo "::error::The tag is $GITHUB_REF_NAME but Cargo.toml declares $NUMBER, so this release would ship an app reporting a version the release is not. Bump Cargo.toml and retag."
             exit 1
           fi
 
@@ -115,15 +118,19 @@ jobs:
       # `Nura.Wallet_1.0.0_x64-setup.exe`. Every artifact is renamed to one scheme
       # here instead, so the whole download list reads as one product.
       #
-      # That scheme is <product>-<version>-<platform>-<arch>.<ext>, and the platform
-      # is spelled out because the arch alone does not say which build a file came
+      # That scheme is <product>-<platform>-<arch>.<ext>, and the platform is
+      # spelled out because the arch alone does not say which build a file came
       # from: x86_64 and arm64 each name both a Linux package and an Android ABI,
       # so the twelve assets sort into three obvious groups only once the platform
       # is in the name. Windows carries it too, for one scheme rather than two.
+      #
+      # The version is deliberately absent, so a download link for a given platform
+      # reads the same at every release. The cost is that the file is anonymous once
+      # saved - two releases' installers collide in a downloads folder and the older
+      # is indistinguishable from the newer - which is why the check above is the
+      # only thing keeping the number honest.
       - name: Stage the installers
         shell: bash
-        env:
-          VERSION: ${{ needs.version.outputs.number }}
         run: |
           mkdir -p release-files
           BUNDLE=src-tauri/target/release/bundle
@@ -142,7 +149,7 @@ jobs:
             fi
           }
 
-          stage "Nura-Wallet-$VERSION-Windows-x64-setup.exe" "$BUNDLE"/nsis/*-setup.exe
+          stage "Nura-Wallet-Windows-x64-setup.exe" "$BUNDLE"/nsis/*-setup.exe
           ls -l release-files
 
       - uses: actions/upload-artifact@v4
@@ -222,8 +229,6 @@ jobs:
 
       - name: Stage the installers
         shell: bash
-        env:
-          VERSION: ${{ needs.version.outputs.number }}
         run: |
           mkdir -p release-files
           BUNDLE=src-tauri/target/release/bundle
@@ -238,9 +243,9 @@ jobs:
             fi
           }
 
-          stage "Nura-Wallet-$VERSION-Linux-${{ matrix.deb }}.deb" "$BUNDLE"/deb/*.deb
-          stage "Nura-Wallet-$VERSION-Linux-${{ matrix.unix }}.rpm" "$BUNDLE"/rpm/*.rpm
-          stage "Nura-Wallet-$VERSION-Linux-${{ matrix.unix }}.AppImage" "$BUNDLE"/appimage/*.AppImage
+          stage "Nura-Wallet-Linux-${{ matrix.deb }}.deb" "$BUNDLE"/deb/*.deb
+          stage "Nura-Wallet-Linux-${{ matrix.unix }}.rpm" "$BUNDLE"/rpm/*.rpm
+          stage "Nura-Wallet-Linux-${{ matrix.unix }}.AppImage" "$BUNDLE"/appimage/*.AppImage
           ls -l release-files
 
       # One name per matrix leg: upload-artifact@v4 refuses to write an existing
@@ -374,12 +379,11 @@ jobs:
       # above only proves a secret was set, not that Gradle used it.
       #
       # Gradle names the files app-<flavour>-release.apk, which says nothing about
-      # the product on a downloads page. Each is renamed to carry the product, the
-      # version and the platform, like every desktop installer does, and the staging
-      # directory is deliberately not `dist` - that is Vite's output.
+      # the product on a downloads page. Each is renamed to carry the product and
+      # the platform, like every desktop installer does, and the staging directory
+      # is deliberately not `dist` - that is Vite's output.
       - name: Collect the APKs
         env:
-          VERSION: ${{ needs.version.outputs.number }}
           TAGGED: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
           OUT=src-tauri/gen/android/app/build/outputs/apk
@@ -406,12 +410,12 @@ jobs:
             fi
 
             if "$APKSIGNER" verify --print-certs "$apk"; then
-              cp "$apk" "release-files/Nura-Wallet-$VERSION-Android-$abi.apk"
+              cp "$apk" "release-files/Nura-Wallet-Android-$abi.apk"
             elif [ "$TAGGED" = "true" ]; then
               echo "::error::The build produced an unsigned $abi APK despite a keystore being configured. Check that ANDROID_KEYSTORE is valid base64 and that the alias and passwords match it."
               exit 1
             else
-              cp "$apk" "release-files/Nura-Wallet-$VERSION-Android-$abi-unsigned.apk"
+              cp "$apk" "release-files/Nura-Wallet-Android-$abi-unsigned.apk"
               echo "::warning::The $abi APK is unsigned and cannot be installed. Set the ANDROID_KEYSTORE secrets."
             fi
           done
