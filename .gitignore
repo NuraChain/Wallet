@@ -1,5 +1,8 @@
 .kilo/
-.claude/
+
+# Claude Code's project config is shared — the skills under .claude/ document how
+# this repo is built and belong beside it. Only the per-user overrides stay local.
+.claude/settings.local.json
 
 node_modules/
 target/
