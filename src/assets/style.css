@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "flag-icons/css/flag-icons.min.css";
 
 /*
  * Color tokens are declared `inline` so generated utilities reference the runtime variables below, letting `[data-theme]` swap the entire palette.

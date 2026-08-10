@@ -1,17 +1,50 @@
+import { on, off, emit } from './event';
 import { setValue, getValue } from './storage';
 
-export type LanguageType = 'en' | 'fa';
+import flagBr from '../assets/flag/br.svg';
+import flagCn from '../assets/flag/cn.svg';
+import flagEs from '../assets/flag/es.svg';
+import flagFr from '../assets/flag/fr.svg';
+import flagIn from '../assets/flag/in.svg';
+import flagIr from '../assets/flag/ir.svg';
+import flagRu from '../assets/flag/ru.svg';
+import flagSa from '../assets/flag/sa.svg';
+import flagTr from '../assets/flag/tr.svg';
+import flagUs from '../assets/flag/us.svg';
+
+export type LanguageType = 'en' | 'fa' | 'ar' | 'es' | 'pt' | 'hi' | 'zh' | 'ru' | 'fr' | 'tr';
 
 let languageCurrent: LanguageType = 'en';
 let languageMap: Record<string, Record<string, never>> = {};
 
 /**
  * Language metadata used by the UI for display and locale selection.
+ *
+ * The flag is an imported asset rather than a `flag-icons` class. That package's stylesheet reaches
+ * every one of its 260-odd flags through `url()`, so the bundler copied 3.8 MB of them into `dist`
+ * to serve the handful this list actually names. Importing the ten directly costs 128 KB, and the
+ * bundler can see which ones are reachable instead of having to keep them all.
+ *
+ * A flag names a country and a language does not, so two of these are a judgement rather than a
+ * fact: Arabic flies Saudi Arabia's as the usual stand-in for Modern Standard Arabic, and
+ * Portuguese flies Brazil's because that is where the overwhelming majority of its speakers are.
+ * Either can be swapped by changing the import and the entry together.
+ *
+ * The order is the one the picker shows, not an alphabetical one — English and Persian lead because
+ * they are the two the app shipped with.
  */
-export const languageRecord: { code: LanguageType; country: string; emoji: string } [] =
+export const languageRecord: { code: LanguageType; country: string; emoji: string; flag: string } [] =
 [
-    { code: 'en', country: 'us', emoji: '🇺🇸' },
-    { code: 'fa', country: 'ir', emoji: '🇮🇷' }
+    { code: 'en', country: 'us', emoji: '🇺🇸', flag: flagUs },
+    { code: 'fa', country: 'ir', emoji: '🇮🇷', flag: flagIr },
+    { code: 'ar', country: 'sa', emoji: '🇸🇦', flag: flagSa },
+    { code: 'es', country: 'es', emoji: '🇪🇸', flag: flagEs },
+    { code: 'pt', country: 'br', emoji: '🇧🇷', flag: flagBr },
+    { code: 'hi', country: 'in', emoji: '🇮🇳', flag: flagIn },
+    { code: 'zh', country: 'cn', emoji: '🇨🇳', flag: flagCn },
+    { code: 'ru', country: 'ru', emoji: '🇷🇺', flag: flagRu },
+    { code: 'fr', country: 'fr', emoji: '🇫🇷', flag: flagFr },
+    { code: 'tr', country: 'tr', emoji: '🇹🇷', flag: flagTr }
 ];
 
 /**
@@ -65,7 +98,39 @@ export const setLanguage = async(lang: LanguageType) =>
     document.documentElement.lang = lang;
 
     document.documentElement.dir = [ 'fa', 'ar' ].includes(lang) ? 'rtl' : 'ltr';
+
+    // Announced last, so a listener that re-renders is reading the bundle that is already in place.
+    //
+    // Most of the app never needed this: the picker is a modal, and closing it is a state change on
+    // the page underneath, which re-renders the whole tree with the new strings as a side effect.
+    // Anything mounted *outside* that page has no such luck — the title bar is a sibling of the page
+    // layout, so it kept whatever `T()` returned when the window opened.
+    emit('Language.Change', lang);
 };
+
+/**
+ * Subscribe to language changes, in the shape `useSyncExternalStore` wants.
+ * @param {() => void} listener Called after a new bundle is applied.
+ * @returns {() => void} Unsubscribes the listener.
+ */
+export const subscribeLanguage = (listener: () => void) =>
+{
+    on('Language.Change', listener);
+
+    return () =>
+    {
+        off('Language.Change', listener);
+    };
+};
+
+/**
+ * The active language code.
+ *
+ * Returns the module's own `languageCurrent` rather than a fresh object, because it is the snapshot
+ * `useSyncExternalStore` compares between renders — a new object every call would loop forever.
+ * @returns {LanguageType} The code of the language currently applied.
+ */
+export const getLanguageCode = () => languageCurrent;
 
 /**
  * Return metadata for the current language.

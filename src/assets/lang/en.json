@@ -13,7 +13,15 @@
     },
     "Language": {
         "en": "English",
-        "fa": "Persian"
+        "fa": "Persian",
+        "ar": "Arabic",
+        "es": "Spanish",
+        "pt": "Portuguese",
+        "hi": "Hindi",
+        "zh": "Chinese",
+        "ru": "Russian",
+        "fr": "French",
+        "tr": "Turkish"
     },
     "Intro": {
         "Language": "Language",

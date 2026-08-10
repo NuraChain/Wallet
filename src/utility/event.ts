@@ -1,7 +1,13 @@
 import type { JSX } from 'react';
 
+import type { LanguageType } from './language';
+
 interface EventMap
 {
+    // `language.ts` imports `emit` from here at runtime, so this direction has to stay type-only or
+    // the two modules form a cycle. `import type` is erased before the bundler sees it.
+    'Language.Change': [code: LanguageType];
+
     'Page.Open': [component: JSX.Element];
 
     'Toast.Open': [component: JSX.Element];

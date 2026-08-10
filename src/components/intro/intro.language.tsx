@@ -1,10 +1,9 @@
 import { FiCheck } from 'react-icons/fi';
 
 import Button from '../ui/button';
-import { Modal, ModalHeader } from '../ui/modal';
+import { Modal, ModalBody, ModalHeader } from '../ui/modal';
 
 import { T, getLanguage, setLanguage, languageRecord, type LanguageType } from '../../utility/language';
-import { Vertical } from '../ui/stack';
 
 export default function IntroLanguage({ onClose }: { onClose: () => void })
 {
@@ -20,6 +19,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
     return (
         <Modal
             z='z-10'
+            scroll={ true }
             onClose={ onClose }
             panelClass='w-72 gap-2 rounded-lg'>
 
@@ -33,8 +33,18 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
               *
               * The active row is disabled because it is the one you are already on, not because it is
               * unavailable — so it keeps the ordinary cursor instead of the "no" one.
+              *
+              * Ten rows of `h-12` outgrow a short window, so the list is a `ModalBody` and the panel
+              * caps itself: with two languages the dialog shrink-wrapped and neither was needed.
+              *
+              * The cap is 18rem because that is five rows (5×3rem plus their four gaps = 17rem) and
+              * one more gap, so the sixth row is cut mid-height rather than landing flush against the
+              * edge — a half-row is what tells you the list keeps going. The panel's own `80vh` is
+              * left as the backstop for a window too short even for this, and on any ordinary window
+              * this is the smaller of the two, which is the point: `80vh` alone let the dialog grow to
+              * most of a desktop screen.
               */ }
-            <Vertical className='gap-2 pt-2'>
+            <ModalBody className='max-h-72 gap-2 pt-4'>
 
                 {
                     languageRecord.map((lang) =>
@@ -49,12 +59,12 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
                                 onClick={ () => { void handleSelect(lang.code); } }
                                 className={ `h-12 gap-2 rounded-xl px-4 text-start duration-300 ${ isActive ? 'disabled:cursor-default!' : '' }` }>
 
-                                { /* `fi-<country>` is flag-icons' own class rather than a Tailwind utility, so the
-                                     scanner has nothing to miss here and there is nothing to purge. The rule cannot
-                                     tell the two apart, which is why `no-unknown-classes` is off in the lint config
-                                     for the same pair of classes. */ }
-                                { /* eslint-disable-next-line better-tailwindcss/no-concatenated-classes */ }
-                                <div className={ `fi fi-${ lang.country } size-4!` } />
+                                { /* The 4x3 flag is letterboxed into a square rather than stretched, so a wide
+                                     flag keeps its proportions and every row's icon occupies the same box. */ }
+                                <img
+                                    src={ lang.flag }
+                                    alt=''
+                                    className='size-4 shrink-0 object-contain' />
 
                                 <div className='flex-1'>
 
@@ -73,7 +83,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
                     })
                 }
 
-            </Vertical>
+            </ModalBody>
 
         </Modal>
     );
