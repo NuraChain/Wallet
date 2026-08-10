@@ -1,5 +1,6 @@
 import { LuTvMinimal } from 'react-icons/lu';
 import { useIsWindows } from '../hook/platform';
+import { useLanguage } from '../hook/language';
 import { AiOutlineMobile } from 'react-icons/ai';
 import { useCallback, useState } from 'react';
 import { VscChromeClose, VscChromeMinimize } from 'react-icons/vsc';
@@ -24,12 +25,21 @@ const mobileSize = { width: 360, height: 640 };
  *
  * The window is created with `decorations: false`, so the app has to provide its own drag region and window controls.
  *
- * The bar keeps a fixed `ltr` direction so the controls stay where a Windows user expects them, regardless of the active UI language.
+ * The bar keeps a fixed `ltr` direction so the controls stay where a Windows user expects them,
+ * regardless of the active UI language. That is what the `dir` attribute on the row is for, and it
+ * has to be stated: `initLanguage` writes `dir="rtl"` on `<html>` for Persian and Arabic, and a flex
+ * row obeys it by reversing its children — which put the close button on the left of the window and
+ * the app name on the right. The attribute is inherited, so only an explicit one stops it here.
  * @returns {JSX.Element} The title bar element.
  */
 export default function TitleBar()
 {
     const isWindows = useIsWindows();
+
+    // Subscribed rather than read: the bar sits beside the page layout, not inside it, so the
+    // re-render that closing the language picker gives every other surface never reaches here. The
+    // value itself is unused — what is wanted is the render it causes, which re-runs `T()` below.
+    useLanguage();
 
     const [ wide, setWide ] = useState(false);
 
@@ -95,6 +105,7 @@ export default function TitleBar()
 
     return (
         <div
+            dir='ltr'
             data-tauri-drag-region
             onDoubleClick={ onToggleSize }
             className='absolute inset-x-0 z-20 flex h-8 cursor-pointer items-center justify-between'>
