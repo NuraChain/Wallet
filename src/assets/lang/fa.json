@@ -1,9 +1,9 @@
 {
     "App": {
-        "Name": "Nura Wallet",
+        "Name": "کیف پول نورا",
         "Tray": {
-            "Open": "Nura Wallet باز کردن",
-            "Quit": "Nura Wallet خروج از"
+            "Open": "باز کردن کیف پول نورا",
+            "Quit": "خروج از کیف پول نورا"
         },
         "Window": {
             "Minimize": "کوچک کردن",
@@ -256,7 +256,7 @@
             "ExportSavedText": "در Downloads ذخیره شد. پس از ایمن شدن پشتیبان، آن را پاک کنید.",
             "ExportFailed": "ذخیره فایل انجام نشد",
             "ExportUnsupported": "این دستگاه برای ذخیره فایل به این روش قدیمی است",
-            "ExportImageTitle": "عبارت بازیابی نورا ولت",
+            "ExportImageTitle": "عبارت بازیابی کیف پول نورا",
             "ExportImageWarning": "هرکس این کلمات را داشته باشد مالک کیف پول است. آفلاین نگه دارید."
         },
         "Logout": {
