@@ -235,6 +235,20 @@
     -webkit-user-select: none;
 }
 
+/*
+ * The reset above has to stop at anything editable. Blink — the WebView2 and Android WebView
+ * engine — quietly exempts form controls from an inherited `user-select: none`, but WebKitGTK,
+ * which is the Linux webview, honours it literally and makes the field uneditable: the .deb
+ * build shipped inputs that could not be typed into at all, while Windows and Android were fine.
+ * Selection is what typing is built on, so this has to be `text` rather than `auto`.
+ */
+input,
+textarea,
+[contenteditable] {
+    user-select: text;
+    -webkit-user-select: text;
+}
+
 html:lang(en) body {
     font-family: monospace, sans-serif;
 }
