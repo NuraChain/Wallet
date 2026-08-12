@@ -1,7 +1,8 @@
 import { isTauri } from '@tauri-apps/api/core';
 import { load } from '@tauri-apps/plugin-store';
+import { argon2id } from 'hash-wasm';
 
-interface EncryptedPayload { salt: string; iv: string; cipher: string }
+interface EncryptedPayload { salt: string; iv: string; cipher: string; kdf?: 'argon2id' }
 
 type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name' | 'Wallet.Accounts' | 'Wallet.Active' | 'Wallet.Tokens' | 'Browser.View' | 'Browser.History' | 'Browser.Favorites';
 
@@ -48,6 +49,9 @@ const storage: Backend = isTauri() ? await load('application.bin') : webStorage;
 
 /**
  * deriveKey - Derives a non-extractable AES-GCM 256 key from a passphrase and salt via PBKDF2-SHA256
+ *
+ * Retained for legacy payloads written before the mnemonic KDF was raised to Argon2id; those blobs
+ * carry no `kdf` marker and must still unlock, then they are re-encrypted on the next read.
  * @param {string} passphrase - The passphrase to derive the key from
  * @param {Uint8Array<ArrayBuffer>} salt - The salt bytes used in derivation
  * @returns {Promise<CryptoKey>} The derived AES-GCM key
@@ -57,6 +61,23 @@ const deriveKey = async(passphrase: string, salt: Uint8Array<ArrayBuffer>) =>
     const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, [ 'deriveKey' ]);
 
     return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 102400, hash: 'SHA-256' }, material, { name: 'AES-GCM', length: 256 }, false, [ 'encrypt', 'decrypt' ]);
+};
+
+/**
+ * deriveKeyArgon2id - Derives a non-extractable AES-GCM 256 key from a passphrase and salt via Argon2id
+ *
+ * The mnemonic is the actual secret, so its KDF must be at least as strong as the unlock hash in
+ * `core/password.ts`. The cost parameters are identical to that hash, but the salt is the per-blob
+ * random value generated in `setValueEncrypted` rather than the fixed application-wide one.
+ * @param {string} passphrase - The passphrase to derive the key from
+ * @param {Uint8Array<ArrayBuffer>} salt - The salt bytes used in derivation
+ * @returns {Promise<CryptoKey>} The derived AES-GCM key
+ */
+const deriveKeyArgon2id = async(passphrase: string, salt: Uint8Array<ArrayBuffer>) =>
+{
+    const bytes = await argon2id({ password: passphrase, salt, memorySize: 65536, iterations: 3, parallelism: 1, hashLength: 32, outputType: 'binary' });
+
+    return crypto.subtle.importKey('raw', new Uint8Array(bytes), 'AES-GCM', false, [ 'encrypt', 'decrypt' ]);
 };
 
 /**
@@ -122,7 +143,7 @@ export const setValueEncrypted = async(key: StorageKey, value: string, passphras
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const salt = crypto.getRandomValues(new Uint8Array(16));
 
-    const cryptoKey = await deriveKey(passphrase, salt);
+    const cryptoKey = await deriveKeyArgon2id(passphrase, salt);
     const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, new TextEncoder().encode(value));
 
     const toBase64 = (bytes: Uint8Array) =>
@@ -137,7 +158,7 @@ export const setValueEncrypted = async(key: StorageKey, value: string, passphras
         return btoa(binary);
     };
 
-    const payload: EncryptedPayload = { iv: toBase64(iv), salt: toBase64(salt), cipher: toBase64(new Uint8Array(cipher)) };
+    const payload: EncryptedPayload = { iv: toBase64(iv), salt: toBase64(salt), cipher: toBase64(new Uint8Array(cipher)), kdf: 'argon2id' };
 
     await setValue(key, JSON.stringify(payload));
 };
@@ -175,8 +196,16 @@ export const getValueEncrypted = async(key: StorageKey, passphrase: string) =>
 
     const fromBase64 = (value: string) => Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
 
-    const cryptoKey = await deriveKey(passphrase, fromBase64(parsed.salt));
+    const legacy = parsed.kdf !== 'argon2id';
+    const cryptoKey = legacy ? await deriveKey(passphrase, fromBase64(parsed.salt)) : await deriveKeyArgon2id(passphrase, fromBase64(parsed.salt));
     const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromBase64(parsed.iv) }, cryptoKey, fromBase64(parsed.cipher));
 
-    return new TextDecoder().decode(plain);
+    const value = new TextDecoder().decode(plain);
+
+    if (legacy)
+    {
+        await setValueEncrypted(key, value, passphrase);
+    }
+
+    return value;
 };
