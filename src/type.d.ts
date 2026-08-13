@@ -23,6 +23,7 @@ interface ImportMetaEnv
     readonly DEV: boolean;
     readonly PROD: boolean;
     readonly MODE: string;
+    readonly VITE_COVALENT_KEY?: string;
 }
 
 interface ImportMeta

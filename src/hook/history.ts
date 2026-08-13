@@ -128,7 +128,15 @@ const readAction = async(action: string, address: string, network: Network): Pro
  * A fallback and not the first choice: Blockscout serves Nura and Ethereum without a key or a credit,
  * and spending either where the explorer already works would be waste.
  */
-const covalentKey = 'cqt_rQ8QCcv7tjg9rbjjCbh9GbjM8pgH';
+
+/**
+ * GoldRush key, supplied by the build environment.
+ *
+ * It must be rotated at the provider: the previous value was committed to git, so it can no longer be
+ * treated as a secret. When unset this is an empty string, and every GoldRush request below then
+ * degrades to an empty list.
+ */
+const covalentKey = import.meta.env.VITE_COVALENT_KEY ?? '';
 
 /**
  * Root of the API. The chain is addressed by number rather than by GoldRush's own slug, which saves
