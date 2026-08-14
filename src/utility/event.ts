@@ -8,6 +8,9 @@ interface EventMap
     // the two modules form a cycle. `import type` is erased before the bundler sees it.
     'Language.Change': [code: LanguageType];
 
+    // Same direction and the same reason: `connection.ts` emits this and nothing here imports it back.
+    'Connection.Change': [online: boolean];
+
     'Page.Open': [component: JSX.Element];
 
     'Toast.Open': [component: JSX.Element];
