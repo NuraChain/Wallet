@@ -1,7 +1,21 @@
+import { isOnline } from './connection';
+import { prune, readRaw, writeRaw } from './cache.store';
+
 /**
  * USD prices, keyed by CoinGecko coin id.
  */
 export type PriceMap = Record<string, number>;
+
+/**
+ * What one lookup produced: the prices that could be resolved, and when the oldest of them was read.
+ *
+ * The moment matters as much as the number here. A price served from disk after a week offline is
+ * still the most useful thing the app has, but a portfolio total drawn from it must be able to say so —
+ * `at` is what lets the wallet tab mark the figure rather than present last week's valuation as today's.
+ * It is `0` when nothing could be resolved at all, which is the caller's signal to show no figure
+ * instead of a confident zero.
+ */
+export interface PriceRead { prices: PriceMap; at: number }
 
 /**
  * CoinGecko coin ids for the native coin of each known chain. Custom networks have no id, so their coin simply counts as zero in the portfolio total instead of guessing a price.
@@ -15,7 +29,32 @@ const assetFolders: Record<number, string | undefined> = { 1: 'ethereum', 56: 's
 
 const endpoint = 'https://api.coingecko.com/api/v3/simple/price';
 
-const cache = new Map<string, { at: number; prices: PriceMap }>();
+/**
+ * Where prices are held, and for how long they answer without going back to the endpoint.
+ *
+ * **Local** storage, and filed one coin at a time. Both halves are deliberate: a price outlives the
+ * session that read it — a coin's worth an hour ago is a far better answer than no answer at all, and
+ * it is the only answer available on a launch with no connection — and keying by coin rather than by
+ * the set that was asked for means adding a token does not throw away the prices of the ones already
+ * tracked. The whole set used to be one entry, so every change to the holdings list started from
+ * nothing.
+ */
+const pricePrefix = 'price-cache/v1/';
+const priceFresh = 60 * 1000;
+const priceEntries = 64;
+
+/** One coin's price as it is stored. */
+interface StoredPrice { usd: number; at: number }
+
+/**
+ * When each id set was last asked about, in memory only.
+ *
+ * The cache above holds answers, keyed per coin — so an id the endpoint has no price for leaves nothing
+ * behind, and without this every mount would ask again on its behalf. That is the one thing worth
+ * avoiding against a rate-limited public endpoint. This remembers the asking rather than the answer,
+ * and it is deliberately not persisted: a fresh launch may always ask once.
+ */
+const asked = new Map<string, number>();
 
 /**
  * getNativeCoinId - CoinGecko id for a chain's native coin.
@@ -52,52 +91,148 @@ export const getTokenLogo = (chainId: number, address: string) =>
 };
 
 /**
- * readPrices - Fetches USD prices for a set of CoinGecko ids.
- *
- * Responses are cached for a minute against the exact id set, so switching tabs or refreshing balances does not hammer the public (rate-limited) endpoint. Malformed entries are dropped rather than thrown on — a missing price just leaves that asset out of the total.
- * @param {string[]} ids CoinGecko coin ids.
- * @returns {Promise<PriceMap>} The prices that could be resolved.
+ * parsePrice - Reads one stored price back, or `undefined` when it is not what was written.
+ * @param {string | undefined} raw The serialized entry.
+ * @returns {StoredPrice | undefined} The price, or `undefined`.
  */
-export const readPrices = async(ids: string[]): Promise<PriceMap> =>
+const parsePrice = (raw: string | undefined) =>
+{
+    if (raw === undefined)
+    {
+        return undefined;
+    }
+
+    try
+    {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const parsed = JSON.parse(raw) as StoredPrice;
+
+        if (typeof parsed.usd !== 'number' || !Number.isFinite(parsed.usd) || typeof parsed.at !== 'number')
+        {
+            return undefined;
+        }
+
+        return parsed;
+    }
+    catch
+    {
+        return undefined;
+    }
+};
+
+/**
+ * collect - Turns what is held into the answer a caller renders.
+ * @param {Map<string, StoredPrice>} held The resolved prices.
+ * @returns {PriceRead} The prices, stamped with the age of the oldest of them.
+ */
+const collect = (held: Map<string, StoredPrice>): PriceRead =>
+{
+    const prices: PriceMap = {};
+
+    let at = 0;
+
+    for (const [ id, entry ] of held)
+    {
+        prices[id] = entry.usd;
+
+        // The oldest, because that is what the figure they add up to is worth: a total is only as
+        // current as the stalest number inside it.
+        at = at === 0 ? entry.at : Math.min(at, entry.at);
+    }
+
+    return { prices, at };
+};
+
+/**
+ * readPrices - USD prices for a set of CoinGecko ids, from disk first and the endpoint second.
+ *
+ * Held prices answer for a minute, so switching tabs or refreshing balances does not hammer the public
+ * (rate-limited) endpoint. Past that the endpoint is asked — and if it cannot be reached, **what is
+ * held answers anyway, at whatever age it is**. That is the difference between a wallet that shows an
+ * hour-old valuation with a note on it and one that shows `$0.00` the moment the wifi drops.
+ *
+ * Nothing here throws. A price is a nicety on top of a balance, and there is no failure of it worth
+ * propagating: an id that cannot be resolved is simply absent from the map, and the asset then shows
+ * its amount with no second line rather than a fabricated one.
+ * @param {string[]} ids CoinGecko coin ids.
+ * @returns {Promise<PriceRead>} The prices that could be resolved, and how old the oldest is.
+ */
+export const readPrices = async(ids: string[]): Promise<PriceRead> =>
 {
     const unique = [ ...new Set(ids.filter((id) => id.length > 0)) ].sort((left, right) => left.localeCompare(right));
 
+    // Nothing to price is not a failed lookup: a chain with no listed coin — every custom network, and
+    // Nura — has a knowable answer of "no prices", and it is current rather than missing.
     if (unique.length === 0)
     {
-        return {};
+        return { prices: {}, at: Date.now() };
     }
 
-    const key = unique.join(',');
-    const cached = cache.get(key);
-
-    if (cached !== undefined && Date.now() - cached.at < 60000)
-    {
-        return cached.prices;
-    }
-
-    const response = await fetch(`${ endpoint }?ids=${ encodeURIComponent(key) }&vs_currencies=usd`);
-
-    if (!response.ok)
-    {
-        throw new Error(`price lookup failed with ${ response.status }`);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const parsed = await response.json() as Record<string, { usd?: unknown } | undefined>;
-
-    const prices: PriceMap = {};
+    const held = new Map<string, StoredPrice>();
 
     for (const id of unique)
     {
-        const entry = parsed[id];
+        const entry = parsePrice(readRaw('local', pricePrefix + id));
 
-        if (entry !== undefined && typeof entry.usd === 'number' && Number.isFinite(entry.usd))
+        if (entry !== undefined)
         {
-            prices[id] = entry.usd;
+            held.set(id, entry);
         }
     }
 
-    cache.set(key, { at: Date.now(), prices });
+    const due = unique.some((id) =>
+    {
+        const entry = held.get(id);
 
-    return prices;
+        return entry === undefined || Date.now() - entry.at > priceFresh;
+    });
+
+    const key = unique.join(',');
+
+    // Skipped rather than attempted while the link is down: the request cannot succeed, and spending a
+    // timeout to find that out only delays the held answer this returns either way.
+    if (!due || Date.now() - (asked.get(key) ?? 0) < priceFresh || !isOnline())
+    {
+        return collect(held);
+    }
+
+    // Recorded before the request rather than after it, so two callers arriving together send one.
+    asked.set(key, Date.now());
+
+    try
+    {
+        const response = await fetch(`${ endpoint }?ids=${ encodeURIComponent(key) }&vs_currencies=usd`);
+
+        if (response.ok)
+        {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const parsed = await response.json() as Record<string, { usd?: unknown } | undefined>;
+
+            const at = Date.now();
+
+            for (const id of unique)
+            {
+                const entry = parsed[id];
+
+                if (entry !== undefined && typeof entry.usd === 'number' && Number.isFinite(entry.usd))
+                {
+                    held.set(id, { usd: entry.usd, at });
+
+                    writeRaw('local', pricePrefix + id, JSON.stringify({ usd: entry.usd, at }));
+                }
+            }
+
+            prune('local', pricePrefix, priceEntries, (raw) => parsePrice(raw)?.at ?? 0);
+        }
+    }
+    catch
+    {
+        // An unreachable endpoint leaves `held` exactly as it was, which is the point — and the record
+        // of having asked is dropped, so the reconnect that follows retries at once instead of waiting
+        // out a window meant for answers. A request the endpoint *did* answer badly keeps its record:
+        // that one is a rate limit or an outage, and asking again immediately is what caused it.
+        asked.delete(key);
+    }
+
+    return collect(held);
 };

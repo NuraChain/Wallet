@@ -38,6 +38,24 @@ const nativePrefix = 'token-cache/v1/native/';
 const sweepPrefix = 'token-cache/v1/sweep/';
 
 /**
+ * The last balance that was actually read, kept in **local** storage — and the exception to everything
+ * said above.
+ *
+ * It is written by the same successful read that fills the session entry, and it is only ever *read*
+ * when the chain cannot be reached at all: no link, or a provider that refused. In that situation the
+ * choice is not between a current number and an old one, it is between an old number and `0` — and a
+ * wallet that shows zero because the wifi dropped is worse than one that shows last night's balance,
+ * because zero is a number a user believes.
+ *
+ * What makes this safe is that it never travels alone. Every read hands back the moment it was written,
+ * the wallet tab renders that age beside the figure, and the value is only reached for when the live
+ * read has already failed — so it can never quietly stand in for a current one, which is the failure
+ * the session-only rule above exists to prevent.
+ */
+const lastBalancePrefix = 'token-cache/v1/last-balances/';
+const lastNativePrefix = 'token-cache/v1/last-native/';
+
+/**
  * A balance as it is stored.
  *
  * `value` is a decimal string rather than the `bigint` it is in memory: `JSON.stringify` throws on a
@@ -87,27 +105,20 @@ const stamp = (raw: string) =>
 export const balanceKey = (address: string, networkId: string, tokens: Token[]) => `${ networkId }|${ address.toLowerCase() }|${ tokens.map((item) => item.address.toLowerCase()).sort().join(',') }`;
 
 /**
- * readBalances - The held balances for a key, and whether they are still fresh.
+ * parseBalances - Reads one stored token-balance entry back onto the live token objects.
  *
- * A stale hit is still returned rather than withheld: the caller renders it immediately and refreshes
- * behind it, which is the difference between switching accounts and seeing last-known numbers versus
- * seeing an empty list until the chain answers.
- *
- * Stored rows are matched back onto the live token objects rather than rebuilt from what was written,
- * so a row always carries the same `Token` the rest of the screen is using and nothing downstream can
- * tell a restored row from a freshly read one. A contract no longer tracked is dropped on the way out.
- * @param {string} key The key from `balanceKey`.
- * @param {Token[]} tokens The tokens currently tracked, which stored rows are matched against.
- * @returns {{ tokens: TokenBalance[]; fresh: boolean } | undefined} What is held, or `undefined`.
+ * Stored rows are matched back onto the tokens currently tracked rather than rebuilt from what was
+ * written, so a row always carries the same `Token` the rest of the screen is using and nothing
+ * downstream can tell a restored row from a freshly read one. A contract no longer tracked is dropped
+ * on the way out.
+ * @param {string | undefined} raw The serialized entry.
+ * @param {Token[]} tokens The tokens currently tracked.
+ * @returns {{ tokens: TokenBalance[]; written: number } | undefined} The rows and when they were read.
  */
-export const readBalances = (key: string, tokens: Token[]) =>
+const parseBalances = (raw: string | undefined, tokens: Token[]) =>
 {
-    const raw = readRaw('session', balancePrefix + key);
-
     if (raw === undefined)
     {
-        cacheLog('miss', key);
-
         return undefined;
     }
 
@@ -135,11 +146,7 @@ export const readBalances = (key: string, tokens: Token[]) =>
             return [ { token, value: BigInt(item.value), formatted: typeof item.formatted === 'string' ? item.formatted : '0' } ];
         });
 
-        const fresh = Date.now() - parsed.written <= tokenCacheConfig.balances;
-
-        cacheLog(fresh ? 'hit' : 'stale', key, `${ restored.length } tokens`);
-
-        return { tokens: restored, fresh };
+        return { tokens: restored, written: parsed.written };
     }
     catch
     {
@@ -148,37 +155,12 @@ export const readBalances = (key: string, tokens: Token[]) =>
 };
 
 /**
- * writeBalances - Stores the balances just read.
- *
- * Replaces rather than merges, unlike the transaction cache: a balance is a current value and an older
- * reading of it is simply wrong, so there is nothing in the previous entry worth keeping.
- * @param {string} key The key from `balanceKey`.
- * @param {TokenBalance[]} tokens The balances just read.
+ * parseNative - Reads one stored coin balance back.
+ * @param {string | undefined} raw The serialized entry.
+ * @returns {{ value: bigint; written: number } | undefined} The balance and when it was read.
  */
-export const writeBalances = (key: string, tokens: TokenBalance[]) =>
+const parseNative = (raw: string | undefined) =>
 {
-    const payload: StoredBalances =
-    {
-        tokens: tokens.map((item) => ({ address: item.token.address, value: item.value.toString(), formatted: item.formatted })),
-        written: Date.now()
-    };
-
-    writeRaw('session', balancePrefix + key, JSON.stringify(payload));
-
-    prune('session', balancePrefix, tokenCacheConfig.entries, stamp);
-
-    cacheLog('write', key, `${ tokens.length } tokens`);
-};
-
-/**
- * readNative - The held coin balance for a key, and whether it is still fresh.
- * @param {string} key The account and network the balance belongs to.
- * @returns {{ value: bigint; fresh: boolean } | undefined} What is held, or `undefined`.
- */
-export const readNative = (key: string) =>
-{
-    const raw = readRaw('session', nativePrefix + key);
-
     if (raw === undefined)
     {
         return undefined;
@@ -194,11 +176,7 @@ export const readNative = (key: string) =>
             return undefined;
         }
 
-        const fresh = Date.now() - parsed.written <= tokenCacheConfig.balances;
-
-        cacheLog(fresh ? 'hit native' : 'stale native', key);
-
-        return { value: BigInt(parsed.value), fresh };
+        return { value: BigInt(parsed.value), written: parsed.written };
     }
     catch
     {
@@ -207,7 +185,105 @@ export const readNative = (key: string) =>
 };
 
 /**
- * writeNative - Stores the coin balance just read.
+ * readBalances - The held balances for a key, and whether they are still fresh.
+ *
+ * A stale hit is still returned rather than withheld: the caller renders it immediately and refreshes
+ * behind it, which is the difference between switching accounts and seeing last-known numbers versus
+ * seeing an empty list until the chain answers.
+ * @param {string} key The key from `balanceKey`.
+ * @param {Token[]} tokens The tokens currently tracked, which stored rows are matched against.
+ * @returns {{ tokens: TokenBalance[]; written: number; fresh: boolean } | undefined} What is held, or `undefined`.
+ */
+export const readBalances = (key: string, tokens: Token[]) =>
+{
+    const entry = parseBalances(readRaw('session', balancePrefix + key), tokens);
+
+    if (entry === undefined)
+    {
+        cacheLog('miss', key);
+
+        return undefined;
+    }
+
+    const fresh = Date.now() - entry.written <= tokenCacheConfig.balances;
+
+    cacheLog(fresh ? 'hit' : 'stale', key, `${ entry.tokens.length } tokens`);
+
+    return { ...entry, fresh };
+};
+
+/**
+ * readLastBalances - The last token balances that were successfully read for a key, at any age.
+ *
+ * For the offline path only: the caller reaches for this after a read has already failed, and renders
+ * what comes back with its age attached.
+ * @param {string} key The key from `balanceKey`.
+ * @param {Token[]} tokens The tokens currently tracked, which stored rows are matched against.
+ * @returns {{ tokens: TokenBalance[]; written: number } | undefined} What was last read, or `undefined`.
+ */
+export const readLastBalances = (key: string, tokens: Token[]) => parseBalances(readRaw('local', lastBalancePrefix + key), tokens);
+
+/**
+ * writeBalances - Stores the balances just read.
+ *
+ * Replaces rather than merges, unlike the transaction cache: a balance is a current value and an older
+ * reading of it is simply wrong, so there is nothing in the previous entry worth keeping.
+ *
+ * Written twice, to the session copy the next render serves from and to the durable last-known copy the
+ * offline path falls back to. One write rather than two call sites, because a successful read is the
+ * only event either of them cares about and they must never disagree about what it said.
+ * @param {string} key The key from `balanceKey`.
+ * @param {TokenBalance[]} tokens The balances just read.
+ */
+export const writeBalances = (key: string, tokens: TokenBalance[]) =>
+{
+    const payload: StoredBalances =
+    {
+        tokens: tokens.map((item) => ({ address: item.token.address, value: item.value.toString(), formatted: item.formatted })),
+        written: Date.now()
+    };
+
+    const serialized = JSON.stringify(payload);
+
+    writeRaw('session', balancePrefix + key, serialized);
+    writeRaw('local', lastBalancePrefix + key, serialized);
+
+    prune('session', balancePrefix, tokenCacheConfig.entries, stamp);
+    prune('local', lastBalancePrefix, tokenCacheConfig.entries, stamp);
+
+    cacheLog('write', key, `${ tokens.length } tokens`);
+};
+
+/**
+ * readNative - The held coin balance for a key, and whether it is still fresh.
+ * @param {string} key The account and network the balance belongs to.
+ * @returns {{ value: bigint; written: number; fresh: boolean } | undefined} What is held, or `undefined`.
+ */
+export const readNative = (key: string) =>
+{
+    const entry = parseNative(readRaw('session', nativePrefix + key));
+
+    if (entry === undefined)
+    {
+        return undefined;
+    }
+
+    const fresh = Date.now() - entry.written <= tokenCacheConfig.balances;
+
+    cacheLog(fresh ? 'hit native' : 'stale native', key);
+
+    return { ...entry, fresh };
+};
+
+/**
+ * readLastNative - The last coin balance that was successfully read for a key, at any age.
+ * @param {string} key The account and network the balance belongs to.
+ * @returns {{ value: bigint; written: number } | undefined} What was last read, or `undefined`.
+ */
+export const readLastNative = (key: string) => parseNative(readRaw('local', lastNativePrefix + key));
+
+/**
+ * writeNative - Stores the coin balance just read, for this session and for the next one.
  * @param {string} key The account and network the balance belongs to.
  * @param {bigint} value The balance in wei.
  */
@@ -215,9 +291,13 @@ export const writeNative = (key: string, value: bigint) =>
 {
     const payload: StoredNative = { value: value.toString(), written: Date.now() };
 
-    writeRaw('session', nativePrefix + key, JSON.stringify(payload));
+    const serialized = JSON.stringify(payload);
+
+    writeRaw('session', nativePrefix + key, serialized);
+    writeRaw('local', lastNativePrefix + key, serialized);
 
     prune('session', nativePrefix, tokenCacheConfig.entries, stamp);
+    prune('local', lastNativePrefix, tokenCacheConfig.entries, stamp);
 };
 
 /**
@@ -279,5 +359,7 @@ export const invalidateTokenCache = (match?: (key: string) => boolean) =>
 {
     clearUnder('session', balancePrefix, match);
     clearUnder('session', nativePrefix, match);
+    clearUnder('local', lastBalancePrefix, match);
+    clearUnder('local', lastNativePrefix, match);
     clearUnder('local', sweepPrefix, match);
 };
