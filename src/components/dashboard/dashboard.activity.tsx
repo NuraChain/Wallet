@@ -10,6 +10,7 @@ import EmptyState from '../ui/state';
 import SectionHeader from '../ui/section';
 
 import { T } from '../../utility/language';
+import { useOnline } from '../../hook/connection';
 import { Vertical } from '../ui/stack';
 
 /**
@@ -34,6 +35,22 @@ const preview = 5;
  */
 export default function DashboardActivity({ items, loading, notice, canOpen, onOpen, onOverview }: { items: Transaction[]; loading: boolean; notice: string; canOpen: boolean; onOpen: (hash: string) => void; onOverview: () => void })
 {
+    const online = useOnline();
+
+    // What an empty list means, in the order the answers rank. Offline comes first because it is the
+    // only one of the three the app can be certain of: with no link nothing was asked, so neither the
+    // account's emptiness nor the explorer's refusal has been established. The read is skipped entirely
+    // in that state, which is exactly why the list cannot be trusted to speak for itself here.
+    const emptyText = () =>
+    {
+        if (!online)
+        {
+            return T('Dashboard.Activity.Offline');
+        }
+
+        return notice.length > 0 ? T('Dashboard.Activity.Unavailable') : T('Dashboard.Activity.Empty');
+    };
+
     return (
         <Vertical className='gap-2'>
 
@@ -67,25 +84,18 @@ export default function DashboardActivity({ items, loading, notice, canOpen, onO
                 )
             }
 
-            {
-                !loading && items.length === 0 && notice.length === 0 &&
-                (
-                    <EmptyState panel text={ T('Dashboard.Activity.Empty') } />
-                )
-            }
-
             { /*
-              * An empty list and an unreadable one look identical, and only one of them is the user's
-              * doing — so the two say different things. It stays the ordinary empty state either way:
-              * a network whose explorer will never answer without a paid plan is a standing condition,
-              * not a fault, and the explorer's own sentence in a red panel read as something breaking.
-              * The reason itself is not printed; it is English marketing copy from a third party, and
-              * nothing the user can act on from here.
+              * An empty list, an unreadable one and an unasked one look identical, and only one of them
+              * is the user's doing — so the three say different things. It stays the ordinary empty
+              * state in every case: a network whose explorer will never answer without a paid plan is a
+              * standing condition, not a fault, and the explorer's own sentence in a red panel read as
+              * something breaking. The reason itself is not printed; it is English marketing copy from
+              * a third party, and nothing the user can act on from here.
               */ }
             {
-                !loading && items.length === 0 && notice.length > 0 &&
+                !loading && items.length === 0 &&
                 (
-                    <EmptyState panel text={ T('Dashboard.Activity.Unavailable') } />
+                    <EmptyState panel text={ emptyText() } />
                 )
             }
 

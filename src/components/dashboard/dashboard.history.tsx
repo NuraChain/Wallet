@@ -12,6 +12,7 @@ import { TextField } from '../ui/field';
 import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
+import { useOnline } from '../../hook/connection';
 import { Horizontal } from '../ui/stack';
 
 /**
@@ -53,6 +54,8 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
     const [ filter, setFilter ] = useState<Filter>('All');
     const [ shown, setShown ] = useState(step);
 
+    const online = useOnline();
+
     const listRef = useRef<HTMLDivElement>(null);
     const endRef = useRef<HTMLDivElement>(null);
 
@@ -82,6 +85,28 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
     }, [ items, query, filter ]);
 
     const visible = results.slice(0, shown);
+
+    /**
+     * emptyText - Why there is nothing to show, ranked the same way the activity glance ranks it.
+     *
+     * A search that matched nothing is the user's own doing and outranks everything; after that, no
+     * link means the list was never fetched, which is not the account being empty.
+     * @returns {string} The line to render in place of the list.
+     */
+    const emptyText = () =>
+    {
+        if (items.length > 0)
+        {
+            return T('Dashboard.Activity.NoMatch');
+        }
+
+        if (!online)
+        {
+            return T('Dashboard.Activity.Offline');
+        }
+
+        return T(notice.length > 0 ? 'Dashboard.Activity.Unavailable' : 'Dashboard.Activity.Empty');
+    };
 
     // Back to the first few whenever the list itself changes. Searching after having scrolled deep into
     // the previous result set would otherwise open on forty rows of the new one.
@@ -183,7 +208,7 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
                 {
                     !loading && results.length === 0 &&
                     (
-                        <EmptyState text={ items.length === 0 ? T(notice.length > 0 ? 'Dashboard.Activity.Unavailable' : 'Dashboard.Activity.Empty') : T('Dashboard.Activity.NoMatch') } />
+                        <EmptyState text={ emptyText() } />
                     )
                 }
 

@@ -9,6 +9,11 @@
             "Minimize": "Minimize",
             "Maximize": "Maximize",
             "Close": "Close"
+        },
+        "Failure": {
+            "Title": "Nura Wallet could not start",
+            "Message": "Your wallet is still on this device. Reloading usually clears this.",
+            "Reload": "Reload"
         }
     },
     "Language": {
@@ -89,6 +94,12 @@
             "Apps": "Apps"
         },
         "Empty": "Nothing to show yet.",
+        "Offline": {
+            "Title": "No internet connection",
+            "Failed": "Could not reach the network",
+            "Message": "Balances update when the connection returns.",
+            "Updated": "Last updated %s"
+        },
         "Account": "Account",
         "Accounts": {
             "Title": "Accounts",
@@ -158,6 +169,7 @@
             "Success": "Transaction sent",
             "Done": "Done",
             "Error": "Transaction failed. Please try again",
+            "Offline": "You need an internet connection to send.",
             "InvalidAddress": "Recipient address is not valid",
             "InvalidAmount": "Enter a valid amount",
             "Insufficient": "Amount exceeds your balance"
@@ -183,6 +195,7 @@
             "Loading": "Loading transactions…",
             "Empty": "No transactions yet",
             "Unavailable": "This network's explorer could not provide the history.",
+            "Offline": "History cannot be loaded while offline.",
             "Received": "Received",
             "Sent": "Sent",
             "Overview": "Full History",

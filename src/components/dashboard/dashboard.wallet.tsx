@@ -11,6 +11,7 @@ import { HiOutlineCheck, HiOutlineCog6Tooth, HiOutlineSquare2Stack, HiOutlineSqu
 import TokenIcon from '../token.icon';
 import TokenRow from '../token.row';
 import DashboardActivity from './dashboard.activity';
+import DashboardOffline from './dashboard.offline';
 
 import Text from '../ui/text';
 import Button, { fillNormal, fillPrimary } from '../ui/button';
@@ -33,6 +34,23 @@ const chipClass = 'h-9 min-w-0 flex-1 gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny';
  * And the label inside them, for the same reason.
  */
 const chipLabelClass = 'min-w-0 flex-1 truncate text-start font-medium';
+
+/**
+ * What stands in for a figure that has never been read.
+ *
+ * Not `0`, and not `$0.00`. A wallet that cannot reach the chain knows nothing about what it holds,
+ * and the two honest answers are the last figure it did read or no figure at all — a zero is neither,
+ * and it is the one a user acts on.
+ */
+const unknownAmount = '—';
+
+/**
+ * A balance and everything the tab needs to know about how much to trust it.
+ *
+ * `at` is when the figure was read and `0` means never, which is what separates "you hold nothing"
+ * from "this could not be read".
+ */
+interface BalanceView { formatted: string; loading: boolean; error: boolean; at: number }
 
 /**
  * AssetAmount - Balance over its USD worth, on the end of a holdings row.
@@ -73,11 +91,11 @@ function AssetAmount({ amount, value }: { amount: string; value?: string })
  * @param {string} props.name The account label.
  * @param {string} props.emoji The account's chosen badge, or an empty string for none.
  * @param {Network} props.network The active network.
- * @param {string} props.nativeFormatted Native balance as a decimal string.
- * @param {boolean} props.nativeLoading Whether the native balance is still loading.
+ * @param {BalanceView} props.native The native balance, and how current it is.
  * @param {TokenBalance[]} props.tokens Balances of the tokens the user added.
  * @param {number} props.total Portfolio value in USD.
  * @param {boolean} props.totalLoading Whether prices are still loading.
+ * @param {number} props.totalAt When the oldest price behind the total was read, or 0 for none at all.
  * @param {PriceMap} props.prices USD price per CoinGecko coin id, used for the per-row value.
  * @param {() => void} props.onSend Opens the send modal.
  * @param {() => void} props.onReceive Opens the receive modal.
@@ -91,12 +109,49 @@ function AssetAmount({ amount, value }: { amount: string; value?: string })
  * @param {() => void} props.onOverview Opens the full history page.
  * @returns {JSX.Element} The wallet tab.
  */
-export default function DashboardWallet({ address, name, emoji, network, nativeFormatted, nativeLoading, tokens, total, totalLoading, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; emoji: string; network: Network; nativeFormatted: string; nativeLoading: boolean; tokens: TokenBalance[]; total: number; totalLoading: boolean; prices: PriceMap; history: { items: Transaction[]; loading: boolean; notice: string }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
+export default function DashboardWallet({ address, name, emoji, network, native, tokens, total, totalLoading, totalAt, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; emoji: string; network: Network; native: BalanceView; tokens: TokenBalance[]; total: number; totalLoading: boolean; totalAt: number; prices: PriceMap; history: { items: Transaction[]; loading: boolean; notice: string }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
 {
     // The icon carries the feedback, so it only has to stay swapped long enough to register.
     const clipboard = useClipboard();
 
     const copied = clipboard.state === 'done';
+
+    // A total is only worth printing when both halves of it are known. The balance never having been
+    // read is the obvious hole; prices that could not be resolved at all is the quieter one, and it
+    // used to print the portfolio as `$0.00` — a wallet apparently worth nothing, on the strength of a
+    // failed request to a price API.
+    const totalKnown = native.at > 0 && totalAt > 0;
+
+    /**
+     * headline - The portfolio figure, or what stands in for it.
+     *
+     * Three outcomes, and they are not the same: still arriving, known, and unknowable. The last one is
+     * the one worth being careful about — it used to print `$0.00`.
+     * @returns {string} What to show as the headline.
+     */
+    const headline = () =>
+    {
+        if (totalLoading || native.loading)
+        {
+            return '…';
+        }
+
+        return totalKnown ? formatUsd(total) : unknownAmount;
+    };
+
+    /**
+     * nativeAmount - The coin balance, on the same three-way rule as the headline.
+     * @returns {string} What to show on the coin row.
+     */
+    const nativeAmount = () =>
+    {
+        if (native.loading)
+        {
+            return '…';
+        }
+
+        return native.at > 0 ? trimAmount(native.formatted) : unknownAmount;
+    };
 
     /**
      * The three transfer controls. Same stacked shape, same dimensions; only the glyph, the fill and
@@ -196,13 +251,15 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
 
             </Horizontal>
 
+            <DashboardOffline error={ native.error } at={ native.at } />
+
             <Vertical className='items-center gap-2 py-2'>
 
                 <Text
                     dir='ltr'
                     variant='title'
                     className='text-display'
-                    text={ totalLoading || nativeLoading ? '…' : formatUsd(total) } />
+                    text={ headline() } />
 
                 <Vertical className='items-center'>
 
@@ -310,9 +367,14 @@ export default function DashboardWallet({ address, name, emoji, network, nativeF
                     symbol={ network.symbol }
                     subtitle={ network.coin ?? network.name }>
 
+                    { /*
+                      * The coin's own row follows the same rule as the headline: an amount that was
+                      * never read is a dash, not a zero. Its USD line is left out with it, since
+                      * pricing a balance nobody knows would be twice the invention.
+                      */ }
                     <AssetAmount
-                        amount={ nativeLoading ? '…' : trimAmount(nativeFormatted) }
-                        value={ nativeLoading ? undefined : rowValue(getNativeCoinId(network.chainId), nativeFormatted) } />
+                        amount={ nativeAmount() }
+                        value={ native.loading || native.at === 0 ? undefined : rowValue(getNativeCoinId(network.chainId), native.formatted) } />
 
                 </TokenRow>
 

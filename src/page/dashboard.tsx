@@ -31,6 +31,7 @@ import DashboardSettings from '../components/dashboard/dashboard.settings';
 import { getNetwork } from '../core/network';
 import { openPage } from '../utility/context';
 import { usePrices } from '../hook/price';
+import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { getDirection, getLanguage, T } from '../utility/language';
@@ -97,6 +98,8 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
     // long as the user is in it rather than fighting the page for the bottom of the screen.
     const barHidden = navHidden || navMap[active].key === 'Browser';
 
+    const online = useOnline();
+
     const native = useBalance(address, network);
     const tokens = useTokens(address, network, tracked);
     const prices = usePrices(network, native.formatted, tokens.tokens);
@@ -148,14 +151,27 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
 
         lastScan.current = scan;
 
-        if (!forced && !discoveryDue(sweepKey))
+        // A sweep with no link finds nothing — and would then record itself as done, locking discovery
+        // out for the whole window over a moment with no wifi. Skipped outright instead, and the effect
+        // runs again on its own when the link returns.
+        if (!online || (!forced && !discoveryDue(sweepKey)))
         {
             return undefined;
         }
 
         const run = async() =>
         {
-            const found = await discoverTokens(address, network, tokenRef.current[network.chainId] ?? []);
+            // `discoverTokens` swallows its own explorer failures, but the on-chain verification it
+            // ends with rejects when not one contract could be read — the chain being away rather than
+            // the account holding nothing.
+            const found = await discoverTokens(address, network, tokenRef.current[network.chainId] ?? []).catch(() => undefined);
+
+            // A failed sweep is not a completed one. Marking it would lock discovery out for the whole
+            // window on the strength of a request that never landed.
+            if (found === undefined)
+            {
+                return;
+            }
 
             markDiscovered(sweepKey);
 
@@ -186,7 +202,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
         {
             live = false;
         };
-    }, [ loaded, address, network.chainId, scan ]);
+    }, [ loaded, address, network.chainId, scan, online ]);
 
     /**
      * onAddToken - Resolves a pasted contract address into a tracked token.
@@ -559,11 +575,11 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                                                             name={ name }
                                                             emoji={ emoji }
                                                             network={ network }
-                                                            nativeFormatted={ native.formatted }
-                                                            nativeLoading={ native.loading }
+                                                            native={ { formatted: native.formatted, loading: native.loading, error: native.error, at: native.at } }
                                                             tokens={ tokens.tokens }
                                                             total={ prices.total }
                                                             totalLoading={ prices.loading }
+                                                            totalAt={ prices.at }
                                                             prices={ prices.prices }
                                                             history={ history }
                                                             onSend={ () => { setModal('send'); } }

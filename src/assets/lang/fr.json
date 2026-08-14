@@ -9,6 +9,11 @@
             "Minimize": "Réduire",
             "Maximize": "Agrandir",
             "Close": "Fermer"
+        },
+        "Failure": {
+            "Title": "Nura Wallet n'a pas pu démarrer",
+            "Message": "Votre portefeuille est toujours sur cet appareil. Recharger suffit généralement.",
+            "Reload": "Recharger"
         }
     },
     "Language": {
@@ -89,6 +94,12 @@
             "Apps": "Applis"
         },
         "Empty": "Rien à afficher pour l'instant.",
+        "Offline": {
+            "Title": "Aucune connexion internet",
+            "Failed": "Réseau injoignable",
+            "Message": "Les soldes se mettront à jour au retour de la connexion.",
+            "Updated": "Dernière mise à jour %s"
+        },
         "Account": "Compte",
         "Accounts": {
             "Title": "Comptes",
@@ -158,6 +169,7 @@
             "Success": "Transaction envoyée",
             "Done": "Terminé",
             "Error": "La transaction a échoué. Réessayez",
+            "Offline": "Une connexion internet est nécessaire pour envoyer.",
             "InvalidAddress": "L'adresse du destinataire n'est pas valide",
             "InvalidAmount": "Saisissez un montant valide",
             "Insufficient": "Le montant dépasse votre solde"
@@ -183,6 +195,7 @@
             "Loading": "Chargement des transactions…",
             "Empty": "Aucune transaction pour l'instant",
             "Unavailable": "L'explorateur de ce réseau n'a pas pu fournir l'historique.",
+            "Offline": "L'historique ne peut pas être chargé hors ligne.",
             "Received": "Reçue",
             "Sent": "Envoyée",
             "Overview": "Historique complet",

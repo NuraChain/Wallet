@@ -9,6 +9,11 @@
             "Minimize": "Minimizar",
             "Maximize": "Maximizar",
             "Close": "Cerrar"
+        },
+        "Failure": {
+            "Title": "Nura Wallet no pudo iniciarse",
+            "Message": "Tu billetera sigue en este dispositivo. Recargar suele solucionarlo.",
+            "Reload": "Recargar"
         }
     },
     "Language": {
@@ -89,6 +94,12 @@
             "Apps": "Apps"
         },
         "Empty": "Todavía no hay nada que mostrar.",
+        "Offline": {
+            "Title": "Sin conexión a internet",
+            "Failed": "No se pudo conectar con la red",
+            "Message": "Los saldos se actualizarán cuando vuelva la conexión.",
+            "Updated": "Última actualización %s"
+        },
         "Account": "Cuenta",
         "Accounts": {
             "Title": "Cuentas",
@@ -158,6 +169,7 @@
             "Success": "Transacción enviada",
             "Done": "Hecho",
             "Error": "La transacción falló. Inténtalo de nuevo",
+            "Offline": "Necesitas conexión a internet para enviar.",
             "InvalidAddress": "La dirección del destinatario no es válida",
             "InvalidAmount": "Introduce una cantidad válida",
             "Insufficient": "La cantidad supera tu saldo"
@@ -183,6 +195,7 @@
             "Loading": "Cargando transacciones…",
             "Empty": "Todavía no hay transacciones",
             "Unavailable": "El explorador de esta red no pudo proporcionar el historial.",
+            "Offline": "El historial no se puede cargar sin conexión.",
             "Received": "Recibida",
             "Sent": "Enviada",
             "Overview": "Historial completo",

@@ -9,6 +9,11 @@
             "Minimize": "Küçült",
             "Maximize": "Büyüt",
             "Close": "Kapat"
+        },
+        "Failure": {
+            "Title": "Nura Wallet başlatılamadı",
+            "Message": "Cüzdanınız hâlâ bu cihazda. Yeniden yüklemek genellikle sorunu çözer.",
+            "Reload": "Yeniden yükle"
         }
     },
     "Language": {
@@ -89,6 +94,12 @@
             "Apps": "Uygulamalar"
         },
         "Empty": "Henüz gösterilecek bir şey yok.",
+        "Offline": {
+            "Title": "İnternet bağlantısı yok",
+            "Failed": "Ağa ulaşılamadı",
+            "Message": "Bağlantı geri geldiğinde bakiyeler güncellenir.",
+            "Updated": "Son güncelleme %s"
+        },
         "Account": "Hesap",
         "Accounts": {
             "Title": "Hesaplar",
@@ -158,6 +169,7 @@
             "Success": "İşlem gönderildi",
             "Done": "Tamam",
             "Error": "İşlem başarısız oldu. Lütfen tekrar deneyin",
+            "Offline": "Göndermek için internet bağlantısı gerekir.",
             "InvalidAddress": "Alıcı adresi geçerli değil",
             "InvalidAmount": "Geçerli bir tutar girin",
             "Insufficient": "Tutar bakiyenizi aşıyor"
@@ -183,6 +195,7 @@
             "Loading": "İşlemler yükleniyor…",
             "Empty": "Henüz işlem yok",
             "Unavailable": "Bu ağın gezgini geçmişi sağlayamadı.",
+            "Offline": "Çevrimdışıyken geçmiş yüklenemez.",
             "Received": "Alınan",
             "Sent": "Gönderilen",
             "Overview": "Tüm geçmiş",

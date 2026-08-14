@@ -9,6 +9,11 @@
             "Minimize": "最小化",
             "Maximize": "最大化",
             "Close": "关闭"
+        },
+        "Failure": {
+            "Title": "Nura 钱包无法启动",
+            "Message": "您的钱包仍在此设备上。重新加载通常可以解决此问题。",
+            "Reload": "重新加载"
         }
     },
     "Language": {
@@ -89,6 +94,12 @@
             "Apps": "应用"
         },
         "Empty": "暂时没有可显示的内容。",
+        "Offline": {
+            "Title": "无网络连接",
+            "Failed": "无法连接到网络",
+            "Message": "网络恢复后余额将自动更新。",
+            "Updated": "最后更新于 %s"
+        },
         "Account": "账户",
         "Accounts": {
             "Title": "账户",
@@ -158,6 +169,7 @@
             "Success": "交易已发送",
             "Done": "完成",
             "Error": "交易失败，请重试",
+            "Offline": "发送交易需要网络连接。",
             "InvalidAddress": "收款地址无效",
             "InvalidAmount": "请输入有效金额",
             "Insufficient": "金额超出你的余额"
@@ -183,6 +195,7 @@
             "Loading": "正在加载交易…",
             "Empty": "暂无交易",
             "Unavailable": "该网络的区块浏览器无法提供历史记录。",
+            "Offline": "离线状态下无法加载交易记录。",
             "Received": "收到",
             "Sent": "发出",
             "Overview": "完整记录",

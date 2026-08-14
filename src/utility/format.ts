@@ -44,6 +44,56 @@ export const formatDate = (timestamp: number) =>
 };
 
 /**
+ * The units an age is expressed in, each paired with how many of it make the next one up.
+ *
+ * Walked from the smallest: while the amount still fits inside the current unit it is reported in that
+ * unit, otherwise it is divided down and the walk moves on. It stops at days, and days then run on past
+ * a week — "12 days ago" is as clear as "2 weeks ago" and needs neither the extra rows nor the
+ * approximation that a month is 4.35 weeks.
+ */
+const ageUnits: { unit: Intl.RelativeTimeFormatUnit; size: number }[] =
+[
+    { unit: 'second', size: 60 },
+    { unit: 'minute', size: 60 },
+    { unit: 'hour', size: 24 },
+    { unit: 'day', size: Number.POSITIVE_INFINITY }
+];
+
+/**
+ * Say how long ago a moment was, in the active UI language.
+ *
+ * This exists for figures that are being shown while they cannot be refreshed — a balance held from
+ * before the connection went, most of all. A number with no age on it reads as current, which is the
+ * one thing a cached balance must never do; "last updated 20 minutes ago" is the difference between
+ * information and a lie.
+ * @param {number} at Milliseconds since the unix epoch, as `Date.now()` reports them.
+ * @returns {string} A localized relative time, or an empty string when there is no moment to describe.
+ */
+export const formatAge = (at: number) =>
+{
+    if (!Number.isFinite(at) || at <= 0)
+    {
+        return '';
+    }
+
+    // Clamped at zero: a clock that moved backwards between the write and this read would otherwise
+    // put a cached value in the future.
+    let amount = Math.max(0, Math.round((Date.now() - at) / 1000));
+
+    for (const step of ageUnits)
+    {
+        if (amount < step.size)
+        {
+            return new Intl.RelativeTimeFormat(getLanguage().code, { numeric: 'auto' }).format(-amount, step.unit);
+        }
+
+        amount = Math.round(amount / step.size);
+    }
+
+    return '';
+};
+
+/**
  * Trim a decimal string to at most `max` fraction digits without rounding, dropping trailing zeros.
  *
  * Used for display only — never for amounts that get parsed back into wei.

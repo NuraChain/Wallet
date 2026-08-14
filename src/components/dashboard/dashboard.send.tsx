@@ -19,6 +19,7 @@ import { glassInput, TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
+import { useOnline } from '../../hook/connection';
 import { getProvider, type Network } from '../../core/network';
 import { getNativeLogo, getTokenLogo } from '../../core/price';
 import { shortAddress, trimAmount } from '../../utility/format';
@@ -66,11 +67,14 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
     const [ step, setStep ] = useState<Step>('form');
     const [ error, setError ] = useState('');
+    const [ failure, setFailure ] = useState('');
     const [ hash, setHash ] = useState('');
     const [ to, setTo ] = useState('');
     const [ amount, setAmount ] = useState('');
     const [ chosen, setChosen ] = useState('native');
     const [ picking, setPicking ] = useState(false);
+
+    const online = useOnline();
 
     // Falls back to the coin rather than to nothing: the tracked list can lose a token while this
     // dialog is open — the holdings refresh behind it — and a send screen with no asset is not a state
@@ -145,6 +149,17 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
     const onConfirm = async() =>
     {
+        // Signing is local, broadcasting is not, and a transaction that was never broadcast is a
+        // failure worth naming: the generic "try again" sends the user back to a form that will fail
+        // the same way until the connection returns.
+        if (!online)
+        {
+            setFailure(T('Dashboard.Send.Offline'));
+            setStep('error');
+
+            return;
+        }
+
         setStep('pending');
 
         try
@@ -158,6 +173,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
         }
         catch
         {
+            setFailure(T('Dashboard.Send.Error'));
             setStep('error');
         }
     };
@@ -177,6 +193,15 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                     <Vertical className='gap-3'>
 
                         <Alert text={ error } />
+
+                        { /*
+                          * Said up front rather than after the review: everything below this line is
+                          * fillable offline and none of it can be sent, so the user should know before
+                          * typing an address rather than at the moment they press confirm.
+                          */ }
+                        <Alert
+                            variant='warning'
+                            text={ online ? '' : T('Dashboard.Send.Offline') } />
 
                         { /*
                           * First, because it decides what everything under it means: the balance the
@@ -427,7 +452,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
                         <Text
                             variant='body'
                             className='text-center text-txt-error'
-                            text={ T('Dashboard.Send.Error') } />
+                            text={ failure.length > 0 ? failure : T('Dashboard.Send.Error') } />
 
                         <Button
                             variant='muted'
