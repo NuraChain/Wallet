@@ -50,9 +50,6 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
     const [ notice, setNotice ] = useState('');
     const [ isLoading, setIsLoading ] = useState(false);
 
-    // Off Android there is no MediaStore to write to, so the controls are simply absent.
-    const exporter = getExporter();
-
     /**
      * onExport - Hands the phrase to the platform as a picture or a text file.
      *
@@ -64,7 +61,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
     {
         const bridge = getExporter();
 
-        if (bridge === undefined || words.length === 0)
+        if (words.length === 0)
         {
             return;
         }
@@ -219,7 +216,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                             }
 
                             {
-                                revealed && exporter !== undefined &&
+                                revealed &&
                                 (
                                     <Vertical className='mt-3 gap-2'>
 

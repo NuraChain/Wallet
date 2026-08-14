@@ -1,4 +1,3 @@
-import { isTauri } from '@tauri-apps/api/core';
 import { BaseDirectory, mkdir, writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
 
 /**
@@ -96,24 +95,22 @@ const desktopExporter: Exporter =
  * getExporter - The export implementation for whichever platform this build is running on.
  *
  * Android keeps its own bridge because writing to the gallery needs MediaStore, which no webview can
- * reach. Everywhere else inside a Tauri window the filesystem plugin does the same job. Outside Tauri
- * entirely — `npm run dev` in a plain browser — there is nothing to write with, so the caller hides
- * the controls rather than offering a button that cannot work.
- * @returns {Exporter | undefined} The exporter, or `undefined` when the platform cannot save files.
+ * reach. Everywhere else the filesystem plugin does the same job, so there is always one of the two.
+ * @returns {Exporter} The exporter for this platform.
  */
-export const getExporter = (): Exporter | undefined =>
+export const getExporter = (): Exporter =>
 {
     const bridge = window.__nuraExport;
 
-    if (bridge !== undefined)
+    if (bridge === undefined)
     {
-        return {
-            saveImage: async(base64Png: string, name: string) => Promise.resolve(bridge.saveImage(base64Png, name)),
-            saveText: async(text: string, name: string) => Promise.resolve(bridge.saveText(text, name))
-        };
+        return desktopExporter;
     }
 
-    return isTauri() ? desktopExporter : undefined;
+    return {
+        saveImage: async(base64Png: string, name: string) => Promise.resolve(bridge.saveImage(base64Png, name)),
+        saveText: async(text: string, name: string) => Promise.resolve(bridge.saveText(text, name))
+    };
 };
 
 /**
