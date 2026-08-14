@@ -261,13 +261,21 @@ const readExplorerTokens = async(api: string, action: string, address: string): 
  * Read the account balances for a list of tokens on the active network.
  *
  * Each token is queried independently; a failing contract call resolves to a zero balance rather than rejecting the whole batch, so one bad RPC response cannot blank the list.
+ *
+ * **Unless they all fail.** One contract that will not answer is a bad contract, and zero is a fair
+ * thing to show for it; every contract failing at once is the chain being unreachable, and showing a
+ * screen of zeroes for that is telling the user their tokens are gone. That case rejects instead, so
+ * the caller can fall back to the last balances it actually saw.
  * @param {string} address Account address to query.
  * @param {Token[]} tokens Tokens to read.
  * @returns {Promise<TokenBalance[]>} Balances in the same order as `tokens`.
+ * @throws {Error} When every contract read failed, which is the network rather than the contracts.
  */
 export const readTokenBalances = async(address: string, tokens: Token[]): Promise<TokenBalance[]> =>
 {
     const provider = getProvider();
+
+    let failures = 0;
 
     const reads = tokens.map(async(token): Promise<TokenBalance> =>
     {
@@ -282,11 +290,20 @@ export const readTokenBalances = async(address: string, tokens: Token[]): Promis
         }
         catch
         {
+            failures += 1;
+
             return { token, value: 0n, formatted: '0' };
         }
     });
 
-    return Promise.all(reads);
+    const balances = await Promise.all(reads);
+
+    if (tokens.length > 0 && failures === tokens.length)
+    {
+        throw new Error('no token balance could be read');
+    }
+
+    return balances;
 };
 
 /**

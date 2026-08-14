@@ -1,6 +1,8 @@
 import { formatUnits } from 'ethers';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useOnline } from './connection';
+import { isOnline } from '../core/connection';
 import { readRaw, writeRaw } from '../core/cache.store';
 import { getExplorerApi, type Network } from '../core/network';
 import { historyKey, readHistory, touchHistory, writeHistory, type Transaction } from '../core/history.cache';
@@ -485,6 +487,8 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
     const [ loading, setLoading ] = useState(true);
     const [ nonce, setNonce ] = useState(0);
 
+    const online = useOnline();
+
     // What the nonce was last time the effect ran. A bump means the user asked for this read, which is
     // the one case a fresh cache entry is not allowed to answer.
     const lastNonce = useRef(nonce);
@@ -534,6 +538,17 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
         {
             setLoading(hit === undefined);
 
+            // Nothing to ask while the link is down. Whatever the cache holds is already on screen and
+            // stays there — a transaction that happened stays happened — and the tab says why it cannot
+            // be refreshed. Storing an empty result here would be the opposite: it would replace a
+            // readable history with the record of a moment there was no wifi.
+            if (!isOnline())
+            {
+                setLoading(false);
+
+                return;
+            }
+
             // Coalesced on the cache key: switching away from an account and straight back while its
             // read is still running joins the request already in flight instead of starting a second
             // one. A manual refresh arriving mid-read joins it too, which is the right answer — the
@@ -573,7 +588,8 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
         {
             active = false;
         };
-    }, [ address, network.id, api, tokenKey, nonce, key ]);
+        // `online` joins the list so the read the link outage skipped happens the moment it returns.
+    }, [ address, network.id, api, tokenKey, nonce, key, online ]);
 
     return { items, loading, notice, refresh };
 };
