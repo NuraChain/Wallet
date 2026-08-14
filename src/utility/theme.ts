@@ -43,7 +43,10 @@ export const getTheme = () => themeCurrent;
  */
 export const initTheme = async() =>
 {
-    const theme = await getValue('App.Theme');
+    // Read defensively. Every colour in the app hangs off the `data-theme` attribute this sets, so a
+    // storage read that throws would leave the window painted in unresolved variables — and this runs
+    // before the first render, where a rejection costs the whole app rather than the preference.
+    const theme = await getValue('App.Theme').catch(() => undefined);
 
     if (theme === 'light' || theme === 'dark')
     {

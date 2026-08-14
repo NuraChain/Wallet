@@ -195,25 +195,20 @@ export const T = (name: string, ...args: (string | number)[]): string =>
  * Load the persisted language selection and apply it.
  *
  * Unknown or missing stored values fall back to English.
+ *
+ * Nothing here is allowed to reject. This is awaited before the first render, so a storage read that
+ * throws or a bundle that will not load would cost the window rather than the strings — and the app
+ * without its strings still opens, showing the visible `[Dotted.Key]` placeholders that exist for
+ * exactly this.
  * @returns {Promise<void>} Resolves after the active language is initialized.
  */
 export const initLanguage = async() =>
 {
-    const language = await getValue('App.Language');
+    const language = await getValue('App.Language').catch(() => undefined);
 
-    if (language !== undefined)
-    {
-        const record = languageRecord.find((i) => i.code === language);
+    const record = languageRecord.find((item) => item.code === language);
 
-        if (record)
-        {
-            await setLanguage(record.code);
-
-            return;
-        }
-    }
-
-    await setLanguage('en');
+    await setLanguage(record?.code ?? 'en').catch(() => undefined);
 };
 
 export const getDirection = () => ([ 'fa', 'ar' ].includes(languageCurrent) ? 'rtl' : 'ltr');

@@ -262,7 +262,10 @@ export const removeNetwork = async(id: string) =>
  */
 export const initNetwork = async() =>
 {
-    const storedNetworks = await getValue('App.Networks');
+    // Read defensively, like the theme and the language beside it: this is awaited before the first
+    // render, and a storage read that throws here would leave the app with no window rather than with
+    // the built-in networks it can perfectly well fall back to.
+    const storedNetworks = await getValue('App.Networks').catch(() => undefined);
 
     if (storedNetworks !== undefined)
     {
@@ -286,7 +289,7 @@ export const initNetwork = async() =>
         }
     }
 
-    const storedCurrent = await getValue('App.Network');
+    const storedCurrent = await getValue('App.Network').catch(() => undefined);
 
     if (storedCurrent !== undefined && getNetworks().some((item) => item.id === storedCurrent))
     {
