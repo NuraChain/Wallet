@@ -1,9 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { FaQuestion } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'motion/react';
-
-import IntroPage from './intro';
-import DashboardPage from './dashboard';
 
 import Text from '../components/ui/text';
 import Alert from '../components/ui/alert';
@@ -14,12 +12,14 @@ import { T } from '../utility/language';
 import { readVault } from '../core/vault';
 import { glassPanel } from '../components/ui/panel';
 import { passwordCheck } from '../core/password';
-import { openPage } from '../utility/context';
+import { unlockSession } from '../core/session';
 import { getValueEncrypted } from '../utility/storage';
 import { Horizontal, Vertical } from '../components/ui/stack';
 
 export default function UnlockPage()
 {
+    const navigate = useNavigate();
+
     const [ error, setError ] = useState('');
     const [ password, setPassword ] = useState('');
     const [ showHint, setShowHint ] = useState(false);
@@ -45,7 +45,7 @@ export default function UnlockPage()
             // No stored hash means there is no wallet on this device, so there is nothing to unlock.
             if (outcome === 'missing')
             {
-                openPage(IntroPage);
+                await navigate('/intro', { replace: true });
 
                 return;
             }
@@ -68,7 +68,13 @@ export default function UnlockPage()
 
             // The key is stored under the same name whichever sort it is, so what it turns out to be
             // is read off the material itself rather than from a marker beside it.
-            openPage(DashboardPage, { vault: readVault(secret) });
+            //
+            // The vault goes into the session rather than into the navigation: route state is written
+            // to `history.state`, and a decrypted mnemonic does not belong there. `replace` so the
+            // unlock screen is not left behind as somewhere "back" could return to.
+            unlockSession(readVault(secret));
+
+            await navigate('/dashboard', { replace: true });
         }
         catch
         {

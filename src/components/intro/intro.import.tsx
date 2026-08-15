@@ -2,10 +2,9 @@ import type { Swiper as SwiperType } from 'swiper';
 import type { VaultKind } from '../../core/vault';
 
 import { Mnemonic } from 'ethers';
+import { useNavigate } from 'react-router';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useCallback, useRef, useState } from 'react';
-
-import DashboardPage from '../../page/dashboard';
 
 import WalletManager from '../../core/wallet';
 
@@ -17,7 +16,7 @@ import { Sheet, SheetHeader } from '../ui/sheet';
 
 import { T } from '../../utility/language';
 import { passwordHash } from '../../core/password';
-import { openPage } from '../../utility/context';
+import { unlockSession } from '../../core/session';
 import { setValue, setValueEncrypted } from '../../utility/storage';
 import { Horizontal, Vertical } from '../ui/stack';
 
@@ -35,6 +34,8 @@ const methodList: { kind: VaultKind; label: string }[] =
 
 export default function IntroImport({ onClose }: { onClose: () => void })
 {
+    const navigate = useNavigate();
+
     const swiperRef = useRef<SwiperType>(undefined);
 
     const [ hash, setHash ] = useState('');
@@ -135,7 +136,9 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
         await setValue('Wallet.Password', hash);
 
-        openPage(DashboardPage, { vault: { kind: method, secret: stored } });
+        unlockSession({ kind: method, secret: stored });
+
+        await navigate('/dashboard', { replace: true });
     };
 
     return (

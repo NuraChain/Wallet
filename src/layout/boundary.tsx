@@ -18,7 +18,7 @@ import { Vertical } from '../components/ui/stack';
  * @param {string} fallback What to show when the bundle has nothing under that key.
  * @returns {string} The translated line, or the fallback.
  */
-const line = (key: string, fallback: string) =>
+export const line = (key: string, fallback: string) =>
 {
     const value = T(key);
 

@@ -1,8 +1,7 @@
 import type { VaultKind } from '../../core/vault';
 
 import { useState } from 'react';
-
-import IntroPage from '../../page/intro';
+import { useNavigate } from 'react-router';
 
 import Alert from '../ui/alert';
 import Button from '../ui/button';
@@ -11,7 +10,7 @@ import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { passwordCheck } from '../../core/password';
-import { openPage } from '../../utility/context';
+import { lockSession } from '../../core/session';
 import { removeValues } from '../../utility/storage';
 import { invalidateHistory } from '../../core/history.cache';
 import { invalidateTokenCache } from '../../core/token.cache';
@@ -37,6 +36,8 @@ const clearList = [ 'Wallet.Mnemonic', 'Wallet.Password', 'Wallet.Name', 'Wallet
  */
 export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; onClose: () => void })
 {
+    const navigate = useNavigate();
+
     const [ error, setError ] = useState('');
     const [ password, setPassword ] = useState('');
     const [ isLoading, setIsLoading ] = useState(false);
@@ -61,7 +62,9 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
             // Nothing stored means there is nothing left to log out of, so the wallet is already gone.
             if (outcome === 'missing')
             {
-                openPage(IntroPage);
+                lockSession();
+
+                await navigate('/intro', { replace: true });
 
                 return;
             }
@@ -81,7 +84,11 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
             invalidateHistory();
             invalidateTokenCache();
 
-            openPage(IntroPage);
+            // The decrypted secret goes with the stored one. Dropping it also closes the dashboard
+            // route's guard, so the entry left behind in history cannot be walked back into.
+            lockSession();
+
+            await navigate('/intro', { replace: true });
         }
         finally
         {

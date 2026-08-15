@@ -1,12 +1,11 @@
 import type { IconType } from 'react-icons';
 import type { Swiper as SwiperType } from 'swiper';
 
+import { useNavigate } from 'react-router';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HiOutlineGlobeAlt, HiOutlineSquares2X2, HiOutlineWallet } from 'react-icons/hi2';
-
-import UnlockPage from './unlock';
 
 import ScrollArea from '../layout/scroll';
 import PageContainer from '../layout/container';
@@ -27,7 +26,8 @@ import DashboardPhrase from '../components/dashboard/dashboard.phrase';
 import DashboardSettings from '../components/dashboard/dashboard.settings';
 
 import { getNetwork } from '../core/network';
-import { openPage } from '../utility/context';
+import { RouteFallback } from '../layout/root';
+import { lockSession, useVault } from '../core/session';
 import { vaultAddress, vaultDerivable, type Vault } from '../core/vault';
 import { usePrices } from '../hook/price';
 import { useOnline } from '../hook/connection';
@@ -50,17 +50,23 @@ const navMap: { key: string; icon: IconType }[] =
 ];
 
 /**
- * DashboardPage - The unlocked wallet home.
+ * DashboardView - The unlocked wallet home.
  *
  * Owns the active account (a derivation index on the one vault), the account list, the active network, and the live balances, then feeds them to the three tabs and the transfer modals so every surface reads the same state.
  *
  * The vault is either a mnemonic or a single imported private key. Only two things here care which: the account list, which cannot grow past one on a key, and the labels on the surfaces that name the secret.
+ *
+ * Takes the vault as a prop rather than reading the session itself. That is what lets the type be
+ * `Vault` and not `Vault | undefined` — the locked case is answered once, by the wrapper below, before
+ * any of this component's hooks run.
  * @param {object} props Component props.
  * @param {Vault} props.vault The unlocked key material.
  * @returns {JSX.Element} The dashboard page.
  */
-export default function DashboardPage({ vault }: { vault: Vault })
+function DashboardView({ vault }: { vault: Vault })
 {
+    const navigate = useNavigate();
+
     const swiperRef = useRef<SwiperType>(undefined);
 
     const [ active, setActive ] = useState(0);
@@ -555,7 +561,7 @@ export default function DashboardPage({ vault }: { vault: Vault })
                             key='settings'
                             kind={ vault.kind }
                             onLanguage={ () => { setModal('language'); } }
-                            onLock={ () => { openPage(UnlockPage); } }
+                            onLock={ () => { lockSession(); void navigate('/unlock', { replace: true }); } }
                             onPhrase={ () => { setModal('phrase'); } }
                             onLogout={ () => { setModal('logout'); } }
                             onClose={ closeModal } />
@@ -668,4 +674,28 @@ export default function DashboardPage({ vault }: { vault: Vault })
 
         </motion.div>
     );
+}
+
+/**
+ * DashboardPage - The dashboard route.
+ *
+ * The vault reaches this screen through the session rather than through the navigation, because route
+ * state is written to `history.state` and a decrypted mnemonic must not be. The route's loader already
+ * redirects when there is none, so this only covers the window between locking and the redirect
+ * landing — a frame at most, and the fallback rather than a crash.
+ *
+ * Splitting the route from the view is also what keeps the view's vault non-optional: the check
+ * happens here, before any of its hooks exist, instead of as an early return in the middle of thirty.
+ * @returns {JSX.Element} The dashboard, or the loading state while the guard redirects.
+ */
+export default function DashboardPage()
+{
+    const vault = useVault();
+
+    if (vault === undefined)
+    {
+        return <RouteFallback />;
+    }
+
+    return <DashboardView vault={ vault } />;
 }

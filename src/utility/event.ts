@@ -1,7 +1,15 @@
-import type { JSX } from 'react';
-
 import type { LanguageType } from './language';
 
+/**
+ * The events this bus carries.
+ *
+ * It used to carry navigation too — `Page.Open` handed a rendered element to a layout that held one
+ * page at a time — along with reserved `Toast.*` and `Modal.*` entries that nothing ever emitted or
+ * listened for. Navigation is React Router's job now, and the reserved entries went with it rather
+ * than sitting here describing a feature that does not exist.
+ *
+ * What is left is the two module singletons that need to tell React they changed.
+ */
 interface EventMap
 {
     // `language.ts` imports `emit` from here at runtime, so this direction has to stay type-only or
@@ -10,14 +18,6 @@ interface EventMap
 
     // Same direction and the same reason: `connection.ts` emits this and nothing here imports it back.
     'Connection.Change': [online: boolean];
-
-    'Page.Open': [component: JSX.Element];
-
-    'Toast.Open': [component: JSX.Element];
-    'Toast.Close': [id: number];
-
-    'Modal.Open': [component: JSX.Element];
-    'Modal.Close': [id: number];
 }
 
 type EventCall<T extends keyof EventMap> = (...args: EventMap[T]) => void;

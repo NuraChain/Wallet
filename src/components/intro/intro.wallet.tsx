@@ -1,8 +1,7 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import WalletManager from '../../core/wallet';
-
-import DashboardPage from '../../page/dashboard';
 
 import Alert from '../ui/alert';
 import IntroCredentials from './intro.credentials';
@@ -10,11 +9,13 @@ import { Sheet, SheetHeader } from '../ui/sheet';
 
 import { T } from '../../utility/language';
 import { passwordHash } from '../../core/password';
-import { openPage } from '../../utility/context';
+import { unlockSession } from '../../core/session';
 import { setValue, setValueEncrypted } from '../../utility/storage';
 
 export default function IntroWallet({ onClose }: { onClose: () => void })
 {
+    const navigate = useNavigate();
+
     const [ error, setError ] = useState('');
 
     const onCreateWallet = async(password: string) =>
@@ -34,7 +35,9 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
         await setValue('Wallet.Password', hash);
 
-        openPage(DashboardPage, { vault: { kind: 'mnemonic', secret: mnemonic } });
+        unlockSession({ kind: 'mnemonic', secret: mnemonic });
+
+        await navigate('/dashboard', { replace: true });
     };
 
     return (
