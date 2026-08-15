@@ -25,11 +25,12 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
 {
     return (
         <>
+            { /* Full-viewport and animated, so no blur — see the note on the same scrim in modal.tsx. */ }
             <motion.div
                 initial={ { opacity: 0 } }
                 animate={ { opacity: 1 } }
                 exit={ { opacity: 0 } }
-                className='absolute z-10 size-full cursor-pointer bg-scrim backdrop-blur-xs'
+                className='absolute z-10 size-full cursor-pointer bg-scrim'
                 onClick={ onClose } />
 
             <motion.div

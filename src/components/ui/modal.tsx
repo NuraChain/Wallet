@@ -38,11 +38,19 @@ export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, s
 {
     return (
         <>
+            { /*
+              * No blur on the scrim, deliberately. Every other glass surface in the app blurs a
+              * bounded box; this one covered the whole window *and* faded, so the compositor re-ran a
+              * full-viewport backdrop filter on every frame of the animation — the one shape of blur
+              * that reliably costs frames, and the worst of it on Android. The 25% dim in `bg-scrim`
+              * was always what separated the dialog from the page; the 2px blur underneath it was
+              * barely visible and was paying for the whole screen.
+              */ }
             <motion.div
                 initial={ { opacity: 0 } }
                 animate={ { opacity: 1 } }
                 exit={ { opacity: 0 } }
-                className={ cn('absolute size-full cursor-pointer bg-scrim backdrop-blur-xs', z) }
+                className={ cn('absolute size-full cursor-pointer bg-scrim', z) }
                 onClick={ onClose } />
 
             <div
