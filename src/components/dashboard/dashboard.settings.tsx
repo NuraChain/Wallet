@@ -1,3 +1,5 @@
+import type { VaultKind } from '../../core/vault';
+
 import { useState } from 'react';
 import { IoChevronForward } from 'react-icons/io5';
 import { FiGlobe, FiLogOut, FiMoon, FiSun } from 'react-icons/fi';
@@ -24,6 +26,7 @@ const chevron = <IoChevronForward size={ 18 } className='text-txt-muted rtl:rota
  *
  * Account labels are not edited here — they belong to the account switcher, next to the account they rename. Network selection likewise lives on the wallet tab, next to the balance it changes.
  * @param {object} props Component props.
+ * @param {VaultKind} props.kind Which sort of secret this wallet holds, so the reveal row names it correctly.
  * @param {() => void} props.onLanguage Opens the language modal.
  * @param {() => void} props.onPhrase Opens the recovery phrase modal.
  * @param {() => void} props.onLock Locks the wallet and returns to the unlock screen.
@@ -31,7 +34,7 @@ const chevron = <IoChevronForward size={ 18 } className='text-txt-muted rtl:rota
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The settings modal.
  */
-export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogout, onClose }: { onLanguage: () => void; onPhrase: () => void; onLock: () => void; onLogout: () => void; onClose: () => void })
+export default function DashboardSettings({ kind, onLanguage, onPhrase, onLock, onLogout, onClose }: { kind: VaultKind; onLanguage: () => void; onPhrase: () => void; onLock: () => void; onLogout: () => void; onClose: () => void })
 {
     const [ theme, setThemeState ] = useState(getTheme());
 
@@ -67,7 +70,7 @@ export default function DashboardSettings({ onLanguage, onPhrase, onLock, onLogo
 
             <MenuRow
                 icon={ <HiOutlineDocumentText size={ 16 } /> }
-                label={ T('Dashboard.Phrase.Title') }
+                label={ kind === 'privateKey' ? T('Dashboard.Phrase.TitleKey') : T('Dashboard.Phrase.Title') }
                 onClick={ onPhrase }
                 trailing={ chevron } />
 

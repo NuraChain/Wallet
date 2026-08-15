@@ -34,7 +34,7 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
 
         await setValue('Wallet.Password', hash);
 
-        openPage(DashboardPage, { mnemonic });
+        openPage(DashboardPage, { vault: { kind: 'mnemonic', secret: mnemonic } });
     };
 
     return (

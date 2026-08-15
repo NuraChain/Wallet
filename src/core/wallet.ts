@@ -46,7 +46,7 @@ const broadcast = async(signer: ethers.Wallet | ethers.HDNodeWallet, params: Sen
  * PrivateKeyWalletManager - Wrapper for wallets imported via raw private key.
  * Exposes the same public API surface as WalletManager.
  */
-class PrivateKeyWalletManager
+export class PrivateKeyWalletManager
 {
     private readonly WalletSigner: ethers.Wallet;
 
@@ -199,6 +199,30 @@ class WalletManager
         const hex = privateKey.startsWith('0x') ? privateKey : `0x${ privateKey }`;
 
         return new PrivateKeyWalletManager(hex);
+    }
+
+    /**
+     * ValidatePrivateKey - Checks whether a string is a usable secp256k1 private key.
+     *
+     * The 64-hex shape is necessary but not sufficient: zero and anything at or above the curve order
+     * are the right length and still not keys, and ethers is the thing that knows where that boundary
+     * is. So the check is to build the wallet and see whether it objects, rather than to re-implement
+     * the range test against a constant copied out of the spec.
+     * @param {string} privateKey - The candidate key, with or without the 0x prefix
+     * @returns {boolean} True when a signer can be built from it
+     */
+    public static ValidatePrivateKey(privateKey: string)
+    {
+        try
+        {
+            WalletManager.FromPrivateKey(privateKey);
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
     }
 }
 

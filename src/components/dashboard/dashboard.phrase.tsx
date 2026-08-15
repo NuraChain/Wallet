@@ -1,4 +1,5 @@
 import type { IconType } from 'react-icons';
+import type { VaultKind } from '../../core/vault';
 
 import { useState } from 'react';
 import { FiEye, FiFileText, FiImage } from 'react-icons/fi';
@@ -18,6 +19,10 @@ import { Horizontal, Vertical } from '../ui/stack';
 /**
  * The two files the phrase can be written as. Same button, same dimensions; only the glyph, the label
  * and which writer runs differ.
+ *
+ * The picture is a three-column grid of numbered words, so it is offered for a phrase only — a private
+ * key is one unbroken 66-character token and would run straight out of the first cell. The key gets the
+ * text file, which holds it exactly as it is.
  */
 const exportMap: { kind: 'image' | 'text'; icon: IconType; label: string }[] =
 [
@@ -26,55 +31,77 @@ const exportMap: { kind: 'image' | 'text'; icon: IconType; label: string }[] =
 ];
 
 /**
- * DashboardPhrase - Password-gated reveal of the recovery phrase.
+ * DashboardPhrase - Password-gated reveal of the wallet's secret.
  *
- * Anyone holding these words owns the wallet outright, so the flow puts two deliberate steps in the
- * way. First the password is verified against the stored Argon2 hash and used to decrypt the mnemonic
- * — the words are read back out of storage rather than passed down from the dashboard, so the secret
- * does not travel through the component tree just to be shown here.
+ * Anyone holding it owns the wallet outright, so the flow puts two deliberate steps in the way. First
+ * the password is verified against the stored Argon2 hash and used to decrypt the secret — it is read
+ * back out of storage rather than passed down from the dashboard, so it does not travel through the
+ * component tree just to be shown here.
  *
- * Then the words render blurred behind a tap-to-reveal cover, which is what stops them appearing to
- * whoever happens to be looking at the screen at that moment.
+ * Then it renders blurred behind a tap-to-reveal cover, which is what stops it appearing to whoever
+ * happens to be looking at the screen at that moment.
  *
- * The phrase is deliberately not copyable: the clipboard is readable by other apps.
+ * What is behind the cover depends on how the wallet was imported: a mnemonic renders as the numbered
+ * word grid, a private key as the one token it is. `kind` comes down from the dashboard rather than
+ * being read off the secret because the title and the button are on screen before anything is
+ * decrypted, and they have to name the right thing from the start.
+ *
+ * The secret is deliberately not copyable: the clipboard is readable by other apps.
  * @param {object} props Component props.
+ * @param {VaultKind} props.kind Which sort of secret this wallet holds.
  * @param {() => void} props.onClose Closes the modal.
- * @returns {JSX.Element} The recovery phrase modal.
+ * @returns {JSX.Element} The reveal modal.
  */
-export default function DashboardPhrase({ onClose }: { onClose: () => void })
+export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; onClose: () => void })
 {
     const [ error, setError ] = useState('');
-    const [ words, setWords ] = useState<string[]>([]);
+    const [ secret, setSecret ] = useState('');
     const [ password, setPassword ] = useState('');
     const [ revealed, setRevealed ] = useState(false);
     const [ notice, setNotice ] = useState('');
     const [ isLoading, setIsLoading ] = useState(false);
 
+    const isKey = kind === 'privateKey';
+
+    const words = secret.length === 0 ? [] : secret.trim().split(/\s+/);
+
+    const exportList = isKey ? exportMap.filter((item) => item.kind === 'text') : exportMap;
+
+    // Named here rather than inline, since the button already switches its label for the spinner and
+    // the two conditions read as one unintelligible nest when they meet in the attribute.
+    const unlockLabel = isKey ? T('Dashboard.Phrase.UnlockKey') : T('Dashboard.Phrase.Unlock');
+    const missingError = isKey ? T('Dashboard.Phrase.ErrorMissingKey') : T('Dashboard.Phrase.ErrorMissing');
+
     /**
-     * onExport - Hands the phrase to the platform as a picture or a text file.
+     * onExport - Hands the secret to the platform as a picture or a text file.
      *
-     * Only reachable once the words are revealed, so exporting always follows an explicit password
-     * check and an explicit tap.
-     * @param {'image' | 'text'} kind Which file to write.
+     * Only reachable once it is revealed, so exporting always follows an explicit password check and
+     * an explicit tap.
+     * @param {'image' | 'text'} format Which file to write.
      */
-    const onExport = async(kind: 'image' | 'text') =>
+    const onExport = async(format: 'image' | 'text') =>
     {
         const bridge = getExporter();
 
-        if (words.length === 0)
+        if (secret.length === 0)
         {
             return;
         }
 
         const stamp = new Date().toISOString().slice(0, 10);
+        const name = isKey ? `nura-private-key-${ stamp }` : `nura-recovery-phrase-${ stamp }`;
 
-        const failure = kind === 'image' ?
-            await bridge.saveImage(phraseToPng(words, T('Dashboard.Phrase.ExportImageTitle'), T('Dashboard.Phrase.ExportImageWarning')), `nura-recovery-phrase-${ stamp }.png`) :
-            await bridge.saveText(words.map((word, index) => `${ index + 1 }. ${ word }`).join('\n'), `nura-recovery-phrase-${ stamp }.txt`);
+        // The numbered list is what makes a written-down phrase checkable; a key is one value and any
+        // numbering around it would be noise in the file the user has to paste back somewhere.
+        const body = isKey ? secret : words.map((word, index) => `${ index + 1 }. ${ word }`).join('\n');
+
+        const failure = format === 'image' ?
+            await bridge.saveImage(phraseToPng(words, T('Dashboard.Phrase.ExportImageTitle'), T('Dashboard.Phrase.ExportImageWarning')), `${ name }.png`) :
+            await bridge.saveText(body, `${ name }.txt`);
 
         if (failure.length === 0)
         {
-            setNotice(kind === 'image' ? T('Dashboard.Phrase.ExportSavedImage') : T('Dashboard.Phrase.ExportSavedText'));
+            setNotice(format === 'image' ? T('Dashboard.Phrase.ExportSavedImage') : T('Dashboard.Phrase.ExportSavedText'));
 
             return;
         }
@@ -97,7 +124,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
 
         try
         {
-            // A device with no stored hash has no phrase to show either, so both outcomes read the
+            // A device with no stored hash has no secret to show either, so both outcomes read the
             // same way from here.
             if (await passwordCheck(password) !== 'ok')
             {
@@ -106,20 +133,20 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                 return;
             }
 
-            const mnemonic = await getValueEncrypted('Wallet.Mnemonic', password);
+            const stored = await getValueEncrypted('Wallet.Mnemonic', password);
 
-            if (mnemonic === undefined)
+            if (stored === undefined)
             {
-                setError(T('Dashboard.Phrase.ErrorMissing'));
+                setError(missingError);
 
                 return;
             }
 
-            setWords(mnemonic.trim().split(/\s+/));
+            setSecret(stored.trim());
         }
         catch
         {
-            setError(T('Dashboard.Phrase.ErrorMissing'));
+            setError(missingError);
         }
         finally
         {
@@ -133,17 +160,17 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
             onClose={ onClose }>
 
             <ModalHeader
-                title={ T('Dashboard.Phrase.Title') }
+                title={ isKey ? T('Dashboard.Phrase.TitleKey') : T('Dashboard.Phrase.Title') }
                 onClose={ onClose } />
 
             <Alert
                 variant='warning'
-                text={ T('Dashboard.Phrase.Warning') } />
+                text={ isKey ? T('Dashboard.Phrase.WarningKey') : T('Dashboard.Phrase.Warning') } />
 
             <Alert text={ error } />
 
             {
-                words.length === 0 ?
+                secret.length === 0 ?
                     (
                         <>
                             <PasswordField
@@ -169,34 +196,51 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                 onClick={ () => { void onUnlock(); } }
                                 aria-label={ isLoading ? T('Dashboard.Phrase.Pending') : undefined }
                                 className='mt-1 disabled:opacity-60'
-                                text={ isLoading ? '' : T('Dashboard.Phrase.Unlock') } />
+                                text={ isLoading ? '' : unlockLabel } />
                         </>
                     ) :
                     (
                         <div className='relative'>
 
-                            <div
-                                dir='ltr'
-                                className={ `grid grid-cols-3 gap-1.5 transition-all duration-300 ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
-
-                                {
-                                    words.map((word, index) => (
-                                        <Horizontal
-                                            key={ `${ index }-${ word }` }
-                                            className='items-center gap-1 rounded-lg bg-base-1 px-2 py-1.5'>
-
-                                            <Text text={ String(index + 1) } />
+                            {
+                                isKey ?
+                                    (
+                                        <div
+                                            dir='ltr'
+                                            className={ `rounded-lg bg-base-1 px-3 py-2.5 transition-all duration-300 ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
 
                                             <Text
                                                 variant='captionStrong'
-                                                className='truncate font-mono'
-                                                text={ word } />
+                                                className='font-mono break-all'
+                                                text={ secret } />
 
-                                        </Horizontal>
-                                    ))
-                                }
+                                        </div>
+                                    ) :
+                                    (
+                                        <div
+                                            dir='ltr'
+                                            className={ `grid grid-cols-3 gap-1.5 transition-all duration-300 ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
 
-                            </div>
+                                            {
+                                                words.map((word, index) => (
+                                                    <Horizontal
+                                                        key={ `${ index }-${ word }` }
+                                                        className='items-center gap-1 rounded-lg bg-base-1 px-2 py-1.5'>
+
+                                                        <Text text={ String(index + 1) } />
+
+                                                        <Text
+                                                            variant='captionStrong'
+                                                            className='truncate font-mono'
+                                                            text={ word } />
+
+                                                    </Horizontal>
+                                                ))
+                                            }
+
+                                        </div>
+                                    )
+                            }
 
                             {
                                 !revealed &&
@@ -232,7 +276,7 @@ export default function DashboardPhrase({ onClose }: { onClose: () => void })
                                         <Horizontal className='gap-2'>
 
                                             {
-                                                exportMap.map((item) => (
+                                                exportList.map((item) => (
                                                     <Button
                                                         key={ item.kind }
                                                         variant='muted'

@@ -8,8 +8,6 @@ import { HiOutlineGlobeAlt, HiOutlineSquares2X2, HiOutlineWallet } from 'react-i
 
 import UnlockPage from './unlock';
 
-import WalletManager from '../core/wallet';
-
 import ScrollArea from '../layout/scroll';
 import PageContainer from '../layout/container';
 import DashboardApps from '../components/dashboard/dashboard.apps';
@@ -30,6 +28,7 @@ import DashboardSettings from '../components/dashboard/dashboard.settings';
 
 import { getNetwork } from '../core/network';
 import { openPage } from '../utility/context';
+import { vaultAddress, vaultDerivable, type Vault } from '../core/vault';
 import { usePrices } from '../hook/price';
 import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
@@ -53,12 +52,14 @@ const navMap: { key: string; icon: IconType }[] =
 /**
  * DashboardPage - The unlocked wallet home.
  *
- * Owns the active account (a derivation index on the one mnemonic), the account list, the active network, and the live balances, then feeds them to the three tabs and the transfer modals so every surface reads the same state.
+ * Owns the active account (a derivation index on the one vault), the account list, the active network, and the live balances, then feeds them to the three tabs and the transfer modals so every surface reads the same state.
+ *
+ * The vault is either a mnemonic or a single imported private key. Only two things here care which: the account list, which cannot grow past one on a key, and the labels on the surfaces that name the secret.
  * @param {object} props Component props.
- * @param {string} props.mnemonic The unlocked mnemonic.
+ * @param {Vault} props.vault The unlocked key material.
  * @returns {JSX.Element} The dashboard page.
  */
-export default function DashboardPage({ mnemonic }: { mnemonic: string })
+export default function DashboardPage({ vault }: { vault: Vault })
 {
     const swiperRef = useRef<SwiperType>(undefined);
 
@@ -80,7 +81,10 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
     const tokenRef = useRef(tokenMap);
     const [ accounts, setAccounts ] = useState<Account[]>([ { index: 0, name: defaultAccountName(0) } ]);
 
-    const address = useMemo(() => new WalletManager(mnemonic, account).retrieve().Public, [ mnemonic, account ]);
+    // A private-key wallet ignores the index and always answers with its one address.
+    const address = useMemo(() => vaultAddress(vault, account), [ vault, account ]);
+
+    const derivable = vaultDerivable(vault);
 
     // Every dialog closes the same way and three of them step back to settings rather than to the
     // dashboard, so the two destinations are named once instead of being written out at each mount.
@@ -111,8 +115,13 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
         {
             const stored = await loadAccounts();
 
-            setAccounts(stored.accounts);
-            setAccount(stored.active);
+            // A key holds one account and no index derives a second, so the stored list is pinned to
+            // slot 0 — a list left behind by a mnemonic wallet on this device would otherwise offer
+            // accounts this vault has no way to sign for. The label and badge on slot 0 are kept.
+            const single = stored.accounts.find((item) => item.index === 0) ?? { index: 0, name: defaultAccountName(0) };
+
+            setAccounts(derivable ? stored.accounts : [ single ]);
+            setAccount(derivable ? stored.active : 0);
 
             setTokenMap(await loadTokens());
             setLoaded(true);
@@ -388,7 +397,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <DashboardSend
                             key='send'
-                            mnemonic={ mnemonic }
+                            vault={ vault }
                             index={ account }
                             network={ network }
                             nativeValue={ native.value }
@@ -415,7 +424,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <DashboardAccount
                             key='accounts'
-                            mnemonic={ mnemonic }
+                            vault={ vault }
                             accounts={ accounts }
                             active={ account }
                             onSelect={ onSelectAccount }
@@ -486,6 +495,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <DashboardPhrase
                             key='phrase'
+                            kind={ vault.kind }
                             onClose={ backToSettings } />
                     )
                 }
@@ -495,6 +505,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <DashboardLogout
                             key='logout'
+                            kind={ vault.kind }
                             onClose={ backToSettings } />
                     )
                 }
@@ -504,6 +515,7 @@ export default function DashboardPage({ mnemonic }: { mnemonic: string })
                     (
                         <DashboardSettings
                             key='settings'
+                            kind={ vault.kind }
                             onLanguage={ () => { setModal('language'); } }
                             onLock={ () => { openPage(UnlockPage); } }
                             onPhrase={ () => { setModal('phrase'); } }

@@ -1,4 +1,5 @@
 import type { Swiper as SwiperType } from 'swiper';
+import type { VaultKind } from '../../core/vault';
 
 import { Mnemonic } from 'ethers';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -6,6 +7,9 @@ import { useCallback, useRef, useState } from 'react';
 
 import DashboardPage from '../../page/dashboard';
 
+import WalletManager from '../../core/wallet';
+
+import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import IntroCredentials from './intro.credentials';
@@ -15,7 +19,19 @@ import { T } from '../../utility/language';
 import { passwordHash } from '../../core/password';
 import { openPage } from '../../utility/context';
 import { setValue, setValueEncrypted } from '../../utility/storage';
-import { Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../ui/stack';
+
+/**
+ * The two things that can be pasted in, in the order they are offered.
+ *
+ * A phrase is first because it is what most wallets hand out and what restores every account; a key
+ * restores the one account it is, which is what `KeyNote` says under the field.
+ */
+const methodList: { kind: VaultKind; label: string }[] =
+[
+    { kind: 'mnemonic', label: 'Intro.ImportWallet.MethodPhrase' },
+    { kind: 'privateKey', label: 'Intro.ImportWallet.MethodKey' }
+];
 
 export default function IntroImport({ onClose }: { onClose: () => void })
 {
@@ -23,7 +39,8 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
     const [ hash, setHash ] = useState('');
     const [ error, setError ] = useState('');
-    const [ mnemonic, setMnemonic ] = useState('');
+    const [ secret, setSecret ] = useState('');
+    const [ method, setMethod ] = useState<VaultKind>('mnemonic');
     const [ password, setPassword ] = useState('');
     const [ proceed, setProceed ] = useState(false);
 
@@ -45,29 +62,80 @@ export default function IntroImport({ onClose }: { onClose: () => void })
         setProceed(true);
     };
 
+    /**
+     * onMethod - Switches which sort of secret the field is asking for.
+     *
+     * The field is cleared along with the error: what was typed for one is never valid as the other,
+     * and leaving a half-typed phrase behind under a "Private Key" heading reads as the app having
+     * kept something it should not have.
+     * @param {VaultKind} kind The method the user picked.
+     * @returns {void}
+     */
+    const onMethod = (kind: VaultKind) =>
+    {
+        setMethod(kind);
+        setSecret('');
+        setError('');
+    };
+
+    /**
+     * validate - Checks the entered secret and returns it in the form it should be stored in.
+     *
+     * Both branches normalize rather than storing the raw field: a phrase keeps its words but loses
+     * the stray whitespace a paste brings with it, and a key comes back `0x`-prefixed and lowercase
+     * whichever way it was written. What is stored is then exactly what `readVault` will read back.
+     * @returns {string | undefined} The secret to persist, or `undefined` once the error is set.
+     */
+    const validate = () =>
+    {
+        const entered = secret.trim();
+
+        if (method === 'privateKey')
+        {
+            if (!WalletManager.ValidatePrivateKey(entered))
+            {
+                setError(T('Intro.ImportWallet.ErrorInvalidKey'));
+
+                return undefined;
+            }
+
+            return WalletManager.FromPrivateKey(entered).retrieve().Private;
+        }
+
+        const phrase = entered.replace(/\s+/g, ' ');
+        const words = phrase.split(' ');
+
+        if (words.length !== 12 && words.length !== 24)
+        {
+            setError(T('Intro.ImportWallet.ErrorInvalidLength'));
+
+            return undefined;
+        }
+
+        if (!Mnemonic.isValidMnemonic(phrase.normalize('NFKD')))
+        {
+            setError(T('Intro.ImportWallet.ErrorInvalidLength'));
+
+            return undefined;
+        }
+
+        return phrase;
+    };
+
     const onSubmit2 = async() =>
     {
-        const mnemonic2 = mnemonic.trim().replace(/\s+/g, ' ').split(' ');
+        const stored = validate();
 
-        if (mnemonic2.length !== 12 && mnemonic2.length !== 24)
+        if (stored === undefined)
         {
-            setError(T('Intro.ImportWallet.ErrorInvalidLength'));
-
             return;
         }
 
-        if (!Mnemonic.isValidMnemonic(mnemonic.trim().replace(/\s+/g, ' ').normalize('NFKD')))
-        {
-            setError(T('Intro.ImportWallet.ErrorInvalidLength'));
-
-            return;
-        }
-
-        await setValueEncrypted('Wallet.Mnemonic', mnemonic, password);
+        await setValueEncrypted('Wallet.Mnemonic', stored, password);
 
         await setValue('Wallet.Password', hash);
 
-        openPage(DashboardPage, { mnemonic });
+        openPage(DashboardPage, { vault: { kind: method, secret: stored } });
     };
 
     return (
@@ -101,11 +169,44 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
                     <Vertical className='gap-4 px-1 py-2'>
 
+                        { /*
+                          * A pair of buttons rather than a tab strip: there are two of them and they
+                          * swap the field below rather than the whole screen, so the lighter control
+                          * is the honest one.
+                          */ }
+                        <Horizontal className='gap-2'>
+
+                            {
+                                methodList.map((item) => (
+                                    <Button
+                                        key={ item.kind }
+                                        variant={ method === item.kind ? 'primary' : 'muted' }
+                                        onClick={ () => { onMethod(item.kind); } }
+                                        className='h-10 min-w-0 flex-1 rounded-lg text-small'
+                                        text={ T(item.label) } />
+                                ))
+                            }
+
+                        </Horizontal>
+
+                        { /*
+                          * One field for both, but a key is a single unbroken token that must not be
+                          * reordered by the paragraph direction, so it is pinned to LTR and set in the
+                          * mono face the rest of the app uses for addresses.
+                          */ }
                         <textarea
-                            value={ mnemonic }
-                            onChange={ (event) => { setMnemonic(event.target.value); } }
-                            className='min-h-28 w-full resize-none rounded-xl bg-base-3 p-3 text-small outline-0 sm:min-h-36'
-                            placeholder={ T('Intro.ImportWallet.Message') } />
+                            value={ secret }
+                            dir={ method === 'privateKey' ? 'ltr' : undefined }
+                            onChange={ (event) => { setSecret(event.target.value); } }
+                            className={ `min-h-28 w-full resize-none rounded-xl bg-base-3 p-3 text-small outline-0 sm:min-h-36 ${ method === 'privateKey' ? 'font-mono break-all' : '' }` }
+                            placeholder={ method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message') } />
+
+                        {
+                            method === 'privateKey' &&
+                            (
+                                <Text text={ T('Intro.ImportWallet.KeyNote') } />
+                            )
+                        }
 
                         <Button
                             variant='primary'

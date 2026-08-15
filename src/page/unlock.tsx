@@ -11,6 +11,7 @@ import Button from '../components/ui/button';
 import { PasswordField } from '../components/ui/field';
 
 import { T } from '../utility/language';
+import { readVault } from '../core/vault';
 import { glassPanel } from '../components/ui/panel';
 import { passwordCheck } from '../core/password';
 import { openPage } from '../utility/context';
@@ -56,16 +57,18 @@ export default function UnlockPage()
                 return;
             }
 
-            const mnemonic = await getValueEncrypted('Wallet.Mnemonic', password);
+            const secret = await getValueEncrypted('Wallet.Mnemonic', password);
 
-            if (mnemonic === undefined)
+            if (secret === undefined)
             {
                 setError(T('Unlock.ErrorMissing'));
 
                 return;
             }
 
-            openPage(DashboardPage, { mnemonic });
+            // The key is stored under the same name whichever sort it is, so what it turns out to be
+            // is read off the material itself rather than from a marker beside it.
+            openPage(DashboardPage, { vault: readVault(secret) });
         }
         catch
         {

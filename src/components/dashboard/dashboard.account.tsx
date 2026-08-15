@@ -1,8 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FiCheck, FiEdit2, FiPlus } from 'react-icons/fi';
 
-import WalletManager from '../../core/wallet';
-
 import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
@@ -12,6 +10,7 @@ import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
+import { vaultAddress, vaultDerivable, type Vault } from '../../core/vault';
 import { accountFirst, accountLimit, defaultAccountName, type Account } from '../../utility/account';
 import { Horizontal, Vertical } from '../ui/stack';
 
@@ -55,9 +54,11 @@ const emojiList =
  *
  * Every account is a derivation index on the one mnemonic (`m/44'/60'/0'/0/{index}`), so adding one needs no extra key material — index 0 comes with the wallet and is always present, and any further index the user asks for is derived on the spot.
  *
+ * A wallet imported from a private key is the exception: it holds one key, no index yields another, and so it gets the same list with the add form withheld and a line saying why. Renaming and badges still work — those are labels on an account, not new key material.
+ *
  * The list shows only accounts that exist. Earlier it rendered every index up to the limit as an empty row waiting to be filled, which made the limit look like a quota and buried the real accounts among placeholders.
  * @param {object} props Component props.
- * @param {string} props.mnemonic The unlocked mnemonic, used to derive each account's address.
+ * @param {Vault} props.vault The unlocked key material, used to resolve each account's address.
  * @param {Account[]} props.accounts The accounts created so far.
  * @param {number} props.active The active derivation index.
  * @param {(index: number) => void} props.onSelect Activates an index, creating the account if it is new.
@@ -65,8 +66,10 @@ const emojiList =
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The account modal.
  */
-export default function DashboardAccount({ mnemonic, accounts, active, onSelect, onUpdate, onClose }: { mnemonic: string; accounts: Account[]; active: number; onSelect: (index: number) => void; onUpdate: (index: number, patch: Partial<Account>) => void; onClose: () => void })
+export default function DashboardAccount({ vault, accounts, active, onSelect, onUpdate, onClose }: { vault: Vault; accounts: Account[]; active: number; onSelect: (index: number) => void; onUpdate: (index: number, patch: Partial<Account>) => void; onClose: () => void })
 {
+    const derivable = vaultDerivable(vault);
+
     const [ draft, setDraft ] = useState('');
     const [ editing, setEditing ] = useState(-1);
     const [ picking, setPicking ] = useState(-1);
@@ -80,11 +83,11 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
         for (const item of accounts)
         {
-            map[item.index] = new WalletManager(mnemonic, item.index).retrieve().Public;
+            map[item.index] = vaultAddress(vault, item.index);
         }
 
         return map;
-    }, [ mnemonic, accounts ]);
+    }, [ vault, accounts ]);
 
     /**
      * parseIndex - Reads the typed index, or `undefined` when it is not a usable one.
@@ -120,8 +123,8 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
     {
         const index = parseIndex(draftIndex);
 
-        return index === undefined ? '' : new WalletManager(mnemonic, index).retrieve().Public;
-    }, [ mnemonic, draftIndex ]);
+        return index === undefined ? '' : vaultAddress(vault, index);
+    }, [ vault, draftIndex ]);
 
     const onEdit = (index: number, name: string) =>
     {
@@ -405,16 +408,31 @@ export default function DashboardAccount({ mnemonic, accounts, active, onSelect,
 
                             </ModalBody>
 
-                            <ModalActions>
+                            { /*
+                              * A private key is one account and no index derives another, so the add
+                              * form is withheld rather than shown and then refused — and the line that
+                              * replaces it says why, since an absent button explains nothing on its own.
+                              */ }
+                            {
+                                derivable ?
+                                    (
+                                        <ModalActions>
 
-                                <Button
-                                    variant='normal'
-                                    size='action'
-                                    onClick={ () => { setAdding(true); setError(''); setDraftIndex(''); } }
-                                    leftIcon={ <FiPlus size={ 16 } /> }
-                                    text={ T('Dashboard.Accounts.Add') } />
+                                            <Button
+                                                variant='normal'
+                                                size='action'
+                                                onClick={ () => { setAdding(true); setError(''); setDraftIndex(''); } }
+                                                leftIcon={ <FiPlus size={ 16 } /> }
+                                                text={ T('Dashboard.Accounts.Add') } />
 
-                            </ModalActions>
+                                        </ModalActions>
+                                    ) :
+                                    (
+                                        <Text
+                                            className='pt-1 text-center'
+                                            text={ T('Dashboard.Accounts.SingleNote') } />
+                                    )
+                            }
                         </>
                     )
             }

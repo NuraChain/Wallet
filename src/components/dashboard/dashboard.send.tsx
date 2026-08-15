@@ -5,8 +5,6 @@ import { isAddress, parseUnits } from 'ethers';
 import { IoChevronDown } from 'react-icons/io5';
 import { FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
 
-import WalletManager from '../../core/wallet';
-
 import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
@@ -19,6 +17,7 @@ import { glassInput, TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
+import { vaultManager, type Vault } from '../../core/vault';
 import { useOnline } from '../../hook/connection';
 import { getProvider, type Network } from '../../core/network';
 import { getNativeLogo, getTokenLogo } from '../../core/price';
@@ -44,12 +43,12 @@ interface Asset
 /**
  * DashboardSend - Guided transfer flow for the native coin or a curated ERC20 token.
  *
- * The signing/broadcast step is reached only after an explicit review screen showing the recipient, amount, asset, and network. The wallet is derived from the mnemonic in-memory for the single send and never persisted.
+ * The signing/broadcast step is reached only after an explicit review screen showing the recipient, amount, asset, and network. The signer is built from the vault in-memory for the single send and never persisted.
  *
  * Which asset is being sent is the first thing chosen. An account can hold several tokens on one network, and the coin was previously the only thing this screen would ever send — everything below the picker reads from the choice, and a token routes to its contract's `transfer` rather than to a plain value transfer.
  * @param {object} props Component props.
- * @param {string} props.mnemonic The unlocked mnemonic used to derive the signer.
- * @param {number} props.index The active account's derivation index, so the transfer is signed by the account the user is looking at.
+ * @param {Vault} props.vault The unlocked key material used to build the signer.
+ * @param {number} props.index The active account's derivation index, so the transfer is signed by the account the user is looking at. Ignored for a private-key vault, which has only the one account.
  * @param {Network} props.network The active network.
  * @param {bigint} props.nativeValue Native balance in wei.
  * @param {string} props.nativeFormatted Native balance as a decimal string.
@@ -58,7 +57,7 @@ interface Asset
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The send modal.
  */
-export default function DashboardSend({ mnemonic, index, network, nativeValue, nativeFormatted, tokens, onSent, onClose }: { mnemonic: string; index: number; network: Network; nativeValue: bigint; nativeFormatted: string; tokens: TokenBalance[]; onSent: () => void; onClose: () => void })
+export default function DashboardSend({ vault, index, network, nativeValue, nativeFormatted, tokens, onSent, onClose }: { vault: Vault; index: number; network: Network; nativeValue: bigint; nativeFormatted: string; tokens: TokenBalance[]; onSent: () => void; onClose: () => void })
 {
     const assets = useMemo<Asset[]>(() => [
         { key: 'native', symbol: network.symbol, name: network.coin ?? network.name, logo: getNativeLogo(network.chainId), decimals: network.decimals, value: nativeValue, formatted: nativeFormatted },
@@ -164,7 +163,7 @@ export default function DashboardSend({ mnemonic, index, network, nativeValue, n
 
         try
         {
-            const wallet = new WalletManager(mnemonic, index);
+            const wallet = vaultManager(vault, index);
             const result = await wallet.send(getProvider(), { to, amount, token: asset.token });
 
             setHash(result);

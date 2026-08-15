@@ -1,3 +1,5 @@
+import type { VaultKind } from '../../core/vault';
+
 import { useState } from 'react';
 
 import IntroPage from '../../page/intro';
@@ -22,13 +24,18 @@ const clearList = [ 'Wallet.Mnemonic', 'Wallet.Password', 'Wallet.Name', 'Wallet
 /**
  * DashboardLogout - Password-gated wallet removal.
  *
- * Logging out wipes the encrypted mnemonic from the device, so the password is verified against the
+ * Logging out wipes the encrypted secret from the device, so the password is verified against the
  * stored Argon2 hash first — the same check the unlock screen runs — and only then is storage cleared.
+ *
+ * `kind` is only here for the warning: what the user needs in order to come back is the phrase or the
+ * key they imported, and naming the wrong one is the difference between a recoverable wallet and a
+ * lost one.
  * @param {object} props Component props.
+ * @param {VaultKind} props.kind Which sort of secret this wallet holds.
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The logout modal.
  */
-export default function DashboardLogout({ onClose }: { onClose: () => void })
+export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; onClose: () => void })
 {
     const [ error, setError ] = useState('');
     const [ password, setPassword ] = useState('');
@@ -93,7 +100,7 @@ export default function DashboardLogout({ onClose }: { onClose: () => void })
 
             <Alert
                 variant='warning'
-                text={ T('Dashboard.Logout.Message') } />
+                text={ kind === 'privateKey' ? T('Dashboard.Logout.MessageKey') : T('Dashboard.Logout.Message') } />
 
             <Alert text={ error } />
 
