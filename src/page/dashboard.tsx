@@ -4,26 +4,14 @@ import type { Swiper as SwiperType } from 'swiper';
 import { useNavigate } from 'react-router';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HiOutlineGlobeAlt, HiOutlineSquares2X2, HiOutlineWallet } from 'react-icons/hi2';
 
 import ScrollArea from '../layout/scroll';
 import PageContainer from '../layout/container';
 import DashboardApps from '../components/dashboard/dashboard.apps';
 import DashboardNav from '../components/dashboard/dashboard.nav';
-import DashboardSend from '../components/dashboard/dashboard.send';
-import DashboardTokens from '../components/dashboard/dashboard.tokens';
 import DashboardWallet from '../components/dashboard/dashboard.wallet';
-import IntroLanguage from '../components/intro/intro.language';
-import DashboardLogout from '../components/dashboard/dashboard.logout';
-import DashboardAccount from '../components/dashboard/dashboard.account';
-import DashboardNetwork from '../components/dashboard/dashboard.network';
-import DashboardReceive from '../components/dashboard/dashboard.receive';
-import DashboardRedeem from '../components/dashboard/dashboard.redeem';
-import DashboardBrowser from '../components/dashboard/dashboard.browser';
-import DashboardHistory from '../components/dashboard/dashboard.history';
-import DashboardPhrase from '../components/dashboard/dashboard.phrase';
-import DashboardSettings from '../components/dashboard/dashboard.settings';
 
 import { getNetwork } from '../core/network';
 import { RouteFallback } from '../layout/root';
@@ -39,6 +27,39 @@ import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache'
 import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
 
 import 'swiper/css';
+
+/*
+ * The dialogs, split out of the dashboard chunk.
+ *
+ * Every one of these renders only after a deliberate tap, and several drag real weight behind them —
+ * `receive` pulls in the QR encoder, `phrase` the PNG writer and the filesystem plugin, `send` the
+ * whole transfer flow. Statically imported they were parsed on the way to the wallet screen, only to
+ * sit unrendered until someone opened them.
+ *
+ * The browser is here for a different reason: Swiper mounts all three tab panels at once, so the
+ * in-app browser was being built during the dashboard's first render even though the wallet tab is
+ * what is on screen. It loads with its tab now.
+ *
+ * The naming rule is suspended for this block alone. It requires components to be PascalCase and
+ * everything variable-like to be camelCase, which everywhere else lines up — components in this
+ * codebase are `function` declarations. `lazy()` returns a value, so a lazily-loaded component is the
+ * one kind that cannot be declared as a function, and calling them `dashboardSend` would make them
+ * the only components in the app that read as plain variables at their call sites.
+ */
+/* eslint-disable @typescript-eslint/naming-convention */
+const DashboardSend = lazy(async() => import('../components/dashboard/dashboard.send'));
+const DashboardTokens = lazy(async() => import('../components/dashboard/dashboard.tokens'));
+const IntroLanguage = lazy(async() => import('../components/intro/intro.language'));
+const DashboardLogout = lazy(async() => import('../components/dashboard/dashboard.logout'));
+const DashboardAccount = lazy(async() => import('../components/dashboard/dashboard.account'));
+const DashboardNetwork = lazy(async() => import('../components/dashboard/dashboard.network'));
+const DashboardReceive = lazy(async() => import('../components/dashboard/dashboard.receive'));
+const DashboardRedeem = lazy(async() => import('../components/dashboard/dashboard.redeem'));
+const DashboardBrowser = lazy(async() => import('../components/dashboard/dashboard.browser'));
+const DashboardHistory = lazy(async() => import('../components/dashboard/dashboard.history'));
+const DashboardPhrase = lazy(async() => import('../components/dashboard/dashboard.phrase'));
+const DashboardSettings = lazy(async() => import('../components/dashboard/dashboard.settings'));
+/* eslint-enable @typescript-eslint/naming-convention */
 
 type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem';
 
@@ -434,141 +455,150 @@ function DashboardView({ vault }: { vault: Vault })
             transition={ { type: 'tween' } }
             className='relative size-full bg-base-1'>
 
-            <AnimatePresence>
+            { /*
+              * One boundary for every dialog rather than one each: only ever a single dialog is open,
+              * and `null` while its chunk arrives is the honest thing to show — the panel animates in
+              * when it lands, instead of a spinner appearing where the panel is about to be.
+              */ }
+            <Suspense fallback={ null }>
 
-                {
-                    modal === 'send' &&
-                    (
-                        <DashboardSend
-                            key='send'
-                            vault={ vault }
-                            index={ account }
-                            network={ network }
-                            nativeValue={ native.value }
-                            nativeFormatted={ native.formatted }
-                            tokens={ tokens.tokens }
-                            onSent={ onSent }
-                            onClose={ closeModal } />
-                    )
-                }
+                <AnimatePresence>
 
-                {
-                    modal === 'receive' &&
-                    (
-                        <DashboardReceive
-                            key='receive'
-                            address={ address }
-                            network={ network }
-                            onClose={ closeModal } />
-                    )
-                }
+                    {
+                        modal === 'send' &&
+                        (
+                            <DashboardSend
+                                key='send'
+                                vault={ vault }
+                                index={ account }
+                                network={ network }
+                                nativeValue={ native.value }
+                                nativeFormatted={ native.formatted }
+                                tokens={ tokens.tokens }
+                                onSent={ onSent }
+                                onClose={ closeModal } />
+                        )
+                    }
 
-                {
-                    modal === 'accounts' &&
-                    (
-                        <DashboardAccount
-                            key='accounts'
-                            vault={ vault }
-                            accounts={ accounts }
-                            active={ account }
-                            onSelect={ onSelectAccount }
-                            onUpdate={ onUpdateAccount }
-                            onClose={ closeModal } />
-                    )
-                }
+                    {
+                        modal === 'receive' &&
+                        (
+                            <DashboardReceive
+                                key='receive'
+                                address={ address }
+                                network={ network }
+                                onClose={ closeModal } />
+                        )
+                    }
 
-                {
-                    modal === 'tokens' &&
-                    (
-                        <DashboardTokens
-                            key='tokens'
-                            network={ network }
-                            tokens={ tokens.tokens }
-                            onAdd={ onAddToken }
-                            onRemove={ onRemoveToken }
-                            onClose={ closeModal } />
-                    )
-                }
+                    {
+                        modal === 'accounts' &&
+                        (
+                            <DashboardAccount
+                                key='accounts'
+                                vault={ vault }
+                                accounts={ accounts }
+                                active={ account }
+                                onSelect={ onSelectAccount }
+                                onUpdate={ onUpdateAccount }
+                                onClose={ closeModal } />
+                        )
+                    }
 
-                {
-                    modal === 'history' &&
-                    (
-                        <DashboardHistory
-                            key='history'
-                            items={ history.items }
-                            loading={ history.loading }
-                            notice={ history.notice }
-                            canOpen={ network.explorerUrl.length > 0 }
-                            onOpen={ onTransaction }
-                            onClose={ closeModal } />
-                    )
-                }
+                    {
+                        modal === 'tokens' &&
+                        (
+                            <DashboardTokens
+                                key='tokens'
+                                network={ network }
+                                tokens={ tokens.tokens }
+                                onAdd={ onAddToken }
+                                onRemove={ onRemoveToken }
+                                onClose={ closeModal } />
+                        )
+                    }
 
-                {
-                    modal === 'network' &&
-                    (
-                        <DashboardNetwork
-                            key='network'
-                            network={ network }
-                            onChange={ onNetworkChange }
-                            onClose={ closeModal } />
-                    )
-                }
+                    {
+                        modal === 'history' &&
+                        (
+                            <DashboardHistory
+                                key='history'
+                                items={ history.items }
+                                loading={ history.loading }
+                                notice={ history.notice }
+                                canOpen={ network.explorerUrl.length > 0 }
+                                onOpen={ onTransaction }
+                                onClose={ closeModal } />
+                        )
+                    }
 
-                {
-                    modal === 'language' &&
-                    (
-                        <IntroLanguage
-                            key='language'
-                            onClose={ backToSettings } />
-                    )
-                }
+                    {
+                        modal === 'network' &&
+                        (
+                            <DashboardNetwork
+                                key='network'
+                                network={ network }
+                                onChange={ onNetworkChange }
+                                onClose={ closeModal } />
+                        )
+                    }
 
-                {
-                    modal === 'redeem' &&
-                    (
-                        <DashboardRedeem
-                            key='redeem'
-                            address={ address }
-                            onClose={ closeModal } />
-                    )
-                }
+                    {
+                        modal === 'language' &&
+                        (
+                            <IntroLanguage
+                                key='language'
+                                onClose={ backToSettings } />
+                        )
+                    }
 
-                {
-                    modal === 'phrase' &&
-                    (
-                        <DashboardPhrase
-                            key='phrase'
-                            kind={ vault.kind }
-                            onClose={ backToSettings } />
-                    )
-                }
+                    {
+                        modal === 'redeem' &&
+                        (
+                            <DashboardRedeem
+                                key='redeem'
+                                address={ address }
+                                onClose={ closeModal } />
+                        )
+                    }
 
-                {
-                    modal === 'logout' &&
-                    (
-                        <DashboardLogout
-                            key='logout'
-                            kind={ vault.kind }
-                            onClose={ backToSettings } />
-                    )
-                }
+                    {
+                        modal === 'phrase' &&
+                        (
+                            <DashboardPhrase
+                                key='phrase'
+                                kind={ vault.kind }
+                                onClose={ backToSettings } />
+                        )
+                    }
 
-                {
-                    modal === 'settings' &&
-                    (
-                        <DashboardSettings
-                            key='settings'
-                            kind={ vault.kind }
-                            onLanguage={ () => { setModal('language'); } }
-                            onLock={ () => { lockSession(); void navigate('/unlock', { replace: true }); } }
-                            onPhrase={ () => { setModal('phrase'); } }
-                            onLogout={ () => { setModal('logout'); } }
-                            onClose={ closeModal } />
-                    )
-                }
+                    {
+                        modal === 'logout' &&
+                        (
+                            <DashboardLogout
+                                key='logout'
+                                kind={ vault.kind }
+                                onClose={ backToSettings } />
+                        )
+                    }
 
-            </AnimatePresence>
+                    {
+                        modal === 'settings' &&
+                        (
+                            <DashboardSettings
+                                key='settings'
+                                kind={ vault.kind }
+                                onLanguage={ () => { setModal('language'); } }
+                                onLock={ () => { lockSession(); void navigate('/unlock', { replace: true }); } }
+                                onPhrase={ () => { setModal('phrase'); } }
+                                onLogout={ () => { setModal('logout'); } }
+                                onClose={ closeModal } />
+                        )
+                    }
+
+                </AnimatePresence>
+
+            </Suspense>
 
             <Swiper
                 key={ getLanguage().code }
@@ -600,13 +630,22 @@ function DashboardView({ vault }: { vault: Vault })
                                             aria-hidden={ index === active ? undefined : true }
                                             aria-labelledby={ `dashboard-tab-${ item.key }` }>
 
-                                            <DashboardBrowser
-                                                address={ address }
-                                                network={ network }
-                                                request={ link.url }
-                                                ticket={ link.ticket }
-                                                enabled={ index === active && modal === 'none' }
-                                                onExit={ () => { swiperRef.current?.slideTo(0); } } />
+                                            { /*
+                                              * Its own boundary, because Swiper mounts every panel at
+                                              * once: sharing the dialog boundary above would let the
+                                              * browser's chunk suspend the dialogs too.
+                                              */ }
+                                            <Suspense fallback={ null }>
+
+                                                <DashboardBrowser
+                                                    address={ address }
+                                                    network={ network }
+                                                    request={ link.url }
+                                                    ticket={ link.ticket }
+                                                    enabled={ index === active && modal === 'none' }
+                                                    onExit={ () => { swiperRef.current?.slideTo(0); } } />
+
+                                            </Suspense>
 
                                         </PageContainer>
                                     ) :
