@@ -27,6 +27,15 @@ src-tauri/gen/android/local.properties
 src-tauri/gen/schemas
 src-tauri/target
 
+# Build-time environment. `VITE_COVALENT_KEY` — the GoldRush key that reads BNB
+# history, since that chain's explorer data is sold rather than served — lives in
+# `.env.local`, which Vite loads for every mode and git never sees. The last key
+# was committed once and had to be rotated at the provider; this is what stops the
+# next one going the same way. `.env.example` is the committed half: names, no values.
+.env
+.env.*
+!.env.example
+
 # Release signing material. Never commit these: the keystore and its passwords are
 # what prove an update came from you, and losing control of them is unrecoverable.
 src-tauri/gen/android/keystore.properties
