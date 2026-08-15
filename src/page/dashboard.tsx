@@ -144,7 +144,10 @@ function DashboardView({ vault }: { vault: Vault })
     {
         const run = async() =>
         {
-            const stored = await loadAccounts();
+            // Three independent stores, so one round-trip instead of three: the accounts, the tracked
+            // tokens and the dismissed ones have nothing to say to each other, and this runs on the
+            // way to the first paint of the wallet screen.
+            const [ stored, storedTokens, dismissed ] = await Promise.all([ loadAccounts(), loadTokens(), loadHiddenTokens() ]);
 
             // A key holds one account and no index derives a second, so the stored list is pinned to
             // slot 0 — a list left behind by a mnemonic wallet on this device would otherwise offer
@@ -154,8 +157,8 @@ function DashboardView({ vault }: { vault: Vault })
             setAccounts(derivable ? stored.accounts : [ single ]);
             setAccount(derivable ? stored.active : 0);
 
-            setTokenMap(await loadTokens());
-            setHidden(await loadHiddenTokens());
+            setTokenMap(storedTokens);
+            setHidden(dismissed);
             setLoaded(true);
         };
 

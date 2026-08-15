@@ -101,7 +101,14 @@ const normalize = (parsed: unknown) =>
  */
 export const loadAccounts = async() =>
 {
-    const stored = await getValue('Wallet.Accounts');
+    // Three independent reads, and every one is a Tauri IPC round-trip. Awaited one after another they
+    // cost three round-trips of latency on the dashboard's first render to answer one question; they
+    // do not depend on each other, so they go together.
+    const [ stored, legacyName, storedActive ] = await Promise.all([
+        getValue('Wallet.Accounts'),
+        getValue('Wallet.Name'),
+        getValue('Wallet.Active')
+    ]);
 
     let accounts: Account[] = [];
 
@@ -119,12 +126,9 @@ export const loadAccounts = async() =>
 
     if (accounts.length === 0)
     {
-        const legacy = await getValue('Wallet.Name');
-
-        accounts = [ { index: 0, name: legacy !== undefined && legacy.length > 0 ? legacy : defaultAccountName(0) } ];
+        accounts = [ { index: 0, name: legacyName !== undefined && legacyName.length > 0 ? legacyName : defaultAccountName(0) } ];
     }
 
-    const storedActive = await getValue('Wallet.Active');
     const parsedActive = storedActive === undefined ? Number.NaN : Number(storedActive);
 
     const active = accounts.some((item) => item.index === parsedActive) ? parsedActive : accounts[0].index;
