@@ -42,6 +42,15 @@ export interface Network
 }
 
 /**
+ * Nura Chain's id, named rather than written twice because two modules have to agree on it.
+ *
+ * It is not a fixed fact: the chain was re-launched under 1020 having been 1010, and the asset lookups
+ * in [price.ts](price.ts) are keyed by chain id — so an id corrected here and not there does not fail,
+ * it silently goes back to drawing every Nura logo as a letter.
+ */
+export const nuraChainId = 1020;
+
+/**
  * Built-in networks shipped with the app. These can never be removed.
  *
  * Nura Chain leads the list, which also makes it the network a fresh install starts on.
@@ -51,8 +60,8 @@ export const defaultNetworks: Network[] =
     {
         id: 'nura',
         name: 'Nura Chain',
-        chainId: 1010,
-        symbol: 'NC',
+        chainId: nuraChainId,
+        symbol: 'Nura',
         coin: 'Nura Coin',
         rpcUrl: 'https://rpc.nurachain.net',
         explorerUrl: 'https://explorer.nurachain.net',
