@@ -376,31 +376,3 @@ body {
     width: 7.5rem;
     flex-grow: 1;
 }
-
-/*
- * Respect the system's reduced-motion setting.
- *
- * The app had no answer to this at all: every page fade, dialog scale, sheet slide and Swiper tab
- * change ran at full length whether or not the user had asked the OS for less. All three platforms
- * expose the preference and Windows in particular turns it on for a range of vestibular and
- * accessibility reasons, so ignoring it is both an accessibility gap and, on the machines that set it,
- * a stack of animation work nobody wanted.
- *
- * Collapsed to 1ms rather than removed, because `0s` makes some engines skip transition events
- * entirely and a few components — the ones that unmount on `onAnimationComplete` — would then never be
- * told the animation finished. `motion/react` reads the same media query itself for its own
- * transitions; this covers the CSS half, which is everything set through a Tailwind utility.
- *
- * `scroll-behavior` is in here too: a smooth-scrolled list is motion the same way a fade is.
- */
-@media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-        animation-duration: 1ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 1ms !important;
-        scroll-behavior: auto !important;
-    }
-}

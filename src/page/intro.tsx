@@ -17,13 +17,14 @@ import IntroImport from '../components/intro/intro.import';
 import IntroWallet from '../components/intro/intro.wallet';
 import IntroLanguage from '../components/intro/intro.language';
 
+import { Horizontal, Vertical } from '../components/ui/stack';
+
 import { getTheme, setTheme } from '../utility/theme';
 import { getDirection, getLanguage, T } from '../utility/language';
 import { IntroArtConnect, IntroArtDecentralized, IntroArtSecure } from '../components/intro/intro.art';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
-import { Horizontal, Vertical } from '../components/ui/stack';
 
 const slideMap =
 [

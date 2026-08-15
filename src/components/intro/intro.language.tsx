@@ -44,7 +44,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
               * this is the smaller of the two, which is the point: `80vh` alone let the dialog grow to
               * most of a desktop screen.
               */ }
-            <ModalBody className='max-h-72 gap-2 pt-4'>
+            <ModalBody className='mt-2 max-h-72 gap-2'>
 
                 {
                     languageRecord.map((lang) =>
