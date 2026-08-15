@@ -1,4 +1,5 @@
 import { isOnline } from './connection';
+import { nuraChainId } from './network';
 import { prune, readRaw, writeRaw } from './cache.store';
 
 /**
@@ -26,6 +27,41 @@ const nativeIds: Record<number, string | undefined> = { 1: 'ethereum', 56: 'bina
  * Trust Wallet asset folder per chain id, used to build logo URLs.
  */
 const assetFolders: Record<number, string | undefined> = { 1: 'ethereum', 56: 'smartchain' };
+
+/**
+ * Nura's own asset repository, which is where the logos Trust Wallet has never heard of come from.
+ *
+ * The repository below is keyed by the chains and contracts *it* lists, and Nura is in neither — no
+ * folder means no URL, so every Nura asset drew the lettered disc rather than a logo. A chain that is
+ * not in someone else's index can still publish its own, and the two tables under this are read ahead
+ * of the folder lookup for exactly that.
+ *
+ * These are served with `Access-Control-Allow-Origin: *` and an honest `image/*` type, which is what
+ * the image cache needs to store the bytes; anything without it still shows, through the raw address
+ * and the `img` tag, but is fetched again every time.
+ */
+const nuraAssets = 'https://raw.githubusercontent.com/NuraChain/Asset/refs/heads/main';
+
+/**
+ * Native coin logos Trust Wallet does not carry, by chain id.
+ */
+const nativeLogos: Record<number, string | undefined> = { [nuraChainId]: `${ nuraAssets }/Nura.png` };
+
+/**
+ * Token logos Trust Wallet does not carry, by chain id and then by contract address.
+ *
+ * The addresses are lowercase and the lookup lowercases what it is given: call sites hand over the
+ * checksummed address the token was stored with, and a table written in one casing and read in another
+ * is a table that never matches.
+ */
+const tokenLogos: Record<number, Record<string, string | undefined> | undefined> =
+{
+    [nuraChainId]:
+    {
+        '0xd4221ad9772bf5ba7423a044bbbee6af2154a5fc': `${ nuraAssets }/BNB.svg`,
+        '0x4e0db0b1da408faf5637202cf48b0bc7733be6dc': `${ nuraAssets }/USDT.svg`
+    }
+};
 
 const endpoint = 'https://api.coingecko.com/api/v3/simple/price';
 
@@ -65,11 +101,20 @@ export const getNativeCoinId = (chainId: number) => nativeIds[chainId] ?? '';
 
 /**
  * getNativeLogo - Remote logo for a chain's native coin.
+ *
+ * A chain that publishes its own logo is answered from `nativeLogos` before Trust Wallet is consulted.
  * @param {number} chainId The chain id.
  * @returns {string} The logo URL, or an empty string when the chain is unknown.
  */
 export const getNativeLogo = (chainId: number) =>
 {
+    const named = nativeLogos[chainId];
+
+    if (named !== undefined)
+    {
+        return named;
+    }
+
     const folder = assetFolders[chainId];
 
     return folder === undefined ? '' : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${ folder }/info/logo.png`;
@@ -79,12 +124,22 @@ export const getNativeLogo = (chainId: number) =>
  * getTokenLogo - Remote logo for an ERC20 contract.
  *
  * Trust Wallet's asset repository is keyed by checksummed contract address and needs no API key, so icons work on a fresh install with nothing to configure. A contract it does not know about simply 404s and the caller falls back to the lettered avatar.
+ *
+ * A contract named in `tokenLogos` is answered from there first, which is how a chain Trust Wallet does
+ * not index gets icons at all.
  * @param {number} chainId The chain the token lives on.
  * @param {string} address The checksummed contract address.
  * @returns {string} The logo URL, or an empty string when the chain is unknown.
  */
 export const getTokenLogo = (chainId: number, address: string) =>
 {
+    const named = tokenLogos[chainId]?.[address.toLowerCase()];
+
+    if (named !== undefined)
+    {
+        return named;
+    }
+
     const folder = assetFolders[chainId];
 
     return folder === undefined ? '' : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${ folder }/assets/${ address }/logo.png`;
