@@ -183,8 +183,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
 
             <ModalHeader
                 title={ T('Dashboard.Send.Title') }
-                titleClass='min-w-0 truncate'
-                className='gap-2'
+                titleClass='truncate'
                 onClose={ onClose } />
 
             {

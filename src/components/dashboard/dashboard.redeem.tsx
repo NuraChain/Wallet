@@ -69,8 +69,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
 
             <ModalHeader
                 title={ T('Dashboard.Redeem.Title') }
-                titleClass='min-w-0 truncate'
-                className='gap-2'
+                titleClass='truncate'
                 onClose={ onClose }
                 leading={
                     (

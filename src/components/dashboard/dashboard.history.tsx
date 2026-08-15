@@ -151,8 +151,7 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
             <ModalHeader
                 title={ T('Dashboard.Activity.Title') }
                 subtitle={ T('Dashboard.Activity.Count', String(results.length)) }
-                groupClass='min-w-0 flex-1'
-                className='gap-2'
+                groupClass='flex-1'
                 close='chip'
                 closeLabel={ T('Dashboard.Activity.Close') }
                 onClose={ onClose } />

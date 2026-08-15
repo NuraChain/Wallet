@@ -83,6 +83,13 @@ export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, s
  *
  * The close button is the standard muted square unless `close='chip'`, which renders the capsule
  * variant used where the dialog sits over busy content.
+ *
+ * The row owns the gap and the title owns `min-w-0`, because `justify-between` alone only separates a
+ * title that fits: one long enough to fill the panel is pushed right up against the close button, and
+ * a word longer than the space left over pushed *through* it. Three dialogs had already discovered
+ * this and were passing the two utilities in by hand — a title that has to stay clear of the control
+ * beside it is what every header wants, so it is stated here once rather than per dialog. Anything
+ * that wants the title to truncate rather than wrap still says so through `titleClass`.
  * @param {object} props Component props.
  * @param {string} props.title The dialog title.
  * @param {string} [props.subtitle] Muted line under the title.
@@ -100,18 +107,18 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
     const heading = (
         <Text
             variant='title'
-            className={ titleClass }
+            className={ cn('min-w-0', titleClass) }
             text={ title } />
     );
 
     return (
-        <div className={ cn('flex shrink-0 items-center justify-between', className) }>
+        <div className={ cn('flex shrink-0 items-center justify-between gap-3', className) }>
 
             {
                 subtitle.length === 0 && leading === undefined ?
                     heading :
                     (
-                        <div className={ cn(leading === undefined ? 'flex flex-col' : 'flex min-w-0 items-center gap-2', groupClass) }>
+                        <div className={ cn(leading === undefined ? 'flex min-w-0 flex-col' : 'flex min-w-0 items-center gap-2', groupClass) }>
 
                             { leading }
 
