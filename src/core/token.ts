@@ -1,6 +1,7 @@
 import { Contract, formatUnits, getAddress, isAddress } from 'ethers';
 
-import { getExplorerApi, getProvider, type Network } from './network';
+import { getProvider } from './network.provider';
+import { getExplorerApi, type Network } from './network';
 import { getValue, setValue } from '../utility/storage';
 
 /**

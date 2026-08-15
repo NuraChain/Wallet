@@ -3,7 +3,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useOnline } from './connection';
 import { isOnline } from '../core/connection';
-import { getProvider, type Network } from '../core/network';
+import type { Network } from '../core/network';
+
+import { getProvider } from '../core/network.provider';
 import { balanceKey, readBalances, readLastBalances, readLastNative, readNative, writeBalances, writeNative } from '../core/token.cache';
 import { readTokenBalances, type Token, type TokenBalance } from '../core/token';
 

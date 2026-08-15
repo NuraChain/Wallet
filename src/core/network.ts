@@ -1,5 +1,3 @@
-import { FallbackProvider, JsonRpcProvider, type AbstractProvider } from 'ethers';
-
 import { setValue, getValue } from '../utility/storage';
 
 /**
@@ -102,7 +100,27 @@ export const defaultNetworks: Network[] =
 
 let customNetworks: Network[] = [];
 let networkCurrentId: string = defaultNetworks[0].id;
-let providerCache: { id: string; provider: AbstractProvider } | undefined;
+
+/**
+ * Bumped whenever the network definitions change, so a cached provider built from the old ones can
+ * tell that it is stale.
+ *
+ * The provider used to be built here and its cache was simply set to `undefined` at the two places
+ * below. It lives in [network.provider.ts](network.provider.ts) now — that module imports `ethers`,
+ * and this one is on the startup path — so the dependency has to run one way only: the provider reads
+ * this, and nothing here reaches for the provider. A counter rather than a callback because there is
+ * exactly one thing to invalidate and it can check on its own next call.
+ *
+ * It matters for editing as much as for removing: re-adding a chain replaces the entry under the same
+ * id, so a cache keyed on the id alone would keep handing back a provider pointed at the old RPC.
+ */
+let networkRevision = 0;
+
+/**
+ * getNetworkRevision - How many times the network definitions have changed this session.
+ * @returns {number} The current revision.
+ */
+export const getNetworkRevision = () => networkRevision;
 
 /**
  * Return every known network: the built-in ones followed by user-added ones.
@@ -137,43 +155,6 @@ export const getExplorerApi = (network: Network) =>
     // Folded into the base rather than added by each caller: every one of them already appends its own
     // query with the same `?`-or-`&` test, so a key carried here rides along with all of them.
     return `${ base }${ base.includes('?') ? '&' : '?' }apikey=${ encodeURIComponent(network.explorerKey) }`;
-};
-
-/**
- * Build (and memoize) a provider for the active network, over every endpoint it lists.
- *
- * The provider is cached per network id, so switching networks and switching back does not leak a new provider each time. `staticNetwork` skips the `eth_chainId` round-trip on every call.
- *
- * With more than one endpoint the calls go through a `FallbackProvider` at **quorum one**: the first
- * endpoint to answer wins and the rest are only reached for if it does not. That is failover, and it is
- * not the default — left alone, a fallback provider wants two endpoints to agree before it believes
- * anything, which doubles every request and fails outright when only one is reachable, the very
- * situation this exists for.
- *
- * Priority follows the order the endpoints are listed, so the first is the one normally used and the
- * others are the ones tried when it stalls.
- * @returns {AbstractProvider} Provider bound to the active network.
- */
-export const getProvider = () =>
-{
-    const network = getNetwork();
-
-    if (providerCache?.id === network.id)
-    {
-        return providerCache.provider;
-    }
-
-    const endpoints = [ network.rpcUrl, ...network.rpcBackups ?? [] ].map((url) => url.trim()).filter((url) => url.length > 0);
-
-    const single = (url: string) => new JsonRpcProvider(url, network.chainId, { staticNetwork: true });
-
-    const provider: AbstractProvider = endpoints.length > 1 ?
-        new FallbackProvider(endpoints.map((url, index) => ({ provider: single(url), priority: index + 1, weight: 1, stallTimeout: 1500 })), network.chainId, { quorum: 1 }) :
-        single(endpoints[0] ?? network.rpcUrl);
-
-    providerCache = { id: network.id, provider };
-
-    return provider;
 };
 
 /**
@@ -217,7 +198,7 @@ export const addNetwork = async(input: Omit<Network, 'id' | 'custom'>) =>
 
     customNetworks = [ ...customNetworks.filter((item) => item.id !== network.id), network ];
 
-    providerCache = undefined;
+    networkRevision += 1;
 
     await persistCustom();
 
@@ -244,7 +225,7 @@ export const removeNetwork = async(id: string) =>
 
     customNetworks = customNetworks.filter((item) => item.id !== id);
 
-    providerCache = undefined;
+    networkRevision += 1;
 
     await persistCustom();
 
