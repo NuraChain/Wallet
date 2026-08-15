@@ -34,7 +34,7 @@ import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { getDirection, getLanguage, T } from '../utility/language';
-import { discoverTokens, loadTokens, readToken, saveTokens, type TokenMap } from '../core/token';
+import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken, type HiddenMap, type TokenMap } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
 
@@ -76,9 +76,13 @@ export default function DashboardPage({ vault }: { vault: Vault })
     // What `scan` was when the sweep last ran, so a manual refresh is told apart from a re-render.
     const lastScan = useRef(0);
 
+    const [ hidden, setHidden ] = useState<HiddenMap>({});
+
     // The discovery pass below reads the tracked list without being re-run by it: adding what it finds
-    // changes `tokenMap`, and a dependency on that would send it straight round again.
+    // changes `tokenMap`, and a dependency on that would send it straight round again. The dismissed
+    // list is read the same way and for the same reason — removing a token must not itself start a sweep.
     const tokenRef = useRef(tokenMap);
+    const hiddenRef = useRef(hidden);
     const [ accounts, setAccounts ] = useState<Account[]>([ { index: 0, name: defaultAccountName(0) } ]);
 
     // A private-key wallet ignores the index and always answers with its one address.
@@ -124,6 +128,7 @@ export default function DashboardPage({ vault }: { vault: Vault })
             setAccount(derivable ? stored.active : 0);
 
             setTokenMap(await loadTokens());
+            setHidden(await loadHiddenTokens());
             setLoaded(true);
         };
 
@@ -134,6 +139,11 @@ export default function DashboardPage({ vault }: { vault: Vault })
     {
         tokenRef.current = tokenMap;
     }, [ tokenMap ]);
+
+    useEffect(() =>
+    {
+        hiddenRef.current = hidden;
+    }, [ hidden ]);
 
     /**
      * Adds the tokens this account actually holds, so a balance shows up without being asked for.
@@ -173,7 +183,7 @@ export default function DashboardPage({ vault }: { vault: Vault })
             // `discoverTokens` swallows its own explorer failures, but the on-chain verification it
             // ends with rejects when not one contract could be read — the chain being away rather than
             // the account holding nothing.
-            const found = await discoverTokens(address, network, tokenRef.current[network.chainId] ?? []).catch(() => undefined);
+            const found = await discoverTokens(address, network, tokenRef.current[network.chainId] ?? [], hiddenRef.current[network.chainId] ?? []).catch(() => undefined);
 
             // A failed sweep is not a completed one. Marking it would lock discovery out for the whole
             // window on the strength of a request that never landed.
@@ -242,6 +252,17 @@ export default function DashboardPage({ vault }: { vault: Vault })
 
             await saveTokens(next);
 
+            // Adding it by hand is the user asking for it back, which is the one thing that clears an
+            // earlier removal — otherwise the next sweep would still be suppressing what they just added.
+            const cleared = unhideToken(hidden, network.chainId, token.address);
+
+            if (cleared !== hidden)
+            {
+                setHidden(cleared);
+
+                await saveHiddenTokens(cleared);
+            }
+
             return '';
         }
         catch
@@ -250,6 +271,14 @@ export default function DashboardPage({ vault }: { vault: Vault })
         }
     };
 
+    /**
+     * onRemoveToken - Drops a token from the list and remembers that it was dropped.
+     *
+     * The removal has to be recorded, not just performed: discovery adds held contracts nobody is
+     * tracking, so a token deleted from the list is exactly what the next sweep would find and restore.
+     * @param {string} contract The contract address being removed.
+     * @returns {void}
+     */
     const onRemoveToken = (contract: string) =>
     {
         const next = { ...tokenMap, [network.chainId]: tracked.filter((item) => item.address !== contract) };
@@ -257,6 +286,15 @@ export default function DashboardPage({ vault }: { vault: Vault })
         setTokenMap(next);
 
         void saveTokens(next);
+
+        const marked = hideToken(hidden, network.chainId, contract);
+
+        if (marked !== hidden)
+        {
+            setHidden(marked);
+
+            void saveHiddenTokens(marked);
+        }
     };
 
     /**

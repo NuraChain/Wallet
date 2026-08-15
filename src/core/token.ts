@@ -33,6 +33,22 @@ export interface TokenBalance
 export type TokenMap = Record<number, Token[]>;
 
 /**
+ * Contracts the user removed from the list, keyed by chain id and held in lowercase.
+ *
+ * Removing a token only ever took it out of `TokenMap`, and discovery skips what is *tracked* — so the
+ * next sweep found the same contract again, still held, and added it straight back. The user's decision
+ * has to outlive the list it was made about, which is what this is: not a cache, and not derivable from
+ * anything else on disk, so it sits in the wallet store beside the tracked list rather than in a read cache.
+ *
+ * It is a record of an intent, not of a state, so it holds addresses rather than tokens — the metadata
+ * would be re-read from the chain if the user ever asked for the token back.
+ *
+ * Keyed by chain only, matching `TokenMap`: the tracked list is already shared across accounts, and a
+ * token dismissed on one account is dismissed on the chain.
+ */
+export type HiddenMap = Record<number, string[]>;
+
+/**
  * Minimal ERC20 read surface used for balance lookups and contract discovery.
  */
 export const erc20Abi =
@@ -139,6 +155,102 @@ export const loadTokens = async(): Promise<TokenMap> =>
 export const saveTokens = async(tokens: TokenMap) =>
 {
     await setValue('Wallet.Tokens', JSON.stringify(tokens));
+};
+
+/**
+ * loadHiddenTokens - Reads the per-chain list of contracts the user removed.
+ *
+ * Held lowercase so every comparison downstream is a plain `Set.has`. Anything that is not an address
+ * is dropped rather than thrown on: a corrupted entry should cost one suppression, not the dashboard.
+ * @returns {Promise<HiddenMap>} Removed contract addresses per chain id.
+ */
+export const loadHiddenTokens = async(): Promise<HiddenMap> =>
+{
+    const stored = await getValue('Wallet.TokensHidden');
+
+    if (stored === undefined || stored.length === 0)
+    {
+        return {};
+    }
+
+    const hidden: HiddenMap = {};
+
+    try
+    {
+        const parsed: unknown = JSON.parse(stored);
+
+        if (typeof parsed !== 'object' || parsed === null)
+        {
+            return {};
+        }
+
+        for (const [ chain, list ] of Object.entries<unknown>({ ...parsed }))
+        {
+            const chainId = Number(chain);
+
+            if (Number.isInteger(chainId) && Array.isArray(list))
+            {
+                const entries = list.filter((item): item is string => typeof item === 'string' && isAddress(item)).map((item) => item.toLowerCase());
+
+                if (entries.length > 0)
+                {
+                    hidden[chainId] = entries;
+                }
+            }
+        }
+    }
+    catch
+    {
+        return {};
+    }
+
+    return hidden;
+};
+
+/**
+ * saveHiddenTokens - Persists the per-chain list of contracts the user removed.
+ * @param {HiddenMap} hidden Removed contract addresses per chain id.
+ * @returns {Promise<void>} Resolves once written.
+ */
+export const saveHiddenTokens = async(hidden: HiddenMap) =>
+{
+    await setValue('Wallet.TokensHidden', JSON.stringify(hidden));
+};
+
+/**
+ * hideToken - Records that the user removed a contract, so discovery stops offering it.
+ *
+ * Pure, and the only place the lowercase-and-deduplicate rule lives, so no call site has to remember
+ * which case the stored form is in.
+ * @param {HiddenMap} hidden The current map.
+ * @param {number} chainId The chain the contract is on.
+ * @param {string} address The contract address, in any case.
+ * @returns {HiddenMap} A new map including that address.
+ */
+export const hideToken = (hidden: HiddenMap, chainId: number, address: string): HiddenMap =>
+{
+    const entry = address.toLowerCase();
+    const list = hidden[chainId] ?? [];
+
+    return list.includes(entry) ? hidden : { ...hidden, [chainId]: [ ...list, entry ] };
+};
+
+/**
+ * unhideToken - Forgets that a contract was ever removed.
+ *
+ * Adding a token by hand is the user asking for it back in as many words, and it has to clear the
+ * suppression or the very next sweep would be entitled to drop it again.
+ * @param {HiddenMap} hidden The current map.
+ * @param {number} chainId The chain the contract is on.
+ * @param {string} address The contract address, in any case.
+ * @returns {HiddenMap} A new map without that address.
+ */
+export const unhideToken = (hidden: HiddenMap, chainId: number, address: string): HiddenMap =>
+{
+    const entry = address.toLowerCase();
+    const list = hidden[chainId] ?? [];
+
+    return list.includes(entry) ? { ...hidden, [chainId]: list.filter((item) => item !== entry) } : hidden;
 };
 
 /**
@@ -316,12 +428,18 @@ export const readTokenBalances = async(address: string, tokens: Token[]): Promis
  *
  * A network with no working explorer discovers nothing and says so by returning an empty list, which
  * is the same outcome as an account that holds nothing. Manual adding is unaffected either way.
+ *
+ * `hidden` is what keeps a removal from being undone. Skipping only what is *tracked* meant a token the
+ * user deleted was, by the next sweep, simply a held contract nobody was tracking — which is precisely
+ * what this function exists to add — so it came straight back. A held balance is not a reason to
+ * re-add something the user has already said no to; only their adding it by hand is.
  * @param {string} address Account address to inspect.
  * @param {Network} network Active network, which supplies the explorer and the chain id.
  * @param {Token[]} known Tokens already tracked on this chain, which are skipped.
+ * @param {string[]} hidden Lowercase contract addresses the user removed on this chain, also skipped.
  * @returns {Promise<Token[]>} Held tokens worth adding, in the order the explorer named them.
  */
-export const discoverTokens = async(address: string, network: Network, known: Token[]): Promise<Token[]> =>
+export const discoverTokens = async(address: string, network: Network, known: Token[], hidden: string[] = []): Promise<Token[]> =>
 {
     const api = getExplorerApi(network);
 
@@ -329,7 +447,9 @@ export const discoverTokens = async(address: string, network: Network, known: To
 
     const listed = rows.length > 0 || api.length === 0 ? rows : await readExplorerTokens(api, 'tokentx', address);
 
-    const skip = new Set(known.map((item) => item.address.toLowerCase()));
+    // Tracked and dismissed contracts are both "do not offer this", so they share one set — which also
+    // covers the blind `knownTokens` path below, not just the explorer rows.
+    const skip = new Set([ ...known.map((item) => item.address.toLowerCase()), ...hidden.map((item) => item.toLowerCase()) ]);
 
     // An explorer that named nothing is either absent, refusing, or looking at an account it has never
     // seen, and none of those mean the account holds nothing. The blind list covers that gap; where the
