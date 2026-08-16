@@ -395,18 +395,28 @@ export const getNativeTab = (id: string): NativeTab | undefined =>
         return undefined;
     }
 
+    // Destructured to be *tested*, never to be called: reading the property is what tells the two
+    // bridge generations apart, and a `const` keeps that narrowing inside the closures below, which a
+    // check on `bridge.openTab` would not.
+    //
+    // Every call then goes back through `bridge`. An injected Java object resolves a method against
+    // its receiver, so a reference lifted off it and called on its own throws `Java bridge method
+    // can't be invoked on a non-injected object` — the app reached the dashboard, `close()` ran on the
+    // way past, and the error boundary took the whole window. `.call(bridge, ...)` is what puts the
+    // injected object back in `this`; the single-page path below never had the bug because it spells
+    // `bridge.open(...)` out in full.
     const { openTab, boundsTab, closeTab, visibleTab, reloadTab, backTab, forwardTab } = bridge;
 
     if (openTab !== undefined && boundsTab !== undefined && closeTab !== undefined && visibleTab !== undefined && reloadTab !== undefined && backTab !== undefined && forwardTab !== undefined)
     {
         return {
-            open: (url, visible, x, y, width, height) => { openTab(id, url, visible, x, y, width, height); },
-            setBounds: (x, y, width, height) => { boundsTab(id, x, y, width, height); },
-            close: () => { closeTab(id); },
-            setVisible: (visible) => { visibleTab(id, visible); },
-            reload: () => { reloadTab(id); },
-            back: () => { backTab(id); },
-            forward: () => { forwardTab(id); },
+            open: (url, visible, x, y, width, height) => { openTab.call(bridge, id, url, visible, x, y, width, height); },
+            setBounds: (x, y, width, height) => { boundsTab.call(bridge, id, x, y, width, height); },
+            close: () => { closeTab.call(bridge, id); },
+            setVisible: (visible) => { visibleTab.call(bridge, id, visible); },
+            reload: () => { reloadTab.call(bridge, id); },
+            back: () => { backTab.call(bridge, id); },
+            forward: () => { forwardTab.call(bridge, id); },
             hides: true
         };
     }
@@ -419,7 +429,7 @@ export const getNativeTab = (id: string): NativeTab | undefined =>
         open: (url, visible, x, y, width, height) => { bridge.open(url, x, y, width, height); },
         setBounds: (x, y, width, height) => { bridge.setBounds(x, y, width, height); },
         close: () => { bridge.close(); },
-        setVisible: (visible) => { setVisible?.(visible); },
+        setVisible: (visible) => { setVisible?.call(bridge, visible); },
         reload: () => { bridge.reload(); },
         back: () => { bridge.back(); },
         forward: () => { bridge.forward(); },
