@@ -39,7 +39,16 @@
                         "os:allow-version",
                         "os:allow-family",
                         "os:allow-locale",
-                        "os:allow-arch"
+                        "os:allow-arch",
+
+                        {
+                            "identifier": "http:default",
+                            "allow": [
+                                {
+                                    "url": "https://explorer.nurachain.net/*"
+                                }
+                            ]
+                        }
                     ]
                 }
             ]

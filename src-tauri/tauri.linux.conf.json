@@ -46,6 +46,15 @@
                         "os:allow-locale",
                         "os:allow-arch",
 
+                        {
+                            "identifier": "http:default",
+                            "allow": [
+                                {
+                                    "url": "https://explorer.nurachain.net/*"
+                                }
+                            ]
+                        },
+
                         "fs:allow-mkdir",
                         "fs:allow-write-file",
                         "fs:allow-write-text-file",

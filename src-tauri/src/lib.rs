@@ -42,6 +42,11 @@ pub fn run() {
 
     builder = builder.plugin(tauri_plugin_store::Builder::new().build());
 
+    // Registered on every platform, and reachable only for the hosts the capability scope names. The
+    // frontend keeps using the webview's `fetch` for everything else — this is the way around one
+    // server's broken CORS header, not the app's HTTP client.
+    builder = builder.plugin(tauri_plugin_http::init());
+
     builder
         .run(tauri::generate_context!())
         .expect("Application Failed");

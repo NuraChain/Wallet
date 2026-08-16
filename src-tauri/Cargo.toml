@@ -18,6 +18,15 @@ tauri = { version = "2", features = [ "tray-icon", "unstable" ] }
 tauri-plugin-store = "2"
 tauri-plugin-os = "2"
 
+# The one escape hatch from CORS. Every other request in this app goes through the webview's own
+# `fetch` and is subject to the browser rules, which is the right default — this exists because Nura's
+# explorer sends `Access-Control-Allow-Origin` twice and a repeated header fails the CORS check exactly
+# as hard as a missing one, so the wallet cannot read its own chain's history without it. The request
+# is made by Rust, where there is no origin and no preflight.
+#
+# It is scoped to that one host in every capability block; see the `http:default` entries there.
+tauri-plugin-http = "2"
+
 serde = { version = "1", features = [ "derive" ] }
 serde_json = "1"
 
