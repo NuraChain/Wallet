@@ -83,12 +83,10 @@ export interface BrowserFavorite { id: string; name: string; url: string }
  */
 const defaultFavorites: BrowserFavorite[] =
 [
-    { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
+    { id: 'telegram', name: 'Telegram', url: 'https://t.me/nurachain' },
     { id: 'google', name: 'Google', url: 'https://google.com' },
-    { id: 'market', name: 'Poly Market', url: 'https://market.nurachain.net' },
-    { id: 'github', name: 'GitHub', url: 'https://github.com/NuraChain/Explorer' },
-    { id: 'discord', name: 'Discord', url: 'https://discord.gg/ykW3PU64h9' },
-    { id: 'telegram', name: 'Telegram', url: 'https://t.me/nurachain' }
+    { id: 'github', name: 'GitHub', url: 'https://github.com/NuraChain' },
+    { id: 'discord', name: 'Discord', url: 'https://discord.gg/ykW3PU64h9' }
 ];
 
 /**
