@@ -323,12 +323,17 @@ jobs:
       # them (buildSrc, tauri.settings.gradle, app/tauri.build.gradle.kts), and
       # without them Gradle cannot resolve the `rust` plugin.
       #
-      # Verified locally that this leaves the hand-written files alone: MainActivity,
-      # BrowserBridge and values/themes.xml came back byte-identical. It does drop
-      # three unused files — .editorconfig, res/layout/activity_main.xml and a
-      # values-night/themes.xml declaring `Theme.nura_wallet`, which is a different
-      # style from the `@style/Theme` the manifest points at, so none of them affect
-      # the build.
+      # Verified locally that this leaves the hand-written files alone: init writes
+      # only the names that are missing, so MainActivity, BrowserBridge, the manifest,
+      # values/themes.xml and the committed launcher icons all come back byte-identical.
+      # That last one is why the whole mipmap set is committed rather than the one file
+      # it used to be - see "Platform shells" in CLAUDE.md.
+      #
+      # It does drop five unused files — .editorconfig, res/layout/activity_main.xml,
+      # the two ic_launcher_* vectors the Android Studio template leaves in res/drawable
+      # and res/drawable-v24, and a values-night/themes.xml declaring `Theme.nura_wallet`,
+      # which is a different style from the `@style/Theme` the manifest points at, so
+      # none of them affect the build.
       - name: Restore generated Android scaffolding
         run: npm run tauri android init
 
