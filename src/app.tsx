@@ -27,7 +27,7 @@ document.addEventListener('keydown', (event) =>
         (event.ctrlKey && event.shiftKey && (event.key === 'p' || event.key === 'P')) ||
         (event.ctrlKey && event.shiftKey && (event.key === 'i' || event.key === 'I')))
     {
-        // event.preventDefault();
+        event.preventDefault();
     }
 });
 
