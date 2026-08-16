@@ -1,5 +1,6 @@
 import { Contract, formatUnits, getAddress, isAddress } from 'ethers';
 
+import { httpRequest } from './request';
 import { getProvider } from './network.provider';
 import { getExplorerApi, type Network } from './network';
 import { getValue, setValue } from '../utility/storage';
@@ -351,7 +352,9 @@ const readExplorerTokens = async(api: string, action: string, address: string): 
 
     try
     {
-        const response = await fetch(`${ api }${ api.includes('?') ? '&' : '?' }${ query }`);
+        // Same client as the history reader, for the same reason: this is an explorer, and one of them
+        // cannot be reached from the webview at all — see [request.ts](request.ts).
+        const response = await httpRequest(`${ api }${ api.includes('?') ? '&' : '?' }${ query }`);
 
         if (!response.ok)
         {

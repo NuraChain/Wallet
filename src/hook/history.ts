@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useOnline } from './connection';
 import { isOnline } from '../core/connection';
+import { httpRequest } from '../core/request';
 import { readRaw, writeRaw } from '../core/cache.store';
 import { getExplorerApi, type Network } from '../core/network';
 import { historyKey, readHistory, touchHistory, writeHistory, type Transaction } from '../core/history.cache';
@@ -57,7 +58,9 @@ const readAction = async(action: string, address: string, network: Network): Pro
     const api = getExplorerApi(network);
     const query = `module=account&action=${ action }&address=${ encodeURIComponent(address) }&page=1&offset=${ pageSize }&sort=desc`;
 
-    const response = await fetch(`${ api }${ api.includes('?') ? '&' : '?' }${ query }`);
+    // `httpRequest` rather than `fetch`: Nura's explorer is unreadable from the webview, and a history
+    // list is the one screen that cannot fall back to asking the chain directly — see [request.ts](../core/request.ts).
+    const response = await httpRequest(`${ api }${ api.includes('?') ? '&' : '?' }${ query }`);
 
     if (!response.ok)
     {
