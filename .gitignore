@@ -9,8 +9,6 @@ target/
 Build/
 dist/
 
-src-tauri/Cargo.lock
-
 src-tauri/gen/android/app/src/main/java/client/global_application/generated
 src-tauri/gen/android/app/src/main/jniLibs
 src-tauri/gen/android/buildSrc
