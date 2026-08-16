@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.tauri.app/config/2",
-    "identifier": "io.nurawallet.android",
+    "identifier": "wallet.nurachain.net",
     "app": {
         "withGlobalTauri": false,
         "windows": [

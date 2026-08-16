@@ -54,11 +54,11 @@ val cargoVersionCode: Int = cargoVersion.split('.').let { parts ->
 android {
     compileSdk = 36
     ndkVersion = "29.0.13113456 rc1"
-    namespace = "io.nurawallet.android"
+    namespace = "wallet.nurachain.net"
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
 
-        applicationId = "io.nurawallet.android"
+        applicationId = "wallet.nurachain.net"
         minSdk = 24
         targetSdk = 36
         // What the CLI wrote wins, since that is where an explicit `versionCode` in the Tauri config

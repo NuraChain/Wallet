@@ -1,4 +1,4 @@
-package io.nurawallet.android
+package wallet.nurachain.net
 
 import android.app.Activity
 import android.content.ContentValues
