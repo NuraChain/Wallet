@@ -1,9 +1,16 @@
+import { httpRequest } from './request';
+
 /**
  * Redeem endpoint.
  *
  * PLACEHOLDER — no endpoint has been supplied yet. While this is empty every redeem resolves through
- * the stub below instead of touching the network, so the screen is usable without a backend. Put the
- * real base URL here and `redeemCode` starts making the actual request; nothing else needs changing.
+ * the stub below instead of touching the network, so the screen is usable without a backend.
+ *
+ * Putting the real base URL here starts the actual request, and one thing goes with it: this is an
+ * address of ours carrying a wallet address and a code, so it belongs on the native client rather than
+ * the webview. Add its host to `nativeHosts` in [request.ts](request.ts) and to the `http:default`
+ * scope in all three capability blocks at the same time. Left out of both it still works — the request
+ * falls to the webview and is subject to whatever CORS header the backend sends.
  */
 const endpoint = '';
 
@@ -49,7 +56,7 @@ export const redeemCode = async(address: string, code: string): Promise<RedeemRe
 
     try
     {
-        const response = await fetch(endpoint, {
+        const response = await httpRequest(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ address, code: trimmed })

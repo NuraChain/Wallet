@@ -217,7 +217,9 @@ const covalentGet = async(chainId: number, path: string): Promise<unknown[]> =>
 {
     try
     {
-        const response = await fetch(`${ covalentBase }/${ chainId }${ path }`, { headers: { Authorization: `Bearer ${ covalentKey }` } });
+        // `httpRequest`, as with the explorer above: the bearer token goes out on a native request,
+        // which no page origin and no preflight is involved in — see [request.ts](../core/request.ts).
+        const response = await httpRequest(`${ covalentBase }/${ chainId }${ path }`, { headers: { Authorization: `Bearer ${ covalentKey }` } });
 
         if (!response.ok)
         {

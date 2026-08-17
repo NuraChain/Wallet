@@ -1,5 +1,6 @@
 import { isOnline } from './connection';
 import { nuraChainId } from './network';
+import { httpRequest } from './request';
 import { prune, readRaw, writeRaw } from './cache.store';
 
 /**
@@ -256,7 +257,9 @@ export const readPrices = async(ids: string[]): Promise<PriceRead> =>
 
     try
     {
-        const response = await fetch(`${ endpoint }?ids=${ encodeURIComponent(key) }&vs_currencies=usd`);
+        // `httpRequest` rather than `fetch`: this is a known API host, so it reads natively and a
+        // price stops depending on CoinGecko's CORS header staying as it is — see [request.ts](request.ts).
+        const response = await httpRequest(`${ endpoint }?ids=${ encodeURIComponent(key) }&vs_currencies=usd`);
 
         if (response.ok)
         {

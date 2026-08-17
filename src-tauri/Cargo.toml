@@ -18,13 +18,17 @@ tauri = { version = "2", features = [ "tray-icon", "unstable" ] }
 tauri-plugin-store = "2"
 tauri-plugin-os = "2"
 
-# The one escape hatch from CORS. Every other request in this app goes through the webview's own
-# `fetch` and is subject to the browser rules, which is the right default — this exists because Nura's
-# explorer sends `Access-Control-Allow-Origin` twice and a repeated header fails the CORS check exactly
-# as hard as a missing one, so the wallet cannot read its own chain's history without it. The request
-# is made by Rust, where there is no origin and no preflight.
+# How this app reads its own API endpoints — the explorers behind the history and token lists, the
+# price feed, and the GoldRush fallback. The request is made by Rust, where there is no origin and no
+# preflight, so none of that data depends on someone else's CORS header.
 #
-# It is scoped to that one host in every capability block; see the `http:default` entries there.
+# Nura's explorer is why it was pulled in: it sends `Access-Control-Allow-Origin` twice, and a repeated
+# header fails the CORS check exactly as hard as a missing one, so the wallet could not read its own
+# chain's history from the webview at all. The rest followed because a header that answers the browser
+# today can stop in a deploy nobody here is told about, and it fails looking like an empty account.
+#
+# Every host is named in the `http:default` scope of all three capability blocks, and no wildcard is
+# granted: addresses the user types — custom RPCs and explorers, the browser tab — keep the webview.
 tauri-plugin-http = "2"
 
 serde = { version = "1", features = [ "derive" ] }

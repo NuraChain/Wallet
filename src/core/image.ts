@@ -621,10 +621,16 @@ const download = async(url: string, known: CacheEntry | undefined) =>
         headers.set('If-Modified-Since', known.modified);
     }
 
-    // The plain `fetch`, deliberately: this module has to run in an ordinary browser tab as well as in
-    // the app, so nothing here may depend on a native surface. The cost is that a cross-origin reply
-    // carrying no `Access-Control-Allow-Origin` cannot be read, which is every site's favicon — those
-    // throw here, are never stored, and fall back to being loaded by the `img` tag itself.
+    // The plain `fetch`, deliberately, and the one read in the app that stays on it. Two reasons, and
+    // either alone is enough. This module has to run in an ordinary browser tab as well as in the app,
+    // so nothing here may depend on a native surface. And the addresses are unbounded — every token
+    // logo and every favicon of every site the browser tab visits — so routing them through the HTTP
+    // plugin would mean granting `https://*`, handing an origin-free client to any address a page can
+    // name. That is a larger hole than the one it would close.
+    //
+    // The cost is that a cross-origin reply carrying no `Access-Control-Allow-Origin` cannot be read,
+    // which is every site's favicon — those throw here, are never stored, and fall back to being
+    // loaded by the `img` tag itself.
     //
     // Tagged at the throw rather than sniffed at the catch, so that only a request which genuinely
     // never resolved is treated as one. Everything below this line — reading the body, hashing the

@@ -69,6 +69,18 @@
                             "allow": [
                                 {
                                     "url": "https://explorer.nurachain.net/*"
+                                },
+                                {
+                                    "url": "https://eth.blockscout.com/*"
+                                },
+                                {
+                                    "url": "https://api.etherscan.io/*"
+                                },
+                                {
+                                    "url": "https://api.coingecko.com/*"
+                                },
+                                {
+                                    "url": "https://api.covalenthq.com/*"
                                 }
                             ]
                         },
