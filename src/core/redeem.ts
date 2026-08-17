@@ -6,11 +6,9 @@ import { httpRequest } from './request';
  * PLACEHOLDER — no endpoint has been supplied yet. While this is empty every redeem resolves through
  * the stub below instead of touching the network, so the screen is usable without a backend.
  *
- * Putting the real base URL here starts the actual request, and one thing goes with it: this is an
- * address of ours carrying a wallet address and a code, so it belongs on the native client rather than
- * the webview. Add its host to `nativeHosts` in [request.ts](request.ts) and to the `http:default`
- * scope in all three capability blocks at the same time. Left out of both it still works — the request
- * falls to the webview and is subject to whatever CORS header the backend sends.
+ * Putting the real base URL here starts the actual request, and nothing else needs changing: it goes
+ * out through [request.ts](request.ts) on the native client, which is granted every host, so no
+ * capability edit follows a change to this line.
  */
 const endpoint = '';
 

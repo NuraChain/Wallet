@@ -42,14 +42,15 @@ pub fn run() {
 
     builder = builder.plugin(tauri_plugin_store::Builder::new().build());
 
-    // Registered on every platform, and reachable only for the hosts the capability scope names —
-    // the explorers, the price feed and the history fallback this app calls its own. Those read here,
-    // where there is no origin and no preflight, so a wallet's data does not hang on a third party's
-    // CORS header being right.
+    // How the frontend reads every API it talks to: the explorers, the price feed, the history
+    // fallback, and whatever address a user puts behind a custom network. Requests are made here,
+    // where there is no origin and no preflight, so none of that data hangs on a third party's CORS
+    // header being right.
     //
-    // It is not a general HTTP client, and the scope is what keeps it from becoming one. Addresses the
-    // user supplies — a custom network's RPC and explorer, anything opened in the browser tab — stay on
-    // the webview's own `fetch` and its rules.
+    // The capability scope grants `http://*` and `https://*`, so this is a general HTTP client and
+    // there is no host list left to check it against. What still bounds it is the capability itself:
+    // no `remote` block is set and `local` defaults to true, so only this app's own frontend can
+    // reach it — a page opened in the browser tab is a remote URL and gets nothing.
     builder = builder.plugin(tauri_plugin_http::init());
 
     builder

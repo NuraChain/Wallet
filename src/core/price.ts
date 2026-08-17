@@ -257,8 +257,8 @@ export const readPrices = async(ids: string[]): Promise<PriceRead> =>
 
     try
     {
-        // `httpRequest` rather than `fetch`: this is a known API host, so it reads natively and a
-        // price stops depending on CoinGecko's CORS header staying as it is — see [request.ts](request.ts).
+        // `httpRequest` rather than `fetch`: read natively, so a price stops depending on CoinGecko's
+        // CORS header staying as it is — see [request.ts](request.ts).
         const response = await httpRequest(`${ endpoint }?ids=${ encodeURIComponent(key) }&vs_currencies=usd`);
 
         if (response.ok)

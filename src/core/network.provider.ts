@@ -18,16 +18,15 @@ import { getNetwork, getNetworkRevision } from './network';
  * Keep it that way: importing this module from anything that runs before unlock puts `ethers` back on
  * the startup path, and nothing will fail loudly when it happens — the app will just start slower.
  *
- * RPC stays on the webview's `fetch`, which is what `ethers` reaches for on its own. It is the one
- * remote read in the app not routed through [request.ts](request.ts), and deliberately: the endpoint
- * is whatever the active network names, every custom network carries an address the user typed, and a
- * capability scope is fixed at build time — so the native client could only cover them behind a
- * `https://*` grant that would cover everything else with them. The endpoints that ship also have no
- * CORS problem to solve; `rpc.nurachain.net` and the public nodes beside it all answer the origin.
+ * RPC stays on the webview's `fetch`, which is what `ethers` reaches for on its own, and it is the one
+ * remote read in the app not routed through [request.ts](request.ts). Not for want of permission —
+ * the `http:default` scope grants every host, so a custom network's RPC would be reachable. Routing it
+ * means replacing the transport underneath `ethers`, `FetchRequest`, and with it the retry, backoff and
+ * stall timeout the provider is built on. That is a rewrite of how the wallet talks to a chain, which
+ * is not what a transport change should cost.
  *
- * Routing this would also mean replacing the transport underneath `ethers` — `FetchRequest`, and with
- * it the retry, backoff and timeout the provider is built on. That is a rewrite of how the wallet
- * talks to a chain, which is not what a transport change should cost.
+ * There is also nothing here to fix yet: `rpc.nurachain.net` and the public nodes beside it all answer
+ * the origin. A custom RPC that does not is the case that would make this worth revisiting.
  */
 let providerCache: { id: string; revision: number; provider: AbstractProvider } | undefined;
 

@@ -68,19 +68,10 @@
                             "identifier": "http:default",
                             "allow": [
                                 {
-                                    "url": "https://explorer.nurachain.net/*"
+                                    "url": "https://*"
                                 },
                                 {
-                                    "url": "https://eth.blockscout.com/*"
-                                },
-                                {
-                                    "url": "https://api.etherscan.io/*"
-                                },
-                                {
-                                    "url": "https://api.coingecko.com/*"
-                                },
-                                {
-                                    "url": "https://api.covalenthq.com/*"
+                                    "url": "http://*"
                                 }
                             ]
                         },

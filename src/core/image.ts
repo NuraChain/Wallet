@@ -621,14 +621,16 @@ const download = async(url: string, known: CacheEntry | undefined) =>
         headers.set('If-Modified-Since', known.modified);
     }
 
-    // The plain `fetch`, deliberately, and the one read in the app that stays on it. Two reasons, and
-    // either alone is enough. This module has to run in an ordinary browser tab as well as in the app,
-    // so nothing here may depend on a native surface. And the addresses are unbounded — every token
-    // logo and every favicon of every site the browser tab visits — so routing them through the HTTP
-    // plugin would mean granting `https://*`, handing an origin-free client to any address a page can
-    // name. That is a larger hole than the one it would close.
+    // The plain `fetch`, deliberately: this module has to run in an ordinary browser tab as well as in
+    // the app, so nothing here may depend on a native surface. Permission is no longer the obstacle —
+    // the `http:default` scope grants every host now — so this is the one reason left, and it is the
+    // reason that was never about the scope.
     //
-    // The cost is that a cross-origin reply carrying no `Access-Control-Allow-Origin` cannot be read,
+    // Worth knowing what routing it through the plugin would buy if that constraint is ever dropped:
+    // favicons would start caching. They are the bulk of what fails here, and they fail on CORS alone.
+    //
+    // The cost as it stands is that a cross-origin reply carrying no `Access-Control-Allow-Origin`
+    // cannot be read,
     // which is every site's favicon — those throw here, are never stored, and fall back to being
     // loaded by the `img` tag itself.
     //
