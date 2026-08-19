@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "en-US"
+reviews:
+  profile: "assertive"
+  request_changes_workflow: true
+  high_level_summary: true
+  review_status: true
+  review_details: true
+  poem: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/target/**"
+    - "!**/*.lock"
+  path_instructions:
+    - path: "**/*.{ts,tsx,js,jsx}"
+      instructions: |
+        Review as production TypeScript/JavaScript.
+        - Flag type-safety problems, unsafe any usage, async race conditions, stale React state, unnecessary rerenders, and memory leaks.
+        - Check input validation, error handling, authentication/authorization boundaries, and safe handling of secrets.
+        - For wallet code, pay special attention to transaction signing, nonce handling, chain ID validation, RPC trust boundaries, address validation, and accidental private-key/seed exposure.
+        - Do not recommend weakening cryptographic guarantees for convenience.
+    - path: "**/*.{rs}"
+      instructions: |
+        Review as security-sensitive Rust/Tauri code.
+        - Check unsafe code, command/event boundaries, filesystem access, process execution, IPC validation, and secret handling.
+        - Flag panics in recoverable runtime paths, unchecked errors, TOCTOU issues, and concurrency problems.
+        - For cryptographic or key-management code, favor established primitives and constant-time/security-safe handling.
+    - path: "**/src-tauri/**"
+      instructions: |
+        Treat Tauri backend code as a privileged security boundary. Verify IPC inputs, filesystem permissions, URL/network access, and serialization boundaries.
+    - path: "**/test/**"
+      instructions: |
+        Check negative cases, malformed input, authorization failures, transaction failures, and security-sensitive edge cases.
+    - path: "**/*.{md,mdx}"
+      instructions: |
+        Verify technical claims, configuration examples, commands, and security-sensitive documentation.
