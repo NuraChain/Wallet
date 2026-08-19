@@ -1,0 +1,28 @@
+bug:
+  - any: ['**/*']
+    changed-files:
+      - any-glob-to-any-file: ['**']
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: ['src/**', 'application/**', '**/*.tsx', '**/*.ts', '**/*.css', '**/*.html']
+
+rust:
+  - changed-files:
+      - any-glob-to-any-file: ['src-tauri/**', '**/*.rs', 'Cargo.toml', 'Cargo.lock']
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file: ['**/*.md', 'docs/**']
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file: ['package.json', 'package-lock.json', '**/package.json', '**/package-lock.json', 'Cargo.toml', 'Cargo.lock']
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file: ['.github/**']
+
+config:
+  - changed-files:
+      - any-glob-to-any-file: ['*.json', '*.yml', '*.yaml', '*.toml', '*.config.*']
