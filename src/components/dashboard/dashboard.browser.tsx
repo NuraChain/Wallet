@@ -427,7 +427,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
             <Horizontal className='shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
 
                 <Button
-                    variant='chip'
+                    variant='danger'
                     size='iconChip'
                     aria-label={ T('Dashboard.Browser.Exit') }
                     onClick={ onExit }
