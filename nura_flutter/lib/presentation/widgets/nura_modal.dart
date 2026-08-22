@@ -84,17 +84,25 @@ class NuraModal extends StatelessWidget {
             child: ColoredBox(color: colors.scrim),
           ),
         ),
-        Center(
-          child: Padding(
-            padding: const EdgeInsets.all(NuraMetrics.gapLarge),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.sizeOf(context).height * 0.85,
-              ),
-              // Stops a tap inside the dialog from reaching the scrim behind it.
-              child: GestureDetector(
-                onTap: () {},
-                child: scroll ? SingleChildScrollView(child: panel) : panel,
+        // Material, transparently. A dialog route sits outside the app's Scaffold, so nothing above
+        // it provides the Material ancestor that TextField, InkWell and text selection all require —
+        // without this, the first field placed in a dialog throws "No Material widget found" at
+        // runtime rather than at build. `transparency` supplies the ancestor without painting
+        // anything over the glass panel underneath.
+        Material(
+          type: MaterialType.transparency,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(NuraMetrics.gapLarge),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+                ),
+                // Stops a tap inside the dialog from reaching the scrim behind it.
+                child: GestureDetector(
+                  onTap: () {},
+                  child: scroll ? SingleChildScrollView(child: panel) : panel,
+                ),
               ),
             ),
           ),
@@ -259,28 +267,51 @@ class NuraSheet extends StatelessWidget {
             child: ColoredBox(color: colors.scrim),
           ),
         ),
-        Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: NuraMetrics.gapSmall,
-            ),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 512),
-              child: GestureDetector(
-                onTap: () {},
-                child: GlassPanel(
-                  radius: NuraMetrics.radiusPanel,
-                  padding: EdgeInsets.only(
-                    left: NuraMetrics.gapLarge,
-                    right: NuraMetrics.gapLarge,
-                    bottom: NuraMetrics.gapLarge,
-                    // Keeps clear of the status bar on Android and the drag region on Windows.
-                    top:
-                        MediaQuery.paddingOf(context).top +
-                        NuraMetrics.gapLarge,
+        // Material, transparently. A dialog route sits outside the app's Scaffold, so nothing above
+        // it provides the Material ancestor that TextField, InkWell and text selection all require —
+        // without this, the first field placed in a dialog throws "No Material widget found" at
+        // runtime rather than at build. `transparency` supplies the ancestor without painting
+        // anything over the glass panel underneath.
+        Material(
+          type: MaterialType.transparency,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: NuraMetrics.gapSmall,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 512),
+                child: GestureDetector(
+                  onTap: () {},
+                  child: ConstrainedBox(
+                    // Capped against the viewport and scrolled inside. A sheet holding a form is
+                    // taller than a short window, and taller still once the keyboard is up —
+                    // without this it overflows and the submit button becomes unreachable.
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.sizeOf(context).height,
+                    ),
+                    child: GlassPanel(
+                      radius: NuraMetrics.radiusPanel,
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.only(
+                          left: NuraMetrics.gapLarge,
+                          right: NuraMetrics.gapLarge,
+                          // Clears the on-screen keyboard as well as the system inset, so the field
+                          // being typed into is never underneath it.
+                          bottom:
+                              NuraMetrics.gapLarge +
+                              MediaQuery.viewInsetsOf(context).bottom,
+                          // Keeps clear of the status bar on Android and the drag region on
+                          // Windows.
+                          top:
+                              MediaQuery.paddingOf(context).top +
+                              NuraMetrics.gapLarge,
+                        ),
+                        child: child,
+                      ),
+                    ),
                   ),
-                  child: child,
                 ),
               ),
             ),

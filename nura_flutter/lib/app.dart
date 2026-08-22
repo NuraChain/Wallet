@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'application/session_controller.dart';
 import 'application/settings_controller.dart';
 import 'core/l10n/app_localizations.dart';
+import 'presentation/screens/intro_screen.dart';
 import 'presentation/screens/unlock_screen.dart';
 import 'presentation/theme/app_theme.dart';
 import 'presentation/widgets/nura_surface.dart';
@@ -110,7 +111,7 @@ class _Shell extends StatelessWidget {
         // appears and vanishes inside one frame reads as a flicker rather than as progress.
         SessionStage.loading => const _Blank(),
         SessionStage.locked => const UnlockScreen(),
-        SessionStage.intro => const _Placeholder(stage: 'intro'),
+        SessionStage.intro => const IntroScreen(),
         SessionStage.unlocked => const _Placeholder(stage: 'dashboard'),
       },
     );
