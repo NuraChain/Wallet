@@ -89,20 +89,10 @@ class NuraText extends StatelessWidget {
 
     return base.copyWith(
       color: color ?? base.color,
-      fontFamily: mono ? _monoFamily : base.fontFamily,
-      fontFamilyFallback: mono ? _monoFallback : null,
+      fontFamily: mono ? NuraTypography.monoFamily : base.fontFamily,
+      fontFamilyFallback: mono ? NuraTypography.monoFallback : null,
     );
   }
-
-  /// Flutter has no portable monospace alias, so the platform faces are named directly. Consolas
-  /// ships with Windows and Roboto Mono with Android; the rest are ordinary fallbacks.
-  static const String _monoFamily = 'Consolas';
-  static const List<String> _monoFallback = <String>[
-    'Roboto Mono',
-    'Droid Sans Mono',
-    'Courier New',
-    'monospace',
-  ];
 
   @override
   Widget build(BuildContext context) {

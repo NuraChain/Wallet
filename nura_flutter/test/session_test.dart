@@ -12,6 +12,7 @@ import 'package:nura_wallet/core/l10n/translations.dart';
 import 'package:nura_wallet/core/security/key_derivation.dart';
 import 'package:nura_wallet/data/storage/app_store.dart';
 import 'package:nura_wallet/data/storage/legacy_store.dart';
+import 'package:nura_wallet/domain/wallet/hd_wallet.dart';
 import 'package:nura_wallet/presentation/screens/unlock_screen.dart';
 import 'package:nura_wallet/presentation/theme/app_theme.dart';
 import 'package:nura_wallet/presentation/widgets/nura_button.dart';
@@ -391,12 +392,55 @@ void main() {
       },
     );
 
+    test('the vault names what it holds without handing it over', () async {
+      final session = await withWallet();
+      await session.restore();
+
+      expect(session.kind, isNull);
+
+      await session.unlock(password);
+
+      expect(session.kind, VaultKind.mnemonic);
+
+      session.lock();
+
+      expect(session.kind, isNull);
+    });
+
+    test('revealing returns the secret behind the password', () async {
+      final session = await withWallet();
+      await session.restore();
+      await session.unlock(password);
+
+      final read = await session.reveal(password);
+
+      expect(read.failure, isNull);
+      expect(
+        read.secret,
+        (vectors['vaultCipher'] as Map<String, dynamic>)['plaintext'],
+      );
+    });
+
+    test('revealing refuses the wrong password on an open wallet', () async {
+      final session = await withWallet();
+      await session.restore();
+      await session.unlock(password);
+
+      final read = await session.reveal('not the password');
+
+      expect(read.secret, isNull);
+      expect(read.failure, UnlockFailure.wrongPassword);
+
+      // The session it was asked from is untouched: a refused reveal is not a lock.
+      expect(session.isUnlocked, isTrue);
+    });
+
     test('forgetting removes every wallet key', () async {
       final session = await withWallet();
       await session.restore();
       await session.unlock(password);
 
-      await session.forget();
+      expect(await session.forget(password), isNull);
 
       expect(session.stage, SessionStage.intro);
       expect(session.isUnlocked, isFalse);
@@ -405,6 +449,46 @@ void main() {
 
       expect(reopened.has(LegacyStore.keyMnemonic), isFalse);
       expect(reopened.has(LegacyStore.keyPassword), isFalse);
+    });
+
+    test(
+      'forgetting refuses the wrong password and keeps the wallet',
+      () async {
+        final session = await withWallet();
+        await session.restore();
+        await session.unlock(password);
+
+        expect(
+          await session.forget('not the password'),
+          UnlockFailure.wrongPassword,
+        );
+
+        expect(session.stage, SessionStage.unlocked);
+
+        final reopened = await freshStore();
+
+        expect(reopened.has(LegacyStore.keyMnemonic), isTrue);
+      },
+    );
+
+    test('forgetting a device with no wallet left succeeds', () async {
+      final store = await freshStore();
+      final session = SessionController(store);
+      await session.restore();
+
+      expect(await session.forget('anything'), isNull);
+      expect(session.stage, SessionStage.intro);
+    });
+
+    test('forgetting refuses to wipe a vault it cannot parse', () async {
+      final store = await freshStore();
+      await store.setString(LegacyStore.keyMnemonic, 'not a payload');
+
+      final session = SessionController(store);
+      await session.restore();
+
+      expect(await session.forget(password), UnlockFailure.corrupt);
+      expect(store.has(LegacyStore.keyMnemonic), isTrue);
     });
 
     test('a private-key wallet cannot grow past one account', () async {

@@ -32,6 +32,11 @@ enum SessionStage {
 /// Why an unlock attempt failed.
 enum UnlockFailure { wrongPassword, noWallet, corrupt }
 
+/// The outcome of a password-gated read of the stored vault.
+///
+/// Exactly one side is populated: the secret, or the reason there is not one.
+typedef VaultRead = ({String? secret, UnlockFailure? failure});
+
 /// Holds the unlocked vault, and nothing else does.
 ///
 /// The decrypted secret lives here in memory for exactly as long as the app is unlocked, and is
@@ -72,6 +77,14 @@ class SessionController extends ChangeNotifier {
   /// what they need — an address, a signer — and the vault stays here.
   bool get isUnlocked => _vault != null;
 
+  /// Which sort of secret this wallet holds, or null when locked.
+  ///
+  /// The kind, never the secret. Three surfaces have to name what the wallet holds before anything
+  /// is decrypted — the settings row, the reveal dialog's title, the logout warning — and naming the
+  /// wrong one in that last case is the difference between a user who knows what to write down and
+  /// one who loses the wallet. The kind is safe to hand out; it says nothing about the value.
+  VaultKind? get kind => _vault?.kind;
+
   /// The address of the account currently in view.
   String? get address {
     final vault = _vault;
@@ -107,35 +120,13 @@ class SessionController extends ChangeNotifier {
   }
 
   /// Opens the vault with the user's passphrase.
-  ///
-  /// The passphrase is checked by decrypting, not by comparing the stored hash. Those are different
-  /// guarantees: a hash comparison proves someone typed the right thing, while a successful AES-GCM
-  /// decryption proves the ciphertext is intact *and* the key is right. The stored hash exists for
-  /// the Tauri build's own reasons and is left alone rather than trusted as the gate.
   Future<UnlockFailure?> unlock(String password) async {
-    final raw = _store.getString(LegacyStore.keyMnemonic);
+    final read = await _read(password);
 
-    if (raw == null || raw.isEmpty) {
-      return UnlockFailure.noWallet;
-    }
+    final secret = read.secret;
 
-    final VaultPayload payload;
-
-    try {
-      payload = VaultPayload.fromJson(
-        LegacyStore(<String, dynamic>{LegacyStore.keyMnemonic: raw})
-            .encryptedVault!,
-      );
-    } on FormatException {
-      return UnlockFailure.corrupt;
-    }
-
-    final String secret;
-
-    try {
-      secret = await _cipher.open(payload, password);
-    } on VaultOpenException {
-      return UnlockFailure.wrongPassword;
+    if (secret == null) {
+      return read.failure;
     }
 
     _vault = Vault.read(secret);
@@ -146,6 +137,42 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
 
     return null;
+  }
+
+  /// Decrypts the stored vault with a passphrase, touching no state.
+  ///
+  /// The one place a password is ever checked: [unlock], [reveal] and [forget] all come through
+  /// here, so there is a single answer to "is this the right password" rather than three that can
+  /// drift apart.
+  ///
+  /// The check is the decryption itself, not a comparison against the stored hash. Those are
+  /// different guarantees: a hash comparison proves someone typed the right thing, while a
+  /// successful AES-GCM decryption proves the ciphertext is intact *and* the key is right. The
+  /// stored hash exists for the Tauri build's own reasons and is left alone rather than trusted as
+  /// the gate.
+  Future<VaultRead> _read(String password) async {
+    final raw = _store.getString(LegacyStore.keyMnemonic);
+
+    if (raw == null || raw.isEmpty) {
+      return (secret: null, failure: UnlockFailure.noWallet);
+    }
+
+    final VaultPayload payload;
+
+    try {
+      payload = VaultPayload.fromJson(
+        LegacyStore(<String, dynamic>{LegacyStore.keyMnemonic: raw})
+            .encryptedVault!,
+      );
+    } on FormatException {
+      return (secret: null, failure: UnlockFailure.corrupt);
+    }
+
+    try {
+      return (secret: await _cipher.open(payload, password), failure: null);
+    } on VaultOpenException {
+      return (secret: null, failure: UnlockFailure.wrongPassword);
+    }
   }
 
   /// Records a wallet created or imported in the intro flow.
@@ -169,6 +196,18 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Re-opens the stored vault so the user can read their own secret back.
+  ///
+  /// Asks for the passphrase again even though the wallet is already unlocked, and reads the secret
+  /// out of storage rather than handing over the copy in [_vault]. Both are deliberate. A session
+  /// was unlocked at some point in the past — possibly by someone else, possibly hours ago — and a
+  /// recovery phrase is the one disclosure with no way back. The second prompt is the whole
+  /// protection, so it has to be a real check rather than a formality over a vault already open.
+  ///
+  /// What comes back is not retained here. The caller holds it for as long as its dialog is open,
+  /// and the vault stays where it was.
+  Future<VaultRead> reveal(String password) => _read(password);
+
   /// Drops the decrypted secret. The stored wallet is untouched.
   void lock() {
     _vault = null;
@@ -180,9 +219,29 @@ class SessionController extends ChangeNotifier {
 
   /// Removes the wallet from this device entirely.
   ///
+  /// Gated on the passphrase, which is why this can fail. Wiping the only copy of a secret is the
+  /// most destructive thing the app can do, and a confirmation dialog is something a mis-tap can
+  /// cross; a password is not.
+  ///
+  /// A device with nothing left to remove reports success. There is no payload to prove a password
+  /// against and nothing to delete, and refusing would strand a session whose storage has already
+  /// gone somewhere it cannot leave.
+  ///
+  /// A vault too corrupt to open is refused rather than removed, even though its owner can no longer
+  /// unlock it. Parsing happens before any password is checked, so treating a parse failure as
+  /// permission to wipe would hand anyone who can damage the stored blob the power to destroy the
+  /// wallet without knowing anything. That trade is not worth the unreachable case it would fix:
+  /// this dialog opens from the dashboard, which is only standing because the vault opened.
+  ///
   /// Every key the wallet wrote goes in one write, so the store either still holds a wallet or holds
   /// none of it. A half-cleared store is a state no screen could interpret.
-  Future<void> forget() async {
+  Future<UnlockFailure?> forget(String password) async {
+    final failure = (await _read(password)).failure;
+
+    if (failure != null && failure != UnlockFailure.noWallet) {
+      return failure;
+    }
+
     await _store.removeAll(const <String>[
       LegacyStore.keyMnemonic,
       LegacyStore.keyPassword,
@@ -196,6 +255,8 @@ class SessionController extends ChangeNotifier {
     _stage = SessionStage.intro;
 
     notifyListeners();
+
+    return null;
   }
 
   /// Switches which derived account the dashboard shows, creating it if it is new.

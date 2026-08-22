@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../app.dart';
 import '../../application/settings_controller.dart';
 import '../../core/l10n/app_localizations.dart';
-import '../../core/l10n/translations.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nura_button.dart';
 import '../widgets/nura_modal.dart';
@@ -11,6 +10,7 @@ import '../widgets/nura_surface.dart';
 import '../widgets/nura_text.dart';
 import 'create_wallet_sheet.dart';
 import 'import_wallet_sheet.dart';
+import 'language_sheet.dart';
 
 /// The three slides a first-time user is shown.
 const List<({IconData icon, String header, String message})> _slides =
@@ -137,7 +137,7 @@ class _TopBar extends StatelessWidget {
           variant: NuraButtonVariant.chip,
           size: NuraButtonSize.iconChip,
           semanticLabel: context.t('Intro.Select'),
-          onPressed: () => _pickLanguage(context, settings),
+          onPressed: () => showLanguageSheet(context, settings),
           child: const Icon(Icons.language),
         ),
         const SizedBox(width: NuraMetrics.gapSmall),
@@ -160,58 +160,6 @@ class _TopBar extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Future<void> _pickLanguage(
-    BuildContext context,
-    SettingsController settings,
-  ) async {
-    await NuraModal.show<void>(
-      context,
-      builder: (sheet) => NuraModal(
-        onClose: () => Navigator.of(sheet).pop(),
-        scroll: true,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            NuraModalHeader(
-              title: sheet.t('Intro.Select'),
-              onClose: () => Navigator.of(sheet).pop(),
-            ),
-            const SizedBox(height: NuraMetrics.gap),
-            for (final language in AppLanguage.values) ...<Widget>[
-              NuraButton(
-                variant: language == settings.language
-                    ? NuraButtonVariant.primary
-                    : NuraButtonVariant.muted,
-                size: NuraButtonSize.action,
-                fullWidth: true,
-                onPressed: () {
-                  settings.setLanguage(language);
-
-                  Navigator.of(sheet).pop();
-                },
-                child: Row(
-                  children: <Widget>[
-                    NuraText(
-                      language.emoji,
-                      variant: NuraTextVariant.captionStrong,
-                    ),
-                    const SizedBox(width: NuraMetrics.gapSmall),
-                    NuraText(
-                      language.code.toUpperCase(),
-                      variant: NuraTextVariant.body,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: NuraMetrics.gapSmall),
-            ],
-          ],
-        ),
-      ),
     );
   }
 }

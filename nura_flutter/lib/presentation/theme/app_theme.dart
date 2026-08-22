@@ -34,6 +34,20 @@ class NuraTypography extends ThemeExtension<NuraTypography> {
 
   static const String fontFamily = 'Vazirmatn';
 
+  /// Flutter has no portable monospace alias, so the platform faces are named directly. Consolas
+  /// ships with Windows and Roboto Mono with Android; the rest are ordinary fallbacks.
+  ///
+  /// Lives here rather than in the one widget that reads it because the exported phrase card is
+  /// drawn onto a canvas rather than built from widgets, and a card whose words came out in a
+  /// different face from the ones on screen would look like a different wallet's backup.
+  static const String monoFamily = 'Consolas';
+  static const List<String> monoFallback = <String>[
+    'Roboto Mono',
+    'Droid Sans Mono',
+    'Courier New',
+    'monospace',
+  ];
+
   /// Builds the scale over a palette.
   ///
   /// Colour is baked in per theme rather than left to inherit, because the two roles the design
@@ -119,6 +133,9 @@ abstract final class NuraMetrics {
 
   /// `h-11` — the height of an action button and a form field.
   static const double actionHeight = 44;
+
+  /// `h-14` — the settings-style row, tall enough to hold an icon box with air around it.
+  static const double menuRowHeight = 56;
 
   /// The width the phone-shaped window opens at, and the cap a dialog uses on a wide screen.
   static const double dialogWidth = 320;

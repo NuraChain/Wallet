@@ -15,6 +15,7 @@ import 'account_sheet.dart';
 import 'activity_list.dart';
 import 'receive_sheet.dart';
 import 'send_sheet.dart';
+import 'settings_sheet.dart';
 import 'token_list.dart';
 
 /// The three tabs, in the order the Tauri build shows them.
@@ -257,12 +258,21 @@ class _WalletTab extends StatelessWidget {
               ),
             ),
             const SizedBox(width: NuraMetrics.gapSmall),
+            // The gear, not the lock. Locking is one of two ways to end a session and the other
+            // one wipes the wallet, so both live inside the settings panel where they can be
+            // labelled — a chip on the header has room for a glyph and nothing else.
             NuraButton(
               variant: NuraButtonVariant.chip,
               size: NuraButtonSize.iconChip,
-              semanticLabel: context.t('Dashboard.Lock'),
-              onPressed: session.lock,
-              child: const Icon(Icons.lock_outline, size: 16),
+              semanticLabel: context.t('Dashboard.Settings.Title'),
+              onPressed: () => NuraModal.show<void>(
+                context,
+                builder: (_) => SettingsSheet(
+                  session: session,
+                  settings: SettingsScope.of(context),
+                ),
+              ),
+              child: const Icon(Icons.settings_outlined, size: 16),
             ),
           ],
         ),
