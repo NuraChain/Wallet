@@ -1,5 +1,5 @@
+import { invoke } from '@tauri-apps/api/core';
 import { Webview } from '@tauri-apps/api/webview';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
 import { motion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -51,6 +51,12 @@ const settleFrames = 90;
  * open modal. Where child webviews are unavailable (Android, or a build without Tauri's `unstable`
  * feature) creation fails and the iframe is used as a degraded fallback.
  *
+ * The fallback carries no wallet. `script` is injected by whoever creates the real view — Rust here,
+ * Kotlin on Android — and an iframe has neither, so a dApp loaded into one finds no provider and shows
+ * no connect button. That is the honest outcome rather than a gap: reaching into the frame from this
+ * document would only work on a same-origin page, and it would put the provider inside the wallet's
+ * own origin, which is the one place it must never be.
+ *
  * `enabled` hides the view; it does not discard it. Tearing it down was the obvious way to get it out
  * of the way, but the page went with it: switching to the wallet tab and back reloaded the site from
  * its address, losing the scroll position, anything typed into it and any state a dApp was holding —
@@ -68,15 +74,23 @@ const settleFrames = 90;
  * @param {boolean} [props.desktop] Asks sites for the desktop layout instead of the mobile one.
  * @param {number} [props.reload] Bump to reload the current page.
  * @param {string} [props.title] Accessible title for the fallback iframe.
+ * @param {string} [props.script] Injected into the page before any of its own scripts run.
  * @param {string} [props.className] Classes for the frame element.
  * @param {ReactNode} [props.children] Rendered in place of the page whenever they are passed; the caller decides when the page area is covered.
  * @param {(notice: string) => void} [props.onFallback] Called with the failure reason when the native webview could not be created.
  * @returns {JSX.Element} The frame.
  */
-export default function WebFrame({ label, url, enabled, desktop = false, reload = 0, title = '', className = '', children, onFallback }: { label: string; url: string; enabled: boolean; desktop?: boolean; reload?: number; title?: string; className?: string; children?: ReactNode; onFallback?: (notice: string) => void })
+export default function WebFrame({ label, url, enabled, desktop = false, reload = 0, title = '', script = '', className = '', children, onFallback }: { label: string; url: string; enabled: boolean; desktop?: boolean; reload?: number; title?: string; script?: string; className?: string; children?: ReactNode; onFallback?: (notice: string) => void })
 {
     const frameRef = useRef<HTMLDivElement>(null);
     const chainRef = useRef<Promise<void>>(Promise.resolve());
+
+    // Read through a ref rather than depended on, deliberately. The script carries the chain the
+    // wallet is on, so it changes whenever the user switches network — and a dependency on it would
+    // tear down and rebuild every open page each time that happened. What is baked in is only the
+    // starting value of `ethereum.chainId`; the provider corrects it with `chainChanged` the moment
+    // it changes, and every `eth_chainId` call reads the live one.
+    const scriptRef = useRef(script);
 
     // Creation deliberately does not re-run on `enabled`, so it cannot close over it and read anything
     // current. This is how the newly created view learns whether it is meant to be on screen.
@@ -99,6 +113,11 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
     {
         enabledRef.current = enabled;
     }, [ enabled ]);
+
+    useEffect(() =>
+    {
+        scriptRef.current = script;
+    }, [ script ]);
 
     // A single failed creation should not strand the rest of the session on the iframe fallback.
     useEffect(() =>
@@ -341,19 +360,33 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
             let failure = '';
 
+            // Built in Rust rather than through `new Webview(...)`, and only for the sake of one
+            // option: `initialization_script`, which the JavaScript `WebviewOptions` does not expose.
+            // It is the only injection point that reliably runs before a page's own scripts, and a
+            // provider that lands even slightly late is a provider a dApp has already decided is
+            // absent. Everything else about this view — where it sits, whether it is shown, when it
+            // closes — is still driven from here through the JavaScript API.
             try
             {
-                const view = new Webview(getCurrentWindow(), label, { url, x: rect.x, y: rect.y, width: rect.width, height: rect.height, focus: false, userAgent: desktop ? desktopAgent : mobileAgent });
-
-                void view.once('tauri://error', (event) => { failure = String(event.payload); });
+                await invoke('browser_open', {
+                    label,
+                    url,
+                    script: scriptRef.current,
+                    userAgent: desktop ? desktopAgent : mobileAgent,
+                    x: rect.x,
+                    y: rect.y,
+                    width: rect.width,
+                    height: rect.height
+                });
             }
             catch (cause)
             {
                 failure = cause instanceof Error ? cause.message : String(cause);
             }
 
-            // The creation ack can land before `once` finishes registering, so success is confirmed by
-            // looking the webview up rather than by waiting on the event.
+            // Success is confirmed by looking the webview up rather than by trusting the call to have
+            // finished the job: creation is handed to the main thread inside Tauri, so the command can
+            // return before the view actually exists.
             for (let attempt = 0; attempt < 20 && failure.length === 0; attempt += 1)
             {
                 // eslint-disable-next-line no-await-in-loop

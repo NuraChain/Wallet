@@ -3,7 +3,7 @@ import { load } from '@tauri-apps/plugin-store';
 
 interface EncryptedPayload { salt: string; iv: string; cipher: string; kdf?: 'argon2id' }
 
-type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name' | 'Wallet.Accounts' | 'Wallet.Active' | 'Wallet.Tokens' | 'Wallet.TokensHidden' | 'Browser.View' | 'Browser.History' | 'Browser.Favorites';
+type StorageKey = 'App.Language' | 'App.Theme' | 'App.Network' | 'App.Networks' | 'Wallet.Mnemonic' | 'Wallet.Password' | 'Wallet.Name' | 'Wallet.Accounts' | 'Wallet.Active' | 'Wallet.Tokens' | 'Wallet.TokensHidden' | 'Browser.View' | 'Browser.History' | 'Browser.Favorites' | 'Browser.Connections';
 
 /**
  * The store, opened once and eagerly, so it is ready before any importer of this module runs.

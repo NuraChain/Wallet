@@ -1,6 +1,6 @@
 import type { Network } from '../../core/network';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
 import { AnimatePresence, motion } from 'motion/react';
 import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch, FiSettings } from 'react-icons/fi';
@@ -16,6 +16,10 @@ import { TextField } from '../ui/field';
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { imageCache } from '../../core/image';
+import { getConnections } from '../../core/dapp';
+import { forgetDappPage } from '../../core/dapp.bridge';
+import { disconnectAllDapps } from '../../core/dapp.rpc';
+import { dappIdentity, dappScript } from '../../core/dapp.script';
 import { addBrowserVisit, atBrowserStart, clearBrowserHistory, frameLabel, getBrowserFavorites, getBrowserHistory, getBrowserView, getNativeBrowser, getNativeTab, onNativeBrowserState, setBrowserFavorites, setBrowserView, type BrowserFavorite, type BrowserState, type BrowserTab, type BrowserVisit, type BrowserView } from '../../core/browser';
 import { Horizontal, Vertical } from '../ui/stack';
 
@@ -82,6 +86,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     const [ visits, setVisits ] = useState<BrowserVisit[]>([]);
     const [ favorites, setFavorites ] = useState<BrowserFavorite[]>([]);
     const [ icons, setIcons ] = useState({ bytes: 0, count: 0, blocked: 0 });
+    const [ connections, setConnections ] = useState(0);
     const [ active, setActive ] = useState(1);
     const [ tabs, setTabs ] = useState<BrowserTab[]>([ { id: 1, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
 
@@ -109,6 +114,19 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     const state = live.get(tab.id);
 
     const native = getNativeBrowser() !== undefined;
+
+    // The provider, as every page in this browser will see it. Rebuilt when the chain moves only
+    // because the script carries the chain id it should start on; open pages are not reloaded for it,
+    // since the provider corrects itself through `chainChanged` the moment the switch happens.
+    const script = useMemo(() => dappScript(dappIdentity(network.chainId)), [ network.chainId ]);
+
+    // Android injects from Kotlin, which needs the script handed to it before a page is opened rather
+    // than passed alongside each one — `WebViewCompat.addDocumentStartJavaScript` registers against a
+    // view, not against a navigation. Desktop takes it per view instead, through `WebFrame`.
+    useEffect(() =>
+    {
+        getNativeBrowser()?.setDappScript?.(script);
+    }, [ script ]);
 
     // The native view keeps its own history, so links followed inside a page are navigable too — the
     // component's stack only ever sees what was typed or handed over. Off Android there is no such
@@ -175,6 +193,11 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         }
 
         void imageCache.getCacheSize('unknown').then(setIcons);
+
+        // Read rather than loaded: the dashboard reads the stored grants when it mounts, so by the
+        // time this tab exists the list is already in memory and this is only a snapshot of it for
+        // the dialog to count.
+        setConnections(getConnections().length);
     }, [ settings ]);
 
     // The one shortcut the start screen is handed rather than stores: it points at the active network's
@@ -359,6 +382,11 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
         setLive((map) => { const next = new Map(map); next.delete(id); return next; });
         setNotice((map) => { const next = new Map(map); next.delete(id); return next; });
+
+        // The page in that tab is gone, so the provider has nobody to address there any more. Left
+        // behind, the entry would also keep a record of the site that tab was on for the rest of the
+        // session — which is the same record clearing the browser history exists to remove.
+        forgetDappPage(frameLabel(id));
     };
 
     const onView = (chosen: BrowserView) =>
@@ -395,6 +423,20 @@ export default function DashboardBrowser({ address, network, enabled, request, t
             await clearBrowserHistory();
 
             setIcons(await imageCache.getCacheSize('unknown'));
+        };
+
+        void run();
+    };
+
+    // Every open page holding an account is told it no longer has one on the way through, which is
+    // what lets a dApp put itself back into its signed-out state without the tab being reloaded.
+    const onDisconnect = () =>
+    {
+        const run = async() =>
+        {
+            await disconnectAllDapps();
+
+            setConnections(0);
         };
 
         void run();
@@ -582,6 +624,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                 enabled={ enabled && shown }
                                 desktop={ view === 'desktop' }
                                 reload={ item.reload }
+                                script={ script }
                                 title={ T('Dashboard.Browser.Title') }
                                 onFallback={ (value) => { setNotice((map) => new Map(map).set(item.id, value)); } }
                                 className={ cn('absolute inset-0 overflow-hidden bg-base-1', front ? 'visible' : 'invisible') }>
@@ -625,9 +668,11 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                             icons={ icons.count }
                             blocked={ icons.blocked }
                             iconBytes={ icons.bytes }
+                            connections={ connections }
                             onView={ onView }
                             onClear={ onClear }
                             onClearCache={ onClearCache }
+                            onDisconnect={ onDisconnect }
                             onClose={ () => { setSettings(false); } } />
                     )
                 }

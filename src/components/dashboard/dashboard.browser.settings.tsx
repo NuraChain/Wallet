@@ -56,13 +56,15 @@ const readableSize = (bytes: number) =>
  * @param {number} props.icons How many site icons are cached.
  * @param {number} props.blocked How many addresses are being left alone after refusing to be read.
  * @param {number} props.iconBytes How much disk those icons take.
+ * @param {number} props.connections How many sites may currently see an account.
  * @param {(view: BrowserView) => void} props.onView Switches the layout.
  * @param {() => void} props.onClear Forgets every visit.
  * @param {() => void} props.onClearCache Drops the cached site icons.
+ * @param {() => void} props.onDisconnect Withdraws every site's access to the wallet.
  * @param {() => void} props.onClose Closes the dialog.
  * @returns {JSX.Element} The browser settings dialog.
  */
-export default function DashboardBrowserSettings({ view, visits, icons, blocked, iconBytes, onView, onClear, onClearCache, onClose }: { view: BrowserView; visits: number; icons: number; blocked: number; iconBytes: number; onView: (view: BrowserView) => void; onClear: () => void; onClearCache: () => void; onClose: () => void })
+export default function DashboardBrowserSettings({ view, visits, icons, blocked, iconBytes, connections, onView, onClear, onClearCache, onDisconnect, onClose }: { view: BrowserView; visits: number; icons: number; blocked: number; iconBytes: number; connections: number; onView: (view: BrowserView) => void; onClear: () => void; onClearCache: () => void; onDisconnect: () => void; onClose: () => void })
 {
     return (
         <Modal
@@ -98,6 +100,39 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
             </Horizontal>
 
             <Text text={ T('Dashboard.Browser.ViewNote') } />
+
+            <Text text={ T('Dashboard.Browser.Connected') } />
+
+            { /*
+              * The only way back out of a connection, which is why it is here at all: a grant is given
+              * to a site from inside that site's own page, and EIP-2255 leaves withdrawing it to the
+              * wallet. Without this the user could connect and never disconnect.
+              *
+              * Disconnecting does not reload anything. A page that is holding an account is told it no
+              * longer has one through `accountsChanged`, which is what every dApp already listens for.
+              */ }
+            <Text
+                variant='body'
+                text={ T('Dashboard.Browser.ConnectedCount', String(connections)) } />
+
+            <Text text={ T('Dashboard.Browser.ConnectedNote') } />
+
+            <ModalActions>
+
+                <Button
+                    variant='danger'
+                    size='action'
+                    disabled={ connections === 0 }
+                    onClick={ onDisconnect }
+                    className='disabled:opacity-40'>
+
+                    <FiTrash2 size={ 16 } className='shrink-0' />
+
+                    { T('Dashboard.Browser.ConnectedClear') }
+
+                </Button>
+
+            </ModalActions>
 
             <Text text={ T('Dashboard.Browser.History') } />
 

@@ -24,9 +24,14 @@ import { fetch as nativeFetch } from '@tauri-apps/plugin-http';
  * cookie-free client aimed at any address on the internet. Narrow it back to named hosts here and in
  * those three files together if that ever looks like the wrong side of the trade.
  *
- * Note what is still not reachable: the capability sets no `remote` block and `local` defaults to true,
- * so it applies to this app's own frontend only. Pages opened in the browser tab are remote URLs and
- * get none of it, whatever this scope says.
+ * Note what is still not reachable: `main-capability` sets no `remote` block and `local` defaults to
+ * true, so it applies to this app's own frontend only. Pages opened in the browser tab are remote URLs
+ * and get none of it, whatever this scope says.
+ *
+ * There is now exactly one command a visited page *can* reach, and it is not this one. The in-app
+ * wallet provider needs a way in from a dApp, so `browser-capability` grants `dapp_request` — and only
+ * that — to remote URLs in the browser's own webviews. It carries no HTTP scope and no other command,
+ * so nothing a page does through it reaches this client.
  *
  * Two reads deliberately stay on the webview's own `fetch` — the image cache in [image.ts](image.ts)
  * and the RPC transport inside `ethers`, noted in [network.provider.ts](network.provider.ts). Neither

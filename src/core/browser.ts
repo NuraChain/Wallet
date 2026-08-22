@@ -325,6 +325,36 @@ interface BrowserBridge {
     reloadTab?: (id: string) => void;
     backTab?: (id: string) => void;
     forwardTab?: (id: string) => void;
+
+    /**
+     * Hands the bridge the provider script to inject into every page it opens from then on.
+     *
+     * The script is authored in [dapp.script.ts](dapp.script.ts) and travels rather than being copied
+     * into Kotlin, so the wallet a dApp discovers is described in exactly one place and the two
+     * platforms cannot drift apart. It has to be set before a tab is opened to take effect on that
+     * tab, which is why the browser sends it once on mount.
+     *
+     * Optional for the same reason `setDesktop` is: an APK older than this bundle has no provider at
+     * all, and a browser that simply shows pages is the behaviour it already had.
+     */
+    setDappScript?: (script: string) => void;
+
+    /**
+     * Answers one call a page made through the provider.
+     *
+     * Addressed by tab id, because every open page has its own pending requests and a reply delivered
+     * to the wrong view resolves the wrong promise.
+     */
+    dappReply?: (id: string, payload: string) => void;
+
+    /**
+     * Pushes an EIP-1193 event into one page.
+     *
+     * Separate from `dappReply` even though both end in the same `evaluateJavascript`: a reply settles
+     * something the page is waiting on, an event arrives unprompted, and the page script routes them
+     * to different doors.
+     */
+    dappEmit?: (id: string, payload: string) => void;
 }
 
 /**

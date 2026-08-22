@@ -61,7 +61,32 @@
                         "fs:allow-write-file",
                         "fs:allow-write-text-file",
                         "fs:allow-picture-write-recursive",
-                        "fs:allow-download-write-recursive"
+                        "fs:allow-download-write-recursive",
+
+                        "allow-browser-open",
+                        "allow-dapp-respond",
+                        "allow-dapp-emit"
+                    ]
+                },
+                {
+                    "identifier": "browser-capability",
+                    "description": "The one thing a visited website may ask the wallet: to make a provider request. Everything a page can do with the wallet arrives through this command and is decided in the frontend against the origin Rust stamped on it.",
+
+                    "webviews": [
+                        "nura-browser-*"
+                    ],
+
+                    "local": false,
+
+                    "remote": {
+                        "urls": [
+                            "https://*",
+                            "http://*"
+                        ]
+                    },
+
+                    "permissions": [
+                        "allow-dapp-request"
                     ]
                 }
             ]

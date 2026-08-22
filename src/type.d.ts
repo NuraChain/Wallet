@@ -11,6 +11,16 @@
 declare const __APP_VERSION__: string;
 
 /**
+ * The app logo as an RFC-2397 data URI, substituted at build time from `src/assets/image/logo.png`.
+ *
+ * Declared here beside the version and for the same reason: Vite replaces the text before the bundler
+ * sees an identifier. It exists because EIP-6963 requires the icon a wallet announces itself with to
+ * be a data URI rather than a URL — see `define` in `vite.config.ts`.
+ */
+// eslint-disable-next-line @typescript-eslint/naming-convention
+declare const __APP_ICON__: string;
+
+/**
  * The build-mode flags Vite substitutes into the bundle.
  *
  * Declared here rather than by referencing `vite/client`, for the same reason the asset modules below

@@ -1,3 +1,8 @@
+// The in-app provider's desktop transport. Android reaches the same behaviour through
+// `BrowserBridge.kt`, so nothing here is compiled into that build.
+#[cfg(desktop)]
+mod dapp;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default();
@@ -36,6 +41,22 @@ pub fn run() {
         // capability grants. Android does the same job through MediaStore instead, so it never
         // registers this.
         builder = builder.plugin(tauri_plugin_fs::init());
+
+        // The in-app provider. `dapp_request` is the one command a visited page can reach, and the
+        // only one granted to a remote origin by `browser-capability`; the other three are the
+        // wallet driving its own browser and are refused to anything but the main webview.
+        //
+        // The queue behind them holds one channel per call a page is waiting on, which is why it is
+        // managed state rather than a static: it has to outlive each command and be shared by the
+        // command that answers it.
+        builder = builder
+            .manage(dapp::DappState::default())
+            .invoke_handler(tauri::generate_handler![
+                dapp::browser_open,
+                dapp::dapp_request,
+                dapp::dapp_respond,
+                dapp::dapp_emit
+            ]);
     }
 
     builder = builder.plugin(tauri_plugin_os::init());
@@ -49,8 +70,11 @@ pub fn run() {
     //
     // The capability scope grants `http://*` and `https://*`, so this is a general HTTP client and
     // there is no host list left to check it against. What still bounds it is the capability itself:
-    // no `remote` block is set and `local` defaults to true, so only this app's own frontend can
-    // reach it — a page opened in the browser tab is a remote URL and gets nothing.
+    // `main-capability` sets no `remote` block and `local` defaults to true, so only this app's own
+    // frontend can reach it — a page opened in the browser tab is a remote URL and gets nothing.
+    //
+    // The one thing such a page can reach is `dapp_request` below, granted to it by the separate
+    // `browser-capability`. That capability lists no plugin scopes, so it opens no route to this.
     builder = builder.plugin(tauri_plugin_http::init());
 
     builder

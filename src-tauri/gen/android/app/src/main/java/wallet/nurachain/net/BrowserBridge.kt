@@ -14,6 +14,9 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import androidx.webkit.ScriptHandler
+import androidx.webkit.WebViewCompat
+import androidx.webkit.WebViewFeature
 import org.json.JSONObject
 
 /**
@@ -27,8 +30,16 @@ import org.json.JSONObject
  * This owns a plain `android.webkit.WebView` added on top of the Tauri webview and positioned to the
  * rectangle the layout reserves for it. It is the same engine Chrome uses, so pages behave normally.
  *
- * The bridge is attached only to the app's own webview, never to the page webview this creates, so a
- * visited site cannot reach it.
+ * **This bridge is attached only to the app's own webview, never to a page webview.** Everything that
+ * drives the browser — opening, moving, closing, navigating — is reachable from the wallet's own
+ * interface and from nowhere else, so a visited site cannot steer the browser it is being shown in.
+ *
+ * A page webview gets exactly one interface of its own, `Provider`, and it has exactly one method: a
+ * page may hand the wallet a request and hear the answer. That is the whole surface, and it is what
+ * makes an in-app dApp browser possible at all. Two things keep it from being a way in. The page
+ * cannot say who it is — `Provider.request` reads the origin off the view rather than out of the
+ * payload, so a page can only ever spend its own site's permissions — and it cannot decide anything:
+ * whether a site is connected, and whether the user approved, are both settled in the wallet.
  */
 class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
@@ -43,6 +54,24 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
     /** Whether pages are asked for the desktop layout; set from the browser's settings dialog. */
     private var desktop: Boolean = false
+
+    /**
+     * The wallet provider script every page is given, as `core/dapp.script.ts` builds it.
+     *
+     * Sent over rather than written here, so the provider a dApp discovers is described in exactly one
+     * language and this file and the desktop one cannot drift apart. Empty until the browser tab is
+     * first mounted, which is why `applyScript` is also run over the open pages when it arrives.
+     */
+    private var dappScript: String = ""
+
+    /**
+     * The registration each page's script is held by, so a replacement can retire the one before it.
+     *
+     * `addDocumentStartJavaScript` stacks: registering twice would run the script twice on the next
+     * navigation. The script guards itself against that, but a view left holding registrations from
+     * every network the user has switched to is a leak whether or not it is a visible one.
+     */
+    private val scripts = LinkedHashMap<String, ScriptHandler>()
 
     companion object {
         /**
@@ -71,6 +100,96 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
     /** Only plain web schemes are ever loaded; see `shouldOverrideUrlLoading`. */
     private fun isWeb(scheme: String?) = scheme?.lowercase() == "https" || scheme?.lowercase() == "http"
+
+    /**
+     * The origin a page's request is credited to.
+     *
+     * Read off the view rather than taken from the page, which is the single thing that makes the
+     * provider safe to expose: a site can say anything it likes in its payload, but it cannot change
+     * what `WebView.getUrl()` reports, so it can only ever spend permissions granted to itself.
+     *
+     * The default port is dropped so this matches what `new URL(href).origin` produces in JavaScript.
+     * The wallet stores a grant under whichever string it was given, so the two sides producing
+     * different spellings of the same site would quietly make every grant unmatchable.
+     */
+    private fun originOf(url: String?): String {
+        val uri = runCatching { android.net.Uri.parse(url ?: "") }.getOrNull() ?: return ""
+
+        val scheme = uri.scheme?.lowercase() ?: return ""
+
+        if (!isWeb(scheme)) {
+            return ""
+        }
+
+        val host = uri.host ?: return ""
+
+        val port = uri.port
+        val standard = if (scheme == "https") 443 else 80
+
+        return if (port < 0 || port == standard) "$scheme://$host" else "$scheme://$host:$port"
+    }
+
+    /**
+     * The one thing a visited page can reach, and the reason the browser tab can hold a dApp at all.
+     *
+     * One method, one argument, no return value: a page hands over a request and the answer arrives
+     * later through `dappReply`. It carries the tab id it was built for, so an answer goes back to the
+     * page that asked rather than to whichever tab happens to be in front.
+     *
+     * `request` is called on the JavaScript bridge thread, never the UI thread, which is why every
+     * line of it runs inside `runOnUiThread` — `WebView.getUrl` and `evaluateJavascript` both throw if
+     * touched from anywhere else.
+     */
+    private inner class Provider(private val id: String, private val view: WebView) {
+
+        @JavascriptInterface
+        fun request(payload: String) {
+            activity.runOnUiThread {
+                val origin = originOf(view.url)
+
+                // No origin means the view is showing something that is not a web page — a blank tab
+                // mid-navigation, or an error page. There is no site to credit, so there is nothing to
+                // answer, and the page's own timeout is what closes the request out.
+                if (origin.isEmpty()) {
+                    return@runOnUiThread
+                }
+
+                val message = JSONObject()
+                    .put("label", id)
+                    .put("origin", origin)
+                    .put("payload", payload)
+
+                // Quoted into a complete JavaScript string literal rather than interpolated as an
+                // object. The page's own JSON is carried across untouched and parsed on the other
+                // side, so nothing a site writes is ever evaluated as code here.
+                val literal = JSONObject.quote(message.toString())
+
+                host.evaluateJavascript("window.__nuraDappRequest && window.__nuraDappRequest($literal)", null)
+            }
+        }
+    }
+
+    /**
+     * Registers the provider script to run before anything the page itself loads.
+     *
+     * Timing is the whole difficulty. A dApp reads `window.ethereum` and dispatches its EIP-6963
+     * request in its first script, so a provider injected any later than document start is a provider
+     * that was not there when it mattered — the page decides no wallet is present and never looks
+     * again. `addDocumentStartJavaScript` is the only API that guarantees it, and it needs a WebView
+     * from 2020 or later; `onPageStarted` is the fallback for anything older, which usually wins the
+     * race and is the best that can be done there.
+     */
+    private fun applyScript(id: String, view: WebView) {
+        if (dappScript.isEmpty() || !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+            return
+        }
+
+        scripts.remove(id)?.remove()
+
+        // Every origin, because the browser is a general one and the wallet is meant to be offered to
+        // whatever the user opens. The script is inert on a page that never asks it for anything.
+        scripts[id] = WebViewCompat.addDocumentStartJavaScript(view, dappScript, setOf("*"))
+    }
 
     /**
      * Pushes navigation state back into the app so the toolbar can reflect it.
@@ -170,6 +289,12 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
         CookieManager.getInstance().setAcceptThirdPartyCookies(view, true)
 
+        // The wallet provider, and the only interface a visited page is ever given. See `Provider`
+        // for why one method that cannot name its own origin is a surface worth exposing.
+        view.addJavascriptInterface(Provider(id, view), "__nuraEthereum")
+
+        applyScript(id, view)
+
         view.webViewClient = object : WebViewClient() {
             // Plain web navigation stays in this view; anything else is refused outright. Returning
             // `true` without acting cancels the load, so a page cannot use `intent://` to reach
@@ -178,6 +303,13 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !isWeb(request.url.scheme)
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
+                // The fallback for a WebView too old for `addDocumentStartJavaScript`. It races the
+                // page's own scripts and does not always win, which is exactly why it is not the
+                // path taken when the proper one exists.
+                if (dappScript.isNotEmpty() && !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
+                    view.evaluateJavascript(dappScript, null)
+                }
+
                 publish(id, view, true, 0)
             }
 
@@ -267,12 +399,64 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     @JavascriptInterface
     fun closeTab(id: String) {
         activity.runOnUiThread {
+            scripts.remove(id)
+
             pages.remove(id)?.let { view ->
                 (view.parent as? ViewGroup)?.removeView(view)
 
                 view.stopLoading()
                 view.destroy()
             }
+        }
+    }
+
+    /**
+     * Hands over the provider script, and gives it to every page already open.
+     *
+     * Called once when the browser tab mounts and again whenever the active chain changes, since the
+     * script carries the chain a page should start on. Open pages are re-registered rather than
+     * reloaded: what they are holding is only the value `ethereum.chainId` had when they loaded, and
+     * the wallet corrects that through `chainChanged` the moment the switch happens.
+     */
+    @JavascriptInterface
+    fun setDappScript(script: String) {
+        activity.runOnUiThread {
+            dappScript = script
+
+            for ((id, view) in pages) {
+                applyScript(id, view)
+            }
+        }
+    }
+
+    /**
+     * Answers one call a page made through the provider.
+     *
+     * Addressed by tab id because every open page has its own pending requests; the page script then
+     * matches the reply to one of them by the id it minted. A tab that has closed in the meantime is
+     * simply absent from the map, and there is nobody left to answer.
+     */
+    @JavascriptInterface
+    fun dappReply(id: String, payload: String) {
+        activity.runOnUiThread {
+            val literal = JSONObject.quote(payload)
+
+            pages[id]?.evaluateJavascript("window.__nuraWalletReply && window.__nuraWalletReply($literal)", null)
+        }
+    }
+
+    /**
+     * Pushes an EIP-1193 event into one page.
+     *
+     * Which page hears which event is decided in the wallet and not here: `accountsChanged` carries
+     * the account address, so it is only ever aimed at a view whose site the user connected.
+     */
+    @JavascriptInterface
+    fun dappEmit(id: String, payload: String) {
+        activity.runOnUiThread {
+            val literal = JSONObject.quote(payload)
+
+            pages[id]?.evaluateJavascript("window.__nuraWalletEvent && window.__nuraWalletEvent($literal)", null)
         }
     }
 

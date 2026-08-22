@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-dapp-respond"
+description = "Enables the dapp_respond command without any pre-configured scope."
+commands.allow = ["dapp_respond"]
+
+[[permission]]
+identifier = "deny-dapp-respond"
+description = "Denies the dapp_respond command without any pre-configured scope."
+commands.deny = ["dapp_respond"]

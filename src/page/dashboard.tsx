@@ -15,7 +15,10 @@ import DashboardWallet from '../components/dashboard/dashboard.wallet';
 
 import { getNetwork } from '../core/network';
 import { RouteFallback } from '../layout/root';
+import { loadConnections } from '../core/dapp';
+import { forgetDappPages, startDappBridge } from '../core/dapp.bridge';
 import { lockSession, useVault } from '../core/session';
+import { answerDapp, rejectDappPrompts, setDappAccount, setDappWatchAsset, subscribeDappChange, syncDappState, useDappPrompt } from '../core/dapp.rpc';
 import { vaultAddress, vaultDerivable, type Vault } from '../core/vault';
 import { usePrices } from '../hook/price';
 import { useOnline } from '../hook/connection';
@@ -56,6 +59,7 @@ const DashboardNetwork = lazy(async() => import('../components/dashboard/dashboa
 const DashboardReceive = lazy(async() => import('../components/dashboard/dashboard.receive'));
 const DashboardRedeem = lazy(async() => import('../components/dashboard/dashboard.redeem'));
 const DashboardBrowser = lazy(async() => import('../components/dashboard/dashboard.browser'));
+const DashboardRequest = lazy(async() => import('../components/dashboard/dashboard.request'));
 const DashboardHistory = lazy(async() => import('../components/dashboard/dashboard.history'));
 const DashboardPhrase = lazy(async() => import('../components/dashboard/dashboard.phrase'));
 const DashboardSettings = lazy(async() => import('../components/dashboard/dashboard.settings'));
@@ -134,6 +138,12 @@ function DashboardView({ vault }: { vault: Vault })
     const barHidden = navHidden || navMap[active].key === 'Browser';
 
     const online = useOnline();
+
+    // The dApp request waiting on the user, if any. It is read here rather than inside the browser tab
+    // because the sheet has to be mounted beside the wallet's other dialogs — a page in the browser is
+    // painted by an OS-level view laid over the app, so nothing rendered inside that tab can appear
+    // above it, and hiding that view is what puts the sheet on screen.
+    const prompt = useDappPrompt();
 
     const native = useBalance(address, network);
     const tokens = useTokens(address, network, tracked);
@@ -326,6 +336,64 @@ function DashboardView({ vault }: { vault: Vault })
             void saveHiddenTokens(marked);
         }
     };
+
+    // The provider, connected for as long as the dashboard is. It is started here rather than inside
+    // the browser tab because a page keeps its view — and so its provider — alive while the user is on
+    // another tab, and a bridge torn down with the browser component would leave those pages talking
+    // to nothing. Locking the wallet unmounts the dashboard, which is where the pending dialogs are
+    // refused: a page waiting on a prompt whose window has gone would otherwise wait for good.
+    useEffect(() =>
+    {
+        void loadConnections();
+
+        const stop = startDappBridge(answerDapp);
+
+        return () =>
+        {
+            stop();
+
+            rejectDappPrompts();
+
+            // The account is cleared as well as the listeners. Locking unmounts this, and while
+            // nothing could reach the provider afterwards anyway, leaving the address behind in a
+            // module that outlives the session means a locked wallet is still holding the answer to
+            // "which account is this" — and the browser views it described are gone with the tab.
+            setDappAccount('', 0);
+
+            forgetDappPages();
+        };
+    }, []);
+
+    // Whatever the wallet is currently showing, told to the provider and then to the pages. Both calls
+    // are cheap and idempotent: the second compares against what each page was last told and stays
+    // quiet when nothing moved, which is most renders.
+    useEffect(() =>
+    {
+        setDappAccount(address, account);
+
+        syncDappState();
+    }, [ address, account, network.chainId ]);
+
+    // A site can move the wallet as well as read it — `wallet_switchEthereumChain` and
+    // `wallet_addEthereumChain` both do — and the network is state held here, so the change has to
+    // come back into React or the header would go on naming the chain the wallet was on before.
+    useEffect(() => subscribeDappChange(() => { setNetworkState(getNetwork()); }), []);
+
+    // `wallet_watchAsset` ends up in the same list the token dialog writes to, so it goes through the
+    // same function: the name and decimals are read off the contract rather than taken from the site,
+    // and a token already tracked counts as a success because the site asked for a state that holds.
+    useEffect(() =>
+    {
+        setDappWatchAsset(async(contract: string) =>
+        {
+            if (tracked.some((item) => item.address.toLowerCase() === contract.toLowerCase()))
+            {
+                return true;
+            }
+
+            return (await onAddToken(contract)).length === 0;
+        });
+    }, [ tracked, tokenMap, hidden, network.chainId ]);
 
     /**
      * onRefresh - Re-reads every live source behind the tabs.
@@ -599,6 +667,26 @@ function DashboardView({ vault }: { vault: Vault })
                         )
                     }
 
+                    { /*
+                      * The dApp approval sheet, mounted with the dialogs and outside the `modal`
+                      * state on purpose: it is not something the user opened, so it cannot be one of
+                      * the values that variable holds, and it has to be able to appear over whatever
+                      * they were already doing. Keyed by the prompt so that a second request queued
+                      * behind the first animates in as a new sheet rather than silently swapping its
+                      * contents under the user's finger — which, on a signing dialog, is the one
+                      * transition that must never happen.
+                      */ }
+                    {
+                        prompt !== undefined &&
+                        (
+                            <DashboardRequest
+                                key={ prompt.id }
+                                prompt={ prompt }
+                                address={ address }
+                                network={ network.name } />
+                        )
+                    }
+
                 </AnimatePresence>
 
             </Suspense>
@@ -645,7 +733,7 @@ function DashboardView({ vault }: { vault: Vault })
                                                     network={ network }
                                                     request={ link.url }
                                                     ticket={ link.ticket }
-                                                    enabled={ index === active && modal === 'none' }
+                                                    enabled={ index === active && modal === 'none' && prompt === undefined }
                                                     onExit={ () => { swiperRef.current?.slideTo(0); } } />
 
                                             </Suspense>

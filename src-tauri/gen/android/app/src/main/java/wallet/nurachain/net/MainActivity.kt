@@ -20,8 +20,12 @@ class MainActivity : TauriActivity() {
     super.onCreate(savedInstanceState)
   }
 
-  // Attached to the app's own webview only. The browser tab's page webview is a separate instance
-  // that never gets this interface, so a visited site cannot reach the bridge.
+  // Attached to the app's own webview only. The browser tab's page webviews are separate instances
+  // and never get either of these, so a visited site cannot drive the browser or reach the exporter.
+  //
+  // A page webview does get one interface of its own, and exactly one: the wallet provider, attached
+  // per page inside `BrowserBridge.build`. It has a single method, it cannot state its own origin,
+  // and it decides nothing — see the note on `BrowserBridge.Provider`.
   @SuppressLint("JavascriptInterface")
   override fun onWebViewCreate(webView: WebView) {
     webView.addJavascriptInterface(BrowserBridge(this, webView), "__nuraBrowser")
