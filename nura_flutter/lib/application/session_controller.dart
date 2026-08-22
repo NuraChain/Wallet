@@ -6,6 +6,7 @@ import '../core/security/key_derivation.dart';
 import '../core/security/vault_cipher.dart';
 import '../data/storage/app_store.dart';
 import '../data/storage/legacy_store.dart';
+import '../domain/wallet/account.dart';
 import '../domain/wallet/hd_wallet.dart';
 
 /// Which of the three screens the app should be showing.
@@ -53,8 +54,17 @@ class SessionController extends ChangeNotifier {
   /// The derivation index the dashboard is showing. Meaningless for a private-key wallet.
   int _account = 0;
 
+  /// The accounts this wallet holds, read on unlock.
+  ///
+  /// Empty while locked: the list is a property of an open wallet, and holding it across a lock
+  /// would leave a switcher on screen naming accounts whose addresses cannot be derived.
+  AccountList _accounts = const AccountList(<Account>[]);
+
   SessionStage get stage => _stage;
   int get account => _account;
+
+  /// The accounts this wallet holds, in index order.
+  List<Account> get accounts => _accounts.accounts;
 
   /// The unlocked key material, or null when locked.
   ///
@@ -71,6 +81,17 @@ class SessionController extends ChangeNotifier {
 
   /// Whether this wallet can hold more than one account.
   bool get derivable => _vault?.derivable ?? false;
+
+  /// The address of one account, or null when locked.
+  ///
+  /// Derived on demand rather than stored. An address is a pure function of the phrase and the
+  /// index, so caching it would only create a second place for it to be wrong — and the switcher
+  /// derives one for an index that does not exist yet, to show what is about to be added.
+  String? addressOfAccount(int index) {
+    final vault = _vault;
+
+    return vault == null ? null : HdWallet.addressOf(vault, index);
+  }
 
   /// Decides which screen to open on, from what is on disk.
   ///
@@ -118,6 +139,7 @@ class SessionController extends ChangeNotifier {
     }
 
     _vault = Vault.read(secret);
+    _accounts = _readAccounts();
     _account = _readAccount();
     _stage = SessionStage.unlocked;
 
@@ -140,6 +162,7 @@ class SessionController extends ChangeNotifier {
     );
 
     _vault = Vault.read(secret);
+    _accounts = _readAccounts();
     _account = 0;
     _stage = SessionStage.unlocked;
 
@@ -149,6 +172,7 @@ class SessionController extends ChangeNotifier {
   /// Drops the decrypted secret. The stored wallet is untouched.
   void lock() {
     _vault = null;
+    _accounts = const AccountList(<Account>[]);
     _stage = SessionStage.locked;
 
     notifyListeners();
@@ -168,22 +192,80 @@ class SessionController extends ChangeNotifier {
     ]);
 
     _vault = null;
+    _accounts = const AccountList(<Account>[]);
     _stage = SessionStage.intro;
 
     notifyListeners();
   }
 
-  /// Switches which derived account the dashboard shows.
+  /// Switches which derived account the dashboard shows, creating it if it is new.
+  ///
+  /// Selecting an index the wallet has never opened is what creates it, so adding an account and
+  /// switching to it are one call. There is nothing to generate — the index already names a key that
+  /// the phrase has always implied — so a separate "create" step would only be a second way to
+  /// arrive at the same list.
   Future<void> selectAccount(int index) async {
-    if (_account == index || !derivable) {
+    if (!derivable || index < 0 || index >= Account.limit) {
+      return;
+    }
+
+    final known = _accounts.has(index);
+
+    if (_account == index && known) {
       return;
     }
 
     _account = index;
 
+    if (!known) {
+      _accounts = _accounts.add(index);
+    }
+
     notifyListeners();
 
+    // The active index is written before the list so a crash between the two leaves the wallet
+    // pointing at an account it can still derive, rather than at one the list does not mention.
     await _store.setString(LegacyStore.keyActive, '$index');
+
+    if (!known) {
+      await _store.setString(LegacyStore.keyAccounts, _accounts.encode());
+    }
+  }
+
+  /// Renames one account, or clears the name back to its localised default.
+  ///
+  /// A blank name is stored as blank rather than refused: it is how a user undoes a label they no
+  /// longer want, and the display side already falls back to "Account N".
+  Future<void> renameAccount(int index, String name) async {
+    await _writeAccount(
+      index,
+      (account) => account.copyWith(name: name.trim()),
+    );
+  }
+
+  /// Sets or clears an account's badge.
+  Future<void> badgeAccount(int index, String? emoji) async {
+    await _writeAccount(
+      index,
+      (account) => emoji == null || emoji.isEmpty
+          ? account.copyWith(clearEmoji: true)
+          : account.copyWith(emoji: emoji),
+    );
+  }
+
+  Future<void> _writeAccount(
+    int index,
+    Account Function(Account) change,
+  ) async {
+    if (index < 0 || index >= Account.limit) {
+      return;
+    }
+
+    _accounts = _accounts.update(index, change);
+
+    notifyListeners();
+
+    await _store.setString(LegacyStore.keyAccounts, _accounts.encode());
   }
 
   /// Builds a signer for the account in view.
@@ -202,10 +284,35 @@ class SessionController extends ChangeNotifier {
         : HdWallet.fromMnemonic(vault.secret, _account).privateKeyHex;
   }
 
+  /// The stored list, or the one account every wallet starts with.
+  ///
+  /// A private-key wallet is pinned to a single account whatever the store says: it holds one key,
+  /// no index yields another, and a list left over from a phrase wallet on the same device would
+  /// offer rows whose addresses this vault cannot sign for.
+  AccountList _readAccounts() {
+    if (!derivable) {
+      return AccountList(<Account>[
+        Account(
+          index: 0,
+          name: _store.getString(LegacyStore.keyName)?.trim() ?? '',
+        ),
+      ]);
+    }
+
+    return AccountList.decode(
+      _store.getString(LegacyStore.keyAccounts),
+      legacyName: _store.getString(LegacyStore.keyName),
+    );
+  }
+
+  /// The stored active index, clamped to an account that actually exists.
+  ///
+  /// A stored index the list does not mention would show a derived address with no row behind it in
+  /// the switcher, and no way to get back.
   int _readAccount() {
     final stored = int.tryParse(_store.getString(LegacyStore.keyActive) ?? '');
 
-    return stored != null && stored >= 0 ? stored : 0;
+    return stored != null && _accounts.has(stored) ? stored : 0;
   }
 
   static String _encodePayload(VaultPayload payload) =>

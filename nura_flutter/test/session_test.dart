@@ -40,6 +40,12 @@ String _tauriStore(Map<String, dynamic> vectors, {String language = 'fa'}) {
     LegacyStore.keyLanguage: language,
     LegacyStore.keyTheme: 'dark',
     LegacyStore.keyActive: '2',
+    // The account list that goes with it. A stored active index is only honoured when the list
+    // mentions it — in both builds — so a fixture claiming account 2 has to hold account 2.
+    LegacyStore.keyAccounts: jsonEncode(<Map<String, dynamic>>[
+      <String, dynamic>{'index': 0, 'name': ''},
+      <String, dynamic>{'index': 2, 'name': 'Savings'},
+    ]),
     LegacyStore.keyPassword: 'a' * 64,
     LegacyStore.keyMnemonic: jsonEncode(<String, dynamic>{
       'salt': vault['saltBase64'],

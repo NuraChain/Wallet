@@ -11,6 +11,7 @@ import '../widgets/nura_button.dart';
 import '../widgets/nura_modal.dart';
 import '../widgets/nura_surface.dart';
 import '../widgets/nura_text.dart';
+import 'account_sheet.dart';
 import 'activity_list.dart';
 import 'receive_sheet.dart';
 import 'send_sheet.dart';
@@ -229,7 +230,9 @@ class _WalletTab extends StatelessWidget {
       children: <Widget>[
         Row(
           children: <Widget>[
-            Expanded(
+            Flexible(child: AccountChip(session: session)),
+            const SizedBox(width: NuraMetrics.gapSmall),
+            Flexible(
               child: NuraButton(
                 variant: NuraButtonVariant.chip,
                 onPressed: () => _pickNetwork(context),
