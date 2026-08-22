@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'application/history_controller.dart';
 import 'application/network_controller.dart';
 import 'application/session_controller.dart';
 import 'application/token_controller.dart';
@@ -68,6 +69,22 @@ class NetworkScope extends InheritedNotifier<NetworkController> {
   }
 }
 
+class HistoryScope extends InheritedNotifier<HistoryController> {
+  const HistoryScope({
+    super.key,
+    required HistoryController super.notifier,
+    required super.child,
+  });
+
+  static HistoryController of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<HistoryScope>();
+
+    assert(scope != null, 'HistoryScope is missing from the tree');
+
+    return scope!.notifier!;
+  }
+}
+
 class TokenScope extends InheritedNotifier<TokenController> {
   const TokenScope({
     super.key,
@@ -98,12 +115,14 @@ class NuraApp extends StatelessWidget {
     required this.session,
     required this.networks,
     required this.tokens,
+    required this.history,
   });
 
   final SettingsController settings;
   final SessionController session;
   final NetworkController networks;
   final TokenController tokens;
+  final HistoryController history;
 
   @override
   Widget build(BuildContext context) {
@@ -115,26 +134,30 @@ class NuraApp extends StatelessWidget {
           notifier: networks,
           child: TokenScope(
             notifier: tokens,
-            child: AnimatedBuilder(
-              animation: settings,
-              builder: (context, _) => MaterialApp(
-                title: 'Nura Wallet',
-                debugShowCheckedModeBanner: false,
+            child: HistoryScope(
+              notifier: history,
+              child: AnimatedBuilder(
+                animation: settings,
+                builder: (context, _) => MaterialApp(
+                  title: 'Nura Wallet',
+                  debugShowCheckedModeBanner: false,
 
-                theme: AppTheme.light(),
-                darkTheme: AppTheme.dark(),
-                themeMode: settings.theme.mode,
+                  theme: AppTheme.light(),
+                  darkTheme: AppTheme.dark(),
+                  themeMode: settings.theme.mode,
 
-                locale: settings.locale,
-                supportedLocales: AppLocalizations.supportedLocales,
-                localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
-                  AppLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                ],
+                  locale: settings.locale,
+                  supportedLocales: AppLocalizations.supportedLocales,
+                  localizationsDelegates:
+                      const <LocalizationsDelegate<dynamic>>[
+                        AppLocalizations.delegate,
+                        GlobalWidgetsLocalizations.delegate,
+                        GlobalMaterialLocalizations.delegate,
+                        GlobalCupertinoLocalizations.delegate,
+                      ],
 
-                home: const _Shell(),
+                  home: const _Shell(),
+                ),
               ),
             ),
           ),

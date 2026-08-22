@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -29,6 +31,47 @@ class HistoryEntry {
   /// Compared lowercased: explorers are inconsistent about checksum casing, and a case-sensitive
   /// match would label a user's own incoming transfers as outgoing.
   bool receivedBy(String address) => to.toLowerCase() == address.toLowerCase();
+
+  /// The stored shape, for the cache that holds these between launches.
+  ///
+  /// The amount is written as a decimal string rather than a number: it is a 256-bit integer, and
+  /// JSON numbers are doubles — a large token balance would come back rounded, which for a
+  /// transaction record means showing an amount that was never transferred.
+  Map<String, dynamic> toJson() => <String, dynamic>{
+    'hash': hash,
+    'from': from,
+    'to': to,
+    'value': value.toString(),
+    'decimals': decimals,
+    'symbol': symbol,
+    'at': at.millisecondsSinceEpoch,
+  };
+
+  /// Reads a cached row, or null when it is not what was written.
+  static HistoryEntry? fromJson(Map<String, dynamic> json) {
+    final hash = json['hash'];
+    final at = json['at'];
+
+    if (hash is! String || at is! int) {
+      return null;
+    }
+
+    final value = BigInt.tryParse('${json['value']}');
+
+    if (value == null) {
+      return null;
+    }
+
+    return HistoryEntry(
+      hash: hash,
+      from: json['from'] is String ? json['from'] as String : '',
+      to: json['to'] is String ? json['to'] as String : '',
+      value: value,
+      decimals: json['decimals'] is int ? json['decimals'] as int : 18,
+      symbol: json['symbol'] is String ? json['symbol'] as String : '',
+      at: DateTime.fromMillisecondsSinceEpoch(at),
+    );
+  }
 }
 
 /// What an explorer said.
@@ -38,10 +81,23 @@ class HistoryEntry {
 /// for different words, and showing the first when the second is true tells a user their history is
 /// gone.
 class HistoryAnswer {
-  const HistoryAnswer({required this.entries, this.notice = ''});
+  const HistoryAnswer({
+    required this.entries,
+    this.notice = '',
+    this.offline = false,
+  });
 
   final List<HistoryEntry> entries;
   final String notice;
+
+  /// Whether the read failed below HTTP — no route, no DNS, no socket.
+  ///
+  /// Derived from the failure itself rather than from a global connectivity flag. An explorer that
+  /// answers at all, even to refuse, proves the link is up; nothing else does. A connectivity API
+  /// reports the state of an interface, which is a different question from whether this host could
+  /// be reached, and the two disagree exactly when it matters — on a captive portal, or a network
+  /// that is up but has no route out.
+  final bool offline;
 }
 
 /// Reads transfer history from an Etherscan-compatible explorer.
@@ -89,7 +145,13 @@ class HistoryRepository {
               .firstWhere((n) => n.isNotEmpty, orElse: () => '')
         : '';
 
-    return HistoryAnswer(entries: entries, notice: notice);
+    return HistoryAnswer(
+      entries: entries,
+      notice: notice,
+      // Only when nothing was reached at all. One action failing to connect while the other
+      // answered is a fault of that request, not of the link.
+      offline: entries.isEmpty && answers.every((a) => a.offline),
+    );
   }
 
   Future<HistoryAnswer> _action(
@@ -150,6 +212,12 @@ class HistoryRepository {
       return HistoryAnswer(
         entries: const <HistoryEntry>[],
         notice: error is http.ClientException ? error.message : '$error',
+        // A socket that never opened, a name that did not resolve, or a request that ran out of
+        // time before a byte came back. None of these is the explorer's answer.
+        offline:
+            error is SocketException ||
+            error is http.ClientException ||
+            error is TimeoutException,
       );
     }
   }

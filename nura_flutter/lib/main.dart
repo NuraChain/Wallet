@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'app.dart';
+import 'application/history_controller.dart';
 import 'application/network_controller.dart';
 import 'application/session_controller.dart';
 import 'application/settings_controller.dart';
 import 'application/token_controller.dart';
 import 'core/l10n/app_localizations.dart';
+import 'data/cache/history_cache.dart';
 import 'data/storage/app_store.dart';
 
 /// Starts the wallet.
@@ -20,12 +23,17 @@ import 'data/storage/app_store.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Date symbols for every language the wallet ships. Without this, the first date formatted in any
+  // locale but the default throws rather than falling back — and the wallet ships ten.
+  await initializeDateFormatting();
+
   final store = await AppStore.open();
 
   final settings = SettingsController(store);
   final session = SessionController(store);
   final networks = NetworkController(store);
   final tokens = TokenController(store);
+  final history = HistoryController(await HistoryCache.open());
 
   // Read before the first frame so no screen renders against a bundle that has not landed. See the
   // note in AppLocalizations: a delegate answering asynchronously blanks its subtree for a frame.
@@ -39,6 +47,7 @@ Future<void> main() async {
       session: session,
       networks: networks,
       tokens: tokens,
+      history: history,
     ),
   );
 }

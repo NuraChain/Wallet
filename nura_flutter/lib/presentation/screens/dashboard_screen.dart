@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../app.dart';
 import '../../application/balance_controller.dart';
@@ -10,6 +11,7 @@ import '../widgets/nura_button.dart';
 import '../widgets/nura_modal.dart';
 import '../widgets/nura_surface.dart';
 import '../widgets/nura_text.dart';
+import 'activity_list.dart';
 import 'receive_sheet.dart';
 import 'send_sheet.dart';
 import 'token_list.dart';
@@ -85,8 +87,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
       _balance.load(networks.active, networks.client, address);
 
-      TokenScope.of(context)
-          .loadBalances(networks.active, networks.client, address);
+      final tokens = TokenScope.of(context);
+
+      tokens.loadBalances(networks.active, networks.client, address);
+
+      HistoryScope.of(
+        context,
+      ).load(address, networks.active, tokens.tracked(networks.active.chainId));
     });
   }
 
@@ -102,8 +109,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (address != null) {
       _balance.load(networks.active, networks.client, address, silent: true);
 
-      TokenScope.of(context)
-          .loadBalances(networks.active, networks.client, address);
+      final tokens = TokenScope.of(context);
+
+      tokens.loadBalances(networks.active, networks.client, address);
+
+      // Forced, because this runs after a send: the point of the refresh is to distrust a list that
+      // was true a moment ago and is now one transaction out of date.
+      HistoryScope.of(context).load(
+        address,
+        networks.active,
+        tokens.tracked(networks.active.chainId),
+        force: true,
+      );
     }
   }
 
@@ -300,8 +317,35 @@ class _WalletTab extends StatelessWidget {
         const SizedBox(height: NuraMetrics.gapLarge),
 
         TokenList(tokens: TokenScope.of(context)),
+        const SizedBox(height: NuraMetrics.gapLarge),
+
+        ActivityList(
+          history: HistoryScope.of(context),
+          address: address,
+          onOpen: (hash) => _openTransaction(context, hash),
+        ),
       ],
     );
+  }
+
+  /// Opens one transaction on the network's explorer.
+  ///
+  /// In the system browser for now. The Tauri build opened it in the in-app browser tab, which is not
+  /// migrated yet — and leaving the app is the honest interim: the alternative is a row that looks
+  /// tappable and does nothing. It moves to the browser tab when that lands.
+  Future<void> _openTransaction(BuildContext context, String hash) async {
+    final url = NetworkScope.of(context).active.transactionUrl(hash);
+
+    if (url == null) {
+      return;
+    }
+
+    final messenger = ScaffoldMessenger.of(context);
+    final failed = context.t('Dashboard.Activity.Unavailable');
+
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      messenger.showSnackBar(SnackBar(content: Text(failed)));
+    }
   }
 
   Future<void> _send(BuildContext context, BalanceReading reading) async {

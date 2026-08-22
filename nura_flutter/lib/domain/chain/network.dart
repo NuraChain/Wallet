@@ -61,6 +61,20 @@ class Network {
   /// The chain id as EIP-695 requires it: minimal hex, no leading zeros.
   String get chainIdHex => '0x${chainId.toRadixString(16)}';
 
+  /// Where a transaction can be read on this chain's explorer, or null when it declares none.
+  ///
+  /// Null rather than an empty string so a caller cannot accidentally open `/tx/0x…` against no
+  /// host: the absence has to be handled, and the row that would open it is disabled instead.
+  Uri? transactionUrl(String hash) {
+    if (explorerUrl.isEmpty || hash.isEmpty) {
+      return null;
+    }
+
+    return Uri.tryParse(
+      '${explorerUrl.replaceAll(RegExp(r'/+$'), '')}/tx/$hash',
+    );
+  }
+
   /// The Etherscan-compatible API base, with any key folded in.
   ///
   /// Folded here rather than at each call site: every caller appends its own query with the same
