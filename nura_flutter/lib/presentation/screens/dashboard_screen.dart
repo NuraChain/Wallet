@@ -12,6 +12,7 @@ import '../widgets/nura_surface.dart';
 import '../widgets/nura_text.dart';
 import 'receive_sheet.dart';
 import 'send_sheet.dart';
+import 'token_list.dart';
 
 /// The three tabs, in the order the Tauri build shows them.
 enum DashboardTab { wallet, browser, apps }
@@ -78,9 +79,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Scheduled off the build. `didChangeDependencies` runs during build, and notifying a listener
     // from inside one is what produces "setState called during build".
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _balance.load(networks.active, networks.client, address);
+      if (!mounted) {
+        return;
       }
+
+      _balance.load(networks.active, networks.client, address);
+
+      TokenScope.of(context)
+          .loadBalances(networks.active, networks.client, address);
     });
   }
 
@@ -95,6 +101,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (address != null) {
       _balance.load(networks.active, networks.client, address, silent: true);
+
+      TokenScope.of(context)
+          .loadBalances(networks.active, networks.client, address);
     }
   }
 
@@ -288,6 +297,9 @@ class _WalletTab extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: NuraMetrics.gapLarge),
+
+        TokenList(tokens: TokenScope.of(context)),
       ],
     );
   }

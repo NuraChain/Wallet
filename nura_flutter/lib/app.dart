@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'application/network_controller.dart';
 import 'application/session_controller.dart';
+import 'application/token_controller.dart';
 import 'application/settings_controller.dart';
 import 'core/l10n/app_localizations.dart';
 import 'presentation/screens/dashboard_screen.dart';
@@ -67,6 +68,22 @@ class NetworkScope extends InheritedNotifier<NetworkController> {
   }
 }
 
+class TokenScope extends InheritedNotifier<TokenController> {
+  const TokenScope({
+    super.key,
+    required TokenController super.notifier,
+    required super.child,
+  });
+
+  static TokenController of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<TokenScope>();
+
+    assert(scope != null, 'TokenScope is missing from the tree');
+
+    return scope!.notifier!;
+  }
+}
+
 /// The application.
 ///
 /// There is no router. The Tauri build used one because the web needs URLs, and it then had to
@@ -80,11 +97,13 @@ class NuraApp extends StatelessWidget {
     required this.settings,
     required this.session,
     required this.networks,
+    required this.tokens,
   });
 
   final SettingsController settings;
   final SessionController session;
   final NetworkController networks;
+  final TokenController tokens;
 
   @override
   Widget build(BuildContext context) {
@@ -94,26 +113,29 @@ class NuraApp extends StatelessWidget {
         notifier: session,
         child: NetworkScope(
           notifier: networks,
-          child: AnimatedBuilder(
-            animation: settings,
-            builder: (context, _) => MaterialApp(
-              title: 'Nura Wallet',
-              debugShowCheckedModeBanner: false,
+          child: TokenScope(
+            notifier: tokens,
+            child: AnimatedBuilder(
+              animation: settings,
+              builder: (context, _) => MaterialApp(
+                title: 'Nura Wallet',
+                debugShowCheckedModeBanner: false,
 
-              theme: AppTheme.light(),
-              darkTheme: AppTheme.dark(),
-              themeMode: settings.theme.mode,
+                theme: AppTheme.light(),
+                darkTheme: AppTheme.dark(),
+                themeMode: settings.theme.mode,
 
-              locale: settings.locale,
-              supportedLocales: AppLocalizations.supportedLocales,
-              localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
-                AppLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
+                locale: settings.locale,
+                supportedLocales: AppLocalizations.supportedLocales,
+                localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+                  AppLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
 
-              home: const _Shell(),
+                home: const _Shell(),
+              ),
             ),
           ),
         ),
