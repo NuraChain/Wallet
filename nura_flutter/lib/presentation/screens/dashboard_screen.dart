@@ -135,7 +135,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: <Widget>[
             _WalletTab(balance: _balance, onRefresh: _reload),
             const _NotMigrated(name: 'Browser'),
-            const _NotMigrated(name: 'Apps'),
+            const _AppsTab(),
           ],
         ),
       ),
@@ -510,6 +510,52 @@ class _BalanceView extends StatelessWidget {
 }
 
 /// A tab that is not migrated yet, named so nobody mistakes it for a finished screen.
+/// The apps tab: a reserved slot rather than a feature.
+///
+/// The dApp catalogue has not been built in either application. The tab exists so the navigation bar
+/// carries its three items from the start and the layout does not shift on the day the catalogue
+/// lands — which is why the Tauri build ships a placeholder here too, rather than two tabs and a
+/// third appearing later.
+class _AppsTab extends StatelessWidget {
+  const _AppsTab();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          GlassPanel(
+            width: 64,
+            height: 64,
+            radius: NuraMetrics.radiusLarge,
+            child: Icon(Icons.grid_view, size: 28, color: colors.txtMuted),
+          ),
+          const SizedBox(height: NuraMetrics.gap),
+
+          NuraText(
+            context.t('Dashboard.Apps.Title'),
+            variant: NuraTextVariant.title,
+          ),
+          const SizedBox(height: NuraMetrics.gap),
+
+          // Held to a narrow column so the sentence breaks into a paragraph rather than running the
+          // width of a tablet.
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 240),
+            child: NuraText(
+              context.t('Dashboard.Apps.Soon'),
+              align: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _NotMigrated extends StatelessWidget {
   const _NotMigrated({required this.name});
 
