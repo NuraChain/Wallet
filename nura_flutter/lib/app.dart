@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'application/network_controller.dart';
 import 'application/session_controller.dart';
 import 'application/settings_controller.dart';
 import 'core/l10n/app_localizations.dart';
+import 'presentation/screens/dashboard_screen.dart';
 import 'presentation/screens/intro_screen.dart';
 import 'presentation/screens/unlock_screen.dart';
 import 'presentation/theme/app_theme.dart';
-import 'presentation/widgets/nura_surface.dart';
 
 /// Hands the two controllers down the tree.
 ///
@@ -50,6 +51,22 @@ class SessionScope extends InheritedNotifier<SessionController> {
   }
 }
 
+class NetworkScope extends InheritedNotifier<NetworkController> {
+  const NetworkScope({
+    super.key,
+    required NetworkController super.notifier,
+    required super.child,
+  });
+
+  static NetworkController of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<NetworkScope>();
+
+    assert(scope != null, 'NetworkScope is missing from the tree');
+
+    return scope!.notifier!;
+  }
+}
+
 /// The application.
 ///
 /// There is no router. The Tauri build used one because the web needs URLs, and it then had to
@@ -58,10 +75,16 @@ class SessionScope extends InheritedNotifier<SessionController> {
 /// shell renders whichever screen matches. A route that should not be reachable then does not exist
 /// to be reached, rather than existing and being guarded.
 class NuraApp extends StatelessWidget {
-  const NuraApp({super.key, required this.settings, required this.session});
+  const NuraApp({
+    super.key,
+    required this.settings,
+    required this.session,
+    required this.networks,
+  });
 
   final SettingsController settings;
   final SessionController session;
+  final NetworkController networks;
 
   @override
   Widget build(BuildContext context) {
@@ -69,26 +92,29 @@ class NuraApp extends StatelessWidget {
       notifier: settings,
       child: SessionScope(
         notifier: session,
-        child: AnimatedBuilder(
-          animation: settings,
-          builder: (context, _) => MaterialApp(
-            title: 'Nura Wallet',
-            debugShowCheckedModeBanner: false,
+        child: NetworkScope(
+          notifier: networks,
+          child: AnimatedBuilder(
+            animation: settings,
+            builder: (context, _) => MaterialApp(
+              title: 'Nura Wallet',
+              debugShowCheckedModeBanner: false,
 
-            theme: AppTheme.light(),
-            darkTheme: AppTheme.dark(),
-            themeMode: settings.theme.mode,
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
+              themeMode: settings.theme.mode,
 
-            locale: settings.locale,
-            supportedLocales: AppLocalizations.supportedLocales,
-            localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
-              AppLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
+              locale: settings.locale,
+              supportedLocales: AppLocalizations.supportedLocales,
+              localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+                AppLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
 
-            home: const _Shell(),
+              home: const _Shell(),
+            ),
           ),
         ),
       ),
@@ -112,7 +138,7 @@ class _Shell extends StatelessWidget {
         SessionStage.loading => const _Blank(),
         SessionStage.locked => const UnlockScreen(),
         SessionStage.intro => const IntroScreen(),
-        SessionStage.unlocked => const _Placeholder(stage: 'dashboard'),
+        SessionStage.unlocked => const DashboardScreen(),
       },
     );
   }
@@ -123,24 +149,4 @@ class _Blank extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Scaffold(body: SizedBox.expand());
-}
-
-/// Stands in for a screen that is not migrated yet.
-///
-/// Deliberately unmistakable. It names the screen it is standing in for and says plainly that it is
-/// not built, so nobody can mistake a gap in the migration for a finished screen — which is exactly
-/// what a plausible-looking empty page would invite.
-class _Placeholder extends StatelessWidget {
-  const _Placeholder({required this.stage});
-
-  final String stage;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: EmptyState(text: 'The $stage screen is not migrated yet.'),
-      ),
-    );
-  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app.dart';
+import 'application/network_controller.dart';
 import 'application/session_controller.dart';
 import 'application/settings_controller.dart';
 import 'core/l10n/app_localizations.dart';
@@ -22,6 +23,7 @@ Future<void> main() async {
 
   final settings = SettingsController(store);
   final session = SessionController(store);
+  final networks = NetworkController(store);
 
   // Read before the first frame so no screen renders against a bundle that has not landed. See the
   // note in AppLocalizations: a delegate answering asynchronously blanks its subtree for a frame.
@@ -29,5 +31,5 @@ Future<void> main() async {
 
   await session.restore();
 
-  runApp(NuraApp(settings: settings, session: session));
+  runApp(NuraApp(settings: settings, session: session, networks: networks));
 }
