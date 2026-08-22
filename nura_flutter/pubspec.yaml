@@ -31,6 +31,12 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Supplies GlobalWidgetsLocalizations, which is what makes the ambient Directionality follow the
+  # locale. Without it Flutter's default reports LTR for every language, and Persian and Arabic
+  # render left to right no matter what the app thinks its direction is.
+  flutter_localizations:
+    sdk: flutter
+
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -64,6 +70,12 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  # The ten translation bundles, copied verbatim from the Tauri app rather than converted.
+  # `translations_test.dart` asserts they still match ../src/assets/lang byte for byte, so the two
+  # applications cannot drift apart while both are alive.
+  assets:
+    - assets/lang/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
