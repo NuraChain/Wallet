@@ -3,12 +3,15 @@ import 'package:flutter/services.dart';
 
 import '../../app.dart';
 import '../../application/balance_controller.dart';
+import '../../data/repositories/balance_repository.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../theme/app_theme.dart';
 import '../widgets/nura_button.dart';
 import '../widgets/nura_modal.dart';
 import '../widgets/nura_surface.dart';
 import '../widgets/nura_text.dart';
+import 'receive_sheet.dart';
+import 'send_sheet.dart';
 
 /// The three tabs, in the order the Tauri build shows them.
 enum DashboardTab { wallet, browser, apps }
@@ -81,6 +84,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  /// Re-reads the balance for the account in view.
+  ///
+  /// Silent, so a refresh after a send does not blank the figure it is about to replace — the
+  /// number on screen stays true until a newer one arrives.
+  void _reload() {
+    final session = SessionScope.of(context);
+    final networks = NetworkScope.of(context);
+    final address = session.address;
+
+    if (address != null) {
+      _balance.load(networks.active, networks.client, address, silent: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,7 +105,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: IndexedStack(
           index: _tab.index,
           children: <Widget>[
-            _WalletTab(balance: _balance),
+            _WalletTab(balance: _balance, onRefresh: _reload),
             const _NotMigrated(name: 'Browser'),
             const _NotMigrated(name: 'Apps'),
           ],
@@ -169,9 +186,10 @@ class _NavBar extends StatelessWidget {
 }
 
 class _WalletTab extends StatelessWidget {
-  const _WalletTab({required this.balance});
+  const _WalletTab({required this.balance, required this.onRefresh});
 
   final BalanceController balance;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +250,52 @@ class _WalletTab extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: NuraMetrics.gap),
+
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: NuraButton(
+                text: context.t('Dashboard.Send.Title'),
+                variant: NuraButtonVariant.primary,
+                size: NuraButtonSize.action,
+                leading: const Icon(Icons.arrow_upward, size: 16),
+                // Disabled until a balance is known. Opening the form without one would mean the
+                // max hint and the sufficiency check had nothing to work from, and the first thing
+                // the user learned would be a rejection.
+                onPressed: balance.reading == null
+                    ? null
+                    : () => _send(context, balance.reading!),
+              ),
+            ),
+            const SizedBox(width: NuraMetrics.gapSmall),
+            Expanded(
+              child: NuraButton(
+                text: context.t('Dashboard.Receive.Title'),
+                variant: NuraButtonVariant.normal,
+                size: NuraButtonSize.action,
+                leading: const Icon(Icons.arrow_downward, size: 16),
+                onPressed: address.isEmpty
+                    ? null
+                    : () => NuraModal.show<void>(
+                        context,
+                        builder: (sheet) => ReceiveSheet(
+                          address: address,
+                          coinName: networks.active.coinName,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+  Future<void> _send(BuildContext context, BalanceReading reading) async {
+    await NuraModal.show<void>(
+      context,
+      builder: (sheet) => SendSheet(balance: reading, onSent: onRefresh),
     );
   }
 
