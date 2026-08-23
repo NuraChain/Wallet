@@ -3,9 +3,9 @@ import { FiCheck, FiPlus, FiTrash2 } from 'react-icons/fi';
 
 import TokenIcon from '../token.icon';
 
-import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
+import MenuRow from '../ui/menu';
 import { TextField } from '../ui/field';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 
@@ -189,37 +189,28 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                 key={ item.id }
                                                 className='items-center gap-1'>
 
-                                                <Button
-                                                    variant='muted'
-                                                    onClick={ () => { void onSelect(item.id); } }
-                                                    className={ `h-12 min-w-0 flex-1 rounded-surface px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
-
-                                                    { /*
-                                                      * The same coin logo the wallet tab shows for the
-                                                      * active network, so the row and the chip that
-                                                      * opens it are the same thing. A custom network has
-                                                      * no logo to fetch, and `TokenIcon` falls back to
-                                                      * the lettered disc this row drew before.
-                                                      */ }
-                                                    <TokenIcon
-                                                        primary
-                                                        kind='network'
-                                                        src={ getNativeLogo(item.chainId) }
-                                                        symbol={ item.symbol }
-                                                        className='size-7 text-tiny' />
-
-                                                    { /* The name is whatever the user typed when they
-                                                         added the network, so it is bounded here. */ }
-                                                    <Text
-                                                        variant='body'
-                                                        className='min-w-0 flex-1 truncate text-start'
-                                                        text={ item.name } />
-
-                                                    {
-                                                        isActive && <FiCheck size={ 18 } />
+                                                <MenuRow
+                                                    selected={ isActive }
+                                                    label={ item.name }
+                                                    className='min-w-0 flex-1'
+                                                    leading={
+                                                        (
+                                                            // The same coin logo the wallet tab shows
+                                                            // for the active network, so the row and
+                                                            // the chip that opens it are one thing. A
+                                                            // custom network has no logo to fetch, and
+                                                            // `TokenIcon` falls back to the lettered
+                                                            // disc this row used to draw itself.
+                                                            <TokenIcon
+                                                                primary
+                                                                kind='network'
+                                                                src={ getNativeLogo(item.chainId) }
+                                                                symbol={ item.symbol }
+                                                                className='size-7 text-tiny' />
+                                                        )
                                                     }
-
-                                                </Button>
+                                                    trailing={ isActive ? <FiCheck size={ 18 } /> : undefined }
+                                                    onClick={ () => { void onSelect(item.id); } } />
 
                                                 {
                                                     item.custom &&

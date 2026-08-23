@@ -1,11 +1,11 @@
 import { invoke } from '@tauri-apps/api/core';
 import { Webview } from '@tauri-apps/api/webview';
 import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
-import { motion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
 import Text from '../components/ui/text';
 import Spinner from '../components/ui/spinner';
+import ProgressBar from '../components/ui/progress';
 
 import { T } from '../utility/language';
 import { getNativeBrowser, getNativeTab, nativeHoldsTabs } from '../core/browser';
@@ -642,21 +642,9 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
                         <Text text={ T('Dashboard.Browser.Loading') } />
 
-                        <span className='relative h-0.5 w-32 overflow-hidden rounded-full bg-base-3'>
-
-                            { /*
-                              * The sweep is pinned to the start edge and travels by a percentage of
-                              * its own width, so it mirrors with the writing direction. Animating
-                              * `x` compiled to a physical `translateX`, and with no horizontal inset
-                              * declared the parked keyframe left the bar sitting visibly in the
-                              * left-hand half of the track in Persian and Arabic.
-                              */ }
-                            <motion.span
-                                animate={ { insetInlineStart: [ '-50%', '100%' ] } }
-                                transition={ { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } }
-                                className='absolute inset-y-0 inset-s-0 w-1/2 rounded-full bg-btn-primary' />
-
-                        </span>
+                        <ProgressBar
+                            label={ T('Dashboard.Browser.Loading') }
+                            className='w-32 rounded-full bg-base-3' />
 
                     </Vertical>
                 )

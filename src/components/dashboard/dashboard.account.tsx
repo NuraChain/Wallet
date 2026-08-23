@@ -5,6 +5,8 @@ import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
+
+import { selectedTint } from '../ui/menu';
 import { ReadonlyField, TextField } from '../ui/field';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 
@@ -318,7 +320,7 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
                                         return (
                                             <Horizontal
                                                 key={ item.index }
-                                                className={ `items-center gap-2 rounded-surface p-2 transition-colors duration-(--duration-fast) ${ isActive ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
+                                                className={ `items-center gap-2 rounded-surface border border-transparent p-2 transition-colors duration-(--duration-fast) ${ isActive ? selectedTint : 'hover:bg-btn-muted-hover' }` }>
 
                                                 { /*
                                                   * The disc is its own control so tapping it opens the

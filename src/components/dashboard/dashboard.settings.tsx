@@ -7,6 +7,7 @@ import { HiOutlineDocumentText, HiOutlineLockClosed } from 'react-icons/hi2';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
+import IconBox from '../ui/iconbox';
 import MenuRow from '../ui/menu';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
@@ -57,19 +58,43 @@ export default function DashboardSettings({ kind, onLanguage, onPhrase, onLock, 
                 onClose={ onClose } />
 
             <MenuRow
-                icon={ <FiGlobe size={ 16 } /> }
+                leading={
+                    (
+                        <IconBox>
+
+                            <FiGlobe size={ 16 } />
+
+                        </IconBox>
+                    )
+                }
                 label={ T('Intro.Language') }
                 onClick={ onLanguage }
                 trailing={ chevron } />
 
             <MenuRow
-                icon={ theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } /> }
+                leading={
+                    (
+                        <IconBox>
+
+                            { theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } /> }
+
+                        </IconBox>
+                    )
+                }
                 label={ T('Dashboard.Settings.Theme') }
                 onClick={ onToggleTheme }
                 trailing={ <Text text={ theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark') } /> } />
 
             <MenuRow
-                icon={ <HiOutlineDocumentText size={ 16 } /> }
+                leading={
+                    (
+                        <IconBox>
+
+                            <HiOutlineDocumentText size={ 16 } />
+
+                        </IconBox>
+                    )
+                }
                 label={ kind === 'privateKey' ? T('Dashboard.Phrase.TitleKey') : T('Dashboard.Phrase.Title') }
                 onClick={ onPhrase }
                 trailing={ chevron } />
@@ -79,8 +104,9 @@ export default function DashboardSettings({ kind, onLanguage, onPhrase, onLock, 
 
                 <Button
                     variant='primary'
+                    size='action'
                     onClick={ onLock }
-                    className='h-12 min-w-0 rounded-surface text-small'>
+                    className='min-w-0'>
 
                     <HiOutlineLockClosed size={ 16 } className='shrink-0' />
 
@@ -94,8 +120,9 @@ export default function DashboardSettings({ kind, onLanguage, onPhrase, onLock, 
 
                 <Button
                     variant='destructive'
+                    size='action'
                     onClick={ onLogout }
-                    className='h-12 min-w-0 rounded-surface text-small'>
+                    className='min-w-0'>
 
                     <FiLogOut size={ 16 } className='shrink-0 rtl:rotate-180' />
 

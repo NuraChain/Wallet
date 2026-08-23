@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
+
+import { selectedTint } from '../ui/menu';
 import TokenIcon from '../token.icon';
 
 import { cn } from '../../utility/cn';
@@ -29,7 +31,7 @@ import { Horizontal } from '../ui/stack';
  */
 const chipBase = 'flex h-9 w-30 grow items-center gap-1.5 rounded-surface border ps-3 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';
 const chipIdle = 'border-line bg-base-3 hover:bg-base-2';
-const chipLive = 'border-btn-primary-border bg-btn-primary/15';
+const chipLive = selectedTint;
 
 /**
  * DashboardBrowserTabs - The open tabs, as a strip under the browser toolbar.

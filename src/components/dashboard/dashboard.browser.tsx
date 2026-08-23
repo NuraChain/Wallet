@@ -11,6 +11,7 @@ import DashboardBrowserStart from './dashboard.browser.start';
 import DashboardBrowserSettings from './dashboard.browser.settings';
 
 import Button from '../ui/button';
+import ProgressBar from '../ui/progress';
 import { TextField } from '../ui/field';
 
 import { cn } from '../../utility/cn';
@@ -591,8 +592,14 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                                 initial={ { opacity: 1 } }
                                 exit={ { opacity: 0 } }
                                 transition={ { duration: 0.25 } }
-                                className='absolute inset-y-0 inset-s-0 bg-btn-primary'
-                                style={ { width: `${ Math.max(state.progress, 6) }%` } } />
+                                className='absolute inset-0'>
+
+                                <ProgressBar
+                                    value={ state.progress }
+                                    label={ T('Dashboard.Browser.Loading') }
+                                    className='size-full' />
+
+                            </motion.div>
                         )
                     }
 

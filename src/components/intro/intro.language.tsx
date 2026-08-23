@@ -1,6 +1,6 @@
 import { FiCheck } from 'react-icons/fi';
 
-import Button from '../ui/button';
+import MenuRow from '../ui/menu';
 import { Modal, ModalBody, ModalHeader } from '../ui/modal';
 
 import { T, getLanguage, setLanguage, languageRecord, type LanguageType } from '../../utility/language';
@@ -51,33 +51,23 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
                         const isActive = lang.code === current.code;
 
                         return (
-                            <Button
+                            <MenuRow
                                 key={ lang.code }
-                                variant='muted'
-                                disabled={ isActive }
-                                onClick={ () => { void handleSelect(lang.code); } }
-                                className={ `h-12 gap-2 rounded-surface px-4 text-start transition-colors duration-(--duration-fast) ${ isActive ? 'disabled:cursor-default!' : '' }` }>
-
-                                { /* The 4x3 flag is letterboxed into a square rather than stretched, so a wide
-                                     flag keeps its proportions and every row's icon occupies the same box. */ }
-                                <img
-                                    src={ lang.flag }
-                                    alt=''
-                                    className='size-4 shrink-0 object-contain' />
-
-                                <div className='flex-1'>
-
-                                    {
-                                        T(`Language.${ lang.code }`)
-                                    }
-
-                                </div>
-
-                                {
-                                    isActive && <FiCheck size={ 18 } />
+                                selected={ isActive }
+                                label={ T(`Language.${ lang.code }`) }
+                                leading={
+                                    (
+                                        // Letterboxed into a square rather than stretched, so a wide
+                                        // 4x3 flag keeps its proportions and every row's icon occupies
+                                        // the same box.
+                                        <img
+                                            src={ lang.flag }
+                                            alt=''
+                                            className='size-4 shrink-0 object-contain' />
+                                    )
                                 }
-
-                            </Button>
+                                trailing={ isActive ? <FiCheck size={ 18 } /> : undefined }
+                                onClick={ () => { void handleSelect(lang.code); } } />
                         );
                     })
                 }

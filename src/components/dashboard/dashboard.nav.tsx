@@ -56,7 +56,7 @@ export default function DashboardNav({ items, active, hidden, onSelect }: { item
                                     <motion.div
                                         layoutId='dashboard-nav-active'
                                         transition={ { type: 'spring', stiffness: 420, damping: 35 } }
-                                        className='absolute inset-0 rounded-full bg-btn-primary-active' />
+                                        className='absolute inset-0 rounded-full bg-btn-primary' />
                                 )
                             }
 

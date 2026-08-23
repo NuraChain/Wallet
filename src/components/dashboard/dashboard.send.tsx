@@ -17,6 +17,7 @@ import { fieldSurface, TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { layer } from '../../layout/container';
+import { selectedTint } from '../ui/menu';
 import { T } from '../../utility/language';
 import { vaultManager, type Vault } from '../../core/vault';
 import { useOnline } from '../../hook/connection';
@@ -272,7 +273,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                                         role='option'
                                                         aria-selected={ item.key === asset.key }
                                                         onClick={ () => { onAsset(item.key); } }
-                                                        className={ `flex w-full cursor-pointer items-center gap-3 rounded-control p-2 transition-colors duration-(--duration-base) ${ item.key === asset.key ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
+                                                        className={ `flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2 transition-colors duration-(--duration-fast) ${ item.key === asset.key ? selectedTint : 'hover:bg-btn-muted-hover' }` }>
 
                                                         <TokenIcon
                                                             primary={ item.token === undefined }
