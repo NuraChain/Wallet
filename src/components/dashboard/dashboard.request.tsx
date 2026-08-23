@@ -157,7 +157,7 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
               * right-to-left, or broken across a line, is a host that can be made to look like a
               * different one.
               */ }
-            <Panel className='flex items-center gap-2 rounded-surface p-3'>
+            <Panel className='flex items-center gap-2'>
 
                 <IconBox tone='primary'>
 
@@ -184,7 +184,7 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
 
             <ModalBody>
 
-                <Panel className='flex flex-col gap-2 rounded-surface p-3'>
+                <Panel className='flex flex-col gap-2'>
 
                     {
                         rows.map((item) => (
@@ -213,7 +213,7 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
 
                             <Text text={ T('Dashboard.Request.ChainRpc') } />
 
-                            <Panel className='rounded-surface p-3'>
+                            <Panel>
 
                                 <Text
                                     variant='captionStrong'
@@ -239,7 +239,7 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
                               * it will be signed, newlines and all, which is what makes a sign-in
                               * message readable and an opaque one visibly opaque.
                               */ }
-                            <Panel className='max-h-48 overflow-y-auto overscroll-contain rounded-surface p-3'>
+                            <Panel className='max-h-48 overflow-y-auto overscroll-contain'>
 
                                 <Text
                                     variant='captionStrong'

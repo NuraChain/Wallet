@@ -38,7 +38,7 @@ export default function DashboardOffline({ error, at }: { error: boolean; at: nu
     }
 
     return (
-        <Panel className='flex items-center gap-3 rounded-surface p-3'>
+        <Panel className='flex items-center gap-3'>
 
             <IconBox className='size-9'>
 

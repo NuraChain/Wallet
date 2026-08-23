@@ -121,7 +121,7 @@ export default function DashboardReceive({ address, network, onClose }: { addres
 
             <Panel
                 dir='ltr'
-                className='w-full rounded-surface p-3 text-center font-mono text-tiny break-all text-txt-normal select-text!'>
+                className='w-full text-center font-mono text-tiny break-all text-txt-normal select-text!'>
 
                 { address }
 

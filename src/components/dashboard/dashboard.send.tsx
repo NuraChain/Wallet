@@ -344,7 +344,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                 (
                     <Vertical className='gap-3'>
 
-                        <Panel className='flex flex-col gap-2 rounded-surface p-3'>
+                        <Panel className='flex flex-col gap-2'>
 
                             {
                                 reviewMap.map((item) => (
