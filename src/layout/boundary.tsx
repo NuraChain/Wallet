@@ -1,11 +1,9 @@
 import { Component, type ReactNode } from 'react';
 
-import Text from '../components/ui/text';
 import Button from '../components/ui/button';
+import FailureScreen from '../components/ui/failure';
 
 import { T } from '../utility/language';
-import { surfacePanel } from '../components/ui/panel';
-import { Vertical } from '../components/ui/stack';
 
 /**
  * line - A translated string, with an English one behind it.
@@ -71,38 +69,18 @@ export default class ErrorBoundary extends Component<BoundaryProps, BoundaryStat
         }
 
         return (
-            <div className='flex size-full items-center justify-center bg-base-1 px-4'>
+            <FailureScreen
+                title={ line('App.Failure.Title', 'Nura Wallet could not start') }
+                body={ line('App.Failure.Message', 'Your wallet is still on this device. Reloading usually clears this.') }
+                detail={ message }>
 
-                <Vertical className={ `${ surfacePanel } w-full max-w-md gap-3 rounded-dialog p-6 text-center` }>
+                <Button
+                    variant='primary'
+                    size='action'
+                    onClick={ () => { window.location.reload(); } }
+                    text={ line('App.Failure.Reload', 'Reload') } />
 
-                    <Text
-                        variant='heading'
-                        text={ line('App.Failure.Title', 'Nura Wallet could not start') } />
-
-                    <Text
-                        variant='bodyMuted'
-                        text={ line('App.Failure.Message', 'Your wallet is still on this device. Reloading usually clears this.') } />
-
-                    { /*
-                      * The message is the developer's half of the screen, not the user's: it is
-                      * whatever was thrown, in English, and it is here so a report can carry something
-                      * more useful than "it did not open".
-                      */ }
-                    <Text
-                        dir='ltr'
-                        className='rounded-surface bg-base-3 p-2 font-mono break-all select-text!'
-                        text={ message } />
-
-                    <Button
-                        variant='primary'
-                        size='action'
-                        fullWidth
-                        onClick={ () => { window.location.reload(); } }
-                        text={ line('App.Failure.Reload', 'Reload') } />
-
-                </Vertical>
-
-            </div>
+            </FailureScreen>
         );
     }
 }

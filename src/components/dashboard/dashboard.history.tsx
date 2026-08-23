@@ -5,9 +5,8 @@ import { FiSearch } from 'react-icons/fi';
 
 import TransactionRow from './dashboard.transaction';
 
-import Text from '../ui/text';
 import Button from '../ui/button';
-import EmptyState from '../ui/state';
+import StatusBlock from '../ui/state';
 import { TextField } from '../ui/field';
 import { Modal, ModalHeader } from '../ui/modal';
 
@@ -198,8 +197,8 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
                 {
                     loading && items.length === 0 &&
                     (
-                        <Text
-                            className='py-6 text-center'
+                        <StatusBlock
+                            state='loading'
                             text={ T('Dashboard.Activity.Loading') } />
                     )
                 }
@@ -207,7 +206,7 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
                 {
                     !loading && results.length === 0 &&
                     (
-                        <EmptyState text={ emptyText() } />
+                        <StatusBlock text={ emptyText() } />
                     )
                 }
 

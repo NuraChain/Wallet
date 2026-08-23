@@ -1,11 +1,9 @@
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router';
 
-import Text from '../components/ui/text';
 import Button from '../components/ui/button';
+import FailureScreen from '../components/ui/failure';
 
 import { line } from './boundary';
-import { surfacePanel } from '../components/ui/panel';
-import { Horizontal, Vertical } from '../components/ui/stack';
 
 /**
  * describe - Turns whatever the router caught into one line worth showing.
@@ -47,46 +45,24 @@ export default function RouteError()
     const navigate = useNavigate();
 
     return (
-        <div className='flex size-full items-center justify-center bg-base-1 px-4'>
+        <FailureScreen
+            title={ line('App.Failure.Title', 'Nura Wallet could not start') }
+            body={ line('App.Failure.Message', 'Your wallet is still on this device. Reloading usually clears this.') }
+            detail={ describe(error) }>
 
-            <Vertical className={ `${ surfacePanel } w-full max-w-md gap-3 rounded-dialog p-6 text-center` }>
+            <Button
+                variant='muted'
+                size='action'
+                onClick={ () => { void navigate('/', { replace: true }); } }
+                text={ line('App.Failure.Home', 'Start over') } />
 
-                <Text
-                    variant='heading'
-                    text={ line('App.Failure.Title', 'Nura Wallet could not start') } />
+            <Button
+                variant='primary'
+                size='action'
+                onClick={ () => { window.location.reload(); } }
+                text={ line('App.Failure.Reload', 'Reload') } />
 
-                <Text
-                    variant='bodyMuted'
-                    text={ line('App.Failure.Message', 'Your wallet is still on this device. Reloading usually clears this.') } />
-
-                { /*
-                  * The developer's half of the screen: whatever was thrown, in English, so a report can
-                  * carry something more useful than "it did not open".
-                  */ }
-                <Text
-                    dir='ltr'
-                    className='rounded-surface bg-base-3 p-2 font-mono break-all select-text!'
-                    text={ describe(error) } />
-
-                <Horizontal className='gap-2'>
-
-                    <Button
-                        variant='muted'
-                        size='action'
-                        onClick={ () => { void navigate('/', { replace: true }); } }
-                        text={ line('App.Failure.Home', 'Start over') } />
-
-                    <Button
-                        variant='primary'
-                        size='action'
-                        onClick={ () => { window.location.reload(); } }
-                        text={ line('App.Failure.Reload', 'Reload') } />
-
-                </Horizontal>
-
-            </Vertical>
-
-        </div>
+        </FailureScreen>
     );
 }
 
@@ -103,27 +79,16 @@ export function NotFound()
     const navigate = useNavigate();
 
     return (
-        <div className='flex size-full items-center justify-center bg-base-1 px-4'>
+        <FailureScreen
+            title={ line('App.Missing.Title', 'This screen does not exist') }
+            body={ line('App.Missing.Message', 'Nothing was lost. Your wallet is still on this device.') }>
 
-            <Vertical className={ `${ surfacePanel } w-full max-w-md gap-3 rounded-dialog p-6 text-center` }>
+            <Button
+                variant='primary'
+                size='action'
+                onClick={ () => { void navigate('/', { replace: true }); } }
+                text={ line('App.Failure.Home', 'Start over') } />
 
-                <Text
-                    variant='heading'
-                    text={ line('App.Missing.Title', 'This screen does not exist') } />
-
-                <Text
-                    variant='bodyMuted'
-                    text={ line('App.Missing.Message', 'Nothing was lost. Your wallet is still on this device.') } />
-
-                <Button
-                    variant='primary'
-                    size='action'
-                    fullWidth
-                    onClick={ () => { void navigate('/', { replace: true }); } }
-                    text={ line('App.Failure.Home', 'Start over') } />
-
-            </Vertical>
-
-        </div>
+        </FailureScreen>
     );
 }

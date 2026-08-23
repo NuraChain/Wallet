@@ -185,7 +185,8 @@
         },
         "Receive": {
             "Title": "Al",
-            "Scan": "Bu ağda %s almak için tarayın"
+            "Scan": "Bu ağda %s almak için tarayın",
+            "QrFailed": "QR kodu oluşturulamadı. Aşağıdaki adres hâlâ geçerli."
         },
         "Redeem": {
             "Title": "Kod kullan",

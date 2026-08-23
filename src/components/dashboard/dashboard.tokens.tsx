@@ -7,6 +7,7 @@ import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import TokenRow, { AssetAmount } from '../token.row';
 
 import Text from '../ui/text';
+import StatusBlock from '../ui/state';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import { TextField } from '../ui/field';
@@ -165,9 +166,7 @@ export default function DashboardTokens({ network, tokens, prices, onAdd, onRemo
                             {
                                 tokens.length === 0 &&
                                 (
-                                    <Text
-                                        className='py-4 text-center'
-                                        text={ T('Dashboard.Tokens.Empty') } />
+                                    <StatusBlock text={ T('Dashboard.Tokens.Empty') } />
                                 )
                             }
 

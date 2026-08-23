@@ -185,7 +185,8 @@
         },
         "Receive": {
             "Title": "Recibir",
-            "Scan": "Escanea para recibir %s en esta red"
+            "Scan": "Escanea para recibir %s en esta red",
+            "QrFailed": "No se pudo generar el código QR. La dirección de abajo sigue siendo válida."
         },
         "Redeem": {
             "Title": "Canjear",

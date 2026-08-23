@@ -98,11 +98,16 @@ export default function TitleBar()
      * one choice, and only one of them is ever the useful next step. It shows the state it would
      * move to, so the phone glyph appears once the window is maximized.
      */
+    /*
+     * The labels are the second half of this map's job. These are three icon-only controls that
+     * carried no accessible name at all, while `App.Window.Minimize`, `.Maximize` and `.Close` sat
+     * translated in all ten bundles, referenced by nothing.
+     */
     const controlMap =
     [
-        { key: 'minimize', icon: <VscChromeMinimize size={ 16 } />, action: onMinimize },
-        { key: 'size', icon: wide ? <AiOutlineMobile size={ 16 } /> : <LuTvMinimal size={ 16 } />, action: onToggleSize },
-        { key: 'close', icon: <VscChromeClose size={ 16 } />, action: onClose }
+        { key: 'minimize', label: T('App.Window.Minimize'), icon: <VscChromeMinimize size={ 16 } />, action: onMinimize },
+        { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <AiOutlineMobile size={ 16 } /> : <LuTvMinimal size={ 16 } />, action: onToggleSize },
+        { key: 'close', label: T('App.Window.Close'), icon: <VscChromeClose size={ 16 } />, action: onClose }
     ];
 
     return (
@@ -130,6 +135,7 @@ export default function TitleBar()
                     controlMap.map((item) => (
                         <Button
                             key={ item.key }
+                            aria-label={ item.label }
                             onClick={ item.action }
                             className='flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal transition-colors duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active'>
 

@@ -4,7 +4,7 @@ import { FiCheck, FiEdit3, FiPlus, FiTrash2 } from 'react-icons/fi';
 import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
-import EmptyState from '../ui/state';
+import StatusBlock from '../ui/state';
 import TokenIcon from '../token.icon';
 import SectionHeader from '../ui/section';
 import SiteForm from '../site.form';
@@ -129,7 +129,7 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
 
             {
                 favorites.length === 0 && explorer === undefined && !editing ?
-                    <EmptyState panel text={ T('Dashboard.Browser.FavoriteEmpty') } /> :
+                    <StatusBlock panel text={ T('Dashboard.Browser.FavoriteEmpty') } /> :
                     (
                         <div className={ cn(editing ? 'flex flex-col gap-2' : 'grid grid-cols-2 gap-2') }>
 
@@ -205,7 +205,7 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
 
             {
                 visits.length === 0 ?
-                    <EmptyState panel text={ T('Dashboard.Browser.RecentEmpty') } /> :
+                    <StatusBlock panel text={ T('Dashboard.Browser.RecentEmpty') } /> :
                     (
                         <div className='grid grid-cols-2 gap-2'>
 

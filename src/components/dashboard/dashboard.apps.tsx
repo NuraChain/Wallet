@@ -6,7 +6,7 @@ import { FiCheck, FiEdit3, FiPlus, FiTrash2 } from 'react-icons/fi';
 import Text from '../ui/text';
 import Button from '../ui/button';
 import SiteForm from '../site.form';
-import EmptyState from '../ui/state';
+import StatusBlock from '../ui/state';
 import TokenIcon from '../token.icon';
 import SectionHeader from '../ui/section';
 
@@ -431,7 +431,7 @@ export default function DashboardApps({ active, onOpen }: { active: boolean; onO
                 (
                     <Vertical className='gap-3'>
 
-                        <EmptyState panel text={ T('Dashboard.Apps.Empty') } />
+                        <StatusBlock panel text={ T('Dashboard.Apps.Empty') } />
 
                         <Button
                             variant='normal'

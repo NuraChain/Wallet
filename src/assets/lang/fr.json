@@ -185,7 +185,8 @@
         },
         "Receive": {
             "Title": "Recevoir",
-            "Scan": "Scannez pour recevoir des %s sur ce réseau"
+            "Scan": "Scannez pour recevoir des %s sur ce réseau",
+            "QrFailed": "Le QR code n'a pas pu être généré. L'adresse ci-dessous reste valide."
         },
         "Redeem": {
             "Title": "Utiliser un code",

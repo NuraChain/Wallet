@@ -4,9 +4,8 @@ import { HiOutlineListBullet } from 'react-icons/hi2';
 
 import TransactionRow from './dashboard.transaction';
 
-import Text from '../ui/text';
 import Button from '../ui/button';
-import EmptyState from '../ui/state';
+import StatusBlock from '../ui/state';
 import SectionHeader from '../ui/section';
 
 import { T } from '../../utility/language';
@@ -78,8 +77,9 @@ export default function DashboardActivity({ items, loading, notice, canOpen, onO
             {
                 loading && items.length === 0 &&
                 (
-                    <Text
-                        className='py-4 text-center'
+                    <StatusBlock
+                        panel
+                        state='loading'
                         text={ T('Dashboard.Activity.Loading') } />
                 )
             }
@@ -95,7 +95,7 @@ export default function DashboardActivity({ items, loading, notice, canOpen, onO
             {
                 !loading && items.length === 0 &&
                 (
-                    <EmptyState panel text={ emptyText() } />
+                    <StatusBlock panel text={ emptyText() } />
                 )
             }
 

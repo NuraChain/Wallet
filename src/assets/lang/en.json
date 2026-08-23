@@ -185,7 +185,8 @@
         },
         "Receive": {
             "Title": "Receive",
-            "Scan": "Scan to receive %s on this network"
+            "Scan": "Scan to receive %s on this network",
+            "QrFailed": "The QR code could not be drawn. The address below still works."
         },
         "Redeem": {
             "Title": "Redeem",

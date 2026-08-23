@@ -58,7 +58,9 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
     const [ secret, setSecret ] = useState('');
     const [ password, setPassword ] = useState('');
     const [ revealed, setRevealed ] = useState(false);
-    const [ notice, setNotice ] = useState('');
+    // The outcome, not just its wording: an export that succeeded and one that failed have to be
+    // told apart by the surface, and a bare message string cannot say which it is.
+    const [ notice, setNotice ] = useState({ ok: true, text: '' });
     const [ isLoading, setIsLoading ] = useState(false);
 
     const isKey = kind === 'privateKey';
@@ -101,12 +103,12 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
 
         if (failure.length === 0)
         {
-            setNotice(format === 'image' ? T('Dashboard.Phrase.ExportSavedImage') : T('Dashboard.Phrase.ExportSavedText'));
+            setNotice({ ok: true, text: format === 'image' ? T('Dashboard.Phrase.ExportSavedImage') : T('Dashboard.Phrase.ExportSavedText') });
 
             return;
         }
 
-        setNotice(failure === 'unsupported' ? T('Dashboard.Phrase.ExportUnsupported') : T('Dashboard.Phrase.ExportFailed'));
+        setNotice({ ok: false, text: failure === 'unsupported' ? T('Dashboard.Phrase.ExportUnsupported') : T('Dashboard.Phrase.ExportFailed') });
     };
 
     const onUnlock = async() =>
@@ -296,14 +298,13 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
 
                                         </Horizontal>
 
-                                        {
-                                            notice.length > 0 &&
-                                            (
-                                                <Text
-                                                    className='text-center'
-                                                    text={ notice } />
-                                            )
-                                        }
+                                        { /*
+                                          * Four outcomes shared one muted line, so a phrase that had
+                                          * been written to disk and one that had not looked the same.
+                                          */ }
+                                        <Alert
+                                            variant={ notice.ok ? 'success' : 'error' }
+                                            text={ notice.text } />
 
                                     </Vertical>
                                 )

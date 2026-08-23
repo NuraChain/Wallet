@@ -8,14 +8,14 @@ import Alert from '../components/ui/alert';
 import Button from '../components/ui/button';
 import { PasswordField } from '../components/ui/field';
 
-import { layer } from '../layout/container';
+import PageContainer, { layer } from '../layout/container';
 import { T } from '../utility/language';
 import { readVault } from '../core/vault';
 import { surfacePanel } from '../components/ui/panel';
 import { passwordCheck } from '../core/password';
 import { unlockSession } from '../core/session';
 import { getValueEncrypted } from '../utility/storage';
-import { Horizontal, Vertical } from '../components/ui/stack';
+import { Horizontal } from '../components/ui/stack';
 
 export default function UnlockPage()
 {
@@ -89,14 +89,25 @@ export default function UnlockPage()
         }
     };
 
+    /*
+     * `PageContainer` rather than a hand-rolled frame. This was the one top-level surface that did
+     * not use it, so it cleared neither the frameless Windows title bar nor the Android status bar —
+     * the card could sit under the window chrome — and it had missed the wider padding every other
+     * page picks up at `sm`.
+     *
+     * The entrance fade moves onto the card, which is what the user is waiting for; fading the frame
+     * as well faded a background against itself.
+     */
     return (
-        <motion.div
-            initial={ { opacity: 0 } }
-            animate={ { opacity: 1 } }
-            transition={ { type: 'tween' } }
-            className='flex size-full items-center justify-center bg-base-1 px-4'>
+        <PageContainer
+            variant='intro'
+            className='items-center justify-center'>
 
-            <Vertical className={ `${ surfacePanel } w-full max-w-md gap-4 rounded-dialog p-6` }>
+            <motion.div
+                initial={ { opacity: 0 } }
+                animate={ { opacity: 1 } }
+                transition={ { type: 'tween' } }
+                className={ `${ surfacePanel } flex w-full max-w-md flex-col gap-4 rounded-dialog p-6` }>
 
                 <Horizontal className='items-center justify-between gap-2'>
 
@@ -187,8 +198,8 @@ export default function UnlockPage()
                     className='mx-auto sm:w-fit sm:min-w-40 sm:px-8'
                     text={ T('Unlock.Submit') } />
 
-            </Vertical>
+            </motion.div>
 
-        </motion.div>
+        </PageContainer>
     );
 }
