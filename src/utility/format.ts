@@ -21,10 +21,15 @@ export const shortAddress = (address: string, lead = 6, tail = 4) =>
 
 /**
  * Format a USD amount for display, always in `en-US` so the currency symbol and grouping stay stable across UI languages.
+ *
+ * Two decimals, except for a non-zero amount that would round away to none. A coin worth a fraction of
+ * a cent is an ordinary thing to hold — Nura Coin is one — and at two places every balance of it reads
+ * `$0.00`, which is the one rendering indistinguishable from holding nothing at all. Below a cent the
+ * figure keeps enough places to be a number rather than a rounding artefact.
  * @param {number} value Amount in USD.
- * @returns {string} Formatted amount, e.g. `$2,000.00`.
+ * @returns {string} Formatted amount, e.g. `$2,000.00` or `$0.000277`.
  */
-export const formatUsd = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(value);
+export const formatUsd = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: value !== 0 && Math.abs(value) < 0.01 ? 6 : 2 }).format(value);
 
 /**
  * Format a unix timestamp as a short calendar date in the active UI language.

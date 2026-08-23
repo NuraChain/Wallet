@@ -9,7 +9,7 @@ import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
 import { HiOutlineCheck, HiOutlineCog6Tooth, HiOutlineSquare2Stack, HiOutlineSquares2X2, HiOutlineUser } from 'react-icons/hi2';
 
 import TokenIcon from '../token.icon';
-import TokenRow from '../token.row';
+import TokenRow, { AssetAmount } from '../token.row';
 import DashboardActivity from './dashboard.activity';
 import DashboardOffline from './dashboard.offline';
 
@@ -20,7 +20,7 @@ import SectionHeader from '../ui/section';
 
 import { T } from '../../utility/language';
 import { useClipboard } from '../../hook/clipboard';
-import { getNativeCoinId, getNativeLogo, getTokenLogo, type PriceMap } from '../../core/price';
+import { getNativeCoinId, getNativeLogo, getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
 import { Horizontal, Vertical } from '../ui/stack';
 
@@ -53,32 +53,6 @@ const unknownAmount = '—';
 interface BalanceView { formatted: string; loading: boolean; error: boolean; at: number }
 
 /**
- * AssetAmount - Balance over its USD worth, on the end of a holdings row.
- *
- * The native coin and every token render this identical pair. A holding with no resolvable price
- * passes no `value` and the second line is left out entirely, rather than printing a misleading
- * `$0.00`.
- * @param {object} props Component props.
- * @param {string} props.amount The balance, already trimmed for display.
- * @param {string} [props.value] The USD worth, when it could be resolved.
- * @returns {JSX.Element} The stacked amount.
- */
-function AssetAmount({ amount, value }: { amount: string; value?: string })
-{
-    return (
-        <Vertical dir='ltr' className='shrink-0 items-center'>
-
-            <Text variant='body' className='font-mono' text={ amount } />
-
-            {
-                value !== undefined && <Text className='font-mono' text={ value } />
-            }
-
-        </Vertical>
-    );
-}
-
-/**
  * DashboardWallet - Primary account view: portfolio value, address, transfer actions, holdings, and history.
  *
  * Balances are fetched by the parent and passed in, so this tab and the send flow always read the same numbers. The headline figure is the whole portfolio in USD rather than the native coin alone, since the native balance is already the first row of the token list right below it.
@@ -96,7 +70,7 @@ function AssetAmount({ amount, value }: { amount: string; value?: string })
  * @param {number} props.total Portfolio value in USD.
  * @param {boolean} props.totalLoading Whether prices are still loading.
  * @param {number} props.totalAt When the oldest price behind the total was read, or 0 for none at all.
- * @param {PriceMap} props.prices USD price per CoinGecko coin id, used for the per-row value.
+ * @param {PriceMap} props.prices USD price per pricing id, used for the per-row value.
  * @param {() => void} props.onSend Opens the send modal.
  * @param {() => void} props.onReceive Opens the receive modal.
  * @param {() => void} props.onRedeem Opens the redeem modal.
@@ -167,9 +141,9 @@ export default function DashboardWallet({ address, name, emoji, network, native,
     /**
      * RowValue - USD worth of one holding.
      *
-     * A coin with no CoinGecko id, or one whose price has not landed yet, resolves to `undefined` so
-     * the caller can leave the line out entirely rather than print a misleading `$0.00`.
-     * @param {string} coinId The CoinGecko coin id.
+     * A coin with no pricing id, or one whose price has not landed yet, resolves to `undefined` so the
+     * caller can leave the line out entirely rather than print a misleading `$0.00`.
+     * @param {string} coinId The pricing id.
      * @param {string} formatted The balance as a decimal string.
      * @returns {string | undefined} The formatted USD value, or `undefined` when it cannot be priced.
      */
@@ -390,7 +364,7 @@ export default function DashboardWallet({ address, name, emoji, network, native,
 
                             <AssetAmount
                                 amount={ trimAmount(item.formatted) }
-                                value={ rowValue(item.token.coinId, item.formatted) } />
+                                value={ rowValue(getTokenCoinId(network.chainId, item.token.address, item.token.coinId), item.formatted) } />
 
                         </TokenRow>
                     ))

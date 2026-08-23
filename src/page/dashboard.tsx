@@ -583,6 +583,7 @@ function DashboardView({ vault }: { vault: Vault })
                                 key='tokens'
                                 network={ network }
                                 tokens={ tokens.tokens }
+                                prices={ prices.prices }
                                 onAdd={ onAddToken }
                                 onRemove={ onRemoveToken }
                                 onClose={ closeModal } />

@@ -4,7 +4,7 @@ import type { TokenBalance } from '../../core/token';
 import { useState } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 
-import TokenRow from '../token.row';
+import TokenRow, { AssetAmount } from '../token.row';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
@@ -13,8 +13,8 @@ import { TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
-import { getTokenLogo } from '../../core/price';
-import { trimAmount } from '../../utility/format';
+import { getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
+import { formatUsd, trimAmount } from '../../utility/format';
 import { Vertical } from '../ui/stack';
 
 /**
@@ -26,17 +26,33 @@ import { Vertical } from '../ui/stack';
  * @param {object} props Component props.
  * @param {Network} props.network The active network.
  * @param {TokenBalance[]} props.tokens Tracked tokens with their balances.
+ * @param {PriceMap} props.prices USD price per pricing id, so each row can say what its balance is worth.
  * @param {(address: string) => Promise<string>} props.onAdd Adds a contract, resolving to an error message or an empty string on success.
  * @param {(address: string) => void} props.onRemove Stops tracking one contract.
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The token manager modal.
  */
-export default function DashboardTokens({ network, tokens, onAdd, onRemove, onClose }: { network: Network; tokens: TokenBalance[]; onAdd: (address: string) => Promise<string>; onRemove: (address: string) => void; onClose: () => void })
+export default function DashboardTokens({ network, tokens, prices, onAdd, onRemove, onClose }: { network: Network; tokens: TokenBalance[]; prices: PriceMap; onAdd: (address: string) => Promise<string>; onRemove: (address: string) => void; onClose: () => void })
 {
     const [ adding, setAdding ] = useState(false);
     const [ busy, setBusy ] = useState(false);
     const [ error, setError ] = useState('');
     const [ contract, setContract ] = useState('');
+
+    /**
+     * rowValue - USD worth of one tracked token, or nothing when it cannot be priced.
+     *
+     * The same rule the wallet tab holds to: a token the price sources have never heard of shows its
+     * balance and no second line, rather than a `$0.00` that reads as a worthless holding.
+     * @param {TokenBalance} item The token and its balance.
+     * @returns {string | undefined} The formatted USD value, or `undefined`.
+     */
+    const rowValue = (item: TokenBalance) =>
+    {
+        const price = prices[getTokenCoinId(network.chainId, item.token.address, item.token.coinId)];
+
+        return price === undefined ? undefined : formatUsd(Number(item.formatted) * price);
+    };
 
     const onSave = async() =>
     {
@@ -127,11 +143,9 @@ export default function DashboardTokens({ network, tokens, onAdd, onRemove, onCl
                                         symbol={ item.token.symbol }
                                         subtitle={ item.token.name }>
 
-                                        <Text
-                                            dir='ltr'
-                                            variant='captionStrong'
-                                            className='font-mono'
-                                            text={ trimAmount(item.formatted) } />
+                                        <AssetAmount
+                                            amount={ trimAmount(item.formatted) }
+                                            value={ rowValue(item) } />
 
                                         <Button
                                             variant='danger'

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { useOnline } from './connection';
-import { getNativeCoinId, readPrices, type PriceMap } from '../core/price';
+import { getNativeCoinId, getTokenCoinId, readPrices, type PriceMap } from '../core/price';
 
 import type { Network } from '../core/network';
 import type { TokenBalance } from '../core/token';
@@ -29,7 +29,7 @@ export const usePrices = (network: Network, nativeFormatted: string, tokens: Tok
     const online = useOnline();
 
     const nativeId = getNativeCoinId(network.chainId);
-    const ids = useMemo(() => [ nativeId, ...tokens.map((item) => item.token.coinId) ].filter((id) => id.length > 0), [ nativeId, tokens ]);
+    const ids = useMemo(() => [ nativeId, ...tokens.map((item) => getTokenCoinId(network.chainId, item.token.address, item.token.coinId)) ].filter((id) => id.length > 0), [ nativeId, network.chainId, tokens ]);
 
     const key = ids.join(',');
 
@@ -83,11 +83,11 @@ export const usePrices = (network: Network, nativeFormatted: string, tokens: Tok
 
         for (const item of tokens)
         {
-            sum += Number(item.formatted) * (held.prices[item.token.coinId] ?? 0);
+            sum += Number(item.formatted) * (held.prices[getTokenCoinId(network.chainId, item.token.address, item.token.coinId)] ?? 0);
         }
 
         return Number.isFinite(sum) ? sum : 0;
-    }, [ held, nativeId, nativeFormatted, tokens ]);
+    }, [ held, nativeId, network.chainId, nativeFormatted, tokens ]);
 
     return { prices: held.prices, total, loading, at: held.at };
 };
