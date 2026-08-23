@@ -2,7 +2,8 @@ import { FiMonitor, FiSmartphone, FiTrash2 } from 'react-icons/fi';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
-import { Modal, ModalActions, ModalHeader } from '../ui/modal';
+import SectionHeader from '../ui/section';
+import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import type { BrowserView } from '../../core/browser';
@@ -75,7 +76,7 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
                 title={ T('Dashboard.Browser.Settings') }
                 onClose={ onClose } />
 
-            <Text text={ T('Dashboard.Browser.View') } />
+            <SectionHeader title={ T('Dashboard.Browser.View') } />
 
             <Horizontal className='gap-2 *:flex-1'>
 
@@ -101,7 +102,7 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
 
             <Text text={ T('Dashboard.Browser.ViewNote') } />
 
-            <Text text={ T('Dashboard.Browser.Connected') } />
+            <SectionHeader title={ T('Dashboard.Browser.Connected') } />
 
             { /*
               * The only way back out of a connection, which is why it is here at all: a grant is given
@@ -117,7 +118,7 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
 
             <Text text={ T('Dashboard.Browser.ConnectedNote') } />
 
-            <ModalActions>
+            <Horizontal className='gap-2 *:flex-1'>
 
                 <Button
                     dim
@@ -132,9 +133,9 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
 
                 </Button>
 
-            </ModalActions>
+            </Horizontal>
 
-            <Text text={ T('Dashboard.Browser.History') } />
+            <SectionHeader title={ T('Dashboard.Browser.History') } />
 
             { /*
               * The count is the whole state of the list, and it is what says whether clearing would
@@ -144,7 +145,7 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
                 variant='body'
                 text={ T('Dashboard.Browser.HistoryCount', String(visits)) } />
 
-            <ModalActions>
+            <Horizontal className='gap-2 *:flex-1'>
 
                 <Button
                     dim
@@ -159,9 +160,9 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
 
                 </Button>
 
-            </ModalActions>
+            </Horizontal>
 
-            <Text text={ T('Dashboard.Browser.Cache') } />
+            <SectionHeader title={ T('Dashboard.Browser.Cache') } />
 
             { /*
               * Unlike the visited list above, the count here is not the whole state. What the cache
@@ -182,7 +183,7 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
               */ }
             <Text text={ T('Dashboard.Browser.CacheNote') } />
 
-            <ModalActions>
+            <Horizontal className='gap-2 *:flex-1'>
 
                 <Button
                     dim
@@ -197,7 +198,7 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
 
                 </Button>
 
-            </ModalActions>
+            </Horizontal>
 
         </Modal>
     );

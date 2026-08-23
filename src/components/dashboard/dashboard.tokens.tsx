@@ -115,16 +115,22 @@ export default function DashboardTokens({ network, tokens, prices, onAdd, onRemo
                             <ModalActions>
 
                                 <Button
+                                    dim
                                     variant='muted'
                                     size='action'
                                     disabled={ busy }
                                     onClick={ () => { setAdding(false); setError(''); } }
                                     text={ T('Dashboard.Tokens.Back') } />
 
+                                { /*
+                                  * The only busy form in the app that showed nothing but a swapped
+                                  * label: no spinner, no fade. `loading` carries both, and disables.
+                                  */ }
                                 <Button
+                                    dim
                                     variant='primary'
                                     size='action'
-                                    disabled={ busy }
+                                    loading={ busy }
                                     onClick={ () => { void onSave(); } }
                                     text={ busy ? T('Dashboard.Tokens.Checking') : T('Dashboard.Tokens.Save') } />
 
