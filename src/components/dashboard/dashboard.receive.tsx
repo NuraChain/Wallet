@@ -77,7 +77,7 @@ export default function DashboardReceive({ address, network, onClose }: { addres
                 onClose={ onClose } />
 
             { /* Pure black on white: a themed QR is an unscannable QR. */ }
-            <Horizontal className='size-56 items-center justify-center rounded-2xl bg-white p-3'>
+            <Horizontal className='size-56 items-center justify-center rounded-dialog bg-white p-3'>
 
                 {
                     qr.length > 0 && <img src={ qr } alt='' className='size-full' />
@@ -91,7 +91,7 @@ export default function DashboardReceive({ address, network, onClose }: { addres
 
             <Panel
                 dir='ltr'
-                className='w-full rounded-xl p-3 text-center font-mono text-tiny break-all text-txt-normal select-text!'>
+                className='w-full rounded-surface p-3 text-center font-mono text-tiny break-all text-txt-normal select-text!'>
 
                 { address }
 

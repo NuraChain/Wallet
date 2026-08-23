@@ -34,7 +34,7 @@ const toneMap =
 export default function IconBox({ tone = 'muted', size = 'size-8', className = '', children }: { tone?: keyof typeof toneMap; size?: string; className?: string; children: ReactNode })
 {
     return (
-        <div className={ cn('flex shrink-0 items-center justify-center rounded-lg', toneMap[tone], size, className) }>
+        <div className={ cn('flex shrink-0 items-center justify-center rounded-control', toneMap[tone], size, className) }>
 
             { children }
 

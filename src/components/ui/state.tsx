@@ -3,7 +3,7 @@ import { FiInbox } from 'react-icons/fi';
 import Text from './text';
 
 import { cn } from '../../utility/cn';
-import { glassPanel } from './panel';
+import { surfacePanel } from './panel';
 
 /**
  * EmptyState - Inbox icon over a muted line, for a list with nothing in it.
@@ -19,7 +19,7 @@ import { glassPanel } from './panel';
 export default function EmptyState({ text, panel = false, className = '' }: { text: string; panel?: boolean; className?: string })
 {
     return (
-        <div className={ cn('flex flex-col items-center gap-1 text-center', panel ? `${ glassPanel } rounded-xl px-3 py-6` : 'py-10', className) }>
+        <div className={ cn('flex flex-col items-center gap-1 text-center', panel ? `${ surfacePanel } rounded-surface px-3 py-6` : 'py-10', className) }>
 
             <FiInbox size={ 24 } className='text-txt-muted' />
 

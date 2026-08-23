@@ -7,7 +7,7 @@ import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 
 import { T } from '../../utility/language';
-import { glassPanel } from '../ui/panel';
+import { surfacePanel } from '../ui/panel';
 import { formatDate, shortAddress, trimAmount } from '../../utility/format';
 import { Vertical } from '../ui/stack';
 
@@ -38,7 +38,7 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
             disabled={ !canOpen }
             aria-label={ T('Dashboard.Activity.Open') }
             onClick={ () => { onOpen(item.hash); } }
-            className={ `${ glassPanel } flex shrink-0 items-center gap-3 rounded-xl p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-normal-hover` }>
+            className={ `${ surfacePanel } flex shrink-0 items-center gap-3 rounded-surface p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-normal-hover` }>
 
             <IconBox tone='muted' size='size-9'>
 

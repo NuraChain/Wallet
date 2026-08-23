@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 import Button from '../ui/button';
-import Spinner from '../ui/spinner';
 import Checkbox from '../ui/checkbox';
 
 import { PasswordField } from '../ui/field';
@@ -73,6 +72,14 @@ export default function IntroCredentials({ prefix, submitKey, className = '', su
         {
             await onSubmit(password);
         }
+        catch
+        {
+            // The flow this hands off to writes the vault. A rejection there used to land nowhere:
+            // the spinner stopped, the button came back, and the wallet had not been saved — the one
+            // failure in the app where saying nothing leaves the user believing the opposite of what
+            // happened. `ErrorGenerate` exists under both prefixes and is worded for each flow.
+            onError(T(`${ prefix }.ErrorGenerate`));
+        }
         finally
         {
             setLoading(false);
@@ -82,17 +89,24 @@ export default function IntroCredentials({ prefix, submitKey, className = '', su
     return (
         <div className={ cn('flex flex-col gap-2', className) }>
 
+            { /*
+              * Both fields name themselves to the password manager. Without `autoComplete` a manager
+              * sees three indistinguishable password boxes across the app and cannot tell the one
+              * being set from the one being entered.
+              */ }
             <PasswordField
                 label={ T(`${ prefix }.Password`) }
                 value={ password }
+                autoComplete='new-password'
                 onValue={ setPassword }
-                className='rounded-lg' />
+                onEnter={ () => { void onSend(); } } />
 
             <PasswordField
                 label={ T(`${ prefix }.Confirm`) }
                 value={ confirm }
+                autoComplete='new-password'
                 onValue={ setConfirm }
-                className='rounded-lg' />
+                onEnter={ () => { void onSend(); } } />
 
             <Checkbox
                 checked={ agree }
@@ -100,16 +114,14 @@ export default function IntroCredentials({ prefix, submitKey, className = '', su
                 text={ T(`${ prefix }.Agreement`) } />
 
             <Button
+                dim
                 variant='primary'
+                size='submit'
+                loading={ loading }
                 disabled={ !agree }
                 onClick={ () => { void onSend(); } }
-                className={ cn('mx-auto h-12 w-full rounded-lg px-4 py-2 sm:w-fit sm:px-8', !agree && 'opacity-50', submitClass) }>
-
-                {
-                    !loading ? T(`${ prefix }.${ submitKey }`) : <Spinner size={ 24 } />
-                }
-
-            </Button>
+                text={ T(`${ prefix }.${ submitKey }`) }
+                className={ cn('mx-auto sm:w-fit sm:px-8', submitClass) } />
 
         </div>
     );

@@ -7,7 +7,7 @@ import Text from './text';
 import Button from './button';
 
 import { cn } from '../../utility/cn';
-import { glassPanel } from './panel';
+import { surfacePanel } from './panel';
 import { inset } from '../../layout/container';
 
 /**
@@ -67,7 +67,7 @@ export function Modal({ onClose, z = 'z-30', frame = 'center', scroll = false, s
                     initial={ { opacity: 0, scale } }
                     animate={ { opacity: 1, scale: 1 } }
                     exit={ { opacity: 0, scale } }
-                    className={ cn(glassPanel, 'flex w-80 flex-col gap-3 rounded-2xl p-4', scroll && 'max-h-[80vh] overflow-y-auto', panelClass) }>
+                    className={ cn(surfacePanel, 'flex w-80 flex-col gap-3 rounded-dialog p-4', scroll && 'max-h-[80vh] overflow-y-auto', panelClass) }>
 
                     { children }
 

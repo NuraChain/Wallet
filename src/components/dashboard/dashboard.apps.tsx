@@ -30,7 +30,7 @@ import { Horizontal, Vertical } from '../ui/stack';
  * the card it would sit on — and a detail that needs a token the system does not have is a detail the
  * system was not asking for.
  */
-const iconLift = 'shadow-[0_2px_6px_var(--glass-shadow)]';
+const iconLift = 'shadow-raise';
 
 /**
  * AppIcon - An app's own icon, lifted off the card.
@@ -76,7 +76,7 @@ function AppHost({ item, connected }: { item: DappEntry; connected: boolean })
         <Horizontal className='min-w-0 items-center gap-1.5'>
 
             {
-                connected && <span aria-hidden className='size-1.5 shrink-0 rounded-[2px] bg-txt-success' />
+                connected && <span aria-hidden className='size-1.5 shrink-0 rounded-xs bg-txt-success' />
             }
 
             { /*
@@ -151,11 +151,11 @@ function AppRow({ item, connected, onEdit, onRemove }: { item: DappEntry; connec
                 variant='muted'
                 title={ item.url }
                 onClick={ () => { onEdit(item); } }
-                className='min-w-0 flex-1 justify-start gap-2.5 rounded-xl p-2 text-start'>
+                className='min-w-0 flex-1 justify-start gap-2.5 rounded-surface p-2 text-start'>
 
                 <AppIcon
                     item={ item }
-                    className='size-8 rounded-[10px] text-tiny' />
+                    className='size-8 rounded-control text-tiny' />
 
                 <Vertical className='min-w-0 flex-1 gap-0.5'>
 
@@ -330,7 +330,7 @@ export default function DashboardApps({ active, onOpen }: { active: boolean; onO
                 <Button
                     variant='muted'
                     onClick={ () => { setEditing(!editing); } }
-                    className='h-8 gap-1 rounded-lg px-3 text-tiny'
+                    className='h-8 gap-1 rounded-control px-3 text-tiny'
                     leftIcon={ editing ? <FiCheck size={ 14 } /> : <FiEdit3 size={ 14 } /> }
                     text={ editing ? T('Dashboard.Apps.Done') : T('Dashboard.Apps.Manage') } />
 
@@ -397,11 +397,11 @@ export default function DashboardApps({ active, onOpen }: { active: boolean; onO
                                         variant='normal'
                                         title={ tileTitle(item) }
                                         onClick={ () => { onOpen(item.url); } }
-                                        className='h-30 flex-col items-start justify-start gap-3 rounded-2xl p-3 text-start'>
+                                        className='h-30 flex-col items-start justify-start gap-3 rounded-surface p-3 text-start'>
 
                                         <AppIcon
                                             item={ item }
-                                            className='size-10 rounded-xl text-small' />
+                                            className='size-10 rounded-surface text-small' />
 
                                         <Vertical className='mt-auto w-full min-w-0 gap-1'>
 

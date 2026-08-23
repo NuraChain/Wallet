@@ -10,7 +10,7 @@ import { PasswordField } from '../components/ui/field';
 
 import { T } from '../utility/language';
 import { readVault } from '../core/vault';
-import { glassPanel } from '../components/ui/panel';
+import { surfacePanel } from '../components/ui/panel';
 import { passwordCheck } from '../core/password';
 import { unlockSession } from '../core/session';
 import { getValueEncrypted } from '../utility/storage';
@@ -95,7 +95,7 @@ export default function UnlockPage()
             transition={ { type: 'tween' } }
             className='flex size-full items-center justify-center bg-base-1 px-4'>
 
-            <Vertical className={ `${ glassPanel } w-full max-w-md gap-4 rounded-3xl p-6` }>
+            <Vertical className={ `${ surfacePanel } w-full max-w-md gap-4 rounded-dialog p-6` }>
 
                 <Horizontal className='items-center justify-between gap-2'>
 
@@ -131,7 +131,7 @@ export default function UnlockPage()
                                         animate={ { opacity: 1, scale: 1, y: 0 } }
                                         exit={ { opacity: 0, scale: 0.95, y: -4 } }
                                         transition={ { duration: 0.15 } }
-                                        className={ `${ glassPanel } absolute inset-e-0 top-12 w-56 origin-top rounded-xl p-3 text-start text-tiny text-txt-normal` }>
+                                        className={ `${ surfacePanel } absolute inset-e-0 top-12 w-56 origin-top rounded-surface p-3 text-start text-tiny text-txt-normal` }>
 
                                         { T('Unlock.Recovery') }
 
@@ -156,7 +156,7 @@ export default function UnlockPage()
 
                 <Alert
                     variant='danger'
-                    className='mt-2 rounded-xl text-center text-small'
+                    className='mt-2 rounded-surface text-center text-small'
                     text={ error } />
 
                 <PasswordField
@@ -183,7 +183,7 @@ export default function UnlockPage()
                     loading={ isLoading }
                     onClick={ () => { void onUnlock(); } }
                     aria-label={ isLoading ? T('Unlock.Loading') : undefined }
-                    className='mx-auto h-12 w-fit min-w-40 rounded-xl px-8 py-2 disabled:opacity-60'
+                    className='mx-auto h-12 w-fit min-w-40 rounded-surface px-8 py-2 disabled:opacity-60'
                     text={ isLoading ? '' : T('Unlock.Submit') } />
 
             </Vertical>

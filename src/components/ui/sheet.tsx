@@ -7,7 +7,7 @@ import Text from './text';
 import Button from './button';
 
 import { inset } from '../../layout/container';
-import { glassPanel } from './panel';
+import { surfacePanel } from './panel';
 import { Vertical } from './stack';
 
 /**
@@ -38,7 +38,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 animate={ { y: '0%' } }
                 exit={ { y: '-100%' } }
                 transition={ { type: 'tween' } }
-                className={ `${ glassPanel } absolute inset-x-0 top-0 z-20 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-3xl px-4 ${ inset.sheetTop } pb-4 sm:mx-auto sm:px-6 sm:pb-6` }>
+                className={ `${ surfacePanel } absolute inset-x-0 top-0 z-20 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 ${ inset.sheetTop } pb-4 sm:mx-auto sm:px-6 sm:pb-6` }>
 
                 <Button
                     variant='muted'

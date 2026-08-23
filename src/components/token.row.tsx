@@ -6,7 +6,7 @@ import TokenIcon from './token.icon';
 import type { ImageKind } from '../core/image';
 
 import { cn } from '../utility/cn';
-import { glassPanel } from './ui/panel';
+import { surfacePanel } from './ui/panel';
 import { Vertical } from './ui/stack';
 
 /**
@@ -61,7 +61,7 @@ export default function TokenRow({ src, symbol, kind = 'unknown', primary = fals
         // manager each one carries its own remove control, so saying which row the pointer is on is
         // the difference between removing that token and its neighbour. `btn-muted-hover` is the same
         // fill the nav tab and the window controls use, so nothing new is painted here.
-        <div className={ cn('flex items-center gap-3 rounded-xl', panel ? `${ glassPanel } p-3` : 'p-2', hover && 'transition-[background-color] duration-200 ease-initial hover:bg-btn-muted-hover') }>
+        <div className={ cn('flex items-center gap-3 rounded-surface', panel ? `${ surfacePanel } p-3` : 'p-2', hover && 'transition-[background-color] duration-(--duration-base) ease-initial hover:bg-btn-muted-hover') }>
 
             <TokenIcon
                 src={ src }

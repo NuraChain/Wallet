@@ -700,7 +700,7 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
                         onPointerMove={ onPointerMove }
                         onPointerCancel={ onPointerUp }
                         style={ { height: `${ thumb.size }px` } }
-                        className={ `absolute inset-e-1 top-0 z-30 w-1.5 cursor-pointer rounded-full bg-txt-muted transition-opacity duration-200 hover:opacity-15 ${ dragging ? 'opacity-100' : 'opacity-5' }` } />
+                        className={ `absolute inset-e-1 top-0 z-30 w-1.5 cursor-pointer rounded-full bg-txt-muted transition-opacity duration-(--duration-base) hover:opacity-15 ${ dragging ? 'opacity-100' : 'opacity-5' }` } />
                 )
             }
 

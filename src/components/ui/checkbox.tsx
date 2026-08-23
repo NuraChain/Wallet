@@ -4,7 +4,7 @@ import { FiCheck } from 'react-icons/fi';
 
 import Text from './text';
 
-import { glassInput } from './field';
+import { fieldSurface } from './field';
 
 /**
  * Checkbox - The glass agreement checkbox with its inline label.
@@ -29,7 +29,7 @@ export default function Checkbox({ checked, text, onToggle, children }: { checke
             <button
                 type='button'
                 onClick={ onToggle }
-                className={ `${ glassInput } flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-sm hover:bg-btn-muted-hover` }>
+                className={ `${ fieldSurface } flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-control hover:bg-btn-muted-hover` }>
 
                 {
                     checked && <FiCheck size={ 16 } className='text-txt-muted' />

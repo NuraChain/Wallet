@@ -80,7 +80,7 @@ export default function DashboardSettings({ kind, onLanguage, onPhrase, onLock, 
                 <Button
                     variant='primary'
                     onClick={ onLock }
-                    className='h-12 min-w-0 rounded-xl text-small'>
+                    className='h-12 min-w-0 rounded-surface text-small'>
 
                     <HiOutlineLockClosed size={ 16 } className='shrink-0' />
 
@@ -95,7 +95,7 @@ export default function DashboardSettings({ kind, onLanguage, onPhrase, onLock, 
                 <Button
                     variant='destructive'
                     onClick={ onLogout }
-                    className='h-12 min-w-0 rounded-xl text-small'>
+                    className='h-12 min-w-0 rounded-surface text-small'>
 
                     <FiLogOut size={ 16 } className='shrink-0 rtl:rotate-180' />
 

@@ -4,7 +4,7 @@ import Text from '../components/ui/text';
 import Button from '../components/ui/button';
 
 import { T } from '../utility/language';
-import { glassPanel } from '../components/ui/panel';
+import { surfacePanel } from '../components/ui/panel';
 import { Vertical } from '../components/ui/stack';
 
 /**
@@ -73,7 +73,7 @@ export default class ErrorBoundary extends Component<BoundaryProps, BoundaryStat
         return (
             <div className='flex size-full items-center justify-center bg-base-1 px-4'>
 
-                <Vertical className={ `${ glassPanel } w-full max-w-md gap-3 rounded-3xl p-6 text-center` }>
+                <Vertical className={ `${ surfacePanel } w-full max-w-md gap-3 rounded-dialog p-6 text-center` }>
 
                     <Text
                         variant='heading'
@@ -90,7 +90,7 @@ export default class ErrorBoundary extends Component<BoundaryProps, BoundaryStat
                       */ }
                     <Text
                         dir='ltr'
-                        className='rounded-xl bg-base-3 p-2 font-mono break-all select-text!'
+                        className='rounded-surface bg-base-3 p-2 font-mono break-all select-text!'
                         text={ message } />
 
                     <Button

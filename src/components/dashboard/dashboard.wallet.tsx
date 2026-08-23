@@ -28,7 +28,7 @@ import { Horizontal, Vertical } from '../ui/stack';
  * The two selector capsules at the top of the tab are the same control with different contents, so
  * they are the same dimensions written once.
  */
-const chipClass = 'h-9 min-w-0 flex-1 gap-1.5 rounded-xl ps-1 pe-2.5 text-tiny';
+const chipClass = 'h-9 min-w-0 flex-1 gap-1.5 rounded-surface ps-1 pe-2.5 text-tiny';
 
 /**
  * And the label inside them, for the same reason.
@@ -306,7 +306,7 @@ export default function DashboardWallet({ address, name, emoji, network, native,
                             onClick={ item.onClick }
                             className='flex cursor-pointer flex-col items-center gap-1'>
 
-                            <Horizontal className={ `${ item.fill } size-14 items-center justify-center rounded-2xl` }>
+                            <Horizontal className={ `${ item.fill } size-14 items-center justify-center rounded-dialog` }>
 
                                 <item.icon size={ 22 } />
 
@@ -327,7 +327,7 @@ export default function DashboardWallet({ address, name, emoji, network, native,
                     <Button
                         variant='muted'
                         onClick={ onTokens }
-                        className='h-8 gap-1 rounded-lg px-3 text-tiny'
+                        className='h-8 gap-1 rounded-control px-3 text-tiny'
                         leftIcon={ <HiOutlineSquares2X2 size={ 14 } /> }
                         text={ T('Dashboard.Tokens.Manage') } />
 

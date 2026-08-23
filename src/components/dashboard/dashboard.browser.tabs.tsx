@@ -31,8 +31,8 @@ import { Horizontal } from '../ui/stack';
  * The width is not here: the slide around it owns that, from `style.css`, because Swiper reads it out
  * of the stylesheet and the library's own rule would outrank a utility written on the element.
  */
-const chipBase = 'flex h-9 w-full items-center gap-1.5 rounded-xl border ps-2.5 pe-1 transition-[background-color,border-color] duration-300 ease-initial';
-const chipIdle = 'border-glass-line bg-base-3 hover:bg-base-2';
+const chipBase = 'flex h-9 w-full items-center gap-1.5 rounded-surface border ps-2.5 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';
+const chipIdle = 'border-line bg-base-3 hover:bg-base-2';
 const chipLive = 'border-btn-primary-border bg-btn-primary/15';
 
 /** The space between two chips, in pixels, since Swiper takes this as a number rather than a class. */
@@ -103,7 +103,7 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
     }
 
     return (
-        <Horizontal className='shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
+        <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
 
             <Button
                 variant='chip'
@@ -191,7 +191,7 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
                                         <Button
                                             aria-label={ T('Dashboard.Browser.TabClose') }
                                             onClick={ () => { onClose(item.id); } }
-                                            className='flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg text-txt-muted hover:bg-base-2'>
+                                            className='flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'>
 
                                             <IoClose size={ 13 } />
 

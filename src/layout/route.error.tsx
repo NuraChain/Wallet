@@ -4,7 +4,7 @@ import Text from '../components/ui/text';
 import Button from '../components/ui/button';
 
 import { line } from './boundary';
-import { glassPanel } from '../components/ui/panel';
+import { surfacePanel } from '../components/ui/panel';
 import { Horizontal, Vertical } from '../components/ui/stack';
 
 /**
@@ -49,7 +49,7 @@ export default function RouteError()
     return (
         <div className='flex size-full items-center justify-center bg-base-1 px-4'>
 
-            <Vertical className={ `${ glassPanel } w-full max-w-md gap-3 rounded-3xl p-6 text-center` }>
+            <Vertical className={ `${ surfacePanel } w-full max-w-md gap-3 rounded-dialog p-6 text-center` }>
 
                 <Text
                     variant='heading'
@@ -65,7 +65,7 @@ export default function RouteError()
                   */ }
                 <Text
                     dir='ltr'
-                    className='rounded-xl bg-base-3 p-2 font-mono break-all select-text!'
+                    className='rounded-surface bg-base-3 p-2 font-mono break-all select-text!'
                     text={ describe(error) } />
 
                 <Horizontal className='gap-2'>
@@ -105,7 +105,7 @@ export function NotFound()
     return (
         <div className='flex size-full items-center justify-center bg-base-1 px-4'>
 
-            <Vertical className={ `${ glassPanel } w-full max-w-md gap-3 rounded-3xl p-6 text-center` }>
+            <Vertical className={ `${ surfacePanel } w-full max-w-md gap-3 rounded-dialog p-6 text-center` }>
 
                 <Text
                     variant='heading'

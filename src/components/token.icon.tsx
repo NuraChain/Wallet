@@ -30,7 +30,7 @@ export default function TokenIcon({ src, symbol, kind = 'unknown', primary = fal
     if (resolved.length === 0 || failed)
     {
         return (
-            <div className={ cn('flex shrink-0 items-center justify-center rounded-lg text-small text-txt-reverse', primary ? 'bg-btn-primary' : 'bg-btn-secondary', className) }>
+            <div className={ cn('flex shrink-0 items-center justify-center rounded-control text-small text-txt-reverse', primary ? 'bg-btn-primary' : 'bg-btn-secondary', className) }>
 
                 { symbol.slice(0, 1) }
 
@@ -45,6 +45,6 @@ export default function TokenIcon({ src, symbol, kind = 'unknown', primary = fal
             loading='lazy'
             decoding='async'
             onError={ () => { setFailed(true); } }
-            className={ cn('shrink-0 rounded-lg bg-base-3 object-contain', className) } />
+            className={ cn('shrink-0 rounded-control bg-base-3 object-contain', className) } />
     );
 }

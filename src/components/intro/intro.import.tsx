@@ -185,7 +185,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                                         key={ item.kind }
                                         variant={ method === item.kind ? 'primary' : 'muted' }
                                         onClick={ () => { onMethod(item.kind); } }
-                                        className='h-10 min-w-0 flex-1 rounded-lg text-small'
+                                        className='h-10 min-w-0 flex-1 rounded-control text-small'
                                         text={ T(item.label) } />
                                 ))
                             }
@@ -201,7 +201,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                             value={ secret }
                             dir={ method === 'privateKey' ? 'ltr' : undefined }
                             onChange={ (event) => { setSecret(event.target.value); } }
-                            className={ `min-h-28 w-full resize-none rounded-xl bg-base-3 p-3 text-small outline-0 sm:min-h-36 ${ method === 'privateKey' ? 'font-mono break-all' : '' }` }
+                            className={ `min-h-28 w-full resize-none rounded-surface bg-base-3 p-3 text-small outline-0 sm:min-h-36 ${ method === 'privateKey' ? 'font-mono break-all' : '' }` }
                             placeholder={ method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message') } />
 
                         {
@@ -214,7 +214,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                         <Button
                             variant='primary'
                             onClick={ () => { void onSubmit2(); } }
-                            className='mx-auto h-12 w-full rounded-lg px-4 sm:w-fit sm:px-8'
+                            className='mx-auto h-12 w-full rounded-control px-4 sm:w-fit sm:px-8'
                             text={ T('Intro.ImportWallet.Submit2') } />
 
                     </Vertical>

@@ -105,7 +105,7 @@ export default function IntroPage()
                         <Button
                             variant='normal'
                             onClick={ () => { setSubPage(<IntroLanguage onClose={ onCloseSub } />); } }
-                            className='h-10 w-fit shrink justify-start rounded-lg p-2'>
+                            className='h-10 w-fit shrink justify-start rounded-control p-2'>
 
                             <FiGlobe size={ 16 } className='shrink-0' />
 
@@ -181,7 +181,7 @@ export default function IntroPage()
                                     key={ item.key }
                                     variant={ item.variant }
                                     onClick={ () => { setSubPage(item.page(onCloseSub)); } }
-                                    className='h-12 rounded-lg p-2'>
+                                    className='h-12 rounded-control p-2'>
 
                                     <item.icon size={ 32 } className='shrink-0 p-1.5' />
 

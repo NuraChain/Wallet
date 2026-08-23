@@ -6,7 +6,7 @@ import Button from '../ui/button';
 
 import { inset } from '../../layout/container';
 import { T } from '../../utility/language';
-import { glassPanel } from '../ui/panel';
+import { surfacePanel } from '../ui/panel';
 import { Vertical } from '../ui/stack';
 
 /**
@@ -32,7 +32,7 @@ export default function DashboardNav({ items, active, hidden, onSelect }: { item
             role='tablist'
             animate={ { y: hidden ? '150%' : '0%', opacity: hidden ? 0 : 1 } }
             transition={ { type: 'tween', duration: 0.25 } }
-            className={ `${ glassPanel } absolute inset-x-0 ${ inset.navBottom } z-20 mx-auto flex w-fit gap-1 rounded-full p-1 ${ hidden ? 'pointer-events-none' : '' }` }>
+            className={ `${ surfacePanel } absolute inset-x-0 ${ inset.navBottom } z-20 mx-auto flex w-fit gap-1 rounded-full p-1 ${ hidden ? 'pointer-events-none' : '' }` }>
 
             {
                 items.map((item, index) =>
@@ -47,7 +47,7 @@ export default function DashboardNav({ items, active, hidden, onSelect }: { item
                             aria-selected={ isActive }
                             aria-controls={ `dashboard-panel-${ item.key }` }
                             onClick={ () => { onSelect(index); } }
-                            className={ `group relative flex h-12 w-20 cursor-pointer items-center justify-center rounded-full duration-300 ${ isActive ? '' : 'hover:bg-btn-muted-hover' }` }>
+                            className={ `group relative flex h-12 w-20 cursor-pointer items-center justify-center rounded-full duration-(--duration-fast) ${ isActive ? '' : 'hover:bg-btn-muted-hover' }` }>
 
                             {
                                 isActive &&
@@ -59,7 +59,7 @@ export default function DashboardNav({ items, active, hidden, onSelect }: { item
                                 )
                             }
 
-                            <Vertical className={ `relative items-center gap-1 duration-300 ${ isActive ? 'text-txt-reverse' : 'text-txt-muted group-hover:text-txt-normal' }` }>
+                            <Vertical className={ `relative items-center gap-1 duration-(--duration-fast) ${ isActive ? 'text-txt-reverse' : 'text-txt-muted group-hover:text-txt-normal' }` }>
 
                                 <item.icon size={ 16 } />
 

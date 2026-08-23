@@ -59,7 +59,7 @@ export default function DashboardActivity({ items, loading, notice, canOpen, onO
                 <Button
                     variant='chip'
                     onClick={ onOverview }
-                    className='h-8 gap-1 rounded-lg px-3 text-tiny'
+                    className='h-8 gap-1 rounded-control px-3 text-tiny'
                     leftIcon={ <HiOutlineListBullet size={ 14 } /> }
                     text={ T('Dashboard.Activity.Overview') } />
 

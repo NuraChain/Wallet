@@ -268,7 +268,7 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
                                                                     key={ emoji }
                                                                     variant='muted'
                                                                     onClick={ () => { onBadge(item.index, emoji); } }
-                                                                    className='size-8 rounded-lg text-medium'
+                                                                    className='size-8 rounded-control text-medium'
                                                                     text={ emoji } />
                                                             ))
                                                         }
@@ -307,7 +307,7 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
                                                     <Button
                                                         variant='primary'
                                                         onClick={ onSave }
-                                                        className='h-12 rounded-xl px-4 text-small'
+                                                        className='h-12 rounded-surface px-4 text-small'
                                                         text={ T('Dashboard.Accounts.Save') } />
 
                                                 </Horizontal>
@@ -317,7 +317,7 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
                                         return (
                                             <Horizontal
                                                 key={ item.index }
-                                                className={ `items-center gap-2 rounded-xl p-2 transition-colors duration-300 ${ isActive ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
+                                                className={ `items-center gap-2 rounded-surface p-2 transition-colors duration-(--duration-fast) ${ isActive ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
 
                                                 { /*
                                                   * The disc is its own control so tapping it opens the

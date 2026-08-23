@@ -12,8 +12,8 @@ import Spinner from '../ui/spinner';
 import TokenIcon from '../token.icon';
 import SectionHeader from '../ui/section';
 
-import Panel, { glassPanel } from '../ui/panel';
-import { glassInput, TextField } from '../ui/field';
+import Panel, { surfacePanel } from '../ui/panel';
+import { fieldSurface, TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
@@ -220,7 +220,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                 aria-haspopup='listbox'
                                 aria-expanded={ picking }
                                 onClick={ () => { setPicking(!picking); } }
-                                className={ `${ glassInput } flex h-14 w-full cursor-pointer items-center gap-3 rounded-xl px-3` }>
+                                className={ `${ fieldSurface } flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3` }>
 
                                 <TokenIcon
                                     primary={ asset.token === undefined }
@@ -243,7 +243,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                     className='shrink-0 font-mono'
                                     text={ trimAmount(asset.formatted) } />
 
-                                <IoChevronDown size={ 12 } className={ `shrink-0 opacity-40 duration-200 ${ picking ? 'rotate-180' : '' }` } />
+                                <IoChevronDown size={ 12 } className={ `shrink-0 opacity-40 duration-(--duration-base) ${ picking ? 'rotate-180' : '' }` } />
 
                             </Button>
 
@@ -262,7 +262,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
 
                                         <div
                                             role='listbox'
-                                            className={ `${ glassPanel } scroll-hidden absolute inset-x-0 top-full z-20 mt-1 flex max-h-56 flex-col gap-1 overflow-y-auto rounded-xl p-1` }>
+                                            className={ `${ surfacePanel } scroll-hidden absolute inset-x-0 top-full z-20 mt-1 flex max-h-56 flex-col gap-1 overflow-y-auto rounded-surface p-1` }>
 
                                             {
                                                 assets.map((item) => (
@@ -271,7 +271,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                                         role='option'
                                                         aria-selected={ item.key === asset.key }
                                                         onClick={ () => { onAsset(item.key); } }
-                                                        className={ `flex w-full cursor-pointer items-center gap-3 rounded-lg p-2 duration-200 ${ item.key === asset.key ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
+                                                        className={ `flex w-full cursor-pointer items-center gap-3 rounded-control p-2 duration-(--duration-base) ${ item.key === asset.key ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
 
                                                         <TokenIcon
                                                             primary={ item.token === undefined }
@@ -325,7 +325,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                 <Button
                                     variant='muted'
                                     onClick={ () => { setAmount(asset.formatted); } }
-                                    className='rounded-lg px-2 py-0.5 text-tiny text-txt-muted'
+                                    className='rounded-control px-2 py-0.5 text-tiny text-txt-muted'
                                     text={ T('Dashboard.Send.Max', trimAmount(asset.formatted)) } />
 
                             </SectionHeader>
@@ -355,7 +355,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                 (
                     <Vertical className='gap-3'>
 
-                        <Panel className='flex flex-col gap-2 rounded-xl p-3'>
+                        <Panel className='flex flex-col gap-2 rounded-surface p-3'>
 
                             {
                                 reviewMap.map((item) => (
@@ -429,7 +429,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                           * hand, so it comes from the variant now and the rest rides in beside it. */ }
                         <Text
                             dir='ltr'
-                            className='w-full rounded-xl bg-base-3 p-2 text-center font-mono break-all select-text!'
+                            className='w-full rounded-surface bg-base-3 p-2 text-center font-mono break-all select-text!'
                             text={ hash } />
 
                         <Button

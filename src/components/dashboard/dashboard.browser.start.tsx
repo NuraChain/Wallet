@@ -49,7 +49,7 @@ function BrowserShortcut({ url, name, symbol, title, ltr = false, primary = fals
             title={ title }
             variant='muted'
             onClick={ () => { onPick(url); } }
-            className={ cn('h-12 gap-2.5 rounded-xl px-2.5 text-start', className) }>
+            className={ cn('h-12 gap-2.5 rounded-surface px-2.5 text-start', className) }>
 
             <TokenIcon
                 kind='unknown'
@@ -121,7 +121,7 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
                 <Button
                     variant='muted'
                     onClick={ () => { setEditing(!editing); } }
-                    className='h-8 gap-1 rounded-lg px-3 text-tiny'
+                    className='h-8 gap-1 rounded-control px-3 text-tiny'
                     leftIcon={ editing ? <FiCheck size={ 14 } /> : <FiEdit3 size={ 14 } /> }
                     text={ editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage') } />
 

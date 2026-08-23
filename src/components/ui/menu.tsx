@@ -22,7 +22,7 @@ export default function MenuRow({ icon, label, trailing, onClick }: { icon: Reac
         <Button
             variant='muted'
             onClick={ onClick }
-            className='h-14 gap-3 rounded-xl px-3'>
+            className='h-14 gap-3 rounded-surface px-3'>
 
             <IconBox tone='muted' size='size-8'>
 

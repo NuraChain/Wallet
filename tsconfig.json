@@ -5,6 +5,7 @@
             "DOM.Iterable",
             "ESNext"
         ],
+        "allowJs": true,
         "noEmit": true,
         "strict": true,
         "target": "esnext",
@@ -24,6 +25,7 @@
     },
     "include": [
         "src",
+        "script",
         "vite.config.ts",
         "eslint.config.ts"
     ],

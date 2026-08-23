@@ -21,7 +21,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
             z='z-10'
             scroll={ true }
             onClose={ onClose }
-            panelClass='w-72 gap-2 rounded-lg'>
+            panelClass='w-72 gap-2 rounded-control'>
 
             <ModalHeader
                 title={ T('Intro.Select') }
@@ -57,7 +57,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
                                 variant='muted'
                                 disabled={ isActive }
                                 onClick={ () => { void handleSelect(lang.code); } }
-                                className={ `h-12 gap-2 rounded-xl px-4 text-start duration-300 ${ isActive ? 'disabled:cursor-default!' : '' }` }>
+                                className={ `h-12 gap-2 rounded-surface px-4 text-start duration-(--duration-fast) ${ isActive ? 'disabled:cursor-default!' : '' }` }>
 
                                 { /* The 4x3 flag is letterboxed into a square rather than stretched, so a wide
                                      flag keeps its proportions and every row's icon occupies the same box. */ }

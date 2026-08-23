@@ -8,8 +8,18 @@
     --color-base-2: var(--base-2);
     --color-base-3: var(--base-3);
 
-    --color-glass-line: var(--glass-border);
+    /*
+     * Two line weights, because WCAG 1.4.11 only binds on one of them. `line` is decorative — a card
+     * hairline, a separator — and the surface fill underneath it is what actually identifies the card,
+     * so it is free to be quiet. `line-control` is the boundary of a control the user has to find, so
+     * it clears 3:1 against its own fill, and it is the one the fields wear.
+     */
+    --color-line: var(--line);
+    --color-line-control: var(--line-control);
     --color-scrim: var(--scrim);
+
+    /* One ring for the whole app, replacing the five per-variant outline colours. */
+    --color-focus-ring: var(--focus-ring);
 
     --color-badge: var(--badge);
     --color-badge-line: var(--badge-border);
@@ -19,35 +29,31 @@
     --color-btn-muted-hover: var(--btn-muted-hover);
     --color-btn-muted-active: var(--btn-muted-active);
     --color-btn-muted-border: var(--btn-muted-border);
-    --color-btn-muted-outline: var(--btn-muted-outline);
 
     --color-btn-normal: var(--btn-normal);
     --color-btn-normal-hover: var(--btn-normal-hover);
     --color-btn-normal-active: var(--btn-normal-active);
     --color-btn-normal-border: var(--btn-normal-border);
-    --color-btn-normal-outline: var(--btn-normal-outline);
 
     --color-btn-primary: var(--btn-primary);
     --color-btn-primary-hover: var(--btn-primary-hover);
     --color-btn-primary-active: var(--btn-primary-active);
     --color-btn-primary-border: var(--btn-primary-border);
-    --color-btn-primary-outline: var(--btn-primary-outline);
 
+    /*
+     * Only the flat fill survives: it backs the lettered asset disc. The `secondary` button variant
+     * that owned the hover, active and outline steps had no call sites at all.
+     */
     --color-btn-secondary: var(--btn-secondary);
-    --color-btn-secondary-hover: var(--btn-secondary-hover);
-    --color-btn-secondary-active: var(--btn-secondary-active);
-    --color-btn-secondary-border: var(--btn-secondary-border);
-    --color-btn-secondary-outline: var(--btn-secondary-outline);
 
     --color-btn-danger: var(--btn-danger);
     --color-btn-danger-hover: var(--btn-danger-hover);
     --color-btn-danger-active: var(--btn-danger-active);
     --color-btn-danger-border: var(--btn-danger-border);
-    --color-btn-danger-outline: var(--btn-danger-outline);
 
     --color-input-bg: var(--input-bg);
     --color-input-normal: var(--input-normal);
-    --color-input-primary: var(--input-primary);
+    --color-input-error: var(--input-error);
 
     --color-txt-muted: var(--txt-muted);
     --color-txt-normal: var(--txt-normal);
@@ -67,6 +73,37 @@
      */
     --text-display: 30px;
     --text-display--line-height: 36px;
+
+    /*
+     * Radius. Three steps and the pill, replacing the nine values that accumulated when no token
+     * existed to reach for. `control` is what a small square control wears (icon buttons, chips,
+     * favicons), `surface` what a card, row, field or action button wears, and `dialog` what floats.
+     * `rounded-full` stays a bare utility, because a pill is not a step on this ramp — it is the
+     * absence of one.
+     */
+    --radius-control: 0.5rem;
+    --radius-surface: 0.75rem;
+    --radius-dialog: 1rem;
+
+    /*
+     * Elevation. The three geometries the app already used, named so the ramp is proportional by
+     * construction instead of three independent literals in three files. The colour stays theme-swapped
+     * through `--shadow-color`, which is why these are declared `inline` with the rest.
+     */
+    --shadow-rest: 0 1px 2px var(--shadow-color);
+    --shadow-raise: 0 2px 6px var(--shadow-color);
+    --shadow-float: 0 8px 24px var(--shadow-color);
+}
+
+/*
+ * Timings. Tailwind has no `duration` theme namespace, so these are plain custom properties reached
+ * through the `duration-(--name)` shorthand rather than generated utilities. They do not vary by
+ * theme, so they sit on `:root` rather than in the palette blocks below.
+ */
+:root {
+    --duration-fast: 150ms;
+    --duration-base: 200ms;
+    --duration-surface: 300ms;
 }
 
 @font-face {
@@ -78,28 +115,47 @@
     unicode-range: U+0600-06FF,U+0750-077F,U+0870-088E,U+0890-0891,U+0897-08E1,U+08E3-08FF,U+200C-200E,U+2010-2011,U+204F,U+2E41,U+FB50-FDFF,U+FE70-FE74,U+FE76-FEFC,U+102E0-102FB,U+10E60-10E7E,U+10EC2-10EC4,U+10EFC-10EFF,U+1EE00-1EE03,U+1EE05-1EE1F,U+1EE21-1EE22,U+1EE24,U+1EE27,U+1EE29-1EE32,U+1EE34-1EE37,U+1EE39,U+1EE3B,U+1EE42,U+1EE47,U+1EE49,U+1EE4B,U+1EE4D-1EE4F,U+1EE51-1EE52,U+1EE54,U+1EE57,U+1EE59,U+1EE5B,U+1EE5D,U+1EE5F,U+1EE61-1EE62,U+1EE64,U+1EE67-1EE6A,U+1EE6C-1EE72,U+1EE74-1EE77,U+1EE79-1EE7C,U+1EE7E,U+1EE80-1EE89,U+1EE8B-1EE9B,U+1EEA1-1EEA3,U+1EEA5-1EEA9,U+1EEAB-1EEBB,U+1EEF0-1EEF1;
 }
 
+/*
+ * The surfaces are opaque. They were translucent white over a field of three radial-gradient orbs,
+ * with a `backdrop-filter` on every card; the orbs and the filters are gone and the ramp is stated
+ * directly. That is why these are flat `oklch()` values rather than alpha: an alpha surface has no
+ * colour of its own, and 4% white — which is what the muted button used to be in dark — renders as
+ * nothing at all once there is no blurred backdrop behind it for it to tint.
+ *
+ * Cards lift, never recess: `base-2` is lighter than the page in both themes. A carved surface reads
+ * in dark and vanishes in light, so it cannot carry the same meaning on both sides of the switch.
+ *
+ * Every text-on-surface pair below clears 4.5:1 and every control boundary clears 3:1, checked by
+ * script rather than by eye. Two pairs that shipped failing are corrected here: reversed text on the
+ * dark primary fill was 3.49:1, and on the dark danger fill 3.79:1.
+ */
 [data-theme='light'] {
     color-scheme: light;
 
-    --base-bg: oklch(96% 0.01 250);
-    --orb-1: oklch(85% 0.09 250 / 0.8);
-    --orb-2: oklch(87% 0.08 310 / 0.7);
-    --orb-3: oklch(88% 0.07 200 / 0.7);
-
-    --base-1: oklch(100% 0 0 / 0.25);
-    --base-2: oklch(100% 0 0 / 0.6);
-    --base-3: oklch(100% 0 0 / 0.4);
+    --base-bg: oklch(96.5% 0.006 250);
 
     /*
-     * The bar rests at 5%, barely there until it is wanted. `ScrollArea`'s overlay thumb rests at the
-     * same value — the two are the same object as far as the user is concerned, so they should not sit
-     * at two weights. Hover is the step that makes it grabbable, and stays the stronger value.
+     * The page, the card, and the quiet fill between them. `base-1` restates the page tone so a
+     * full-bleed surface can name what it is instead of relying on the body showing through.
      */
-    --scrollbar-thumb: oklch(45% 0.02 260 / 0.05);
-    --scrollbar-thumb-hover: oklch(45% 0.02 260 / 0.15);
+    --base-1: oklch(96.5% 0.006 250);
+    --base-2: oklch(100% 0 0);
+    --base-3: oklch(98% 0.005 250);
 
-    /* What every dialog and sheet dims the page with. One value so the two surfaces cannot drift. */
-    --scrim: oklch(0% 0 0 / 0.25);
+    /*
+     * The bar rests visible now. At 5% over glass it was a hint the blur helped find; on a flat
+     * surface that is simply invisible, so both steps move up. `ScrollArea`'s overlay thumb reads
+     * these directly, so the two remain one object at one weight.
+     */
+    --scrollbar-thumb: oklch(45% 0.02 260 / 0.2);
+    --scrollbar-thumb-hover: oklch(45% 0.02 260 / 0.4);
+
+    /*
+     * What every dialog and sheet dims the page with. One value so the two surfaces cannot drift.
+     * Heavier than it was: the scrim used to be one of two things separating a dialog from the page,
+     * and now that the panel no longer blurs what sits behind it, it is the only one.
+     */
+    --scrim: oklch(0% 0 0 / 0.45);
 
     /*
      * The account badge: a pale tile that does not follow the theme, because an emoji is a
@@ -111,121 +167,170 @@
     --badge-border: oklch(0% 0 0 / 0.08);
     --badge-text: oklch(20% 0.02 260);
 
-    --glass-border: oklch(100% 0 0 / 0.6);
-    --glass-highlight: oklch(100% 0 0 / 0.5);
-    --glass-shadow: oklch(30% 0.03 260 / 0.12);
+    --line: oklch(89% 0.008 250);
+    --line-control: oklch(65% 0.012 260);
 
-    --btn-muted: oklch(100% 0 0 / 0.2);
-    --btn-muted-hover: oklch(100% 0 0 / 0.4);
-    --btn-muted-active: oklch(96% 0 0 / 0.8);
-    --btn-muted-border: oklch(100% 0 0 / 0.2);
-    --btn-muted-outline: oklch(62% 0.19 255 / 0.85);
+    /* A hint, not the mechanism: the hairline and the lightness step do the separating now. */
+    --shadow-color: oklch(30% 0.03 260 / 0.08);
 
-    --btn-normal: oklch(100% 0 0 / 0.55);
-    --btn-normal-hover: oklch(100% 0 0 / 0.8);
-    --btn-normal-active: oklch(96% 0 0 / 0.7);
-    --btn-normal-border: oklch(100% 0 0 / 0.65);
-    --btn-normal-outline: oklch(62% 0.19 255 / 0.85);
+    --focus-ring: oklch(52% 0.2 255);
 
-    --btn-primary: oklch(58% 0.21 255 / 0.9);
-    --btn-primary-hover: oklch(63% 0.21 255 / 0.9);
-    --btn-primary-active: oklch(53% 0.21 255 / 0.95);
-    --btn-primary-border: oklch(70% 0.16 255 / 0.5);
-    --btn-primary-outline: oklch(58% 0.21 255 / 0.6);
+    --btn-muted: oklch(96% 0.006 250);
+    --btn-muted-hover: oklch(94% 0.006 250);
+    --btn-muted-active: oklch(92% 0.006 250);
+    --btn-muted-border: oklch(89% 0.008 250);
 
-    --btn-secondary: oklch(60% 0.02 260 / 0.6);
-    --btn-secondary-hover: oklch(65% 0.02 260 / 0.6);
-    --btn-secondary-active: oklch(55% 0.02 260 / 0.7);
-    --btn-secondary-border: oklch(75% 0.02 260 / 0.4);
-    --btn-secondary-outline: oklch(60% 0.02 260 / 0.6);
+    --btn-normal: oklch(100% 0 0);
+    --btn-normal-hover: oklch(97% 0.005 250);
+    --btn-normal-active: oklch(94.5% 0.006 250);
+    --btn-normal-border: oklch(89% 0.008 250);
+
+    /*
+     * Hover goes darker in the light theme and lighter in the dark one, and both directions keep the
+     * reversed label above 4.5:1 — which is what sets the resting value, not the other way round.
+     */
+    --btn-primary: oklch(53% 0.21 255);
+    --btn-primary-hover: oklch(48% 0.21 255);
+    --btn-primary-active: oklch(44% 0.2 255);
+    --btn-primary-border: oklch(47% 0.2 255);
+
+    /* Backs the lettered asset disc, so it carries reversed text and clears 4.5:1 like a fill. */
+    --btn-secondary: oklch(52% 0.02 260);
 
     /* Same hue as `--txt-error`, built out into a fill the way primary is. */
-    --btn-danger: oklch(55% 0.22 25 / 0.9);
-    --btn-danger-hover: oklch(60% 0.22 25 / 0.9);
-    --btn-danger-active: oklch(50% 0.22 25 / 0.95);
-    --btn-danger-border: oklch(65% 0.18 25 / 0.5);
-    --btn-danger-outline: oklch(55% 0.22 25 / 0.6);
+    --btn-danger: oklch(53% 0.22 25);
+    --btn-danger-hover: oklch(48% 0.22 25);
+    --btn-danger-active: oklch(44% 0.21 25);
+    --btn-danger-border: oklch(47% 0.21 25);
 
-    --input-bg: oklch(100% 0 0 / 0.5);
-    --input-normal: oklch(85% 0.01 260 / 0.9);
-    --input-primary: oklch(58% 0.21 255 / 0.9);
+    --input-bg: oklch(100% 0 0);
+    --input-normal: oklch(65% 0.012 260);
+    --input-error: oklch(52% 0.22 25);
 
-    --txt-muted: oklch(50% 0.02 260);
+    --txt-muted: oklch(48% 0.02 260);
     --txt-normal: oklch(20% 0.02 260);
     --txt-reverse: oklch(98% 0 0);
-    --txt-error: oklch(55% 0.22 25);
-    /* The credit half of the pair `--txt-error` is now the debit half of: same lightness and a
-       comparable chroma, so a received amount carries no more weight on the row than a sent one. */
-    --txt-success: oklch(52% 0.16 150);
+    --txt-error: oklch(52% 0.22 25);
+    /*
+     * The credit half of the pair `--txt-error` is now the debit half of: same lightness and a
+     * comparable chroma, so a received amount carries no more weight on the row than a sent one.
+     */
+    --txt-success: oklch(48% 0.16 150);
 }
 
 [data-theme='dark'] {
     color-scheme: dark;
 
-    --base-bg: oklch(18% 0.02 260);
-    --orb-1: oklch(40% 0.12 260 / 0.55);
-    --orb-2: oklch(35% 0.11 310 / 0.5);
-    --orb-3: oklch(38% 0.09 210 / 0.45);
+    --base-bg: oklch(17% 0.018 260);
 
-    --base-1: oklch(25% 0.02 260 / 0.25);
-    --base-2: oklch(28% 0.02 260 / 0.55);
-    --base-3: oklch(30% 0.02 260 / 0.4);
+    --base-1: oklch(17% 0.018 260);
+    --base-2: oklch(22% 0.018 260);
+    --base-3: oklch(20% 0.018 260);
 
-    /* Same 5% as the light theme — see the note there. */
-    --scrollbar-thumb: oklch(100% 0 0 / 0.05);
-    --scrollbar-thumb-hover: oklch(100% 0 0 / 0.15);
+    /* Same reasoning as the light theme — see the note there. */
+    --scrollbar-thumb: oklch(100% 0 0 / 0.16);
+    --scrollbar-thumb-hover: oklch(100% 0 0 / 0.32);
 
-    --scrim: oklch(0% 0 0 / 0.25);
+    --scrim: oklch(0% 0 0 / 0.65);
 
     /* Deliberately the same as the light theme — see the note there. */
     --badge: oklch(100% 0 0);
     --badge-border: oklch(0% 0 0 / 0.08);
     --badge-text: oklch(20% 0.02 260);
 
-    --glass-border: oklch(100% 0 0 / 0.14);
-    --glass-highlight: oklch(100% 0 0 / 0.12);
-    --glass-shadow: oklch(0% 0 0 / 0.45);
+    --line: oklch(30% 0.015 260);
+    --line-control: oklch(52% 0.015 260);
 
-    --btn-muted: oklch(100% 0 0 / 0.04);
-    --btn-muted-hover: oklch(100% 0 0 / 0.08);
-    --btn-muted-active: oklch(100% 0 0 / 0.03);
-    --btn-muted-border: oklch(100% 0 0 / 0.07);
-    --btn-muted-outline: oklch(62% 0.19 255 / 0.85);
+    --shadow-color: oklch(0% 0 0 / 0.35);
 
-    --btn-normal: oklch(100% 0 0 / 0.08);
-    --btn-normal-hover: oklch(100% 0 0 / 0.16);
-    --btn-normal-active: oklch(100% 0 0 / 0.06);
-    --btn-normal-border: oklch(100% 0 0 / 0.14);
-    --btn-normal-outline: oklch(62% 0.19 255 / 0.85);
+    --focus-ring: oklch(70% 0.17 255);
 
-    --btn-primary: oklch(62% 0.19 255 / 0.85);
-    --btn-primary-hover: oklch(67% 0.19 255 / 0.85);
-    --btn-primary-active: oklch(57% 0.19 255 / 0.9);
-    --btn-primary-border: oklch(75% 0.14 255 / 0.35);
-    --btn-primary-outline: oklch(62% 0.19 255 / 0.6);
+    --btn-muted: oklch(24% 0.016 260);
+    --btn-muted-hover: oklch(28% 0.016 260);
+    --btn-muted-active: oklch(26% 0.016 260);
+    --btn-muted-border: oklch(30% 0.015 260);
 
-    --btn-secondary: oklch(45% 0.02 260 / 0.5);
-    --btn-secondary-hover: oklch(50% 0.02 260 / 0.5);
-    --btn-secondary-active: oklch(40% 0.02 260 / 0.6);
-    --btn-secondary-border: oklch(100% 0 0 / 0.12);
-    --btn-secondary-outline: oklch(60% 0.02 260 / 0.6);
+    --btn-normal: oklch(26% 0.016 260);
+    --btn-normal-hover: oklch(31% 0.016 260);
+    --btn-normal-active: oklch(24% 0.016 260);
+    --btn-normal-border: oklch(34% 0.015 260);
 
-    /* Sits darker than `--txt-error` so the reversed label keeps its contrast on the fill. */
-    --btn-danger: oklch(62% 0.20 25 / 0.85);
-    --btn-danger-hover: oklch(67% 0.20 25 / 0.85);
-    --btn-danger-active: oklch(57% 0.20 25 / 0.9);
-    --btn-danger-border: oklch(75% 0.15 25 / 0.35);
-    --btn-danger-outline: oklch(62% 0.20 25 / 0.6);
+    /*
+     * Sits darker than the old fill did. A brighter blue looks better in isolation and put reversed
+     * text at 3.49:1 on the most-pressed button in the app; the resting value is whatever leaves the
+     * hover step room to lighten and still clear 4.5:1.
+     */
+    --btn-primary: oklch(50% 0.19 255);
+    --btn-primary-hover: oklch(55% 0.19 255);
+    --btn-primary-active: oklch(46% 0.19 255);
+    --btn-primary-border: oklch(58% 0.17 255);
 
-    --input-bg: oklch(100% 0 0 / 0.06);
-    --input-normal: oklch(100% 0 0 / 0.16);
-    --input-primary: oklch(62% 0.19 255 / 0.9);
+    --btn-secondary: oklch(45% 0.02 260);
+
+    /* The same correction as primary: the old fill left the reversed label at 3.79:1. */
+    --btn-danger: oklch(52% 0.2 25);
+    --btn-danger-hover: oklch(57% 0.2 25);
+    --btn-danger-active: oklch(48% 0.2 25);
+    --btn-danger-border: oklch(60% 0.18 25);
+
+    --input-bg: oklch(21% 0.016 260);
+    --input-normal: oklch(52% 0.015 260);
+    --input-error: oklch(72% 0.19 25);
 
     --txt-muted: oklch(72% 0.02 260);
     --txt-normal: oklch(96% 0.005 260);
     --txt-reverse: oklch(98% 0 0);
     --txt-error: oklch(72% 0.19 25);
     --txt-success: oklch(72% 0.16 150);
+}
+
+/*
+ * Grows a control's hit area to the 44px platform minimum without changing a pixel of what is drawn.
+ *
+ * The icon buttons in this app are 32-40px squares, which is the right visual weight in a dense list
+ * and the wrong target on a touch screen. Scaling them up instead would push the toolbars and the
+ * row actions apart everywhere. The pseudo-element is centred on the control and takes no part in
+ * layout, so the only thing that changes is what a thumb can land on.
+ *
+ * Adjacent controls sharing a row do not steal each other's glyphs: at the app's `gap-2`, two 32px
+ * buttons are 40px apart, so the two expanded areas meet in the middle of the gap rather than over
+ * either button's visible face.
+ */
+@utility tap-44 {
+    position: relative;
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 44px;
+        height: 44px;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/*
+ * One global answer to `prefers-reduced-motion`, rather than a gate on each of the twenty-odd
+ * animated surfaces.
+ *
+ * Duration is collapsed instead of `animation: none`, because several of these animations *end* in
+ * the state the interface needs — a dialog's entrance settles at `opacity: 1`, the nav bar's hide
+ * settles off-screen — and cancelling them outright would strand those surfaces in their opening
+ * frame. `0.01ms` runs them to completion within a frame, which reads as an instant cut.
+ *
+ * The `!important` is load-bearing: this has to beat inline styles, which is how `motion` writes
+ * every animation it drives.
+ */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 * {
@@ -252,7 +357,18 @@ html:lang(en) body {
     font-family: monospace, sans-serif;
 }
 
-html:lang(fa) body {
+/*
+ * Arabic gets the same face as Persian. The `@font-face` above already declares a `unicode-range`
+ * covering the Arabic block in full, so the file was being downloaded and then never asked for by
+ * the one other right-to-left language the app ships — `ar` fell through to the generic sans, which
+ * on Windows means Arabic rendered in a fallback with no Arabic design at all.
+ *
+ * The remaining seven languages are deliberately left on the stack default: Latin and Cyrillic are
+ * well served by it, and Chinese and Hindi need faces this app does not bundle. Adding a CJK or
+ * Devanagari webfont is a download decision, not a styling one.
+ */
+html:lang(fa) body,
+html:lang(ar) body {
     font-family: "Vazirmatn", sans-serif;
 }
 
@@ -293,7 +409,7 @@ input[type="password"]::-webkit-textfield-decoration-container {
     border: 2px solid transparent;
     background-clip: padding-box;
     background-color: var(--scrollbar-thumb);
-    transition: background-color 300ms;
+    transition: background-color var(--duration-surface);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -325,16 +441,17 @@ body {
     background: var(--base-bg);
 }
 
+/*
+ * `100dvh` rather than `100vh`: on Android the soft keyboard shrinks the visual viewport but not
+ * `vh`, which left a centred dialog's input sitting behind the keyboard with `overflow: hidden`
+ * preventing any scroll to it. `dvh` tracks the shrink, so the dialog re-centres above the keyboard.
+ */
 #root {
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     position: relative;
-    background:
-        radial-gradient(520px circle at 15% 10%, var(--orb-1), transparent 65%),
-        radial-gradient(460px circle at 90% 30%, var(--orb-2), transparent 65%),
-        radial-gradient(620px circle at 45% 105%, var(--orb-3), transparent 65%)
-        var(--base-bg);
+    background: var(--base-bg);
 }
 
 /*
@@ -351,8 +468,8 @@ body {
 .swiper-pagination-bullet {
     width: 10px;
     height: 10px;
-    border-radius: 2px;
-    transition: transform 300ms;
+    border-radius: var(--radius-xs);
+    transition: transform var(--duration-surface);
     background: var(--color-btn-primary);
 }
 

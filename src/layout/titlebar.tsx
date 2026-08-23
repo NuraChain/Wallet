@@ -129,7 +129,7 @@ export default function TitleBar()
                         <Button
                             key={ item.key }
                             onClick={ item.action }
-                            className='flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal duration-200 hover:bg-btn-muted-hover active:bg-btn-muted-active'>
+                            className='flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active'>
 
                             { item.icon }
 

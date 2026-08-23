@@ -466,7 +466,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         <Vertical className='relative min-h-0 flex-1'>
 
             { /* `base-1` is the 0.25-alpha token in both themes; `base-2` sits at 0.6/0.55 and read as solid. */ }
-            <Horizontal className='shrink-0 items-center gap-1.5 border-b border-glass-line bg-base-1 p-2 backdrop-blur-xl'>
+            <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
 
                 <Button
                     variant='danger'
@@ -515,7 +515,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                         placeholder={ T('Dashboard.Browser.Placeholder') }
                         onValue={ (value) => { patch(active, (item) => ({ ...item, draft: value })); } }
                         onEnter={ () => { onOpen(tab.draft); } }
-                        className='h-9 truncate rounded-xl ps-8 pe-8 text-tiny'
+                        className='h-9 truncate rounded-surface ps-8 pe-8 text-tiny'
                         leading={ <FiSearch size={ 14 } className='pointer-events-none absolute inset-s-2.5 text-txt-muted' /> }
                         trailing={
                             current.length > 0 ?

@@ -14,9 +14,9 @@ import { cn } from '../../utility/cn';
  */
 const variantMap =
 {
-    error: 'bg-txt-error/10 text-tiny rounded-lg px-3 py-2 text-center',
-    warning: 'bg-txt-error/10 text-tiny flex items-start gap-2 rounded-xl px-3 py-2 text-start',
-    danger: 'bg-txt-error/10 text-tiny rounded-lg px-3 py-2'
+    error: 'bg-txt-error/10 text-tiny rounded-control px-3 py-2 text-center',
+    warning: 'bg-txt-error/10 text-tiny flex items-start gap-2 rounded-surface px-3 py-2 text-start',
+    danger: 'bg-txt-error/10 text-tiny rounded-control px-3 py-2'
 } as const;
 
 /**

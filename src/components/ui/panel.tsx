@@ -3,31 +3,39 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../utility/cn';
 
 /**
- * The frosted card, as Tailwind utilities.
+ * The card material: a hairline, a raised fill, and the faintest lift off the page.
  *
- * This was a hand-written `.glass-panel` CSS class. Every declaration in it had a utility equivalent,
- * so it lives here as a class string instead: the same styling, in the same vocabulary as the call
- * sites around it, and — being ordinary utilities now — overridable through `cn` rather than winning
- * silently on cascade order.
+ * This used to be frosted — a translucent fill over a `backdrop-filter`, floating on a field of
+ * radial-gradient orbs. The surface is opaque now, so the separation comes from three cheap things
+ * instead of one expensive one: `base-2` sits a step lighter than the page in both themes, the
+ * hairline closes the edge, and `shadow-rest` is a hint rather than the mechanism.
+ *
+ * That is also why the blur is not simply tokenised and kept. The backdrop it was reading was three
+ * gradients 500px across; a 12px Gaussian over features that size produces the same pixels it started
+ * with, so on every card, row and input it was a no-op the compositor still had to pay for on each
+ * frame of every scroll.
  *
  * Exported as a string as well as a component because the surfaces that wear it are not all plain
  * divs: the modal, the sheet and the nav bar are `motion` elements, a transaction row is a `Button`,
- * and a token row composes it conditionally.
- *
- * Blur radius and shadow spread are the two dominant per-frame GPU costs here: a `backdrop-filter`
- * forces the compositor to re-read and re-blur everything behind the element every time any pixel
- * under it moves. With ~20 of these on screen a mid-range GPU cannot hold a frame budget, so the
- * radius is the smallest value that still reads as glass.
+ * and a token row composes it conditionally. It is the material only — the radius and the padding
+ * belong to `Panel` below, so a call site that wears the material on something that is not a card
+ * does not inherit a card's box.
  *
  * `ease-initial` is deliberate. Tailwind's `transition-*` utilities apply their own easing curve,
  * while the CSS this replaces never set one and so used the initial `ease` — this pins that.
  */
-export const glassPanel = 'border border-glass-line bg-base-2 shadow-[0_8px_24px_var(--glass-shadow)] backdrop-blur-[12px] backdrop-saturate-[150%] transition-[background-color,border-color] duration-300 ease-initial';
+export const surfacePanel = 'border border-line bg-base-2 shadow-rest transition-[background-color,border-color] duration-(--duration-surface) ease-initial';
 
 /**
- * Panel - A glass card.
+ * Panel - A card.
  *
- * The plain-`div` form of the recipe above, for the surfaces that need nothing but the card itself.
+ * The plain-`div` form of the recipe above, and the one place a card's box is described. Five call
+ * sites were re-deriving the radius and the padding alongside the material, which is exactly why
+ * they had drifted — one dialog restated the same radius and padding four times in a single file,
+ * and the offline notice ended up the only 16px card in a column of 12px ones.
+ *
+ * Both defaults are ordinary utilities, so `cn` lets a call site that genuinely wants a different
+ * box say so and win.
  * @param {object} props Component props.
  * @param {string} [props.className] Extra classes; conflicting utilities override the recipe's.
  * @param {ReactNode} props.children The card content.
@@ -36,7 +44,7 @@ export const glassPanel = 'border border-glass-line bg-base-2 shadow-[0_8px_24px
 export default function Panel({ className = '', children, ...rest }: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
 {
     return (
-        <div className={ cn(glassPanel, className) } { ...rest }>
+        <div className={ cn(surfacePanel, 'rounded-surface p-3', className) } { ...rest }>
 
             { children }
 

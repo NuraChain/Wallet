@@ -207,7 +207,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                                     (
                                         <div
                                             dir='ltr'
-                                            className={ `rounded-lg bg-base-1 px-3 py-2.5 transition-all duration-300 ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
+                                            className={ `rounded-control bg-base-1 px-3 py-2.5 transition-all duration-(--duration-fast) ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
 
                                             <Text
                                                 variant='captionStrong'
@@ -219,13 +219,13 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                                     (
                                         <div
                                             dir='ltr'
-                                            className={ `grid grid-cols-3 gap-1.5 transition-all duration-300 ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
+                                            className={ `grid grid-cols-3 gap-1.5 transition-all duration-(--duration-fast) ${ revealed ? '' : 'pointer-events-none blur-sm select-none' }` }>
 
                                             {
                                                 words.map((word, index) => (
                                                     <Horizontal
                                                         key={ `${ index }-${ word }` }
-                                                        className='items-center gap-1 rounded-lg bg-base-1 px-2 py-1.5'>
+                                                        className='items-center gap-1 rounded-control bg-base-1 px-2 py-1.5'>
 
                                                         <Text text={ String(index + 1) } />
 
@@ -247,7 +247,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                                 (
                                     <Button
                                         onClick={ () => { setRevealed(true); } }
-                                        className='absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl bg-base-2/60 text-txt-normal hover:bg-base-2/70'>
+                                        className='absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-surface bg-base-2/60 text-txt-normal hover:bg-base-2/70'>
 
                                         <FiEye size={ 20 } />
 
@@ -281,7 +281,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                                                         key={ item.kind }
                                                         variant='muted'
                                                         onClick={ () => { void onExport(item.kind); } }
-                                                        className='h-10 min-w-0 flex-1 rounded-xl text-tiny'>
+                                                        className='h-10 min-w-0 flex-1 rounded-surface text-tiny'>
 
                                                         <item.icon size={ 14 } className='shrink-0' />
 
