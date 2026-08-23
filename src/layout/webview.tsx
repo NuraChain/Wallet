@@ -96,6 +96,12 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
     // current. This is how the newly created view learns whether it is meant to be on screen.
     const enabledRef = useRef(enabled);
 
+    // Where the view is meant to sit, and whether a move is already queued to put it there. Held in
+    // refs rather than state because nothing renders from them — see `place` below for what they are
+    // guarding against.
+    const placeRef = useRef<DOMRect>(undefined);
+    const placingRef = useRef(false);
+
     const [ embedded, setEmbedded ] = useState(true);
 
     // An APK older than this bundle has no way to hide its view, and one older still can only hold a
@@ -132,6 +138,72 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
     {
         chainRef.current = chainRef.current.then(task, task);
     }, []);
+
+    /**
+     * place - Moves the desktop view onto a rectangle, in order and without a backlog.
+     *
+     * Two separate faults were fixed by routing every move through here, and both came from moves that
+     * ran outside the queue and raced each other.
+     *
+     * A view is created before it can be measured in its final place — a page opened from the wallet
+     * or the apps tab is asked for *while* the tab is still sliding, so the rectangle creation used was
+     * the frame's position one screen to the side. The move that would have corrected it fired at the
+     * end of the slide and found no webview to move, because creation was still in flight; nothing
+     * reported that rectangle again, so the page stayed off screen and the frame kept its loading
+     * placeholder until a reload rebuilt the view somewhere visible. Queued, that move simply waits for
+     * the view it is meant to move.
+     *
+     * Dragging a window edge is the other: it emits a rectangle per frame, each of which used to start
+     * its own unordered `getByLabel` → `setPosition` → `setSize` round trip. Dozens overlap, they
+     * resolve in whatever order they resolve in, and the view settles on whichever landed last rather
+     * than on the size the window actually ended at. So the rectangle is held in a ref and only one
+     * move is ever queued against it: bursts collapse into a single apply, and the apply reads the
+     * newest rectangle at the moment it runs. Last writer wins, which for a resize is the only writer
+     * that was ever right.
+     * @param {DOMRect} rect Where the view should be.
+     * @returns {void}
+     */
+    const place = useCallback((rect: DOMRect) =>
+    {
+        placeRef.current = rect;
+
+        if (placingRef.current)
+        {
+            return;
+        }
+
+        placingRef.current = true;
+
+        queue(async() =>
+        {
+            // Cleared before the rectangle is read rather than after it is applied, so a move arriving
+            // during the round trip below queues a fresh apply behind this one instead of being
+            // dropped as already covered.
+            placingRef.current = false;
+
+            const target = placeRef.current;
+
+            if (target === undefined)
+            {
+                return;
+            }
+
+            try
+            {
+                const view = await Webview.getByLabel(label);
+
+                if (view !== null)
+                {
+                    await view.setPosition(new LogicalPosition(target.x, target.y));
+                    await view.setSize(new LogicalSize(target.width, target.height));
+                }
+            }
+            catch
+            {
+                // the webview can be closing while a move lands
+            }
+        });
+    }, [ label, queue ]);
 
     /**
      * Follows the frame for a moment and reports every rectangle it comes to rest at.
@@ -406,6 +478,23 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
                         await view.hide();
                     }
 
+                    // Placed again from where the frame is *now*. The rectangle this view was built on
+                    // was measured before the wait above, and a page asked for from another tab is
+                    // asked for while that tab is still sliding away — so what it was built on is
+                    // routinely the frame's position one screen to the side. Reading the frame again
+                    // here costs nothing and puts the view where it belongs without waiting for a
+                    // resize that a finished slide will never send.
+                    const settled = frameRef.current?.getBoundingClientRect();
+
+                    if (settled !== undefined && settled.width >= 1 && settled.height >= 1)
+                    {
+                        // eslint-disable-next-line no-await-in-loop
+                        await view.setPosition(new LogicalPosition(settled.x, settled.y));
+
+                        // eslint-disable-next-line no-await-in-loop
+                        await view.setSize(new LogicalSize(settled.width, settled.height));
+                    }
+
                     return;
                 }
             }
@@ -474,30 +563,14 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
         {
             const rect = frameRef.current?.getBoundingClientRect();
 
-            if (rect === undefined)
+            // A frame with no box is one the layout has not placed yet, and moving a view onto an
+            // empty rectangle would only lose the position it already has.
+            if (rect === undefined || rect.width < 1 || rect.height < 1)
             {
                 return;
             }
 
-            const apply = async() =>
-            {
-                try
-                {
-                    const view = await Webview.getByLabel(label);
-
-                    if (view !== null)
-                    {
-                        await view.setPosition(new LogicalPosition(rect.x, rect.y));
-                        await view.setSize(new LogicalSize(rect.width, rect.height));
-                    }
-                }
-                catch
-                {
-                    // the webview can be closing while a resize lands
-                }
-            };
-
-            void apply();
+            place(rect);
         };
 
         const observer = new ResizeObserver(sync);
@@ -521,7 +594,7 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
             window.removeEventListener('resize', sync);
         };
-    }, [ isLive, enabled, label, settle ]);
+    }, [ isLive, enabled, place, settle ]);
 
     return (
         <div
