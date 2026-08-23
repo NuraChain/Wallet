@@ -419,14 +419,19 @@ input[type="password"]::-webkit-textfield-decoration-container {
 }
 
 /*
- * Opt out of the native scrollbar entirely. Used by `ScrollArea`, which draws its own overlay thumb so the bar never takes layout width.
+ * Opt out of the native scrollbar entirely. Used by `ScrollArea`, which draws its own overlay thumb
+ * so the bar never takes layout width, and by the browser tab strip, which is dragged rather than
+ * scrolled by a gutter.
+ *
+ * Declared as a real utility rather than a plain class so the theme knows it exists — with
+ * `no-unknown-classes` on, a bare class in this file is indistinguishable from a typo.
  */
-.scroll-hidden {
+@utility scroll-hidden {
     scrollbar-width: none;
-}
 
-.scroll-hidden::-webkit-scrollbar {
-    display: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 /*

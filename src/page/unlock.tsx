@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { FaQuestion } from 'react-icons/fa';
+import { FiHelpCircle } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'motion/react';
 
 import Text from '../components/ui/text';
@@ -129,7 +129,7 @@ export default function UnlockPage()
                             onClick={ () => { setShowHint((value) => !value); } }
                             className='shrink-0'>
 
-                            <FaQuestion size={ 18 } />
+                            <FiHelpCircle size={ 18 } />
 
                         </Button>
 

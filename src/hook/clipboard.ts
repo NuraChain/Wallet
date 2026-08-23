@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
  * What the last copy attempt did. `idle` is also what the hook returns to once the acknowledgement
  * has been shown for long enough.
  */
-export type ClipboardState = 'idle' | 'done' | 'failed';
+type ClipboardState = 'idle' | 'done' | 'failed';
 
 /**
  * Copy text to the clipboard and report how it went.

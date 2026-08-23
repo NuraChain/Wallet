@@ -1,4 +1,4 @@
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { FiLoader } from 'react-icons/fi';
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type UIEvent } from 'react';
 
 import Spinner from '../components/ui/spinner';
@@ -673,7 +673,7 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
                     {
                         refreshing ?
                             <Spinner size={ 18 } /> :
-                            <AiOutlineLoading3Quarters size={ 18 } />
+                            <FiLoader size={ 18 } />
                     }
                 </div>
 

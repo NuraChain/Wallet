@@ -1,5 +1,5 @@
 import { useId, useState, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
-import { HiEye, HiEyeOff, HiOutlineLockClosed } from 'react-icons/hi';
+import { FiEye, FiEyeOff, FiLock } from 'react-icons/fi';
 
 import Text from './text';
 
@@ -203,7 +203,7 @@ export function PasswordField({ label, value, error = '', onValue, onEnter, size
                   * at the end of the field and the eye at its start. The padding is symmetric, so this
                   * was never an overlap — only both controls on the wrong side.
                   */ }
-                <HiOutlineLockClosed
+                <FiLock
                     size={ lockSize > 0 ? lockSize : defaultLock }
                     className={ cn('absolute text-txt-muted', regular ? 'inset-s-4' : 'inset-s-3') } />
 
@@ -230,7 +230,7 @@ export function PasswordField({ label, value, error = '', onValue, onEnter, size
                     className={ cn('tap-44 absolute cursor-pointer rounded-control text-txt-muted outline-2 outline-offset-2 outline-transparent outline-double hover:text-txt-normal focus-visible:outline-focus-ring', regular ? 'inset-e-4' : 'inset-e-3') }>
 
                     {
-                        show ? <HiEyeOff size={ 18 } /> : <HiEye size={ 18 } />
+                        show ? <FiEyeOff size={ 18 } /> : <FiEye size={ 18 } />
                     }
 
                 </button>

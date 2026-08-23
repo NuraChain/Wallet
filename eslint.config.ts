@@ -63,7 +63,16 @@ export default defineConfig([
             'require-unicode-regexp': 'off',
             'max-lines-per-function': 'off',
 
-            'better-tailwindcss/no-unknown-classes': 'off',
+            /*
+             * On, and it is the whole point of tokenising the radius, elevation and duration scales:
+             * a class that is not in the theme is now a build failure rather than a value that quietly
+             * joins the nine radii and five durations that had accumulated. `tap-44` and the two theme
+             * utilities are declared in `style.css`, which this rule already reads.
+             */
+            'better-tailwindcss/no-unknown-classes': 'error',
+
+            // Off deliberately: every class literal in the tree is single-line, and `cn`'s merge
+            // splits on a single space.
             'better-tailwindcss/enforce-consistent-line-wrapping': 'off',
 
             '@stylistic/lines-around-comment': 'off',

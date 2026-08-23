@@ -263,7 +263,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
 
                                         <div
                                             role='listbox'
-                                            className={ `${ surfacePanel } scroll-hidden absolute inset-x-0 top-full ${ layer.popover } mt-1 flex max-h-56 flex-col gap-1 overflow-y-auto rounded-surface p-1` }>
+                                            className={ `${ surfacePanel } absolute inset-x-0 top-full scroll-hidden ${ layer.popover } mt-1 flex max-h-56 flex-col gap-1 overflow-y-auto rounded-surface p-1` }>
 
                                             {
                                                 assets.map((item) => (

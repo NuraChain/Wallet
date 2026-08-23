@@ -1,6 +1,6 @@
 import { setValue, getValue } from './storage';
 
-export type ThemeType = 'light' | 'dark';
+type ThemeType = 'light' | 'dark';
 
 let themeCurrent: ThemeType = 'light';
 

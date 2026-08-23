@@ -1,13 +1,11 @@
 import type { IconType } from 'react-icons';
 import type { Swiper as SwiperType } from 'swiper';
 
-import { LuImport } from 'react-icons/lu';
-import { FaPlusCircle } from 'react-icons/fa';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { motion, AnimatePresence } from 'motion/react';
-import { FiGlobe, FiMoon, FiSun } from 'react-icons/fi';
-import { IoIosArrowDown, IoIosArrowForward } from 'react-icons/io';
+import { FiDownload, FiGlobe, FiMoon, FiPlusCircle, FiSun } from 'react-icons/fi';
+import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
 import { useRef, useCallback, useState, type ReactNode } from 'react';
 
 import Text from '../components/ui/text';
@@ -51,8 +49,8 @@ const slideMap =
  */
 const entryMap: { key: string; icon: IconType; label: string; variant: 'primary' | 'normal'; page: (close: () => void) => ReactNode }[] =
 [
-    { key: 'create', icon: FaPlusCircle, label: 'Intro.Create', variant: 'primary', page: (close) => <IntroWallet onClose={ close } /> },
-    { key: 'import', icon: LuImport, label: 'Intro.Import', variant: 'normal', page: (close) => <IntroImport onClose={ close } /> }
+    { key: 'create', icon: FiPlusCircle, label: 'Intro.Create', variant: 'primary', page: (close) => <IntroWallet onClose={ close } /> },
+    { key: 'import', icon: FiDownload, label: 'Intro.Import', variant: 'normal', page: (close) => <IntroImport onClose={ close } /> }
 ];
 
 export default function IntroPage()
@@ -119,7 +117,7 @@ export default function IntroPage()
 
                             </Text>
 
-                            <IoIosArrowDown size={ 16 } className='shrink-0' />
+                            <IoChevronDown size={ 16 } className='shrink-0' />
 
                         </Button>
 
@@ -205,7 +203,7 @@ export default function IntroPage()
 
                                     </Text>
 
-                                    <IoIosArrowForward size={ 16 } className='shrink-0 rtl:rotate-180' />
+                                    <IoChevronForward size={ 16 } className='shrink-0 rtl:rotate-180' />
 
                                 </Button>
                             ))

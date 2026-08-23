@@ -5,7 +5,7 @@
  * site. `number` is not decoration: `list.length && 'class'` is typed `0 | 'class'`, so a falsy branch
  * reaches here as a number rather than a boolean, and it has to be dropped rather than printed.
  */
-export type ClassValue = string | number | boolean | null | undefined | ClassValue[] | Record<string, unknown>;
+type ClassValue = string | number | boolean | null | undefined | ClassValue[] | Record<string, unknown>;
 
 /**
  * Values of `text-*` that set a size rather than a colour.

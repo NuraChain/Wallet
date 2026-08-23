@@ -1,7 +1,6 @@
-import { LuTvMinimal } from 'react-icons/lu';
+import { FiMonitor, FiSmartphone } from 'react-icons/fi';
 import { useIsWindows } from '../hook/platform';
 import { useLanguage } from '../hook/language';
-import { AiOutlineMobile } from 'react-icons/ai';
 import { useCallback, useState } from 'react';
 import { VscChromeClose, VscChromeMinimize } from 'react-icons/vsc';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
@@ -106,7 +105,7 @@ export default function TitleBar()
     const controlMap =
     [
         { key: 'minimize', label: T('App.Window.Minimize'), icon: <VscChromeMinimize size={ 16 } />, action: onMinimize },
-        { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <AiOutlineMobile size={ 16 } /> : <LuTvMinimal size={ 16 } />, action: onToggleSize },
+        { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <FiSmartphone size={ 16 } /> : <FiMonitor size={ 16 } />, action: onToggleSize },
         { key: 'close', label: T('App.Window.Close'), icon: <VscChromeClose size={ 16 } />, action: onClose }
     ];
 

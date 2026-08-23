@@ -14,7 +14,15 @@ import { getSiteHost } from '../core/browser';
  * Structural on purpose: a browser favourite and a dApp on the apps tab are each exactly this, and
  * neither has to import the other's type to be edited here.
  */
-export interface SiteEntry { id: string; name: string; url: string }
+/**
+ * What this dialog edits.
+ *
+ * `BrowserFavorite` and `DappEntry` are the same three fields, and the doc here used to say so as
+ * though the three were wired together — they never were, and this stayed local. It is deliberately
+ * not the shared type: the two domain shapes live in `core`, and a component reaching down to define
+ * what `core` holds would invert the direction the rest of the app imports in.
+ */
+interface SiteEntry { id: string; name: string; url: string }
 
 /**
  * SiteForm - The dialog behind adding a named address and behind editing one.
