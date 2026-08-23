@@ -7,7 +7,7 @@ import Button from '../ui/button';
 import EmptyState from '../ui/state';
 import TokenIcon from '../token.icon';
 import SectionHeader from '../ui/section';
-import DashboardBrowserFavorite from './dashboard.browser.favorite';
+import SiteForm from '../site.form';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
@@ -254,8 +254,9 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
             {
                 editor !== false &&
                 (
-                    <DashboardBrowserFavorite
+                    <SiteForm
                         item={ editor === true ? undefined : editor }
+                        title={ editor === true ? T('Dashboard.Browser.FavoriteAdd') : T('Dashboard.Browser.FavoriteEdit') }
                         onSave={ (item) => { onFavoriteSave(item); setEditor(false); } }
                         onClose={ () => { setEditor(false); } } />
                 )

@@ -488,9 +488,29 @@ function DashboardView({ vault }: { vault: Vault })
     };
 
     /**
+     * onBrowse - Hands an address to the in-app browser and goes there.
+     *
+     * The page opens on the browser tab rather than over the tab that asked for it, so the user lands in something they can navigate — back, reload, address bar — instead of a dead-end panel. `ticket` makes each request distinct, so asking for the same address twice still reopens it.
+     *
+     * Any dialog that was up closes on the way, since the destination is a different tab: a transaction
+     * opened from the history overview must not leave that sheet covering the page it asked for.
+     * @param {string} url The address to open.
+     * @returns {void}
+     */
+    const onBrowse = (url: string) =>
+    {
+        setLink((value) => ({ url, ticket: value.ticket + 1 }));
+
+        setModal('none');
+
+        swiperRef.current?.slideTo(navMap.findIndex((item) => item.key === 'Browser'));
+    };
+
+    /**
      * onTransaction - Hands one transaction's explorer page to the in-app browser.
      *
-     * The link opens on the browser tab rather than over the wallet, so the user lands in something they can navigate — back, reload, address bar — instead of a dead-end panel. `ticket` makes each request distinct, so tapping the same transaction twice still reopens it.
+     * A chain that declares no explorer has no page to open, and the row that would have called this is
+     * not offered in the first place — this is the second guard on the same fact.
      * @param {string} hash The transaction hash.
      * @returns {void}
      */
@@ -501,11 +521,7 @@ function DashboardView({ vault }: { vault: Vault })
             return;
         }
 
-        setLink((value) => ({ url: `${ network.explorerUrl.replace(/\/+$/u, '') }/tx/${ hash }`, ticket: value.ticket + 1 }));
-
-        setModal('none');
-
-        swiperRef.current?.slideTo(navMap.findIndex((item) => item.key === 'Browser'));
+        onBrowse(`${ network.explorerUrl.replace(/\/+$/u, '') }/tx/${ hash }`);
     };
 
     const onNetworkChange = () =>
@@ -782,7 +798,7 @@ function DashboardView({ vault }: { vault: Vault })
                                                 }
 
                                                 {
-                                                    item.key === 'Apps' && <DashboardApps />
+                                                    item.key === 'Apps' && <DashboardApps active={ index === active } onOpen={ onBrowse } />
                                                 }
 
                                             </PageContainer>

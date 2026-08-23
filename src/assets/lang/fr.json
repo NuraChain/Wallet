@@ -226,10 +226,6 @@
             "FavoriteAdd": "Ajouter un favori",
             "FavoriteEdit": "Modifier le favori",
             "FavoriteRemove": "Retirer le favori",
-            "FavoriteName": "Nom",
-            "FavoriteSave": "Enregistrer",
-            "FavoriteCancel": "Annuler",
-            "FavoriteInvalid": "Saisissez une adresse web.",
             "FavoriteEmpty": "Les sites que vous gardez apparaîtront ici.",
             "Recent": "Visités",
             "RecentEmpty": "Les sites que vous ouvrez apparaîtront ici.",
@@ -288,7 +284,14 @@
         },
         "Apps": {
             "Title": "Applis",
-            "Soon": "Le catalogue de dApps n'est pas encore prêt. Il arrivera ici dans une prochaine mise à jour."
+            "Manage": "Modifier",
+            "Done": "Terminé",
+            "Add": "Ajouter une app",
+            "Edit": "Modifier l’app",
+            "Remove": "Supprimer l’app",
+            "Empty": "Ajoutez une app pour l’ouvrir directement depuis votre portefeuille.",
+            "Reorder": "Faites glisser une app pour la déplacer.",
+            "Connected": "Connectée"
         },
         "Settings": {
             "Title": "Paramètres",
@@ -332,6 +335,12 @@
             "Pending": "Déconnexion…",
             "ErrorRequired": "Veuillez saisir votre mot de passe",
             "ErrorInvalid": "Mot de passe incorrect"
+        },
+        "Site": {
+            "Name": "Nom",
+            "Save": "Enregistrer",
+            "Cancel": "Annuler",
+            "Invalid": "Saisissez une adresse web."
         }
     }
 }

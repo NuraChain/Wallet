@@ -226,10 +226,6 @@
             "FavoriteAdd": "Favori ekle",
             "FavoriteEdit": "Favoriyi düzenle",
             "FavoriteRemove": "Favoriyi kaldır",
-            "FavoriteName": "Ad",
-            "FavoriteSave": "Kaydet",
-            "FavoriteCancel": "İptal",
-            "FavoriteInvalid": "Bir web adresi girin.",
             "FavoriteEmpty": "Kaydettiğiniz siteler burada listelenir.",
             "Recent": "Ziyaret edilenler",
             "RecentEmpty": "Açtığınız siteler burada listelenir.",
@@ -288,7 +284,14 @@
         },
         "Apps": {
             "Title": "Uygulamalar",
-            "Soon": "dApp kataloğu henüz hazır değil. İlerideki bir güncellemede burada olacak."
+            "Manage": "Düzenle",
+            "Done": "Tamam",
+            "Add": "Uygulama ekle",
+            "Edit": "Uygulamayı düzenle",
+            "Remove": "Uygulamayı kaldır",
+            "Empty": "Bir uygulama ekleyin ve doğrudan cüzdanınızdan açın.",
+            "Reorder": "Sırasını değiştirmek için uygulamayı sürükleyin.",
+            "Connected": "Bağlı"
         },
         "Settings": {
             "Title": "Ayarlar",
@@ -332,6 +335,12 @@
             "Pending": "Çıkış yapılıyor…",
             "ErrorRequired": "Lütfen parolanızı girin",
             "ErrorInvalid": "Parola yanlış"
+        },
+        "Site": {
+            "Name": "Ad",
+            "Save": "Kaydet",
+            "Cancel": "İptal",
+            "Invalid": "Bir web adresi girin."
         }
     }
 }

@@ -226,10 +226,6 @@
             "FavoriteAdd": "Añadir favorito",
             "FavoriteEdit": "Editar favorito",
             "FavoriteRemove": "Quitar favorito",
-            "FavoriteName": "Nombre",
-            "FavoriteSave": "Guardar",
-            "FavoriteCancel": "Cancelar",
-            "FavoriteInvalid": "Introduce una dirección web.",
             "FavoriteEmpty": "Los sitios que guardes aparecerán aquí.",
             "Recent": "Visitados",
             "RecentEmpty": "Los sitios que abras aparecerán aquí.",
@@ -288,7 +284,14 @@
         },
         "Apps": {
             "Title": "Apps",
-            "Soon": "El catálogo de dApps aún no está listo. Llegará aquí en una actualización futura."
+            "Manage": "Editar",
+            "Done": "Hecho",
+            "Add": "Añadir app",
+            "Edit": "Editar app",
+            "Remove": "Quitar app",
+            "Empty": "Añade una app para abrirla directamente desde tu billetera.",
+            "Reorder": "Arrastra una app para cambiar su orden.",
+            "Connected": "Conectada"
         },
         "Settings": {
             "Title": "Ajustes",
@@ -332,6 +335,12 @@
             "Pending": "Cerrando sesión…",
             "ErrorRequired": "Introduce tu contraseña",
             "ErrorInvalid": "La contraseña es incorrecta"
+        },
+        "Site": {
+            "Name": "Nombre",
+            "Save": "Guardar",
+            "Cancel": "Cancelar",
+            "Invalid": "Introduce una dirección web."
         }
     }
 }

@@ -1,30 +1,43 @@
 import { useState } from 'react';
 
-import Alert from '../ui/alert';
-import Button from '../ui/button';
-import { TextField } from '../ui/field';
-import { Modal, ModalActions, ModalHeader } from '../ui/modal';
+import Alert from './ui/alert';
+import Button from './ui/button';
+import { TextField } from './ui/field';
+import { Modal, ModalActions, ModalHeader } from './ui/modal';
 
-import { T } from '../../utility/language';
-import { getSiteHost, type BrowserFavorite } from '../../core/browser';
+import { T } from '../utility/language';
+import { getSiteHost } from '../core/browser';
 
 /**
- * DashboardBrowserFavorite - The form behind adding a favourite and behind editing one.
+ * A named address, which is the whole of what this form edits.
  *
- * One dialog for both, because they differ only in what the fields start as and what the title says.
- * An `item` is the one being edited and its id is carried through untouched, so the row keeps its place
- * in the list while its address changes underneath it.
+ * Structural on purpose: a browser favourite and a dApp on the apps tab are each exactly this, and
+ * neither has to import the other's type to be edited here.
+ */
+export interface SiteEntry { id: string; name: string; url: string }
+
+/**
+ * SiteForm - The dialog behind adding a named address and behind editing one.
+ *
+ * One dialog for adding and editing, because they differ only in what the fields start as and what the
+ * title says — and one dialog for the browser's favourites and the apps tab, because a shortcut and a
+ * dApp are the same two fields with a different heading over them. The heading comes in as a string so
+ * each list keeps its own words for what it holds.
+ *
+ * An `item` is the entry being edited and its id is carried through untouched, so the row keeps its
+ * place in the list while its address changes underneath it.
  *
  * The address is the only required field. A name left blank is filled in with the host, which is what
  * the tile would have been called anyway — asking someone to type "github.com" next to
  * `https://github.com` is asking for nothing.
  * @param {object} props Component props.
- * @param {BrowserFavorite} [props.item] The favourite being edited; absent when one is being added.
- * @param {(item: BrowserFavorite) => void} props.onSave Stores the result.
+ * @param {string} props.title The dialog heading, already localized by the caller.
+ * @param {SiteEntry} [props.item] The entry being edited; absent when one is being added.
+ * @param {(item: SiteEntry) => void} props.onSave Stores the result.
  * @param {() => void} props.onClose Closes the dialog.
  * @returns {JSX.Element} The dialog.
  */
-export default function DashboardBrowserFavorite({ item, onSave, onClose }: { item?: BrowserFavorite; onSave: (item: BrowserFavorite) => void; onClose: () => void })
+export default function SiteForm({ title, item, onSave, onClose }: { title: string; item?: SiteEntry; onSave: (item: SiteEntry) => void; onClose: () => void })
 {
     const [ name, setName ] = useState(item?.name ?? '');
     const [ url, setUrl ] = useState(item?.url ?? '');
@@ -36,7 +49,7 @@ export default function DashboardBrowserFavorite({ item, onSave, onClose }: { it
 
         if (typed.length === 0)
         {
-            setError(T('Dashboard.Browser.FavoriteInvalid'));
+            setError(T('Dashboard.Site.Invalid'));
 
             return;
         }
@@ -51,7 +64,7 @@ export default function DashboardBrowserFavorite({ item, onSave, onClose }: { it
         }
         catch
         {
-            setError(T('Dashboard.Browser.FavoriteInvalid'));
+            setError(T('Dashboard.Site.Invalid'));
 
             return;
         }
@@ -67,7 +80,7 @@ export default function DashboardBrowserFavorite({ item, onSave, onClose }: { it
         <Modal onClose={ onClose }>
 
             <ModalHeader
-                title={ item === undefined ? T('Dashboard.Browser.FavoriteAdd') : T('Dashboard.Browser.FavoriteEdit') }
+                title={ title }
                 onClose={ onClose } />
 
             <Alert text={ error } />
@@ -75,7 +88,7 @@ export default function DashboardBrowserFavorite({ item, onSave, onClose }: { it
             <TextField
                 value={ name }
                 autoComplete='off'
-                placeholder={ T('Dashboard.Browser.FavoriteName') }
+                placeholder={ T('Dashboard.Site.Name') }
                 onValue={ setName } />
 
             <TextField
@@ -92,13 +105,13 @@ export default function DashboardBrowserFavorite({ item, onSave, onClose }: { it
                     variant='muted'
                     size='action'
                     onClick={ onClose }
-                    text={ T('Dashboard.Browser.FavoriteCancel') } />
+                    text={ T('Dashboard.Site.Cancel') } />
 
                 <Button
                     variant='primary'
                     size='action'
                     onClick={ onConfirm }
-                    text={ T('Dashboard.Browser.FavoriteSave') } />
+                    text={ T('Dashboard.Site.Save') } />
 
             </ModalActions>
 

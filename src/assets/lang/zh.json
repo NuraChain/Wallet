@@ -226,10 +226,6 @@
             "FavoriteAdd": "添加收藏",
             "FavoriteEdit": "编辑收藏",
             "FavoriteRemove": "移除收藏",
-            "FavoriteName": "名称",
-            "FavoriteSave": "保存",
-            "FavoriteCancel": "取消",
-            "FavoriteInvalid": "请输入网址。",
             "FavoriteEmpty": "你收藏的网站会显示在这里。",
             "Recent": "访问过",
             "RecentEmpty": "你打开过的网站会显示在这里。",
@@ -288,7 +284,14 @@
         },
         "Apps": {
             "Title": "应用",
-            "Soon": "dApp 目录尚未就绪，将在后续更新中上线。"
+            "Manage": "编辑",
+            "Done": "完成",
+            "Add": "添加应用",
+            "Edit": "编辑应用",
+            "Remove": "移除应用",
+            "Empty": "添加应用，直接从钱包中打开。",
+            "Reorder": "拖动应用即可调整顺序。",
+            "Connected": "已连接"
         },
         "Settings": {
             "Title": "设置",
@@ -332,6 +335,12 @@
             "Pending": "正在退出…",
             "ErrorRequired": "请输入密码",
             "ErrorInvalid": "密码不正确"
+        },
+        "Site": {
+            "Name": "名称",
+            "Save": "保存",
+            "Cancel": "取消",
+            "Invalid": "请输入网址。"
         }
     }
 }

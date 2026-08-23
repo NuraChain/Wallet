@@ -226,10 +226,6 @@
             "FavoriteAdd": "Add favorite",
             "FavoriteEdit": "Edit favorite",
             "FavoriteRemove": "Remove favorite",
-            "FavoriteName": "Name",
-            "FavoriteSave": "Save",
-            "FavoriteCancel": "Cancel",
-            "FavoriteInvalid": "Enter a web address.",
             "FavoriteEmpty": "Sites you keep will be listed here.",
             "Recent": "Visited",
             "RecentEmpty": "Sites you open will be listed here.",
@@ -288,7 +284,14 @@
         },
         "Apps": {
             "Title": "Apps",
-            "Soon": "The dApp catalogue is not ready yet. It will land here in a future update."
+            "Manage": "Edit",
+            "Done": "Done",
+            "Add": "Add app",
+            "Edit": "Edit app",
+            "Remove": "Remove app",
+            "Empty": "Add an app to open it straight from your wallet.",
+            "Reorder": "Drag an app to change its place.",
+            "Connected": "Connected"
         },
         "Settings": {
             "Title": "Settings",
@@ -332,6 +335,12 @@
             "Pending": "Logging out…",
             "ErrorRequired": "Please enter your password",
             "ErrorInvalid": "Password is incorrect"
+        },
+        "Site": {
+            "Name": "Name",
+            "Save": "Save",
+            "Cancel": "Cancel",
+            "Invalid": "Enter a web address."
         }
     }
 }
