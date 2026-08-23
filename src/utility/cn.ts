@@ -111,7 +111,35 @@ const groupList =
     'order',
     'shrink',
     'grow',
-    'basis'
+    'basis',
+    'border',
+    'outline',
+    'ring',
+    'translate-x',
+    'translate-y',
+    'translate',
+    'scale-x',
+    'scale-y',
+    'scale',
+    'rotate',
+    'transition',
+    'animate',
+    'grid-cols',
+    'grid-rows',
+    'col-span',
+    'row-span',
+    'object',
+    'select',
+    'resize',
+    'fill',
+    'stroke',
+    'whitespace',
+    'break',
+    'align',
+    'aspect',
+    'blur',
+    'backdrop-blur',
+    'backdrop-saturate'
 ] as const;
 
 /**
@@ -139,6 +167,21 @@ const clearMap: Record<string, readonly string[]> =
 };
 
 /**
+ * isLength - Whether a bracketed `text-[...]` value is a size rather than a colour.
+ *
+ * Without this, an arbitrary size fell through to `text-color` and displaced a real colour. It was
+ * not hypothetical: `text-[0.5rem]` on the browser tab strip's favicon fallback was knocking out
+ * `TokenIcon`'s `text-txt-reverse`, so the letter rendered in the inherited colour on a coloured
+ * disc — and both font sizes survived onto the element, leaving stylesheet order to pick one.
+ *
+ * A colour can also be bracketed (`text-[#fff]`, `text-[oklch(...)]`), so the test is for a leading
+ * number with a length unit rather than for the brackets themselves.
+ * @param {string} value The part after `text-`, with any slash suffix already removed.
+ * @returns {boolean} Whether it parses as a length.
+ */
+const isLength = (value: string) => (/^\[-?\d*\.?\d+(?:px|rem|em|ch|ex|vw|vh|vmin|vmax|%|pt|pc|in|cm|mm)\]$/u).test(value);
+
+/**
  * groupOf - Names the property family a utility writes to, or `undefined` when it is not one that can
  * be overwritten from a call site.
  * @param {string} utility The utility, with any variants and the important marker already stripped.
@@ -154,7 +197,7 @@ const groupOf = (utility: string) =>
         // nothing about which of the two this is.
         const value = name.slice(5).split('/')[0];
 
-        if (sizeMap.has(value))
+        if (sizeMap.has(value) || isLength(value))
         {
             return 'font-size';
         }

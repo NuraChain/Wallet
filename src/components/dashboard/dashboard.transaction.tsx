@@ -1,5 +1,6 @@
 import type { Transaction } from '../../hook/history';
 
+import { useId } from 'react';
 import { FiArrowDownLeft, FiArrowUpRight } from 'react-icons/fi';
 
 import Text from '../ui/text';
@@ -33,10 +34,19 @@ import { Vertical } from '../ui/stack';
  */
 export default function TransactionRow({ item, canOpen, onOpen }: { item: Transaction; canOpen: boolean; onOpen: (hash: string) => void })
 {
+    const hintId = `${ useId() }-open`;
+
+    /*
+     * No `aria-label` on the row. It carried one reading only "Open", and a name on a composite
+     * control replaces everything inside it — so every transaction in the app announced as the single
+     * word "Open", with the direction, the counterparty, the amount and the date all discarded. The
+     * row's own text is a better name than any label could be, so it is left to speak for itself, and
+     * the explorer destination is described instead: that is the part the visible text does not say.
+     */
     return (
         <Button
             disabled={ !canOpen }
-            aria-label={ T('Dashboard.Activity.Open') }
+            aria-describedby={ canOpen ? hintId : undefined }
             onClick={ () => { onOpen(item.hash); } }
             className={ `${ surfacePanel } flex shrink-0 items-center gap-3 rounded-surface p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-normal-hover` }>
 
@@ -61,17 +71,32 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
 
             </Vertical>
 
-            <Vertical className='shrink-0 items-end'>
+            { /*
+              * `min-w-0 truncate` because `item.symbol` is whatever the contract calls itself. Every
+              * other region on this row already had both; this one was `shrink-0` with neither, so an
+              * airdrop-spam token with a sentence for a ticker pushed the row open.
+              */ }
+            <Vertical className='min-w-0 shrink-0 items-end'>
 
                 <Text
                     dir='ltr'
                     variant='body'
-                    className={ `font-mono ${ item.incoming ? 'text-txt-success' : 'text-txt-error' }` }
+                    className={ `truncate font-mono ${ item.incoming ? 'text-txt-success' : 'text-txt-error' }` }
                     text={ `${ item.incoming ? '+' : '-' }${ trimAmount(item.value) } ${ item.symbol }` } />
 
                 <Text text={ formatDate(item.timestamp) } />
 
             </Vertical>
+
+            {
+                canOpen &&
+                (
+                    <Text
+                        id={ hintId }
+                        className='sr-only'
+                        text={ T('Dashboard.Activity.Open') } />
+                )
+            }
 
         </Button>
     );

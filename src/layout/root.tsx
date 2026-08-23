@@ -10,6 +10,7 @@ import Spinner from '../components/ui/spinner';
 
 import { T } from '../utility/language';
 import { useIsWindows } from '../hook/platform';
+import { useLanguage } from '../hook/language';
 import { Horizontal } from '../components/ui/stack';
 
 /**
@@ -46,6 +47,12 @@ export function RouteFallback()
 export default function RootLayout()
 {
     const isWindows = useIsWindows();
+
+    // Subscribed for the same reason `TitleBar` subscribes, and it is the same bug: the tray labels
+    // below come from `T()` inside an effect, so without a re-render on language change the tray kept
+    // whatever language the process launched in for the rest of its life. The sibling in this shell
+    // had already found and solved this; the tray had not.
+    const language = useLanguage();
 
     useEffect(() =>
     {
@@ -95,7 +102,7 @@ export default function RootLayout()
             // eslint-disable-next-line no-console
             console.error('[tray]', cause);
         });
-    }, [ isWindows ]);
+    }, [ isWindows, language ]);
 
     return (
         <Horizontal className='relative size-full'>

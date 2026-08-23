@@ -13,7 +13,17 @@
         "Failure": {
             "Title": "Nura 钱包无法启动",
             "Message": "您的钱包仍在此设备上。重新加载通常可以解决此问题。",
-            "Reload": "重新加载"
+            "Reload": "重新加载",
+            "Home": "重新开始"
+        },
+        "Close": "关闭",
+        "Field": {
+            "ShowPassword": "显示密码",
+            "HidePassword": "隐藏密码"
+        },
+        "Missing": {
+            "Title": "此页面不存在",
+            "Message": "没有任何内容丢失。您的钱包仍在此设备上。"
         }
     },
     "Language": {
@@ -68,15 +78,13 @@
         "CreateWallet": {
             "Title": "创建新钱包",
             "Subtitle": "设置你的安全钱包即可开始",
-            "Name": "钱包名称",
             "Password": "密码",
             "Confirm": "确认密码",
             "Agreement": "我明白密码无法找回",
             "Submit": "创建钱包",
             "ErrorMismatch": "两次输入的密码不一致",
             "ErrorLength": "密码长度必须在 6 到 32 个字符之间",
-            "ErrorGenerate": "创建钱包失败，请重试",
-            "ErrorSave": "保存钱包失败，请重试"
+            "ErrorGenerate": "创建钱包失败，请重试"
         }
     },
     "Unlock": {
@@ -85,12 +93,10 @@
         "Password": "密码",
         "Submit": "解锁钱包",
         "Loading": "正在解锁",
-        "Hint": "你的钱包数据保存在本设备上，并在本地解密。",
         "Recovery": "如果忘记密码，将无法找回。",
         "ErrorRequired": "请输入密码",
         "ErrorInvalid": "密码不正确",
-        "ErrorMissing": "无法加载钱包数据",
-        "ErrorGeneric": "暂时无法解锁钱包"
+        "ErrorMissing": "无法加载钱包数据"
     },
     "Dashboard": {
         "Nav": {
@@ -98,7 +104,6 @@
             "Browser": "浏览器",
             "Apps": "应用"
         },
-        "Empty": "暂时没有可显示的内容。",
         "Offline": {
             "Title": "无网络连接",
             "Failed": "无法连接到网络",
@@ -109,7 +114,6 @@
         "Accounts": {
             "Title": "账户",
             "Subtitle": "在此钱包的账户之间切换",
-            "Empty": "尚未创建",
             "Rename": "重命名账户",
             "Save": "保存",
             "Add": "添加账户",
@@ -124,7 +128,6 @@
             "EmojiClear": "使用编号",
             "ErrorExists": "该索引已在你的列表中"
         },
-        "Address": "地址",
         "Copy": "复制地址",
         "Copied": "地址已复制到剪贴板",
         "CopyFailed": "无法复制地址",

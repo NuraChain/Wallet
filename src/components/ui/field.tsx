@@ -224,7 +224,7 @@ export function PasswordField({ label, value, error = '', onValue, onEnter, size
                   */ }
                 <button
                     type='button'
-                    aria-label={ T(show ? 'Field.HidePassword' : 'Field.ShowPassword') }
+                    aria-label={ T(show ? 'App.Field.HidePassword' : 'App.Field.ShowPassword') }
                     aria-pressed={ show }
                     onClick={ () => { setShow((current) => !current); } }
                     className={ cn('tap-44 absolute cursor-pointer rounded-control text-txt-muted outline-2 outline-offset-2 outline-transparent outline-double hover:text-txt-normal focus-visible:outline-focus-ring', regular ? 'inset-e-4' : 'inset-e-3') }>

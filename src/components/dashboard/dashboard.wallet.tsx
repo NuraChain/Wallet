@@ -236,65 +236,71 @@ export default function DashboardWallet({ address, name, emoji, network, native,
                     className='text-display'
                     text={ headline() } />
 
-                <Vertical className='items-center'>
+                { /*
+                  * No `aria-label`: it read "Copy" and, being a name on a composite control, replaced
+                  * the address it was offering to copy. The action leads as visually-hidden text and
+                  * the address follows as itself, so the control announces both.
+                  */ }
+                <Button
+                    onClick={ () => { void clipboard.copy(address); } }
+                    className='flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal'>
 
-                    <Button
-                        onClick={ () => { void clipboard.copy(address); } }
-                        aria-label={ T('Dashboard.Copy') }
-                        className='flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal'>
+                    <span className='sr-only'>
 
-                        <span dir='ltr' className='font-mono'>
+                        { T('Dashboard.Copy') }
 
-                            { shortAddress(address) }
+                    </span>
 
-                        </span>
+                    <span dir='ltr' className='font-mono'>
 
-                        { /*
-                          * The confirmation is the glyph itself: it turns into a tick, scales up and
-                          * settles back. A caption under the address shifted the layout and had to be
-                          * read; this is understood at a glance and takes no space.
-                          */ }
-                        <span className='relative flex size-5 shrink-0 items-center justify-center'>
+                        { shortAddress(address) }
 
-                            <AnimatePresence initial={ false } mode='wait'>
+                    </span>
 
-                                {
-                                    copied ?
-                                        (
-                                            <motion.span
-                                                key='done'
-                                                initial={ { scale: 0.4, opacity: 0 } }
-                                                animate={ { scale: [ 0.4, 1.35, 1 ], opacity: 1 } }
-                                                exit={ { scale: 0.4, opacity: 0 } }
-                                                transition={ { duration: 0.35 } }
-                                                className='absolute text-txt-normal'>
+                    { /*
+                      * The confirmation is the glyph itself: it turns into a tick, scales up and
+                      * settles back. A caption under the address shifted the layout and had to be
+                      * read; this is understood at a glance and takes no space.
+                      */ }
+                    <span className='relative flex size-5 shrink-0 items-center justify-center'>
 
-                                                <HiOutlineCheck size={ 18 } />
+                        <AnimatePresence initial={ false } mode='wait'>
 
-                                            </motion.span>
-                                        ) :
-                                        (
-                                            <motion.span
-                                                key='copy'
-                                                initial={ { scale: 0.6, opacity: 0 } }
-                                                animate={ { scale: 1, opacity: 1 } }
-                                                exit={ { scale: 0.6, opacity: 0 } }
-                                                transition={ { duration: 0.18 } }
-                                                className='absolute'>
+                            {
+                                copied ?
+                                    (
+                                        <motion.span
+                                            key='done'
+                                            initial={ { scale: 0.4, opacity: 0 } }
+                                            animate={ { scale: [ 0.4, 1.35, 1 ], opacity: 1 } }
+                                            exit={ { scale: 0.4, opacity: 0 } }
+                                            transition={ { duration: 0.35 } }
+                                            className='absolute text-txt-normal'>
 
-                                                <HiOutlineSquare2Stack size={ 18 } />
+                                            <HiOutlineCheck size={ 18 } />
 
-                                            </motion.span>
-                                        )
-                                }
+                                        </motion.span>
+                                    ) :
+                                    (
+                                        <motion.span
+                                            key='copy'
+                                            initial={ { scale: 0.6, opacity: 0 } }
+                                            animate={ { scale: 1, opacity: 1 } }
+                                            exit={ { scale: 0.6, opacity: 0 } }
+                                            transition={ { duration: 0.18 } }
+                                            className='absolute'>
 
-                            </AnimatePresence>
+                                            <HiOutlineSquare2Stack size={ 18 } />
 
-                        </span>
+                                        </motion.span>
+                                    )
+                            }
 
-                    </Button>
+                        </AnimatePresence>
 
-                </Vertical>
+                    </span>
+
+                </Button>
 
             </Vertical>
 

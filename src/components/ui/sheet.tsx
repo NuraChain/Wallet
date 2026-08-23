@@ -6,7 +6,9 @@ import { IoClose } from 'react-icons/io5';
 import Text from './text';
 import Button from './button';
 
-import { inset } from '../../layout/container';
+import { T } from '../../utility/language';
+import { inset, layer } from '../../layout/container';
+import { DialogTitleContext, useDialog, useDialogTitleId } from './dialog';
 import { surfacePanel } from './panel';
 import { Vertical } from './stack';
 
@@ -23,26 +25,39 @@ import { Vertical } from './stack';
  */
 export function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode })
 {
+    const { panelRef, titleId } = useDialog(onClose);
+
     return (
         <>
-            { /* Full-viewport and animated, so no blur — see the note on the same scrim in modal.tsx. */ }
+            { /* Full-viewport and animated, so never filtered — see the note on the scrim in modal.tsx. */ }
             <motion.div
                 initial={ { opacity: 0 } }
                 animate={ { opacity: 1 } }
                 exit={ { opacity: 0 } }
-                className='absolute z-10 size-full cursor-pointer bg-scrim'
+                className={ `absolute size-full cursor-pointer bg-scrim ${ layer.dialog }` }
                 onClick={ onClose } />
 
+            { /*
+              * The sheet shares the modal's layer rather than sitting one below it. They are the same
+              * kind of surface and only one is ever open, so putting them on different layers only
+              * created the possibility of them disagreeing about which covers the chrome.
+              */ }
             <motion.div
+                ref={ panelRef }
+                role='dialog'
+                aria-modal
+                aria-labelledby={ titleId }
+                tabIndex={ -1 }
                 initial={ { y: '-100%' } }
                 animate={ { y: '0%' } }
                 exit={ { y: '-100%' } }
                 transition={ { type: 'tween' } }
-                className={ `${ surfacePanel } absolute inset-x-0 top-0 z-20 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 ${ inset.sheetTop } pb-4 sm:mx-auto sm:px-6 sm:pb-6` }>
+                className={ `${ surfacePanel } ${ layer.dialog } absolute inset-x-0 top-0 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 outline-none ${ inset.sheetTop } pb-4 sm:mx-auto sm:px-6 sm:pb-6` }>
 
                 <Button
                     variant='muted'
                     size='iconLarge'
+                    aria-label={ T('App.Close') }
                     onClick={ onClose }
                     className='mt-4 shrink-0'>
 
@@ -50,7 +65,11 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
 
                 </Button>
 
-                { children }
+                <DialogTitleContext value={ titleId }>
+
+                    { children }
+
+                </DialogTitleContext>
 
             </motion.div>
         </>
@@ -66,10 +85,14 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
  */
 export function SheetHeader({ title, subtitle }: { title: string; subtitle: string })
 {
+    const titleId = useDialogTitleId();
+
     return (
         <Vertical>
 
             <Text
+                as='h2'
+                id={ titleId }
                 variant='title'
                 className='text-center sm:text-large'
                 text={ title } />

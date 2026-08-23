@@ -174,7 +174,7 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
                             variant={ filter === item ? 'primary' : 'chip' }
                             onClick={ () => { setFilter(item); } }
                             aria-pressed={ filter === item }
-                            className='h-8 flex-1 rounded-control text-tiny duration-(--duration-base)'
+                            className='h-8 flex-1 rounded-control text-tiny transition-colors duration-(--duration-base)'
                             text={ T(`Dashboard.Activity.Filter${ item }`) } />
                     ))
                 }

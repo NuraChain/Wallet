@@ -13,7 +13,17 @@
         "Failure": {
             "Title": "Nura Wallet could not start",
             "Message": "Your wallet is still on this device. Reloading usually clears this.",
-            "Reload": "Reload"
+            "Reload": "Reload",
+            "Home": "Start over"
+        },
+        "Close": "Close",
+        "Field": {
+            "ShowPassword": "Show password",
+            "HidePassword": "Hide password"
+        },
+        "Missing": {
+            "Title": "This screen does not exist",
+            "Message": "Nothing was lost. Your wallet is still on this device."
         }
     },
     "Language": {
@@ -68,15 +78,13 @@
         "CreateWallet": {
             "Title": "Create New Wallet",
             "Subtitle": "Set up your secure wallet to get started",
-            "Name": "Wallet Name",
             "Password": "Password",
             "Confirm": "Confirm Password",
             "Agreement": "I understand my password cannot be recovered",
             "Submit": "Create Wallet",
             "ErrorMismatch": "Passwords do not match",
             "ErrorLength": "Password must be between 6 and 32 characters",
-            "ErrorGenerate": "Failed to generate wallet. Please try again",
-            "ErrorSave": "Failed to save wallet. Please try again"
+            "ErrorGenerate": "Failed to generate wallet. Please try again"
         }
     },
     "Unlock": {
@@ -85,12 +93,10 @@
         "Password": "Password",
         "Submit": "Unlock Wallet",
         "Loading": "Unlocking",
-        "Hint": "Your wallet data stays on this device and is decrypted locally.",
         "Recovery": "If you forget your password, you will not be able to recover it.",
         "ErrorRequired": "Please enter your password",
         "ErrorInvalid": "Password is incorrect",
-        "ErrorMissing": "Wallet data could not be loaded",
-        "ErrorGeneric": "Unable to unlock wallet right now"
+        "ErrorMissing": "Wallet data could not be loaded"
     },
     "Dashboard": {
         "Nav": {
@@ -98,7 +104,6 @@
             "Browser": "Browser",
             "Apps": "Apps"
         },
-        "Empty": "Nothing to show yet.",
         "Offline": {
             "Title": "No internet connection",
             "Failed": "Could not reach the network",
@@ -109,7 +114,6 @@
         "Accounts": {
             "Title": "Accounts",
             "Subtitle": "Switch between accounts of this wallet",
-            "Empty": "Not created yet",
             "Rename": "Rename account",
             "Save": "Save",
             "Add": "Add account",
@@ -124,7 +128,6 @@
             "EmojiClear": "Use the number",
             "ErrorExists": "That index is already in your list"
         },
-        "Address": "Address",
         "Copy": "Copy Address",
         "Copied": "Address copied to clipboard",
         "CopyFailed": "Unable to copy address",

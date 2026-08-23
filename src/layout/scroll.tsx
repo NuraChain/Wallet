@@ -667,7 +667,7 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
               */ }
             <div
                 ref={ indicatorRef }
-                className='pointer-events-none absolute inset-x-0 top-0 z-20 flex h-0 items-center justify-center overflow-hidden opacity-0'>
+                className='pointer-events-none absolute inset-x-0 top-0 z-10 flex h-0 items-center justify-center overflow-hidden opacity-0'>
 
                 <div ref={ glyphRef } className='text-txt-muted'>
                     {
@@ -700,7 +700,7 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
                         onPointerMove={ onPointerMove }
                         onPointerCancel={ onPointerUp }
                         style={ { height: `${ thumb.size }px` } }
-                        className={ `absolute inset-e-1 top-0 z-30 w-1.5 cursor-pointer rounded-full bg-txt-muted transition-opacity duration-(--duration-base) hover:opacity-15 ${ dragging ? 'opacity-100' : 'opacity-5' }` } />
+                        className={ `absolute inset-e-1 top-0 z-10 w-1.5 cursor-pointer rounded-full bg-scrollbar transition-colors duration-(--duration-base) ${ dragging ? 'bg-scrollbar-hover' : 'hover:bg-scrollbar-hover' }` } />
                 )
             }
 

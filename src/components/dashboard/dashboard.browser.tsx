@@ -465,7 +465,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     return (
         <Vertical className='relative min-h-0 flex-1'>
 
-            { /* `base-1` is the 0.25-alpha token in both themes; `base-2` sits at 0.6/0.55 and read as solid. */ }
+            { /* The toolbar sits at the page tone, so the card surfaces inside the page read above it. */ }
             <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
 
                 <Button
@@ -475,7 +475,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                     onClick={ onExit }
                     className='shrink-0'>
 
-                    <IoClose size={ 18 } />
+                    <IoClose size={ 16 } />
 
                 </Button>
 
@@ -517,19 +517,21 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                         placeholder={ T('Dashboard.Browser.Placeholder') }
                         onValue={ (value) => { patch(active, (item) => ({ ...item, draft: value })); } }
                         onEnter={ () => { onOpen(tab.draft); } }
-                        className='h-9 truncate rounded-surface ps-8 pe-8 text-tiny'
-                        leading={ <FiSearch size={ 14 } className='pointer-events-none absolute inset-s-2.5 text-txt-muted' /> }
+                        size='compact'
+                        className='truncate ps-10 pe-10 text-tiny'
+                        leading={ <FiSearch size={ 16 } className='pointer-events-none absolute inset-s-3 text-txt-muted' /> }
                         trailing={
                             current.length > 0 ?
                                 (
                                     <Button
+                                        size='icon'
                                         aria-label={ T('Dashboard.Browser.Reload') }
                                         onClick={ () => { patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false })); } }
-                                        className='absolute inset-e-2.5 cursor-pointer text-txt-muted hover:text-txt-normal'>
+                                        className='absolute inset-e-1 cursor-pointer text-txt-muted hover:text-txt-normal'>
 
                                         { /* Spinning the reload glyph is the in-flight cue; it is the same
                                           * control either way, so nothing moves when the load ends. */ }
-                                        <FiRotateCw size={ 14 } className={ state?.loading === true ? 'animate-spin' : '' } />
+                                        <FiRotateCw size={ 16 } className={ state?.loading === true ? 'animate-spin' : '' } />
 
                                     </Button>
                                 ) :

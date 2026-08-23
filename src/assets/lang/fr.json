@@ -13,7 +13,17 @@
         "Failure": {
             "Title": "Nura Wallet n'a pas pu démarrer",
             "Message": "Votre portefeuille est toujours sur cet appareil. Recharger suffit généralement.",
-            "Reload": "Recharger"
+            "Reload": "Recharger",
+            "Home": "Recommencer"
+        },
+        "Close": "Fermer",
+        "Field": {
+            "ShowPassword": "Afficher le mot de passe",
+            "HidePassword": "Masquer le mot de passe"
+        },
+        "Missing": {
+            "Title": "Cet écran n'existe pas",
+            "Message": "Rien n'a été perdu. Votre portefeuille est toujours sur cet appareil."
         }
     },
     "Language": {
@@ -68,15 +78,13 @@
         "CreateWallet": {
             "Title": "Créer un nouveau portefeuille",
             "Subtitle": "Configurez votre portefeuille sécurisé pour commencer",
-            "Name": "Nom du portefeuille",
             "Password": "Mot de passe",
             "Confirm": "Confirmer le mot de passe",
             "Agreement": "Je comprends que mon mot de passe ne peut pas être récupéré",
             "Submit": "Créer le portefeuille",
             "ErrorMismatch": "Les mots de passe ne correspondent pas",
             "ErrorLength": "Le mot de passe doit contenir entre 6 et 32 caractères",
-            "ErrorGenerate": "Échec de la création du portefeuille. Réessayez",
-            "ErrorSave": "Échec de l'enregistrement du portefeuille. Réessayez"
+            "ErrorGenerate": "Échec de la création du portefeuille. Réessayez"
         }
     },
     "Unlock": {
@@ -85,12 +93,10 @@
         "Password": "Mot de passe",
         "Submit": "Déverrouiller le portefeuille",
         "Loading": "Déverrouillage",
-        "Hint": "Les données de votre portefeuille restent sur cet appareil et sont déchiffrées localement.",
         "Recovery": "Si vous oubliez votre mot de passe, il sera impossible de le récupérer.",
         "ErrorRequired": "Veuillez saisir votre mot de passe",
         "ErrorInvalid": "Mot de passe incorrect",
-        "ErrorMissing": "Impossible de charger les données du portefeuille",
-        "ErrorGeneric": "Impossible de déverrouiller le portefeuille pour le moment"
+        "ErrorMissing": "Impossible de charger les données du portefeuille"
     },
     "Dashboard": {
         "Nav": {
@@ -98,7 +104,6 @@
             "Browser": "Navigateur",
             "Apps": "Applis"
         },
-        "Empty": "Rien à afficher pour l'instant.",
         "Offline": {
             "Title": "Aucune connexion internet",
             "Failed": "Réseau injoignable",
@@ -109,7 +114,6 @@
         "Accounts": {
             "Title": "Comptes",
             "Subtitle": "Basculez entre les comptes de ce portefeuille",
-            "Empty": "Pas encore créé",
             "Rename": "Renommer le compte",
             "Save": "Enregistrer",
             "Add": "Ajouter un compte",
@@ -124,7 +128,6 @@
             "EmojiClear": "Utiliser le numéro",
             "ErrorExists": "Cet indice figure déjà dans votre liste"
         },
-        "Address": "Adresse",
         "Copy": "Copier l'adresse",
         "Copied": "Adresse copiée dans le presse-papiers",
         "CopyFailed": "Impossible de copier l'adresse",

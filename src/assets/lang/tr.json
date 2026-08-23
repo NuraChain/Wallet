@@ -13,7 +13,17 @@
         "Failure": {
             "Title": "Nura Wallet başlatılamadı",
             "Message": "Cüzdanınız hâlâ bu cihazda. Yeniden yüklemek genellikle sorunu çözer.",
-            "Reload": "Yeniden yükle"
+            "Reload": "Yeniden yükle",
+            "Home": "Baştan başla"
+        },
+        "Close": "Kapat",
+        "Field": {
+            "ShowPassword": "Parolayı göster",
+            "HidePassword": "Parolayı gizle"
+        },
+        "Missing": {
+            "Title": "Bu ekran mevcut değil",
+            "Message": "Hiçbir şey kaybolmadı. Cüzdanınız hâlâ bu cihazda."
         }
     },
     "Language": {
@@ -68,15 +78,13 @@
         "CreateWallet": {
             "Title": "Yeni cüzdan oluştur",
             "Subtitle": "Başlamak için güvenli cüzdanınızı kurun",
-            "Name": "Cüzdan adı",
             "Password": "Parola",
             "Confirm": "Parolayı doğrula",
             "Agreement": "Parolamın kurtarılamayacağını anlıyorum",
             "Submit": "Cüzdan oluştur",
             "ErrorMismatch": "Parolalar eşleşmiyor",
             "ErrorLength": "Parola 6 ile 32 karakter arasında olmalı",
-            "ErrorGenerate": "Cüzdan oluşturulamadı. Lütfen tekrar deneyin",
-            "ErrorSave": "Cüzdan kaydedilemedi. Lütfen tekrar deneyin"
+            "ErrorGenerate": "Cüzdan oluşturulamadı. Lütfen tekrar deneyin"
         }
     },
     "Unlock": {
@@ -85,12 +93,10 @@
         "Password": "Parola",
         "Submit": "Cüzdanın kilidini aç",
         "Loading": "Kilit açılıyor",
-        "Hint": "Cüzdan verileriniz bu cihazda kalır ve yerel olarak çözülür.",
         "Recovery": "Parolanızı unutursanız onu kurtaramazsınız.",
         "ErrorRequired": "Lütfen parolanızı girin",
         "ErrorInvalid": "Parola yanlış",
-        "ErrorMissing": "Cüzdan verileri yüklenemedi",
-        "ErrorGeneric": "Cüzdanın kilidi şu anda açılamıyor"
+        "ErrorMissing": "Cüzdan verileri yüklenemedi"
     },
     "Dashboard": {
         "Nav": {
@@ -98,7 +104,6 @@
             "Browser": "Tarayıcı",
             "Apps": "Uygulamalar"
         },
-        "Empty": "Henüz gösterilecek bir şey yok.",
         "Offline": {
             "Title": "İnternet bağlantısı yok",
             "Failed": "Ağa ulaşılamadı",
@@ -109,7 +114,6 @@
         "Accounts": {
             "Title": "Hesaplar",
             "Subtitle": "Bu cüzdanın hesapları arasında geçiş yapın",
-            "Empty": "Henüz oluşturulmadı",
             "Rename": "Hesabı yeniden adlandır",
             "Save": "Kaydet",
             "Add": "Hesap ekle",
@@ -124,7 +128,6 @@
             "EmojiClear": "Numarayı kullan",
             "ErrorExists": "Bu dizin zaten listenizde"
         },
-        "Address": "Adres",
         "Copy": "Adresi kopyala",
         "Copied": "Adres panoya kopyalandı",
         "CopyFailed": "Adres kopyalanamadı",

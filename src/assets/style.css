@@ -17,6 +17,8 @@
     --color-line: var(--line);
     --color-line-control: var(--line-control);
     --color-scrim: var(--scrim);
+    --color-scrollbar: var(--scrollbar-thumb);
+    --color-scrollbar-hover: var(--scrollbar-thumb-hover);
 
     /* One ring for the whole app, replacing the five per-variant outline colours. */
     --color-focus-ring: var(--focus-ring);

@@ -644,10 +644,17 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
                         <span className='relative h-0.5 w-32 overflow-hidden rounded-full bg-base-3'>
 
+                            { /*
+                              * The sweep is pinned to the start edge and travels by a percentage of
+                              * its own width, so it mirrors with the writing direction. Animating
+                              * `x` compiled to a physical `translateX`, and with no horizontal inset
+                              * declared the parked keyframe left the bar sitting visibly in the
+                              * left-hand half of the track in Persian and Arabic.
+                              */ }
                             <motion.span
-                                animate={ { x: [ '-100%', '220%' ] } }
+                                animate={ { insetInlineStart: [ '-50%', '100%' ] } }
                                 transition={ { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } }
-                                className='absolute inset-y-0 w-1/2 rounded-full bg-btn-primary' />
+                                className='absolute inset-y-0 inset-s-0 w-1/2 rounded-full bg-btn-primary' />
 
                         </span>
 

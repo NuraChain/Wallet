@@ -24,7 +24,7 @@ import { usePrices } from '../hook/price';
 import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
-import { getDirection, getLanguage, T } from '../utility/language';
+import { getDirection, T } from '../utility/language';
 import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken, type HiddenMap, type TokenMap } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
@@ -149,6 +149,27 @@ function DashboardView({ vault }: { vault: Vault })
     const tokens = useTokens(address, network, tracked);
     const prices = usePrices(network, native.formatted, tokens.tokens);
     const history = useHistory(address, network, tracked);
+
+    /*
+     * What the wallet tab's staleness strip speaks for.
+     *
+     * `useTokens` reports `error` and `at` exactly as `useBalance` does, and nothing read them — so a
+     * chain that answered for the native balance and refused for every ERC20 showed a tab that looked
+     * entirely current, with the token rows simply absent. The strip covers every figure above it, so
+     * it has to see both reads: it fails if either failed, and it dates the figures by the older of
+     * the two that actually landed.
+     */
+    const reads = useMemo(() =>
+    {
+        const stamps = [ native.at, tokens.at ].filter((value) => value > 0);
+
+        return {
+            formatted: native.formatted,
+            loading: native.loading,
+            error: native.error || tokens.error,
+            at: stamps.length > 0 ? Math.min(...stamps) : 0
+        };
+    }, [ native.formatted, native.loading, native.error, native.at, tokens.error, tokens.at ]);
 
     useEffect(() =>
     {
@@ -412,9 +433,10 @@ function DashboardView({ vault }: { vault: Vault })
         // A token that arrived since the last look is found by the same pull that refreshes the rest.
         setScan((value) => value + 1);
 
-        // The hooks fire off their own requests; this is the shortest pause that still reads as work
-        // rather than a flicker, since none of them expose a promise to await.
-        await new Promise((resolve) => { setTimeout(resolve, 600); });
+        // No pause. There used to be a flat 600ms here so the pull indicator read as work, which made
+        // the gesture lie in both directions — padded when the network was fast, cut short when it was
+        // slow. The three hooks each own an in-flight flag, so the indicator can follow the real one.
+        await Promise.resolve();
     };
 
     const onSelectAccount = (index: number) =>
@@ -708,8 +730,16 @@ function DashboardView({ vault }: { vault: Vault })
 
             </Suspense>
 
+            { /*
+              * Keyed on the direction, not the language. Swiper caches slide offsets in the writing
+              * direction it mounted with, so it genuinely has to be rebuilt when that flips — but
+              * keying on the language code rebuilt it for en to fr as well, and rebuilding this
+              * subtree tears down every `WebFrame`, which closes every open native webview. Changing
+              * the interface language was dropping every browser tab the user had, along with its
+              * scroll position, its form input and its dApp session.
+              */ }
             <Swiper
-                key={ getLanguage().code }
+                key={ getDirection() }
                 dir={ getDirection() }
                 speed={ 350 }
                 // `simulateTouch` only governs mouse-drag emulation, so touch swipes still went
@@ -736,7 +766,18 @@ function DashboardView({ vault }: { vault: Vault })
                                             role='tabpanel'
                                             id={ `dashboard-panel-${ item.key }` }
                                             aria-hidden={ index === active ? undefined : true }
+                                            inert={ index === active ? undefined : true }
                                             aria-labelledby={ `dashboard-tab-${ item.key }` }>
+
+                                            { /*
+                                              * `inert` is what makes the `aria-hidden` above honest.
+                                              * Swiper mounts all three panels, so the two off screen kept
+                                              * every button tabbable inside a subtree the accessibility
+                                              * tree had been told did not exist — Tab walked into the
+                                              * browser while the wallet was the tab on screen. It implies
+                                              * `aria-hidden` on its own, but both are kept: the attribute
+                                              * states the contract and this enforces it.
+                                              */ }
 
                                             { /*
                                               * Its own boundary, because Swiper mounts every panel at
@@ -778,7 +819,7 @@ function DashboardView({ vault }: { vault: Vault })
                                                             name={ name }
                                                             emoji={ emoji }
                                                             network={ network }
-                                                            native={ { formatted: native.formatted, loading: native.loading, error: native.error, at: native.at } }
+                                                            native={ reads }
                                                             tokens={ tokens.tokens }
                                                             total={ prices.total }
                                                             totalLoading={ prices.loading }

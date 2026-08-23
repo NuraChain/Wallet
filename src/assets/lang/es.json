@@ -13,7 +13,17 @@
         "Failure": {
             "Title": "Nura Wallet no pudo iniciarse",
             "Message": "Tu billetera sigue en este dispositivo. Recargar suele solucionarlo.",
-            "Reload": "Recargar"
+            "Reload": "Recargar",
+            "Home": "Empezar de nuevo"
+        },
+        "Close": "Cerrar",
+        "Field": {
+            "ShowPassword": "Mostrar contraseña",
+            "HidePassword": "Ocultar contraseña"
+        },
+        "Missing": {
+            "Title": "Esta pantalla no existe",
+            "Message": "No se perdió nada. Tu billetera sigue en este dispositivo."
         }
     },
     "Language": {
@@ -68,15 +78,13 @@
         "CreateWallet": {
             "Title": "Crear una cartera nueva",
             "Subtitle": "Configura tu cartera segura para empezar",
-            "Name": "Nombre de la cartera",
             "Password": "Contraseña",
             "Confirm": "Confirmar contraseña",
             "Agreement": "Entiendo que mi contraseña no se puede recuperar",
             "Submit": "Crear cartera",
             "ErrorMismatch": "Las contraseñas no coinciden",
             "ErrorLength": "La contraseña debe tener entre 6 y 32 caracteres",
-            "ErrorGenerate": "No se pudo generar la cartera. Inténtalo de nuevo",
-            "ErrorSave": "No se pudo guardar la cartera. Inténtalo de nuevo"
+            "ErrorGenerate": "No se pudo generar la cartera. Inténtalo de nuevo"
         }
     },
     "Unlock": {
@@ -85,12 +93,10 @@
         "Password": "Contraseña",
         "Submit": "Desbloquear cartera",
         "Loading": "Desbloqueando",
-        "Hint": "Los datos de tu cartera permanecen en este dispositivo y se descifran localmente.",
         "Recovery": "Si olvidas tu contraseña, no podrás recuperarla.",
         "ErrorRequired": "Introduce tu contraseña",
         "ErrorInvalid": "La contraseña es incorrecta",
-        "ErrorMissing": "No se pudieron cargar los datos de la cartera",
-        "ErrorGeneric": "No se puede desbloquear la cartera ahora mismo"
+        "ErrorMissing": "No se pudieron cargar los datos de la cartera"
     },
     "Dashboard": {
         "Nav": {
@@ -98,7 +104,6 @@
             "Browser": "Navegador",
             "Apps": "Apps"
         },
-        "Empty": "Todavía no hay nada que mostrar.",
         "Offline": {
             "Title": "Sin conexión a internet",
             "Failed": "No se pudo conectar con la red",
@@ -109,7 +114,6 @@
         "Accounts": {
             "Title": "Cuentas",
             "Subtitle": "Cambia entre las cuentas de esta cartera",
-            "Empty": "Aún no se ha creado",
             "Rename": "Renombrar cuenta",
             "Save": "Guardar",
             "Add": "Añadir cuenta",
@@ -124,7 +128,6 @@
             "EmojiClear": "Usar el número",
             "ErrorExists": "Ese índice ya está en tu lista"
         },
-        "Address": "Dirección",
         "Copy": "Copiar dirección",
         "Copied": "Dirección copiada al portapapeles",
         "CopyFailed": "No se pudo copiar la dirección",

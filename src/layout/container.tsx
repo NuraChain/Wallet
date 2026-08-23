@@ -17,6 +17,25 @@ export const inset =
 } as const;
 
 /**
+ * The stacking scale.
+ *
+ * There were three bare numbers and no rule, which is how the language picker ended up at `z-10`
+ * while the navigation bar it had to cover sat at `z-20` — opening Settings → Language painted the
+ * nav pill and the window chrome on top of the dialog, with the tabs still clickable through its
+ * own scrim. Naming the three layers is what makes that class of mistake unspellable.
+ *
+ * `dialog` is above `chrome` by construction: a modal covers the title bar and the nav bar, always.
+ * `popover` sits between them for the things that open *within* a surface — the asset picker, the
+ * unlock hint — and must not escape their own page.
+ */
+export const layer =
+{
+    chrome: 'z-20',
+    popover: 'z-30',
+    dialog: 'z-40'
+} as const;
+
+/**
  * Top padding per page variant: what clears the custom title bar on a frameless Windows window, and
  * what clears the status bar (plus a breath of space where the content starts with controls) under
  * Android's transparent system bars.

@@ -16,6 +16,7 @@ import Panel, { surfacePanel } from '../ui/panel';
 import { fieldSurface, TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
+import { layer } from '../../layout/container';
 import { T } from '../../utility/language';
 import { vaultManager, type Vault } from '../../core/vault';
 import { useOnline } from '../../hook/connection';
@@ -243,7 +244,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                     className='shrink-0 font-mono'
                                     text={ trimAmount(asset.formatted) } />
 
-                                <IoChevronDown size={ 12 } className={ `shrink-0 opacity-40 duration-(--duration-base) ${ picking ? 'rotate-180' : '' }` } />
+                                <IoChevronDown size={ 12 } className={ `shrink-0 opacity-40 transition-transform duration-(--duration-base) ${ picking ? 'rotate-180' : '' }` } />
 
                             </Button>
 
@@ -257,12 +258,12 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                           */ }
                                         <div
                                             aria-hidden='true'
-                                            className='fixed inset-0 z-10'
+                                            className={ `fixed inset-0 ${ layer.chrome }` }
                                             onClick={ () => { setPicking(false); } } />
 
                                         <div
                                             role='listbox'
-                                            className={ `${ surfacePanel } scroll-hidden absolute inset-x-0 top-full z-20 mt-1 flex max-h-56 flex-col gap-1 overflow-y-auto rounded-surface p-1` }>
+                                            className={ `${ surfacePanel } scroll-hidden absolute inset-x-0 top-full ${ layer.popover } mt-1 flex max-h-56 flex-col gap-1 overflow-y-auto rounded-surface p-1` }>
 
                                             {
                                                 assets.map((item) => (
@@ -271,7 +272,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                                         role='option'
                                                         aria-selected={ item.key === asset.key }
                                                         onClick={ () => { onAsset(item.key); } }
-                                                        className={ `flex w-full cursor-pointer items-center gap-3 rounded-control p-2 duration-(--duration-base) ${ item.key === asset.key ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
+                                                        className={ `flex w-full cursor-pointer items-center gap-3 rounded-control p-2 transition-colors duration-(--duration-base) ${ item.key === asset.key ? 'bg-btn-primary/15' : 'hover:bg-btn-muted-hover' }` }>
 
                                                         <TokenIcon
                                                             primary={ item.token === undefined }
@@ -373,7 +374,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                         <Text
                                             variant='captionStrong'
                                             dir={ item.mono ? 'ltr' : undefined }
-                                            className={ item.mono ? 'font-mono' : '' }
+                                            className={ item.mono ? 'min-w-0 truncate font-mono' : 'min-w-0 truncate' }
                                             text={ item.value } />
 
                                     </Horizontal>

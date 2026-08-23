@@ -13,7 +13,17 @@
         "Failure": {
             "Title": "Não foi possível iniciar a Nura Wallet",
             "Message": "Sua carteira continua neste dispositivo. Recarregar costuma resolver.",
-            "Reload": "Recarregar"
+            "Reload": "Recarregar",
+            "Home": "Começar de novo"
+        },
+        "Close": "Fechar",
+        "Field": {
+            "ShowPassword": "Mostrar senha",
+            "HidePassword": "Ocultar senha"
+        },
+        "Missing": {
+            "Title": "Esta tela não existe",
+            "Message": "Nada foi perdido. Sua carteira continua neste dispositivo."
         }
     },
     "Language": {
@@ -68,15 +78,13 @@
         "CreateWallet": {
             "Title": "Criar nova carteira",
             "Subtitle": "Configure sua carteira segura para começar",
-            "Name": "Nome da carteira",
             "Password": "Senha",
             "Confirm": "Confirmar senha",
             "Agreement": "Entendo que minha senha não pode ser recuperada",
             "Submit": "Criar carteira",
             "ErrorMismatch": "As senhas não coincidem",
             "ErrorLength": "A senha deve ter entre 6 e 32 caracteres",
-            "ErrorGenerate": "Não foi possível gerar a carteira. Tente novamente",
-            "ErrorSave": "Não foi possível salvar a carteira. Tente novamente"
+            "ErrorGenerate": "Não foi possível gerar a carteira. Tente novamente"
         }
     },
     "Unlock": {
@@ -85,12 +93,10 @@
         "Password": "Senha",
         "Submit": "Desbloquear carteira",
         "Loading": "Desbloqueando",
-        "Hint": "Os dados da sua carteira permanecem neste dispositivo e são descriptografados localmente.",
         "Recovery": "Se esquecer sua senha, não será possível recuperá-la.",
         "ErrorRequired": "Digite sua senha",
         "ErrorInvalid": "A senha está incorreta",
-        "ErrorMissing": "Não foi possível carregar os dados da carteira",
-        "ErrorGeneric": "Não é possível desbloquear a carteira agora"
+        "ErrorMissing": "Não foi possível carregar os dados da carteira"
     },
     "Dashboard": {
         "Nav": {
@@ -98,7 +104,6 @@
             "Browser": "Navegador",
             "Apps": "Apps"
         },
-        "Empty": "Ainda não há nada para mostrar.",
         "Offline": {
             "Title": "Sem conexão com a internet",
             "Failed": "Não foi possível acessar a rede",
@@ -109,7 +114,6 @@
         "Accounts": {
             "Title": "Contas",
             "Subtitle": "Alterne entre as contas desta carteira",
-            "Empty": "Ainda não criada",
             "Rename": "Renomear conta",
             "Save": "Salvar",
             "Add": "Adicionar conta",
@@ -124,7 +128,6 @@
             "EmojiClear": "Usar o número",
             "ErrorExists": "Esse índice já está na sua lista"
         },
-        "Address": "Endereço",
         "Copy": "Copiar endereço",
         "Copied": "Endereço copiado",
         "CopyFailed": "Não foi possível copiar o endereço",

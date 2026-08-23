@@ -8,6 +8,7 @@ import Alert from '../components/ui/alert';
 import Button from '../components/ui/button';
 import { PasswordField } from '../components/ui/field';
 
+import { layer } from '../layout/container';
 import { T } from '../utility/language';
 import { readVault } from '../core/vault';
 import { surfacePanel } from '../components/ui/panel';
@@ -109,7 +110,7 @@ export default function UnlockPage()
 
                     </div>
 
-                    <div className='relative z-20'>
+                    <div className={ `relative ${ layer.popover }` }>
 
                         <Button
                             variant='muted'
@@ -149,7 +150,7 @@ export default function UnlockPage()
                     showHint &&
                     (
                         <div
-                            className='fixed inset-0 z-10'
+                            className={ `fixed inset-0 ${ layer.chrome }` }
                             onClick={ () => { setShowHint(false); } } />
                     )
                 }

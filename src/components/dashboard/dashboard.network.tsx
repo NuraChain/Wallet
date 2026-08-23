@@ -192,7 +192,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                 <Button
                                                     variant='muted'
                                                     onClick={ () => { void onSelect(item.id); } }
-                                                    className={ `h-12 flex-1 rounded-surface px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
+                                                    className={ `h-12 min-w-0 flex-1 rounded-surface px-3 text-start ${ isActive ? 'cursor-default!' : '' }` }>
 
                                                     { /*
                                                       * The same coin logo the wallet tab shows for the
@@ -208,9 +208,11 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                         symbol={ item.symbol }
                                                         className='size-7 text-tiny' />
 
+                                                    { /* The name is whatever the user typed when they
+                                                         added the network, so it is bounded here. */ }
                                                     <Text
                                                         variant='body'
-                                                        className='flex-1'
+                                                        className='min-w-0 flex-1 truncate text-start'
                                                         text={ item.name } />
 
                                                     {

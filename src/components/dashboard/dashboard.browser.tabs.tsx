@@ -165,7 +165,7 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
                                                         kind='unknown'
                                                         src={ getSiteIcon(url) }
                                                         symbol={ name.toUpperCase() }
-                                                        className='size-4 text-[0.5rem]' />
+                                                        className='size-5 text-tiny' />
                                                 )
                                             }
 
@@ -191,9 +191,9 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
                                         <Button
                                             aria-label={ T('Dashboard.Browser.TabClose') }
                                             onClick={ () => { onClose(item.id); } }
-                                            className='flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'>
+                                            className='tap-44 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'>
 
-                                            <IoClose size={ 13 } />
+                                            <IoClose size={ 14 } />
 
                                         </Button>
 

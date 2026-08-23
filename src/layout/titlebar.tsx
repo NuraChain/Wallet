@@ -7,6 +7,8 @@ import { VscChromeClose, VscChromeMinimize } from 'react-icons/vsc';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
 import Text from '../components/ui/text';
+
+import { layer } from './container';
 import Button from '../components/ui/button';
 
 import { T } from '../utility/language';
@@ -108,7 +110,7 @@ export default function TitleBar()
             dir='ltr'
             data-tauri-drag-region
             onDoubleClick={ onToggleSize }
-            className='absolute inset-x-0 z-20 flex h-8 cursor-pointer items-center justify-between'>
+            className={ `absolute inset-x-0 ${ layer.chrome } flex h-8 cursor-pointer items-center justify-between` }>
 
             <Horizontal className='items-center gap-2 px-2'>
 
@@ -129,7 +131,7 @@ export default function TitleBar()
                         <Button
                             key={ item.key }
                             onClick={ item.action }
-                            className='flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active'>
+                            className='flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal transition-colors duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active'>
 
                             { item.icon }
 
