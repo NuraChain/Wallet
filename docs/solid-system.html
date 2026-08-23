@@ -1,0 +1,618 @@
+<title>Nura Solid Surfaces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+:root {
+    --ink: #12161d;
+    --ink-soft: #5a626e;
+    --ground: #f2f5f8;
+    --card: #ffffff;
+    --rule: #dce1e8;
+    --accent: #0057c8;
+    --pass: #0a6c37;
+
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --ink: #e9edf2;
+        --ink-soft: #98a1ad;
+        --ground: #0c1016;
+        --card: #151a21;
+        --rule: #242a33;
+        --accent: #62a8ff;
+        --pass: #5cc98a;
+    }
+}
+
+:root[data-theme="dark"] {
+    --ink: #e9edf2;
+    --ink-soft: #98a1ad;
+    --ground: #0c1016;
+    --card: #151a21;
+    --rule: #242a33;
+    --accent: #62a8ff;
+    --pass: #5cc98a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 0 20px 96px;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+.wrap { max-width: 940px; margin: 0 auto; }
+
+/* ---------------------------------------------------------------- masthead */
+
+header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 72px 0 40px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(30px, 5.4vw, 46px);
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+    text-wrap: balance;
+}
+
+.standfirst {
+    max-width: 64ch;
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 17px;
+}
+
+/* ---------------------------------------------------------------- sections */
+
+section { padding: 52px 0 0; }
+
+h2 {
+    margin: 0 0 6px;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -0.012em;
+}
+
+.lede {
+    max-width: 66ch;
+    margin: 0 0 26px;
+    color: var(--ink-soft);
+}
+
+.lede code, p code, li code, td code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    color: var(--ink);
+}
+
+/* ------------------------------------------------------- paired theme rig */
+
+.pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 720px) { .pair { grid-template-columns: 1fr; } }
+
+.spec {
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.spec > figcaption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--card);
+    color: var(--ink-soft);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/*
+ * The two specimen scopes carry the app's real token values, verbatim from
+ * src/assets/style.css. They are pinned rather than following the viewer,
+ * because the whole question this page answers is whether the palette holds
+ * in both themes at once.
+ */
+.stage {
+    padding: 20px;
+    font-family: var(--mono);
+}
+
+.stage.light {
+    --base-bg: oklch(96.5% 0.006 250);
+    --base-1: oklch(96.5% 0.006 250);
+    --base-2: oklch(100% 0 0);
+    --base-3: oklch(98% 0.005 250);
+    --line: oklch(89% 0.008 250);
+    --line-control: oklch(65% 0.012 260);
+    --shadow-color: oklch(30% 0.03 260 / 0.08);
+    --focus-ring: oklch(52% 0.2 255);
+    --btn-muted: oklch(96% 0.006 250);
+    --btn-muted-hover: oklch(94% 0.006 250);
+    --btn-muted-active: oklch(92% 0.006 250);
+    --btn-muted-border: oklch(89% 0.008 250);
+    --btn-normal: oklch(100% 0 0);
+    --btn-normal-hover: oklch(97% 0.005 250);
+    --btn-normal-border: oklch(89% 0.008 250);
+    --btn-primary: oklch(53% 0.21 255);
+    --btn-primary-hover: oklch(48% 0.21 255);
+    --btn-primary-active: oklch(44% 0.2 255);
+    --btn-primary-border: oklch(47% 0.2 255);
+    --btn-secondary: oklch(52% 0.02 260);
+    --btn-danger: oklch(53% 0.22 25);
+    --input-bg: oklch(100% 0 0);
+    --input-error: oklch(52% 0.22 25);
+    --txt-muted: oklch(48% 0.02 260);
+    --txt-normal: oklch(20% 0.02 260);
+    --txt-reverse: oklch(98% 0 0);
+    --txt-error: oklch(52% 0.22 25);
+    --txt-success: oklch(48% 0.16 150);
+    background: var(--base-bg);
+    color: var(--txt-normal);
+}
+
+.stage.dark {
+    --base-bg: oklch(17% 0.018 260);
+    --base-1: oklch(17% 0.018 260);
+    --base-2: oklch(22% 0.018 260);
+    --base-3: oklch(20% 0.018 260);
+    --line: oklch(30% 0.015 260);
+    --line-control: oklch(52% 0.015 260);
+    --shadow-color: oklch(0% 0 0 / 0.35);
+    --focus-ring: oklch(70% 0.17 255);
+    --btn-muted: oklch(24% 0.016 260);
+    --btn-muted-hover: oklch(28% 0.016 260);
+    --btn-muted-active: oklch(26% 0.016 260);
+    --btn-muted-border: oklch(30% 0.015 260);
+    --btn-normal: oklch(26% 0.016 260);
+    --btn-normal-hover: oklch(31% 0.016 260);
+    --btn-normal-border: oklch(34% 0.015 260);
+    --btn-primary: oklch(50% 0.19 255);
+    --btn-primary-hover: oklch(55% 0.19 255);
+    --btn-primary-active: oklch(46% 0.19 255);
+    --btn-primary-border: oklch(58% 0.17 255);
+    --btn-secondary: oklch(45% 0.02 260);
+    --btn-danger: oklch(52% 0.2 25);
+    --input-bg: oklch(21% 0.016 260);
+    --input-error: oklch(72% 0.19 25);
+    --txt-muted: oklch(72% 0.02 260);
+    --txt-normal: oklch(96% 0.005 260);
+    --txt-reverse: oklch(98% 0 0);
+    --txt-error: oklch(72% 0.19 25);
+    --txt-success: oklch(72% 0.16 150);
+    background: var(--base-bg);
+    color: var(--txt-normal);
+}
+
+/* --------------------------------------------- specimens, in app vocabulary */
+
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.card {
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: var(--base-2);
+    box-shadow: 0 1px 2px var(--shadow-color);
+    padding: 12px;
+}
+
+.sub { background: var(--base-3); }
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 0.75rem;
+    border: 1px solid transparent;
+    font: inherit;
+    font-size: 14px;
+    box-shadow: 0 2px 6px var(--shadow-color);
+}
+
+.btn.primary { background: var(--btn-primary); border-color: var(--btn-primary-border); color: var(--txt-reverse); }
+.btn.primary.hov { background: var(--btn-primary-hover); }
+.btn.primary.act { background: var(--btn-primary-active); }
+.btn.normal { background: var(--btn-normal); border-color: var(--btn-normal-border); color: var(--txt-normal); }
+.btn.normal.hov { background: var(--btn-normal-hover); }
+.btn.muted { background: var(--btn-muted); border-color: var(--btn-muted-border); color: var(--txt-muted); box-shadow: none; }
+.btn.danger { background: var(--btn-danger); border-color: var(--btn-danger); color: var(--txt-reverse); }
+.btn.ring { outline: 2px double var(--focus-ring); outline-offset: 2px; }
+.btn.dim { opacity: 0.6; }
+
+.field {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border: 1px solid var(--line-control);
+    border-radius: 0.75rem;
+    background: var(--input-bg);
+    color: var(--txt-muted);
+    font-size: 14px;
+}
+
+.field.bad { border-color: var(--input-error); }
+
+.alert { border-radius: 0.5rem; padding: 8px 12px; font-size: 12px; }
+.alert.err { background: color-mix(in oklab, var(--txt-error) 10%, transparent); color: var(--txt-error); text-align: center; }
+.alert.ok { background: color-mix(in oklab, var(--txt-success) 10%, transparent); color: var(--txt-success); }
+
+.listrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 48px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    background: var(--btn-muted);
+    font-size: 14px;
+    color: var(--txt-normal);
+}
+
+.listrow.on {
+    border-color: var(--btn-primary-border);
+    background: color-mix(in oklab, var(--btn-primary) 15%, transparent);
+}
+
+.disc {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 0.5rem;
+    background: var(--btn-secondary);
+    color: var(--txt-reverse);
+    font-size: 12px;
+}
+
+.tick { margin-inline-start: auto; color: var(--btn-primary); }
+.muted-line { color: var(--txt-muted); font-size: 12px; }
+.amt-in { color: var(--txt-success); }
+.amt-out { color: var(--txt-error); }
+
+.swatch { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.chip {
+    width: 42px;
+    height: 26px;
+    flex: none;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+}
+
+/* ---------------------------------------------------------------- callout */
+
+.fixed {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.fix {
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--pass);
+    border-radius: 8px;
+    background: var(--card);
+    padding: 16px 18px;
+}
+
+.fix h3 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: var(--mono);
+}
+
+.fix p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+
+.was { font-family: var(--mono); font-size: 13px; }
+.was b { color: var(--ink); font-weight: 600; }
+.arrow { color: var(--ink-soft); padding: 0 4px; }
+.now { color: var(--pass); font-weight: 600; }
+
+/* ---------------------------------------------------------------- tables */
+
+.scroller { overflow-x: auto; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+th, td { padding: 9px 14px; text-align: left; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+
+th {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+tbody tr:last-child td { border-bottom: 0; }
+
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+td.tok { font-family: var(--mono); }
+td.ok { color: var(--pass); font-weight: 600; }
+
+.foot {
+    margin-top: 52px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    color: var(--ink-soft);
+    font-size: 13px;
+}
+</style>
+
+<div class="wrap">
+
+<header>
+    <div class="eyebrow">Design system · verified</div>
+    <h1>Nura Solid Surfaces</h1>
+    <p class="standfirst">The wallet's surfaces were translucent white over three radial-gradient orbs, with a <code>backdrop-filter</code> on every card, row, button and input. They are opaque now. Both palettes below are the shipped token values, pinned side by side — because the question a de-glass has to answer is whether it holds in both themes at once.</p>
+</header>
+
+<section>
+    <h2>The surface ramp</h2>
+    <p class="lede">The old ramp was alpha: 25%, 60% and 40% white. Alpha has no colour of its own, so the muted control at 4% white in dark rendered as nothing once there was no blurred backdrop under it to tint. Separation now comes from a lightness step, a hairline, and a shadow that hints rather than carries.</p>
+
+    <div class="pair">
+        <figure class="spec" style="margin:0">
+            <figcaption><span>light</span><span>opaque</span></figcaption>
+            <div class="stage light">
+                <div class="stack">
+                    <div class="swatch"><span class="chip" style="background:var(--base-1)"></span> base-1 · page</div>
+                    <div class="swatch"><span class="chip" style="background:var(--base-2)"></span> base-2 · card</div>
+                    <div class="swatch"><span class="chip" style="background:var(--base-3)"></span> base-3 · fill</div>
+                    <div class="card">
+                        <div style="font-size:13px">Card on page</div>
+                        <div class="muted-line">Hairline, one lightness step, 1px shadow</div>
+                    </div>
+                </div>
+            </div>
+        </figure>
+
+        <figure class="spec" style="margin:0">
+            <figcaption><span>dark</span><span>opaque</span></figcaption>
+            <div class="stage dark">
+                <div class="stack">
+                    <div class="swatch"><span class="chip" style="background:var(--base-1)"></span> base-1 · page</div>
+                    <div class="swatch"><span class="chip" style="background:var(--base-2)"></span> base-2 · card</div>
+                    <div class="swatch"><span class="chip" style="background:var(--base-3)"></span> base-3 · fill</div>
+                    <div class="card">
+                        <div style="font-size:13px">Card on page</div>
+                        <div class="muted-line">Cards lift in both themes, never recess</div>
+                    </div>
+                </div>
+            </div>
+        </figure>
+    </div>
+</section>
+
+<section>
+    <h2>Two failures the rewrite removed</h2>
+    <p class="lede">Re-authoring the fills meant re-checking every pair that carries a label. Two that shipped were below the 4.5:1 floor, on the two most-pressed buttons in the app.</p>
+
+    <div class="fixed">
+        <div class="fix">
+            <h3>Reversed text on dark primary</h3>
+            <p class="was"><b>3.49:1</b><span class="arrow">→</span><span class="now">5.70:1</span></p>
+            <p>The old fill was a brighter blue that looked better alone. The resting value is now whatever leaves the hover step room to lighten and still clear the floor.</p>
+        </div>
+        <div class="fix">
+            <h3>Reversed text on dark danger</h3>
+            <p class="was"><b>3.79:1</b><span class="arrow">→</span><span class="now">5.77:1</span></p>
+            <p>Same correction, same reason. Its hover step lands at 4.66:1, which is what caps how bright the resting fill can be.</p>
+        </div>
+    </div>
+</section>
+
+<section>
+    <h2>Controls at rest, hover, press, focus and disabled</h2>
+    <p class="lede">Focus is <code>focus-visible</code> now and one colour rather than five. Pinning a transparent outline at rest suppresses the browser's own ring, so the old <code>focus:</code> spelling flashed on mouse clicks while the bare variant — the nav tabs, every history row — showed nothing at all on Tab.</p>
+
+    <div class="pair">
+        <figure class="spec" style="margin:0">
+            <figcaption><span>light</span><span>states</span></figcaption>
+            <div class="stage light">
+                <div class="stack">
+                    <div class="row">
+                        <span class="btn primary">Send</span>
+                        <span class="btn primary hov">Hover</span>
+                        <span class="btn primary act">Press</span>
+                    </div>
+                    <div class="row">
+                        <span class="btn normal">Receive</span>
+                        <span class="btn muted">Manage</span>
+                        <span class="btn danger">Log out</span>
+                    </div>
+                    <div class="row">
+                        <span class="btn primary ring">Focus ring</span>
+                        <span class="btn normal dim">Disabled</span>
+                    </div>
+                    <div class="field">0x8f3a…d41c</div>
+                    <div class="field bad">Invalid address</div>
+                    <div class="alert err">Passwords do not match</div>
+                    <div class="alert ok">Address copied</div>
+                </div>
+            </div>
+        </figure>
+
+        <figure class="spec" style="margin:0">
+            <figcaption><span>dark</span><span>states</span></figcaption>
+            <div class="stage dark">
+                <div class="stack">
+                    <div class="row">
+                        <span class="btn primary">Send</span>
+                        <span class="btn primary hov">Hover</span>
+                        <span class="btn primary act">Press</span>
+                    </div>
+                    <div class="row">
+                        <span class="btn normal">Receive</span>
+                        <span class="btn muted">Manage</span>
+                        <span class="btn danger">Log out</span>
+                    </div>
+                    <div class="row">
+                        <span class="btn primary ring">Focus ring</span>
+                        <span class="btn normal dim">Disabled</span>
+                    </div>
+                    <div class="field">0x8f3a…d41c</div>
+                    <div class="field bad">Invalid address</div>
+                    <div class="alert err">Passwords do not match</div>
+                    <div class="alert ok">Address copied</div>
+                </div>
+            </div>
+        </figure>
+    </div>
+</section>
+
+<section>
+    <h2>Rows, and one idea of “selected”</h2>
+    <p class="lede">Four surfaces had each arrived at their own selected tint, and the nav bar used a pressed-state token as a resting fill. One treatment now, and it pairs a border with the wash so the state does not rest on colour alone.</p>
+
+    <div class="pair">
+        <figure class="spec" style="margin:0">
+            <figcaption><span>light</span><span>rows</span></figcaption>
+            <div class="stage light">
+                <div class="stack">
+                    <div class="listrow on"><span class="disc">E</span> Ethereum <span class="tick">✓</span></div>
+                    <div class="listrow"><span class="disc">P</span> Polygon</div>
+                    <div class="card" style="display:flex;align-items:center;gap:12px">
+                        <span class="disc">↗</span>
+                        <span>Sent<div class="muted-line">0x51c2…9ab0</div></span>
+                        <span style="margin-inline-start:auto;text-align:end">
+                            <div class="amt-out">−0.482 ETH</div>
+                            <div class="muted-line">2 Aug</div>
+                        </span>
+                    </div>
+                    <div class="card sub" style="display:flex;align-items:center;gap:12px">
+                        <span class="disc">↙</span>
+                        <span>Received<div class="muted-line">0xa7f0…22de</div></span>
+                        <span style="margin-inline-start:auto;text-align:end">
+                            <div class="amt-in">+1.204 ETH</div>
+                            <div class="muted-line">1 Aug</div>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </figure>
+
+        <figure class="spec" style="margin:0">
+            <figcaption><span>dark</span><span>rows</span></figcaption>
+            <div class="stage dark">
+                <div class="stack">
+                    <div class="listrow on"><span class="disc">E</span> Ethereum <span class="tick">✓</span></div>
+                    <div class="listrow"><span class="disc">P</span> Polygon</div>
+                    <div class="card" style="display:flex;align-items:center;gap:12px">
+                        <span class="disc">↗</span>
+                        <span>Sent<div class="muted-line">0x51c2…9ab0</div></span>
+                        <span style="margin-inline-start:auto;text-align:end">
+                            <div class="amt-out">−0.482 ETH</div>
+                            <div class="muted-line">2 Aug</div>
+                        </span>
+                    </div>
+                    <div class="card sub" style="display:flex;align-items:center;gap:12px">
+                        <span class="disc">↙</span>
+                        <span>Received<div class="muted-line">0xa7f0…22de</div></span>
+                        <span style="margin-inline-start:auto;text-align:end">
+                            <div class="amt-in">+1.204 ETH</div>
+                            <div class="muted-line">1 Aug</div>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </figure>
+    </div>
+</section>
+
+<section>
+    <h2>The scales that had no tokens</h2>
+    <p class="lede"><code>@theme</code> declared colour and font-size only, which is exactly where the drift was: nine radii, three unnamed shadow geometries, five durations across three languages, and three bare z-indexes with the highest claimed by two unrelated things.</p>
+
+    <div class="scroller">
+        <table>
+            <thead>
+                <tr><th>Scale</th><th>Was</th><th>Is</th><th>Tokens</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Radius</td><td class="num">9</td><td class="num">3 + pill</td><td class="tok">control · surface · dialog</td></tr>
+                <tr><td>Elevation</td><td class="num">3 inline</td><td class="num">3</td><td class="tok">rest · raise · float</td></tr>
+                <tr><td>Duration</td><td class="num">5</td><td class="num">3</td><td class="tok">fast · base · surface</td></tr>
+                <tr><td>Blur</td><td class="num">5</td><td class="num">0</td><td class="tok">— removed with the glass</td></tr>
+                <tr><td>Stacking</td><td class="num">3 bare</td><td class="num">3</td><td class="tok">chrome · popover · dialog</td></tr>
+                <tr><td>Control height</td><td class="num">6</td><td class="num">2</td><td class="tok">small 32 · action 44</td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section>
+    <h2>Every pair the build checks</h2>
+    <p class="lede">Body text clears 4.5:1 on every surface it can land on; a control boundary clears 3:1. <code>script/contrast.js</code> parses the stylesheet itself — not a copy kept in step by hand — and runs as part of <code>npm run build</code>, so the palette cannot regress quietly.</p>
+
+    <div class="scroller">
+        <table>
+            <thead>
+                <tr><th>Pair</th><th>Floor</th><th>Light</th><th>Dark</th></tr>
+            </thead>
+            <tbody>
+                <tr><td class="tok">txt-normal on card</td><td class="num">4.5</td><td class="num ok">18.11</td><td class="num ok">15.41</td></tr>
+                <tr><td class="tok">txt-muted on page</td><td class="num">4.5</td><td class="num ok">5.91</td><td class="num ok">7.71</td></tr>
+                <tr><td class="tok">txt-muted on card</td><td class="num">4.5</td><td class="num ok">6.54</td><td class="num ok">6.98</td></tr>
+                <tr><td class="tok">txt-error on card</td><td class="num">4.5</td><td class="num ok">6.01</td><td class="num ok">6.20</td></tr>
+                <tr><td class="tok">txt-success on card</td><td class="num">4.5</td><td class="num ok">5.92</td><td class="num ok">7.44</td></tr>
+                <tr><td class="tok">reverse on primary</td><td class="num">4.5</td><td class="num ok">5.01</td><td class="num ok">5.70</td></tr>
+                <tr><td class="tok">reverse on primary·hover</td><td class="num">4.5</td><td class="num ok">6.19</td><td class="num ok">4.64</td></tr>
+                <tr><td class="tok">reverse on danger</td><td class="num">4.5</td><td class="num ok">5.50</td><td class="num ok">5.77</td></tr>
+                <tr><td class="tok">reverse on secondary</td><td class="num">4.5</td><td class="num ok">5.20</td><td class="num ok">7.02</td></tr>
+                <tr><td class="tok">line-control on field</td><td class="num">3.0</td><td class="num ok">3.23</td><td class="num ok">3.22</td></tr>
+                <tr><td class="tok">input-error on field</td><td class="num">3.0</td><td class="num ok">6.01</td><td class="num ok">6.34</td></tr>
+                <tr><td class="tok">focus-ring on page</td><td class="num">3.0</td><td class="num ok">5.01</td><td class="num ok">7.04</td></tr>
+                <tr><td class="tok">focus-ring on card</td><td class="num">3.0</td><td class="num ok">5.55</td><td class="num ok">6.38</td></tr>
+                <tr><td class="tok">badge-text on badge</td><td class="num">4.5</td><td class="num ok">18.11</td><td class="num ok">18.11</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p class="lede" style="margin-top:14px">14 of 52 shown. The remaining pairs are the intermediate fill states, all passing.</p>
+</section>
+
+<p class="foot">Token values transcribed verbatim from <code>src/assets/style.css</code>. Ratios computed oklch → oklab → linear sRGB → WCAG relative luminance.</p>
+
+</div>

@@ -12,12 +12,13 @@ import Spinner from '../ui/spinner';
 import TokenIcon from '../token.icon';
 import SectionHeader from '../ui/section';
 
-import Panel, { surfacePanel } from '../ui/panel';
+import Panel from '../ui/panel';
+import Popover from '../ui/popover';
 import { fieldSurface, TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
-import { layer } from '../../layout/container';
 import { selectedTint } from '../ui/menu';
+import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { vaultManager, type Vault } from '../../core/vault';
 import { useOnline } from '../../hook/connection';
@@ -222,7 +223,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                 aria-haspopup='listbox'
                                 aria-expanded={ picking }
                                 onClick={ () => { setPicking(!picking); } }
-                                className={ `${ fieldSurface } flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3` }>
+                                className={ cn(fieldSurface, 'flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3') }>
 
                                 <TokenIcon
                                     primary={ asset.token === undefined }
@@ -249,61 +250,47 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
 
                             </Button>
 
-                            {
-                                picking &&
-                                (
-                                    <>
-                                        { /*
-                                          * Catches the tap that should close the list. Behind it in the
-                                          * stack, so a tap on a row still reaches the row.
-                                          */ }
-                                        <div
-                                            aria-hidden='true'
-                                            className={ `fixed inset-0 ${ layer.chrome }` }
-                                            onClick={ () => { setPicking(false); } } />
+                            <Popover
+                                role='listbox'
+                                open={ picking }
+                                onClose={ () => { setPicking(false); } }
+                                className='scroll-hidden flex max-h-56 flex-col gap-1 overflow-y-auto'>
 
-                                        <div
-                                            role='listbox'
-                                            className={ `${ surfacePanel } absolute inset-x-0 top-full scroll-hidden ${ layer.popover } mt-1 flex max-h-56 flex-col gap-1 overflow-y-auto rounded-surface p-1` }>
+                                {
+                                    assets.map((item) => (
+                                        <Button
+                                            key={ item.key }
+                                            role='option'
+                                            aria-selected={ item.key === asset.key }
+                                            onClick={ () => { onAsset(item.key); } }
+                                            className={ `flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2 transition-colors duration-(--duration-fast) ${ item.key === asset.key ? selectedTint : 'hover:bg-btn-muted-hover' }` }>
 
-                                            {
-                                                assets.map((item) => (
-                                                    <Button
-                                                        key={ item.key }
-                                                        role='option'
-                                                        aria-selected={ item.key === asset.key }
-                                                        onClick={ () => { onAsset(item.key); } }
-                                                        className={ `flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2 transition-colors duration-(--duration-fast) ${ item.key === asset.key ? selectedTint : 'hover:bg-btn-muted-hover' }` }>
+                                            <TokenIcon
+                                                primary={ item.token === undefined }
+                                                kind={ item.token === undefined ? 'network' : 'token' }
+                                                src={ item.logo }
+                                                symbol={ item.symbol }
+                                                className='size-8' />
 
-                                                        <TokenIcon
-                                                            primary={ item.token === undefined }
-                                                            kind={ item.token === undefined ? 'network' : 'token' }
-                                                            src={ item.logo }
-                                                            symbol={ item.symbol }
-                                                            className='size-8' />
+                                            <Vertical className='min-w-0 flex-1 text-start'>
 
-                                                        <Vertical className='min-w-0 flex-1 text-start'>
+                                                <Text variant='body' className='truncate' text={ item.symbol } />
 
-                                                            <Text variant='body' className='truncate' text={ item.symbol } />
+                                                <Text className='truncate' text={ item.name } />
 
-                                                            <Text className='truncate' text={ item.name } />
+                                            </Vertical>
 
-                                                        </Vertical>
+                                            <Text
+                                                dir='ltr'
+                                                variant='captionStrong'
+                                                className='shrink-0 font-mono'
+                                                text={ trimAmount(item.formatted) } />
 
-                                                        <Text
-                                                            dir='ltr'
-                                                            variant='captionStrong'
-                                                            className='shrink-0 font-mono'
-                                                            text={ trimAmount(item.formatted) } />
+                                        </Button>
+                                    ))
+                                }
 
-                                                    </Button>
-                                                ))
-                                            }
-
-                                        </div>
-                                    </>
-                                )
-                            }
+                            </Popover>
 
                         </Vertical>
 

@@ -6,6 +6,7 @@ import { IoClose } from 'react-icons/io5';
 import Text from './text';
 import Button from './button';
 
+import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { inset, layer } from '../../layout/container';
 import { DialogTitleContext, useDialog, useDialogTitleId } from './dialog';
@@ -52,7 +53,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 animate={ { y: '0%' } }
                 exit={ { y: '-100%' } }
                 transition={ { type: 'tween' } }
-                className={ `${ surfacePanel } ${ layer.dialog } absolute inset-x-0 top-0 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 outline-none ${ inset.sheetTop } pb-4 sm:mx-auto sm:px-6 sm:pb-6` }>
+                className={ cn(surfacePanel, layer.dialog, 'absolute inset-x-0 top-0 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 outline-none', inset.sheetTop, 'pb-4 sm:mx-auto sm:px-6 sm:pb-6') }>
 
                 <Button
                     variant='muted'

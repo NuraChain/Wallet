@@ -34,6 +34,70 @@ const onKeyDown = (event: KeyboardEvent) =>
 const focusableSelector = 'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 /**
+ * useDismiss - Escape closes this surface, and focus goes back where it came from.
+ *
+ * The half of dialog behaviour a popover also wants. It is separate because the other half — trapping
+ * Tab inside the panel — is right for a dialog and wrong for a popover: a dropdown the keyboard cannot
+ * leave is a dropdown that has captured the page.
+ *
+ * `onClose` is read through a ref so a caller passing an inline arrow does not re-register on every
+ * render, which would make the stack order depend on render timing rather than on what opened last.
+ * @param {boolean} active Whether the surface is currently showing.
+ * @param {() => void} onClose Dismisses it.
+ * @returns {void}
+ */
+export const useDismiss = (active: boolean, onClose: () => void) =>
+{
+    const closeRef = useRef(onClose);
+
+    closeRef.current = onClose;
+
+    useEffect(() =>
+    {
+        if (!active)
+        {
+            return undefined;
+        }
+
+        // `document.activeElement` at mount is whatever the user pressed to get here.
+        const opener = document.activeElement;
+
+        /**
+         * close - Calls the caller's latest handler.
+         * @returns {void}
+         */
+        const close = () => { closeRef.current(); };
+
+        stack.push(close);
+
+        if (stack.length === 1)
+        {
+            document.addEventListener('keydown', onKeyDown);
+        }
+
+        return () =>
+        {
+            const index = stack.indexOf(close);
+
+            if (index >= 0)
+            {
+                stack.splice(index, 1);
+            }
+
+            if (stack.length === 0)
+            {
+                document.removeEventListener('keydown', onKeyDown);
+            }
+
+            if (opener instanceof HTMLElement && opener.isConnected)
+            {
+                opener.focus({ preventScroll: true });
+            }
+        };
+    }, [ active ]);
+};
+
+/**
  * useDialog - Gives a surface the behaviour that makes it a dialog rather than a floating div.
  *
  * None of this existed. Thirteen dialogs — including the one that approves a transaction or a
@@ -66,9 +130,7 @@ export const useDialog = (onClose: () => void) =>
 
     const titleId = `${ useId() }-title`;
 
-    const closeRef = useRef(onClose);
-
-    closeRef.current = onClose;
+    useDismiss(true, onClose);
 
     useEffect(() =>
     {
@@ -77,22 +139,6 @@ export const useDialog = (onClose: () => void) =>
         if (panel === null)
         {
             return undefined;
-        }
-
-        // `document.activeElement` at mount is whatever the user pressed to get here.
-        const opener = document.activeElement;
-
-        /**
-         * close - Calls the caller's latest handler.
-         * @returns {void}
-         */
-        const close = () => { closeRef.current(); };
-
-        stack.push(close);
-
-        if (stack.length === 1)
-        {
-            document.addEventListener('keydown', onKeyDown);
         }
 
         /**
@@ -144,27 +190,7 @@ export const useDialog = (onClose: () => void) =>
         // before the user has been told what "this" is.
         panel.focus({ preventScroll: true });
 
-        return () =>
-        {
-            panel.removeEventListener('keydown', onTab);
-
-            const index = stack.indexOf(close);
-
-            if (index >= 0)
-            {
-                stack.splice(index, 1);
-            }
-
-            if (stack.length === 0)
-            {
-                document.removeEventListener('keydown', onKeyDown);
-            }
-
-            if (opener instanceof HTMLElement && opener.isConnected)
-            {
-                opener.focus({ preventScroll: true });
-            }
-        };
+        return () => { panel.removeEventListener('keydown', onTab); };
     }, [ ]);
 
     return { panelRef, titleId };

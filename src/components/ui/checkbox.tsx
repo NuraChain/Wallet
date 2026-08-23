@@ -4,6 +4,7 @@ import { FiCheck } from 'react-icons/fi';
 
 import Text from './text';
 
+import { cn } from '../../utility/cn';
 import { fieldSurface } from './field';
 
 /**
@@ -29,7 +30,7 @@ export default function Checkbox({ checked, text, onToggle, children }: { checke
             <button
                 type='button'
                 onClick={ onToggle }
-                className={ `${ fieldSurface } flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-control hover:bg-btn-muted-hover` }>
+                className={ cn(fieldSurface, 'flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-control hover:bg-btn-muted-hover') }>
 
                 {
                     checked && <FiCheck size={ 16 } className='text-txt-muted' />

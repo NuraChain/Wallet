@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { FiHelpCircle } from 'react-icons/fi';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 
 import Text from '../components/ui/text';
 import Alert from '../components/ui/alert';
@@ -9,6 +9,8 @@ import Button from '../components/ui/button';
 import { PasswordField } from '../components/ui/field';
 
 import PageContainer, { layer } from '../layout/container';
+import Popover from '../components/ui/popover';
+import { cn } from '../utility/cn';
 import { T } from '../utility/language';
 import { readVault } from '../core/vault';
 import { surfacePanel } from '../components/ui/panel';
@@ -107,7 +109,7 @@ export default function UnlockPage()
                 initial={ { opacity: 0 } }
                 animate={ { opacity: 1 } }
                 transition={ { type: 'tween' } }
-                className={ `${ surfacePanel } flex w-full max-w-md flex-col gap-4 rounded-dialog p-6` }>
+                className={ cn(surfacePanel, 'flex w-full max-w-md flex-col gap-4 rounded-dialog p-6') }>
 
                 <Horizontal className='items-center justify-between gap-2'>
 
@@ -133,38 +135,19 @@ export default function UnlockPage()
 
                         </Button>
 
-                        <AnimatePresence>
+                        <Popover
+                            open={ showHint }
+                            anchor='inset-e-0 top-12'
+                            onClose={ () => { setShowHint(false); } }
+                            className='w-56 p-3 text-start text-tiny text-txt-normal'>
 
-                            {
-                                showHint &&
-                                (
-                                    <motion.div
-                                        initial={ { opacity: 0, scale: 0.95, y: -4 } }
-                                        animate={ { opacity: 1, scale: 1, y: 0 } }
-                                        exit={ { opacity: 0, scale: 0.95, y: -4 } }
-                                        transition={ { duration: 0.15 } }
-                                        className={ `${ surfacePanel } absolute inset-e-0 top-12 w-56 origin-top rounded-surface p-3 text-start text-tiny text-txt-normal` }>
+                            { T('Unlock.Recovery') }
 
-                                        { T('Unlock.Recovery') }
-
-                                    </motion.div>
-                                )
-                            }
-
-                        </AnimatePresence>
+                        </Popover>
 
                     </div>
 
                 </Horizontal>
-
-                {
-                    showHint &&
-                    (
-                        <div
-                            className={ `fixed inset-0 ${ layer.chrome }` }
-                            onClick={ () => { setShowHint(false); } } />
-                    )
-                }
 
                 <Alert
                     size='comfortable'

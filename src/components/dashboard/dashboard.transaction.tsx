@@ -7,6 +7,7 @@ import Text from '../ui/text';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 
+import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { surfacePanel } from '../ui/panel';
 import { formatDate, shortAddress, trimAmount } from '../../utility/format';
@@ -48,7 +49,7 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
             disabled={ !canOpen }
             aria-describedby={ canOpen ? hintId : undefined }
             onClick={ () => { onOpen(item.hash); } }
-            className={ `${ surfacePanel } flex shrink-0 items-center gap-3 rounded-surface p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-normal-hover` }>
+            className={ cn(surfacePanel, 'flex shrink-0 items-center gap-3 rounded-surface p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-normal-hover') }>
 
             <IconBox tone='muted' className='size-9'>
 
