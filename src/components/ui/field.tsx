@@ -119,6 +119,10 @@ function FieldShell({ label, error, errorId, children }: { label: string; error:
  * `error` does three things at once, because they are one fact: it tints the border with the token
  * minted for it, sets `aria-invalid`, and points `aria-describedby` at the message it renders. A
  * field that is wrong should not need the call site to remember three attributes.
+ *
+ * A caller's own `aria-describedby` is destructured out of the rest and joined rather than spread, so
+ * the two descriptions add up. Left in the rest it would land after ours and replace it, which would
+ * mean passing a hint id silently unlinked the error message.
  * @param {object} props Component props.
  * @param {string} [props.label] Muted label rendered above the input; omitted entirely when empty.
  * @param {string} [props.error] Validation message; also marks the field invalid.
@@ -130,7 +134,7 @@ function FieldShell({ label, error, errorId, children }: { label: string; error:
  * @param {string} [props.className] Extra input classes; conflicting utilities override the defaults.
  * @returns {JSX.Element} The field.
  */
-export function TextField({ label = '', error = '', onValue, onEnter, size = 'regular', leading, trailing, className = '', ...rest }: { label?: string; error?: string; onValue: (value: string) => void; onEnter?: () => void; size?: 'regular' | 'compact'; leading?: ReactNode; trailing?: ReactNode; className?: string } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'size'>)
+export function TextField({ label = '', error = '', onValue, onEnter, size = 'regular', leading, trailing, className = '', 'aria-describedby': describedById, ...rest }: { label?: string; error?: string; onValue: (value: string) => void; onEnter?: () => void; size?: 'regular' | 'compact'; leading?: ReactNode; trailing?: ReactNode; className?: string } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'size'>)
 {
     const errorId = `${ useId() }-error`;
 
@@ -145,7 +149,7 @@ export function TextField({ label = '', error = '', onValue, onEnter, size = 're
 
                 <input
                     aria-invalid={ invalid || undefined }
-                    aria-describedby={ describedBy([ invalid && errorId, rest['aria-describedby'] ]) }
+                    aria-describedby={ describedBy([ invalid && errorId, describedById ]) }
                     onChange={ (event) => { onValue(event.target.value); } }
                     onKeyDown={ onEnter === undefined ? undefined : (event) => { if (event.key === 'Enter') { onEnter(); } } }
                     className={ cn(fieldSurface, 'w-full rounded-surface px-3 text-small', size === 'regular' ? 'h-11' : 'h-9', invalid && fieldInvalid, className) }
@@ -163,8 +167,12 @@ export function TextField({ label = '', error = '', onValue, onEnter, size = 're
  * PasswordField - The lock-icon password input with its show/hide toggle.
  *
  * The reveal state lives here rather than in every parent, so the six copies of `showPassword`
- * state and the eye-toggle markup collapse into one place. Two sizes cover every use: `regular` is
- * the full-height field on the unlock and intro screens, `compact` the tighter one inside modals.
+ * state and the eye-toggle markup collapse into one place.
+ *
+ * The two sizes no longer differ in height — both are the app's one control height, which is what
+ * stopped the intro and unlock screens reading as a different product from the dashboard. What is
+ * left of `size` is the inset the lock and the reveal control sit at, which does still differ: a
+ * field inside a dialog has less room either side of it than one on a page of its own.
  *
  * Native attributes spread onto the input, which they previously did not. That was not a stylistic
  * gap: with no rest-spread there was no way for any call site to set `autoComplete`, so a password
@@ -176,12 +184,12 @@ export function TextField({ label = '', error = '', onValue, onEnter, size = 're
  * @param {string} [props.error] Validation message; also marks the field invalid.
  * @param {(value: string) => void} props.onValue Receives the value on change.
  * @param {() => void} [props.onEnter] Called when Enter is pressed.
- * @param {'regular' | 'compact'} [props.size] Field height and icon inset.
+ * @param {'regular' | 'compact'} [props.size] Inset of the lock and reveal controls, and the lock's size.
  * @param {number} [props.lockSize] Size of the lock icon, when a site deviates from the size default.
  * @param {string} [props.className] Extra input classes (e.g. a different radius).
  * @returns {JSX.Element} The field.
  */
-export function PasswordField({ label, value, error = '', onValue, onEnter, size = 'regular', lockSize = 0, className = '', ...rest }: { label: string; value: string; error?: string; onValue: (value: string) => void; onEnter?: () => void; size?: 'regular' | 'compact'; lockSize?: number; className?: string } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'value' | 'size' | 'type'>)
+export function PasswordField({ label, value, error = '', onValue, onEnter, size = 'regular', lockSize = 0, className = '', 'aria-describedby': describedById, ...rest }: { label: string; value: string; error?: string; onValue: (value: string) => void; onEnter?: () => void; size?: 'regular' | 'compact'; lockSize?: number; className?: string } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'value' | 'size' | 'type'>)
 {
     const [ show, setShow ] = useState(false);
 
@@ -212,7 +220,7 @@ export function PasswordField({ label, value, error = '', onValue, onEnter, size
                     placeholder={ label }
                     type={ show ? 'text' : 'password' }
                     aria-invalid={ invalid || undefined }
-                    aria-describedby={ describedBy([ invalid && errorId, rest['aria-describedby'] ]) }
+                    aria-describedby={ describedBy([ invalid && errorId, describedById ]) }
                     onChange={ (event) => { onValue(event.target.value); } }
                     onKeyDown={ onEnter === undefined ? undefined : (event) => { if (event.key === 'Enter') { onEnter(); } } }
                     className={ cn(fieldSurface, 'w-full rounded-surface text-small', regular ? 'h-11 px-12' : 'h-11 px-10', invalid && fieldInvalid, className) }
@@ -255,7 +263,7 @@ export function PasswordField({ label, value, error = '', onValue, onEnter, size
  * @param {string} [props.className] Extra classes; conflicting utilities override the defaults.
  * @returns {JSX.Element} The field.
  */
-export function TextArea({ label = '', error = '', onValue, className = '', ...rest }: { label?: string; error?: string; onValue: (value: string) => void; className?: string } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'className' | 'onChange'>)
+export function TextArea({ label = '', error = '', onValue, className = '', 'aria-describedby': describedById, ...rest }: { label?: string; error?: string; onValue: (value: string) => void; className?: string } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'className' | 'onChange'>)
 {
     const errorId = `${ useId() }-error`;
 
@@ -266,7 +274,7 @@ export function TextArea({ label = '', error = '', onValue, className = '', ...r
 
             <textarea
                 aria-invalid={ invalid || undefined }
-                aria-describedby={ describedBy([ invalid && errorId, rest['aria-describedby'] ]) }
+                aria-describedby={ describedBy([ invalid && errorId, describedById ]) }
                 onChange={ (event) => { onValue(event.target.value); } }
                 className={ cn(fieldSurface, 'w-full resize-none rounded-surface p-3 text-small', invalid && fieldInvalid, className) }
                 { ...rest } />

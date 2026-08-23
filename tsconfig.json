@@ -6,6 +6,7 @@
             "ESNext"
         ],
         "allowJs": true,
+        "allowImportingTsExtensions": true,
         "noEmit": true,
         "strict": true,
         "target": "esnext",

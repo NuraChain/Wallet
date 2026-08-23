@@ -211,7 +211,6 @@ for (const theme of [ 'light', 'dark' ])
     }
 
     // The control boundary, measured against the fill it encloses rather than against the page.
-    check('line-control on input-bg', 'line-control', 'input-bg', 3);
     check('input-normal on input-bg', 'input-normal', 'input-bg', 3);
     check('input-error on input-bg', 'input-error', 'input-bg', 3);
 

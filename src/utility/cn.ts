@@ -111,35 +111,7 @@ const groupList =
     'order',
     'shrink',
     'grow',
-    'basis',
-    'border',
-    'outline',
-    'ring',
-    'translate-x',
-    'translate-y',
-    'translate',
-    'scale-x',
-    'scale-y',
-    'scale',
-    'rotate',
-    'transition',
-    'animate',
-    'grid-cols',
-    'grid-rows',
-    'col-span',
-    'row-span',
-    'object',
-    'select',
-    'resize',
-    'fill',
-    'stroke',
-    'whitespace',
-    'break',
-    'align',
-    'aspect',
-    'blur',
-    'backdrop-blur',
-    'backdrop-saturate'
+    'basis'
 ] as const;
 
 /**
@@ -164,6 +136,58 @@ const clearMap: Record<string, readonly string[]> =
     'inset-y': [ 'top', 'bottom' ],
     overflow: [ 'overflow-x', 'overflow-y' ],
     rounded: [ 'rounded-t', 'rounded-r', 'rounded-b', 'rounded-l', 'rounded-s', 'rounded-e', 'rounded-tl', 'rounded-tr', 'rounded-br', 'rounded-bl', 'rounded-ss', 'rounded-se', 'rounded-ee', 'rounded-es' ]
+};
+
+/**
+ * Values of `border-*`, `outline-*` and `ring-*` that are a side, a style or an offset rather than a
+ * colour. Widths are caught separately, by the leading digit or bracket.
+ */
+const edgeMap = new Set([ 'x', 'y', 's', 'e', 't', 'r', 'b', 'l', 'solid', 'dashed', 'dotted', 'double', 'hidden', 'none', 'offset' ]);
+
+/**
+ * The three families that spell a width, a side, a style and a colour with one prefix.
+ */
+const edgeList = [ 'border', 'outline', 'ring' ] as const;
+
+/**
+ * edgeGroup - Names the colour slot of an edge family, or `undefined` for everything else it spells.
+ *
+ * These need a group because the app genuinely overrides one: a field in its error state passes
+ * `border-input-error` over the recipe's `border-input-normal`, and a selected row passes
+ * `border-btn-primary-border` over `border-btn-muted-border`. Without a group both survive and
+ * stylesheet order decides, which is the invisible failure `cn` exists to remove.
+ *
+ * They must *only* group the colour. Grouping the whole prefix means the bare `border` — which is the
+ * only thing that sets a width, since Tailwind's preflight resets every border to `0 solid` — is
+ * dropped the moment a colour follows it, and every bordered surface in the app renders at zero
+ * width. The same shape costs `outline-2 outline-offset-2 outline-double` their meaning and leaves
+ * every focus ring invisible. Both of those shipped for exactly one commit.
+ * @param {string} name The utility, with variants and the important marker already stripped.
+ * @returns {string | undefined} The colour group, or `undefined` to always keep the class.
+ */
+const edgeGroup = (name: string) =>
+{
+    for (const family of edgeList)
+    {
+        if (name === family)
+        {
+            return undefined;
+        }
+
+        if (name.startsWith(`${ family }-`))
+        {
+            const value = name.slice(family.length + 1).split('/')[0];
+
+            if ((/^[\d[]/u).test(value) || edgeMap.has(value.split('-')[0]))
+            {
+                return undefined;
+            }
+
+            return `${ family }-color`;
+        }
+    }
+
+    return undefined;
 };
 
 /**
@@ -208,6 +232,11 @@ const groupOf = (utility: string) =>
     if (name.startsWith('font-'))
     {
         return weightMap.has(name.slice(5)) ? 'font-weight' : 'font-family';
+    }
+
+    if (edgeList.some((family) => name === family || name.startsWith(`${ family }-`)))
+    {
+        return edgeGroup(name);
     }
 
     return groupList.find((prefix) => name === prefix || name.startsWith(`${ prefix }-`));

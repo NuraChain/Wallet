@@ -168,17 +168,22 @@ function DashboardView({ vault }: { vault: Vault })
      * it has to see both reads: it fails if either failed, and it dates the figures by the older of
      * the two that actually landed.
      */
-    const reads = useMemo(() =>
-    {
-        const stamps = [ native.at, tokens.at ].filter((value) => value > 0);
+    const reads = useMemo(() => ({
+        formatted: native.formatted,
+        loading: native.loading,
 
-        return {
-            formatted: native.formatted,
-            loading: native.loading,
-            error: native.error || tokens.error,
-            at: stamps.length > 0 ? Math.min(...stamps) : 0
-        };
-    }, [ native.formatted, native.loading, native.error, native.at, tokens.error, tokens.at ]);
+        // Either read failing means the figures on screen are not current, which is the whole claim
+        // the strip makes.
+        error: native.error || tokens.error,
+
+        // `at` stays the native read's own timestamp. It is overloaded — the strip prints it as an
+        // age, and `DashboardWallet` tests `at > 0` as "has the balance ever been read at all", which
+        // is what stops an unreachable chain printing the portfolio as $0.00. Folding the token read
+        // into it with a `Math.min` broke the second meaning: an account with no tracked tokens has
+        // no token read, and one that has never resolved reports 0, which would have said "never
+        // read" about a balance that had been.
+        at: native.at
+    }), [ native.formatted, native.loading, native.error, native.at, tokens.error ]);
 
     useEffect(() =>
     {
@@ -822,6 +827,7 @@ function DashboardView({ vault }: { vault: Vault })
                                                     role='tabpanel'
                                                     id={ `dashboard-panel-${ item.key }` }
                                                     aria-hidden={ index === active ? undefined : true }
+                                                    inert={ index === active ? undefined : true }
                                                     aria-labelledby={ `dashboard-tab-${ item.key }` }>
 
                                                     {

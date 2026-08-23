@@ -11,11 +11,11 @@
     /*
      * Two line weights, because WCAG 1.4.11 only binds on one of them. `line` is decorative — a card
      * hairline, a separator — and the surface fill underneath it is what actually identifies the card,
-     * so it is free to be quiet. `line-control` is the boundary of a control the user has to find, so
-     * it clears 3:1 against its own fill, and it is the one the fields wear.
+     * so it is free to be quiet. The other one is `--input-normal`, which is the boundary of a control
+     * the user has to find and therefore clears 3:1 against its own fill; it keeps its input-shaped
+     * name because the fields are the only thing that wears it.
      */
     --color-line: var(--line);
-    --color-line-control: var(--line-control);
     --color-scrim: var(--scrim);
     --color-scrollbar: var(--scrollbar-thumb);
     --color-scrollbar-hover: var(--scrollbar-thumb-hover);
@@ -170,7 +170,6 @@
     --badge-text: oklch(20% 0.02 260);
 
     --line: oklch(89% 0.008 250);
-    --line-control: oklch(65% 0.012 260);
 
     /* A hint, not the mechanism: the hairline and the lightness step do the separating now. */
     --shadow-color: oklch(30% 0.03 260 / 0.08);
@@ -241,7 +240,6 @@
     --badge-text: oklch(20% 0.02 260);
 
     --line: oklch(30% 0.015 260);
-    --line-control: oklch(52% 0.015 260);
 
     --shadow-color: oklch(0% 0 0 / 0.35);
 

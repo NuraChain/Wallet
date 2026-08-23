@@ -94,7 +94,7 @@ const painted = (element: HTMLElement) =>
  *
  * The native scrollbar is hidden (`.scroll-hidden`) and replaced by an absolutely positioned thumb, so the bar floats over the content instead of reserving a column of layout width — the content keeps the same width whether it scrolls or not.
  *
- * The thumb rests at 5% opacity and lifts to 15% on hover — the same two weights the native bar's `--scrollbar-thumb` pair carries — so it stays out of the way of the glass surfaces underneath. Only a drag brings it to full, since by then the user is holding it and wants to see what they are moving.
+ * The thumb reads `--scrollbar-thumb` and `--scrollbar-thumb-hover` directly, which is the same pair the native bar uses, so the two are one object at one weight rather than two things kept in step by hand. It lifts to the hover weight while hovered and stays there for the whole of a drag — `setPointerCapture` pins `:hover` to the capture target, so a drag state expressed as a separate class could never win against it.
  *
  * Pulling down while already at the top runs `onRefresh`, the gesture every mobile feed has trained
  * people to expect. The pull is damped so it reads as tension rather than free movement, and springs

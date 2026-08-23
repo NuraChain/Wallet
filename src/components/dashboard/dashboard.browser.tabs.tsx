@@ -29,7 +29,7 @@ import { Horizontal } from '../ui/stack';
  * the strip scrolling natively there is nothing to outrank it: `w-30` is the resting width and `grow`
  * is what lets two chips share a wide row instead of huddling at one end.
  */
-const chipBase = 'flex h-9 w-30 grow items-center gap-1.5 rounded-surface border ps-3 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';
+const chipBase = 'flex h-9 w-30 grow items-center gap-1 rounded-surface border ps-3 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';
 const chipIdle = 'border-line bg-base-3 hover:bg-base-2';
 const chipLive = selectedTint;
 
@@ -46,13 +46,16 @@ const chipLive = selectedTint;
  * while the list beside it is the part that moves — a control the list can scroll out of reach is one
  * the user has to go looking for.
  *
- * The list is a Swiper in **free mode at `slidesPerView: 'auto'`**, and every part of that matters.
- * `auto` means the chips size themselves and Swiper counts nothing: it once took a slide count measured
- * off the row by a `ResizeObserver`, and a count taken while the strip was mounting is what left the
- * list showing the tab in front and nothing else. Free mode is what makes it a scrolling row rather
- * than a carousel that snaps a chip to the edge. Between them, dragging with a mouse and turning the
- * wheel over it — the two things a phone gets from touch for free — are the library's own `simulateTouch`
- * and `Mousewheel`, so there is no drag handling written here to disagree with it.
+ * The list is a native `overflow-x` scroller. It was a Swiper in free mode at `slidesPerView: 'auto'`,
+ * which is a description of what the browser already does — and it came with a measuring step that had
+ * to be told twice to re-run, plus a rule in `style.css` to defeat the library's own slide width. The
+ * chips size themselves here because nothing is fighting them for it.
+ *
+ * What the platform gives back: touch dragging and momentum on a phone, and a trackpad's horizontal
+ * gesture on a desktop, all of it the same scrolling every other list in the OS does. What it does not
+ * give back is dragging the strip with a held mouse button, and a vertical wheel scrolls it only where
+ * the browser chooses to redirect one — the library emulated both. Neither is the way the strip is
+ * used on the platform this app ships to, and neither was worth 78 KB on the route that has it.
  *
  * A tab that has never been given an address has no host to show, so it is named for what it is.
  * @param {object} props Component props.
@@ -178,7 +181,7 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
                                     <Button
                                         aria-label={ T('Dashboard.Browser.TabClose') }
                                         onClick={ () => { onClose(item.id); } }
-                                        className='tap-44 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'>
+                                        className='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'>
 
                                         <IoClose size={ 14 } />
 

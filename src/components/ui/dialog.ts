@@ -89,10 +89,30 @@ export const useDismiss = (active: boolean, onClose: () => void) =>
                 document.removeEventListener('keydown', onKeyDown);
             }
 
-            if (opener instanceof HTMLElement && opener.isConnected)
+            /*
+             * Restored on a microtask, and only if nothing else has claimed focus by then.
+             *
+             * Two things make the straightforward version wrong. At cleanup time React has not yet
+             * removed this panel, so focus is usually still inside it and testing for that proves
+             * nothing; a microtask runs after the commit, by which point focus has fallen to the body
+             * if it really was ours. And dialogs exit on an animation, so a settings dialog that
+             * opened the language picker is still unmounting long after the picker has taken focus —
+             * restoring unconditionally there throws the user out of the dialog they just opened.
+             */
+            queueMicrotask(() =>
             {
-                opener.focus({ preventScroll: true });
-            }
+                const holder = document.activeElement;
+
+                if (holder !== null && holder !== document.body)
+                {
+                    return;
+                }
+
+                if (opener instanceof HTMLElement && opener.isConnected)
+                {
+                    opener.focus({ preventScroll: true });
+                }
+            });
         };
     }, [ active ]);
 };
