@@ -155,8 +155,8 @@ export default function UnlockPage()
                 }
 
                 <Alert
-                    variant='danger'
-                    className='mt-2 rounded-surface text-center text-small'
+                    size='comfortable'
+                    className='mt-2'
                     text={ error } />
 
                 <PasswordField
@@ -178,13 +178,13 @@ export default function UnlockPage()
                   * gone, so a screen reader still hears what the button is doing.
                   */ }
                 <Button
+                    dim
                     variant='primary'
-                    disabled={ isLoading }
+                    size='submit'
                     loading={ isLoading }
                     onClick={ () => { void onUnlock(); } }
-                    aria-label={ isLoading ? T('Unlock.Loading') : undefined }
-                    className='mx-auto h-12 w-fit min-w-40 rounded-surface px-8 py-2 disabled:opacity-60'
-                    text={ isLoading ? '' : T('Unlock.Submit') } />
+                    className='mx-auto sm:w-fit sm:min-w-40 sm:px-8'
+                    text={ T('Unlock.Submit') } />
 
             </Vertical>
 

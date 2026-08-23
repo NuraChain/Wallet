@@ -8,6 +8,7 @@ import IconBox from '../ui/iconbox';
 import { ReadonlyField, TextField } from '../ui/field';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 
+import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
 import { vaultAddress, vaultDerivable, type Vault } from '../../core/vault';
@@ -299,15 +300,15 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
                                                             value={ draft }
                                                             placeholder={ name }
                                                             onValue={ setDraft }
-                                                            onEnter={ onSave }
-                                                            className='h-12' />
+                                                            onEnter={ onSave } />
 
                                                     </div>
 
                                                     <Button
                                                         variant='primary'
+                                                        size='action'
                                                         onClick={ onSave }
-                                                        className='h-12 rounded-surface px-4 text-small'
+                                                        className='px-4'
                                                         text={ T('Dashboard.Accounts.Save') } />
 
                                                 </Horizontal>
@@ -341,8 +342,7 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
                                                           */ }
                                                         <IconBox
                                                             tone='badge'
-                                                            size='size-9'
-                                                            className={ hasBadge ? 'text-medium' : 'text-small' }>
+                                                            className={ cn('size-9', hasBadge ? 'text-medium' : 'text-small') }>
 
                                                             { hasBadge ? item.emoji : item.index }
 

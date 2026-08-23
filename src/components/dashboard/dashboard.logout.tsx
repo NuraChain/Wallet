@@ -132,11 +132,11 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
                     text={ T('Dashboard.Logout.Cancel') } />
 
                 <Button
+                    dim
                     variant='danger'
                     size='action'
                     disabled={ isLoading }
                     onClick={ () => { void onConfirm(); } }
-                    className='disabled:opacity-60'
                     text={ isLoading ? T('Dashboard.Logout.Pending') : T('Dashboard.Logout.Confirm') } />
 
             </ModalActions>

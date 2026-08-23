@@ -18,6 +18,7 @@ import Button, { fillNormal, fillPrimary } from '../ui/button';
 import IconBox from '../ui/iconbox';
 import SectionHeader from '../ui/section';
 
+import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { useClipboard } from '../../hook/clipboard';
 import { getNativeCoinId, getNativeLogo, getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
@@ -170,7 +171,7 @@ export default function DashboardWallet({ address, name, emoji, network, native,
                     className={ chipClass }>
 
                     { /* The badge the account switcher set, or the generic person until one is chosen. */ }
-                    <IconBox tone='badge' size='size-7' className={ emoji.length > 0 ? 'text-small' : '' }>
+                    <IconBox tone='badge' className={ cn('size-7', emoji.length > 0 && 'text-small') }>
 
                         {
                             emoji.length > 0 ? emoji : <HiOutlineUser size={ 14 } />
@@ -326,8 +327,8 @@ export default function DashboardWallet({ address, name, emoji, network, native,
 
                     <Button
                         variant='muted'
+                        size='small'
                         onClick={ onTokens }
-                        className='h-8 gap-1 rounded-control px-3 text-tiny'
                         leftIcon={ <HiOutlineSquares2X2 size={ 14 } /> }
                         text={ T('Dashboard.Tokens.Manage') } />
 

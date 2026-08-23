@@ -73,7 +73,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                 onClose={ onClose }
                 leading={
                     (
-                        <IconBox tone='primary' size='size-8'>
+                        <IconBox tone='primary'>
 
                             <FiGift size={ 16 } />
 
@@ -131,13 +131,14 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                               * is gone, so a screen reader still hears what the button is doing.
                               */ }
                             <Button
+                                dim
                                 variant='primary'
                                 size='action'
                                 disabled={ isLoading }
                                 loading={ isLoading }
                                 onClick={ () => { void onSubmit(); } }
                                 aria-label={ isLoading ? T('Dashboard.Redeem.Pending') : undefined }
-                                className='mt-1 disabled:opacity-60'
+                                className='mt-1'
                                 text={ isLoading ? '' : T('Dashboard.Redeem.Submit') } />
                         </>
                     )

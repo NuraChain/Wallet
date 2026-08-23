@@ -173,8 +173,13 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
 
             </Panel>
 
+            { /*
+              * A connection request leads with the triangle; a transaction or a signature is running
+              * prose, so it stays start-aligned rather than taking the verdict variant's centring.
+              */ }
             <Alert
-                variant={ prompt.kind === 'connect' ? 'warning' : 'danger' }
+                variant={ prompt.kind === 'connect' ? 'warning' : 'error' }
+                className={ prompt.kind === 'connect' ? '' : 'text-start' }
                 text={ T(noteMap[prompt.kind]) } />
 
             <ModalBody>
@@ -253,19 +258,19 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
             <ModalActions>
 
                 <Button
+                    dim
                     variant='muted'
                     size='action'
                     disabled={ isLoading }
                     onClick={ onClose }
-                    className='disabled:opacity-60'
                     text={ T('Dashboard.Request.Reject') } />
 
                 <Button
+                    dim
                     variant='primary'
                     size='action'
                     disabled={ isLoading }
                     onClick={ () => { onAnswer(true); } }
-                    className='disabled:opacity-60'
                     text={ T('Dashboard.Request.Approve') } />
 
             </ModalActions>

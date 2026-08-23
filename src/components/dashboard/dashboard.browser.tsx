@@ -473,7 +473,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                     size='iconChip'
                     aria-label={ T('Dashboard.Browser.Exit') }
                     onClick={ onExit }
-                    className='shrink-0 disabled:opacity-40'>
+                    className='shrink-0'>
 
                     <IoClose size={ 18 } />
 
@@ -484,24 +484,26 @@ export default function DashboardBrowser({ address, network, enabled, request, t
                   * other instead of the component picking between two icons at render time.
                   */ }
                 <Button
+                    dim
                     variant='chip'
                     size='iconChip'
                     disabled={ !canBack }
                     aria-label={ T('Dashboard.Browser.Back') }
                     onClick={ () => { onStep(-1); } }
-                    className='shrink-0 disabled:opacity-40'>
+                    className='shrink-0'>
 
                     <FiArrowLeft size={ 16 } className='rtl:rotate-180' />
 
                 </Button>
 
                 <Button
+                    dim
                     variant='chip'
                     size='iconChip'
                     disabled={ !canForward }
                     aria-label={ T('Dashboard.Browser.Forward') }
                     onClick={ () => { onStep(1); } }
-                    className='shrink-0 disabled:opacity-40'>
+                    className='shrink-0'>
 
                     <FiArrowRight size={ 16 } className='rtl:rotate-180' />
 

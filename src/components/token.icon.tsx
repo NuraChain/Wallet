@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+import IconBox from './ui/iconbox';
+
 import { cn } from '../utility/cn';
 import { useCachedImage } from '../hook/image';
 
@@ -29,12 +31,17 @@ export default function TokenIcon({ src, symbol, kind = 'unknown', primary = fal
 
     if (resolved.length === 0 || failed)
     {
+        // The lettered disc is `IconBox` and always was — this component had copied its three
+        // classes rather than importing it, which is the whole reason `tone='secondary'` read as a
+        // tone nothing used.
         return (
-            <div className={ cn('flex shrink-0 items-center justify-center rounded-control text-small text-txt-reverse', primary ? 'bg-btn-primary' : 'bg-btn-secondary', className) }>
+            <IconBox
+                tone={ primary ? 'primary' : 'secondary' }
+                className={ cn('text-small', className) }>
 
                 { symbol.slice(0, 1) }
 
-            </div>
+            </IconBox>
         );
     }
 

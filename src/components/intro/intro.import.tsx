@@ -12,8 +12,10 @@ import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import IntroCredentials from './intro.credentials';
+import { TextArea } from '../ui/field';
 import { Sheet, SheetHeader } from '../ui/sheet';
 
+import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { passwordHash } from '../../core/password';
 import { unlockSession } from '../../core/session';
@@ -44,6 +46,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
     const [ method, setMethod ] = useState<VaultKind>('mnemonic');
     const [ password, setPassword ] = useState('');
     const [ proceed, setProceed ] = useState(false);
+    const [ importing, setImporting ] = useState(false);
 
     const onSwiper = useCallback((swiper: SwiperType) =>
     {
@@ -123,8 +126,23 @@ export default function IntroImport({ onClose }: { onClose: () => void })
         return phrase;
     };
 
+    /**
+     * onSubmit2 - Writes the imported secret and opens the wallet.
+     *
+     * The writes are guarded because this is the destructive half of the flow: a rejection between
+     * the two of them leaves the vault stored and the password hash missing, and it used to leave
+     * the user looking at an unchanged screen with no way to tell whether the import had taken. The
+     * busy flag is the same fact from the other side — nothing stopped a second tap from starting
+     * the whole sequence again while the first was still running.
+     * @returns {Promise<void>} Resolves once the wallet is open, or once the failure is shown.
+     */
     const onSubmit2 = async() =>
     {
+        if (importing)
+        {
+            return;
+        }
+
         const stored = validate();
 
         if (stored === undefined)
@@ -132,13 +150,26 @@ export default function IntroImport({ onClose }: { onClose: () => void })
             return;
         }
 
-        await setValueEncrypted('Wallet.Mnemonic', stored, password);
+        setImporting(true);
 
-        await setValue('Wallet.Password', hash);
+        try
+        {
+            await setValueEncrypted('Wallet.Mnemonic', stored, password);
 
-        unlockSession({ kind: method, secret: stored });
+            await setValue('Wallet.Password', hash);
 
-        await navigate('/dashboard', { replace: true });
+            unlockSession({ kind: method, secret: stored });
+
+            await navigate('/dashboard', { replace: true });
+        }
+        catch
+        {
+            setError(T('Intro.ImportWallet.ErrorGenerate'));
+        }
+        finally
+        {
+            setImporting(false);
+        }
     };
 
     return (
@@ -156,7 +187,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                 onSwiper={ onSwiper }
                 className='h-fit w-full shrink-0'>
 
-                <SwiperSlide style={ { display: proceed ? 'none' : '' } }>
+                <SwiperSlide className={ proceed ? 'hidden' : '' }>
 
                     <IntroCredentials
                         prefix='Intro.ImportWallet'
@@ -197,11 +228,12 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                           * reordered by the paragraph direction, so it is pinned to LTR and set in the
                           * mono face the rest of the app uses for addresses.
                           */ }
-                        <textarea
+                        <TextArea
                             value={ secret }
+                            label={ method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message') }
                             dir={ method === 'privateKey' ? 'ltr' : undefined }
-                            onChange={ (event) => { setSecret(event.target.value); } }
-                            className={ `min-h-28 w-full resize-none rounded-surface bg-base-3 p-3 text-small outline-0 sm:min-h-36 ${ method === 'privateKey' ? 'font-mono break-all' : '' }` }
+                            onValue={ setSecret }
+                            className={ cn('min-h-28 sm:min-h-36', method === 'privateKey' && 'font-mono break-all') }
                             placeholder={ method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message') } />
 
                         {
@@ -213,8 +245,10 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
                         <Button
                             variant='primary'
+                            size='submit'
+                            loading={ importing }
                             onClick={ () => { void onSubmit2(); } }
-                            className='mx-auto h-12 w-full rounded-control px-4 sm:w-fit sm:px-8'
+                            className='mx-auto sm:w-fit sm:px-8'
                             text={ T('Intro.ImportWallet.Submit2') } />
 
                     </Vertical>

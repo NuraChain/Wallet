@@ -2,6 +2,7 @@ import type { IconType } from 'react-icons';
 
 import { motion } from 'motion/react';
 
+import Text from '../ui/text';
 import Button from '../ui/button';
 
 import { inset } from '../../layout/container';
@@ -63,11 +64,11 @@ export default function DashboardNav({ items, active, hidden, onSelect }: { item
 
                                 <item.icon size={ 16 } />
 
-                                <div className='text-tiny'>
-
-                                    { T(`Dashboard.Nav.${ item.key }`) }
-
-                                </div>
+                                { /* `inherit` sets the size and no colour: the tab's own state
+                                     decides whether this reads reversed or muted. */ }
+                                <Text
+                                    variant='inherit'
+                                    text={ T(`Dashboard.Nav.${ item.key }`) } />
 
                             </Vertical>
 

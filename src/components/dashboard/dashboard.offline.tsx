@@ -40,7 +40,7 @@ export default function DashboardOffline({ error, at }: { error: boolean; at: nu
     return (
         <Panel className='flex items-center gap-3 rounded-surface p-3'>
 
-            <IconBox size='size-9'>
+            <IconBox className='size-9'>
 
                 <FiWifiOff size={ 18 } />
 

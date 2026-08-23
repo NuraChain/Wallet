@@ -109,13 +109,15 @@ export default function IntroPage()
 
                             <FiGlobe size={ 16 } className='shrink-0' />
 
-                            <div className='truncate text-small'>
+                            <Text
+                                variant='inherit'
+                                className='truncate text-small'>
 
                                 {
                                     T('Intro.Language')
                                 }
 
-                            </div>
+                            </Text>
 
                             <IoIosArrowDown size={ 16 } className='shrink-0' />
 
@@ -153,17 +155,23 @@ export default function IntroPage()
 
                                         <slide.art className='h-32 max-h-[40%] w-auto max-w-full sm:h-44 md:h-56' />
 
-                                        <h1 className='text-center text-medium font-bold text-txt-normal sm:text-large'>
+                                        <Text
+                                            as='h1'
+                                            variant='title'
+                                            className='text-center sm:text-large'>
 
                                             { T(slide.header) }
 
-                                        </h1>
+                                        </Text>
 
-                                        <p className='max-w-sm text-center text-tiny text-txt-normal/75 sm:text-small'>
+                                        <Text
+                                            as='p'
+                                            variant='caption'
+                                            className='max-w-sm text-center sm:text-small'>
 
                                             { T(slide.message) }
 
-                                        </p>
+                                        </Text>
 
                                     </Vertical>
 
@@ -187,11 +195,15 @@ export default function IntroPage()
 
                                     { /* No colour of its own: the label takes the fill's, which is
                                       * reversed on the primary entry and normal on the other. */ }
-                                    <div className='flex-1 truncate text-start text-small sm:text-medium'>
+                                    { /* No colour of its own: the label takes the fill's, which is
+                                         reversed on the primary entry and normal on the other. */ }
+                                    <Text
+                                        variant='inherit'
+                                        className='flex-1 truncate text-start text-small sm:text-medium'>
 
                                         { T(item.label) }
 
-                                    </div>
+                                    </Text>
 
                                     <IoIosArrowForward size={ 16 } className='shrink-0 rtl:rotate-180' />
 

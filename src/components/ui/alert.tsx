@@ -1,44 +1,69 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 
-import { FiAlertTriangle } from 'react-icons/fi';
+import { FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 
 import { cn } from '../../utility/cn';
 
 /**
- * The three red-on-red treatments the app uses.
+ * What each outcome looks like.
  *
- * `error` is the centred validation banner under a modal header; `warning` is the leading-triangle
- * block that fronts a destructive flow; `danger` is running prose rather than a verdict. They share
- * one tint — the tenth that was written as `/15` on the error variant is the same idea at a different
- * strength, and one idea gets one value.
+ * `error` is a verdict — a validation banner or a failed action. `warning` is the leading-triangle
+ * block that fronts a destructive flow. `success` is the same shape as `error` in the other colour,
+ * and it is the one that was missing: `--txt-success` existed in both themes, `Alert` had no way to
+ * reach it, and so the copy-address and export-phrase surfaces rendered "done" and "that failed"
+ * through the identical muted grey line. In a wallet those two must never look the same.
+ *
+ * The `danger` variant is gone. It was `error` minus the centring, and both of its three call sites
+ * passed an alignment back in through `className` — one of them re-deriving `error` exactly. The
+ * alignment is what varied, so alignment is what call sites pass.
  */
 const variantMap =
 {
-    error: 'bg-txt-error/10 text-tiny rounded-control px-3 py-2 text-center',
-    warning: 'bg-txt-error/10 text-tiny flex items-start gap-2 rounded-surface px-3 py-2 text-start',
-    danger: 'bg-txt-error/10 text-tiny rounded-control px-3 py-2'
+    error: 'bg-txt-error/10 text-txt-error text-center',
+    warning: 'bg-txt-error/10 text-txt-error flex items-start gap-2 text-start',
+    success: 'bg-txt-success/10 text-txt-success flex items-start gap-2 text-start'
 } as const;
 
 /**
- * Alert - Inline error and warning surface.
+ * How much room the block takes.
  *
- * One component for every red box in the app, so the tint, radius and padding stop drifting between
- * copies. The `warning` variant brings its own triangle; the others are plain text containers.
+ * `compact` is the dialog default. `comfortable` is the intro's, where an alert is the only thing on
+ * a wide sheet and the dialog metrics read as cramped — both intro screens were overriding the size
+ * to `text-small` identically, which is a variant asking to exist.
+ */
+const sizeMap =
+{
+    compact: 'text-tiny rounded-control px-3 py-2',
+    comfortable: 'text-small rounded-surface px-4 py-3'
+} as const;
+
+/**
+ * Alert - Inline outcome surface.
+ *
+ * One component for every verdict box in the app, so the tint, radius and padding stop drifting
+ * between copies. `warning` brings its own triangle and `success` its own tick; `error` is plain,
+ * because an error is usually already announced by the thing that failed.
  *
  * An empty message renders nothing at all. Ten call sites each guarded their alert with the same
  * `message.length > 0 &&` conditional; the component knowing it has nothing to say removes all of
  * them, and `<Alert text={ error } />` reads as what it is.
  *
+ * The role is not decoration. Seventeen of these render across the app and none of them were
+ * announced, so a screen-reader user submitting an invalid form heard nothing happen at all. An
+ * error asserts itself with `role='alert'`; a success is `polite`, because it is confirming
+ * something the user already knows they did.
+ *
  * An alert whose whole content is a message passes it as `text` and self-closes; `children` stays for
  * anything that composes. Both render in the same slot, so the two forms never combine.
  * @param {object} props Component props.
- * @param {'error' | 'warning' | 'danger'} [props.variant] Which treatment to render.
+ * @param {'error' | 'warning' | 'success'} [props.variant] Which outcome to render.
+ * @param {'compact' | 'comfortable'} [props.size] How much room the block takes.
  * @param {string} [props.text] The message, when that is all the alert holds.
  * @param {string} [props.className] Extra classes; conflicting utilities override the variant's.
  * @param {ReactNode} [props.children] Composed content, for the cases `text` cannot express.
  * @returns {JSX.Element | undefined} The alert, or nothing when there is no message.
  */
-export default function Alert({ variant = 'error', text, className = '', children, ...rest }: { variant?: keyof typeof variantMap; text?: string; className?: string; children?: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
+export default function Alert({ variant = 'error', size = 'compact', text, className = '', children, ...rest }: { variant?: keyof typeof variantMap; size?: keyof typeof sizeMap; text?: string; className?: string; children?: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
 {
     const content = text ?? children;
 
@@ -47,23 +72,33 @@ export default function Alert({ variant = 'error', text, className = '', childre
         return undefined;
     }
 
+    const success = variant === 'success';
+
     return (
-        <div className={ cn('text-txt-error', variantMap[variant], className) } { ...rest }>
+        <div
+            role={ success ? 'status' : 'alert' }
+            aria-live={ success ? 'polite' : 'assertive' }
+            className={ cn(variantMap[variant], sizeMap[size], className) }
+            { ...rest }>
 
             {
                 variant === 'warning' && <FiAlertTriangle size={ 16 } className='mt-0.5 shrink-0' />
             }
 
             {
-                variant === 'warning' ?
+                success && <FiCheckCircle size={ 16 } className='mt-0.5 shrink-0' />
+            }
+
+            {
+                variant === 'error' ?
+                    content :
                     (
                         <span>
 
                             { content }
 
                         </span>
-                    ) :
-                    content
+                    )
             }
 
         </div>

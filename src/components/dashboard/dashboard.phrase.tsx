@@ -189,13 +189,14 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                               * is gone, so a screen reader still hears what the button is doing.
                               */ }
                             <Button
+                                dim
                                 variant='primary'
                                 size='action'
                                 disabled={ isLoading }
                                 loading={ isLoading }
                                 onClick={ () => { void onUnlock(); } }
                                 aria-label={ isLoading ? T('Dashboard.Phrase.Pending') : undefined }
-                                className='mt-1 disabled:opacity-60'
+                                className='mt-1'
                                 text={ isLoading ? '' : unlockLabel } />
                         </>
                     ) :
@@ -270,7 +271,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                                           * and the gallery copy is the one people forget.
                                           */ }
                                         <Alert
-                                            variant='danger'
+                                            className='text-start'
                                             text={ T('Dashboard.Phrase.ExportDanger') } />
 
                                         <Horizontal className='gap-2'>

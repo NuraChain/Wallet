@@ -40,7 +40,7 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
             onClick={ () => { onOpen(item.hash); } }
             className={ `${ surfacePanel } flex shrink-0 items-center gap-3 rounded-surface p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-normal-hover` }>
 
-            <IconBox tone='muted' size='size-9'>
+            <IconBox tone='muted' className='size-9'>
 
                 {
                     item.incoming ? <FiArrowDownLeft size={ 18 } /> : <FiArrowUpRight size={ 18 } />

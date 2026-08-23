@@ -329,8 +329,8 @@ export default function DashboardApps({ active, onOpen }: { active: boolean; onO
 
                 <Button
                     variant='muted'
+                    size='small'
                     onClick={ () => { setEditing(!editing); } }
-                    className='h-8 gap-1 rounded-control px-3 text-tiny'
                     leftIcon={ editing ? <FiCheck size={ 14 } /> : <FiEdit3 size={ 14 } /> }
                     text={ editing ? T('Dashboard.Apps.Done') : T('Dashboard.Apps.Manage') } />
 
@@ -345,7 +345,7 @@ export default function DashboardApps({ active, onOpen }: { active: boolean; onO
                                 apps.length > 1 &&
                                 (
                                     <Text
-                                        className='text-txt-muted/70'
+                                        variant='caption'
                                         text={ T('Dashboard.Apps.Reorder') } />
                                 )
                             }

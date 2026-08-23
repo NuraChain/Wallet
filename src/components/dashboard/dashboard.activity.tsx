@@ -57,9 +57,9 @@ export default function DashboardActivity({ items, loading, notice, canOpen, onO
             <SectionHeader title={ T('Dashboard.Activity.Title') }>
 
                 <Button
-                    variant='chip'
+                    variant='muted'
+                    size='small'
                     onClick={ onOverview }
-                    className='h-8 gap-1 rounded-control px-3 text-tiny'
                     leftIcon={ <HiOutlineListBullet size={ 14 } /> }
                     text={ T('Dashboard.Activity.Overview') } />
 

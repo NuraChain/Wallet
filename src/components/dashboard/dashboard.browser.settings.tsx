@@ -120,11 +120,11 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
             <ModalActions>
 
                 <Button
+                    dim
                     variant='danger'
                     size='action'
                     disabled={ connections === 0 }
-                    onClick={ onDisconnect }
-                    className='disabled:opacity-40'>
+                    onClick={ onDisconnect }>
 
                     <FiTrash2 size={ 16 } className='shrink-0' />
 
@@ -147,11 +147,11 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
             <ModalActions>
 
                 <Button
+                    dim
                     variant='danger'
                     size='action'
                     disabled={ visits === 0 }
-                    onClick={ onClear }
-                    className='disabled:opacity-40'>
+                    onClick={ onClear }>
 
                     <FiTrash2 size={ 16 } className='shrink-0' />
 
@@ -185,11 +185,11 @@ export default function DashboardBrowserSettings({ view, visits, icons, blocked,
             <ModalActions>
 
                 <Button
+                    dim
                     variant='danger'
                     size='action'
                     disabled={ icons === 0 && blocked === 0 }
-                    onClick={ onClearCache }
-                    className='disabled:opacity-40'>
+                    onClick={ onClearCache }>
 
                     <FiTrash2 size={ 16 } className='shrink-0' />
 

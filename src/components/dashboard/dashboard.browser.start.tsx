@@ -120,8 +120,8 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
 
                 <Button
                     variant='muted'
+                    size='small'
                     onClick={ () => { setEditing(!editing); } }
-                    className='h-8 gap-1 rounded-control px-3 text-tiny'
                     leftIcon={ editing ? <FiCheck size={ 14 } /> : <FiEdit3 size={ 14 } /> }
                     text={ editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage') } />
 
@@ -238,12 +238,11 @@ export default function DashboardBrowserStart({ explorer, favorites, visits, not
                     <Vertical className='mt-auto gap-1'>
 
                         <Text
-                            className='text-txt-muted/70'
+                            variant='caption'
                             text={ T('Dashboard.Browser.Hint') } />
 
                         <Alert
                             dir='ltr'
-                            variant='danger'
                             className='px-2 py-1 text-start font-mono'
                             text={ notice } />
 
