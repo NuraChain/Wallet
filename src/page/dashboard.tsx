@@ -1,8 +1,6 @@
 import type { IconType } from 'react-icons';
-import type { Swiper as SwiperType } from 'swiper';
 
 import { useNavigate } from 'react-router';
-import { Swiper, SwiperSlide } from 'swiper/react';
 import { motion, AnimatePresence } from 'motion/react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { HiOutlineGlobeAlt, HiOutlineSquares2X2, HiOutlineWallet } from 'react-icons/hi2';
@@ -28,8 +26,6 @@ import { getDirection, T } from '../utility/language';
 import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken, type HiddenMap, type TokenMap } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
-
-import 'swiper/css';
 
 /*
  * The dialogs, split out of the dashboard chunk.
@@ -92,8 +88,6 @@ function DashboardView({ vault }: { vault: Vault })
 {
     const navigate = useNavigate();
 
-    const swiperRef = useRef<SwiperType>(undefined);
-
     const [ active, setActive ] = useState(0);
     const [ account, setAccount ] = useState(0);
     const [ navHidden, setNavHidden ] = useState(false);
@@ -120,6 +114,21 @@ function DashboardView({ vault }: { vault: Vault })
     const address = useMemo(() => vaultAddress(vault, account), [ vault, account ]);
 
     const derivable = vaultDerivable(vault);
+
+    /**
+     * goTab - Moves to a tab and brings the nav bar back with it.
+     *
+     * Swiper's `onSlideChange` used to do the second half. Every caller that moved a tab went through
+     * `slideTo` and got the bar restored as a side effect of the animation reporting itself; with the
+     * track being plain CSS there is no event to hang that on, so the two facts are stated together.
+     * @param {number} index Which tab to show.
+     * @returns {void}
+     */
+    const goTab = useCallback((index: number) =>
+    {
+        setActive(index);
+        setNavHidden(false);
+    }, [ ]);
 
     // Every dialog closes the same way and three of them step back to settings rather than to the
     // dashboard, so the two destinations are named once instead of being written out at each mount.
@@ -525,7 +534,7 @@ function DashboardView({ vault }: { vault: Vault })
 
         setModal('none');
 
-        swiperRef.current?.slideTo(navMap.findIndex((item) => item.key === 'Browser'));
+        goTab(navMap.findIndex((item) => item.key === 'Browser'));
     };
 
     /**
@@ -731,45 +740,49 @@ function DashboardView({ vault }: { vault: Vault })
             </Suspense>
 
             { /*
-              * Keyed on the direction, not the language. Swiper caches slide offsets in the writing
-              * direction it mounted with, so it genuinely has to be rebuilt when that flips — but
-              * keying on the language code rebuilt it for en to fr as well, and rebuilding this
-              * subtree tears down every `WebFrame`, which closes every open native webview. Changing
-              * the interface language was dropping every browser tab the user had, along with its
-              * scroll position, its form input and its dApp session.
+              * A plain transform track, not a carousel.
+              *
+              * This was a Swiper with `allowTouchMove={ false }` — every gesture disabled, the nav
+              * bar's `slideTo` the only way to move — which is to say it was a library computing a
+              * `translateX` that one line of CSS computes. It was also 78 KB against a 44 KB route,
+              * and it is lazily loaded nowhere: it sat in the dashboard chunk. Dropping it here takes
+              * the whole library off the tab the app opens on.
+              *
+              * The track is laid out in the writing direction, so the panels sit in the same order
+              * the nav bar shows them in and the slide moves the way the eye expects. That is the
+              * only reason the sign flips: in `rtl` the later panels are to the left, so reaching
+              * them means translating right.
+              *
+              * Nothing is keyed on the language any more either. The old key rebuilt this subtree on
+              * every language change, and rebuilding it tears down every `WebFrame` — so switching
+              * from English to French closed every open browser tab, with its scroll position, its
+              * form input and its dApp session.
               */ }
-            <Swiper
-                key={ getDirection() }
-                dir={ getDirection() }
-                speed={ 350 }
-                // `simulateTouch` only governs mouse-drag emulation, so touch swipes still went
-                // through on a phone. `allowTouchMove` is the one that covers both, leaving the nav
-                // bar's `slideTo` as the only way to change tab.
-                allowTouchMove={ false }
-                initialSlide={ active }
-                onSwiper={ (swiper) => { swiperRef.current = swiper; } }
-                onSlideChange={ (swiper) => { setActive(swiper.activeIndex); setNavHidden(false); } }
-                className='size-full'>
+            <div dir={ getDirection() } className='size-full overflow-hidden'>
 
-                {
-                    navMap.map((item, index) => (
-                        <SwiperSlide key={ item.key }>
+                <div
+                    className='flex size-full transition-transform duration-(--duration-surface) ease-out'
+                    style={ { transform: `translateX(${ getDirection() === 'rtl' ? active * 100 : active * -100 }%)` } }>
 
-                            {
+                    {
+                        navMap.map((item, index) => (
+                            <div key={ item.key } className='size-full shrink-0'>
+
+                                {
                                 // The browser owns its whole slide: no padding, no scroll container, and
                                 // no room reserved for the nav bar, since the bar is hidden while this tab
                                 // is up. Only the drag region at the top of a frameless window is spared.
-                                item.key === 'Browser' ?
-                                    (
-                                        <PageContainer
-                                            variant='browser'
-                                            role='tabpanel'
-                                            id={ `dashboard-panel-${ item.key }` }
-                                            aria-hidden={ index === active ? undefined : true }
-                                            inert={ index === active ? undefined : true }
-                                            aria-labelledby={ `dashboard-tab-${ item.key }` }>
+                                    item.key === 'Browser' ?
+                                        (
+                                            <PageContainer
+                                                variant='browser'
+                                                role='tabpanel'
+                                                id={ `dashboard-panel-${ item.key }` }
+                                                aria-hidden={ index === active ? undefined : true }
+                                                inert={ index === active ? undefined : true }
+                                                aria-labelledby={ `dashboard-tab-${ item.key }` }>
 
-                                            { /*
+                                                { /*
                                               * `inert` is what makes the `aria-hidden` above honest.
                                               * Swiper mounts all three panels, so the two off screen kept
                                               * every button tabbable inside a subtree the accessibility
@@ -779,86 +792,88 @@ function DashboardView({ vault }: { vault: Vault })
                                               * states the contract and this enforces it.
                                               */ }
 
-                                            { /*
+                                                { /*
                                               * Its own boundary, because Swiper mounts every panel at
                                               * once: sharing the dialog boundary above would let the
                                               * browser's chunk suspend the dialogs too.
                                               */ }
-                                            <Suspense fallback={ null }>
+                                                <Suspense fallback={ null }>
 
-                                                <DashboardBrowser
-                                                    address={ address }
-                                                    network={ network }
-                                                    request={ link.url }
-                                                    ticket={ link.ticket }
-                                                    enabled={ index === active && modal === 'none' && prompt === undefined }
-                                                    onExit={ () => { swiperRef.current?.slideTo(0); } } />
+                                                    <DashboardBrowser
+                                                        address={ address }
+                                                        network={ network }
+                                                        request={ link.url }
+                                                        ticket={ link.ticket }
+                                                        enabled={ index === active && modal === 'none' && prompt === undefined }
+                                                        onExit={ () => { goTab(0); } } />
 
-                                            </Suspense>
-
-                                        </PageContainer>
-                                    ) :
-                                    (
-                                        <ScrollArea
-                                            className='size-full'
-                                            onRefresh={ onRefresh }
-                                            onScrollChange={ onPanelScroll(index) }>
-
-                                            <PageContainer
-                                                variant='tab'
-                                                role='tabpanel'
-                                                id={ `dashboard-panel-${ item.key }` }
-                                                aria-hidden={ index === active ? undefined : true }
-                                                aria-labelledby={ `dashboard-tab-${ item.key }` }>
-
-                                                {
-                                                    item.key === 'Wallet' &&
-                                                    (
-                                                        <DashboardWallet
-                                                            address={ address }
-                                                            name={ name }
-                                                            emoji={ emoji }
-                                                            network={ network }
-                                                            native={ reads }
-                                                            tokens={ tokens.tokens }
-                                                            total={ prices.total }
-                                                            totalLoading={ prices.loading }
-                                                            totalAt={ prices.at }
-                                                            prices={ prices.prices }
-                                                            history={ history }
-                                                            onSend={ () => { setModal('send'); } }
-                                                            onReceive={ () => { setModal('receive'); } }
-                                                            onRedeem={ () => { setModal('redeem'); } }
-                                                            onNetwork={ () => { setModal('network'); } }
-                                                            onAccounts={ () => { setModal('accounts'); } }
-                                                            onTokens={ () => { setModal('tokens'); } }
-                                                            onSettings={ () => { setModal('settings'); } }
-                                                            onTransaction={ onTransaction }
-                                                            onOverview={ () => { setModal('history'); } } />
-                                                    )
-                                                }
-
-                                                {
-                                                    item.key === 'Apps' && <DashboardApps active={ index === active } onOpen={ onBrowse } />
-                                                }
+                                                </Suspense>
 
                                             </PageContainer>
+                                        ) :
+                                        (
+                                            <ScrollArea
+                                                className='size-full'
+                                                onRefresh={ onRefresh }
+                                                onScrollChange={ onPanelScroll(index) }>
 
-                                        </ScrollArea>
-                                    )
-                            }
+                                                <PageContainer
+                                                    variant='tab'
+                                                    role='tabpanel'
+                                                    id={ `dashboard-panel-${ item.key }` }
+                                                    aria-hidden={ index === active ? undefined : true }
+                                                    aria-labelledby={ `dashboard-tab-${ item.key }` }>
 
-                        </SwiperSlide>
-                    ))
-                }
+                                                    {
+                                                        item.key === 'Wallet' &&
+                                                        (
+                                                            <DashboardWallet
+                                                                address={ address }
+                                                                name={ name }
+                                                                emoji={ emoji }
+                                                                network={ network }
+                                                                native={ reads }
+                                                                tokens={ tokens.tokens }
+                                                                total={ prices.total }
+                                                                totalLoading={ prices.loading }
+                                                                totalAt={ prices.at }
+                                                                prices={ prices.prices }
+                                                                history={ history }
+                                                                onSend={ () => { setModal('send'); } }
+                                                                onReceive={ () => { setModal('receive'); } }
+                                                                onRedeem={ () => { setModal('redeem'); } }
+                                                                onNetwork={ () => { setModal('network'); } }
+                                                                onAccounts={ () => { setModal('accounts'); } }
+                                                                onTokens={ () => { setModal('tokens'); } }
+                                                                onSettings={ () => { setModal('settings'); } }
+                                                                onTransaction={ onTransaction }
+                                                                onOverview={ () => { setModal('history'); } } />
+                                                        )
+                                                    }
 
-            </Swiper>
+                                                    {
+                                                        item.key === 'Apps' && <DashboardApps active={ index === active } onOpen={ onBrowse } />
+                                                    }
+
+                                                </PageContainer>
+
+                                            </ScrollArea>
+                                        )
+                                }
+
+                            </div>
+                        ))
+                    }
+
+                </div>
+
+            </div>
 
             <DashboardNav
                 items={ navMap }
                 active={ active }
                 hidden={ barHidden }
-                onSelect={ (index) => { swiperRef.current?.slideTo(index); } } />
+                onSelect={ goTab } />
 
         </motion.div>
     );

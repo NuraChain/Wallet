@@ -1,21 +1,14 @@
-import type { Swiper as SwiperType } from 'swiper';
-
 import { IoClose } from 'react-icons/io5';
 import { FiPlus } from 'react-icons/fi';
 import { useEffect, useRef } from 'react';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { FreeMode, Mousewheel } from 'swiper/modules';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
 import TokenIcon from '../token.icon';
 
 import { cn } from '../../utility/cn';
-import { getDirection, getLanguage, T } from '../../utility/language';
+import { T } from '../../utility/language';
 import { getSiteHost, getSiteIcon, type BrowserTab } from '../../core/browser';
-
-import 'swiper/css';
-import 'swiper/css/free-mode';
 import { Horizontal } from '../ui/stack';
 
 /**
@@ -28,15 +21,15 @@ import { Horizontal } from '../ui/stack';
  * The colours are the same pair every selected/unselected surface in the app uses, so the strip reads
  * as the nav bar does rather than introducing a third idea of what "active" looks like.
  *
- * The width is not here: the slide around it owns that, from `style.css`, because Swiper reads it out
- * of the stylesheet and the library's own rule would outrank a utility written on the element.
+ * The width lives here now. It used to be in `style.css`, because Swiper set `.swiper-slide { width:
+ * 100% }` from its own unlayered sheet and outranked any utility written on the element — so the one
+ * declaration that decided how many tabs were visible had to sit three files away from the chip. With
+ * the strip scrolling natively there is nothing to outrank it: `w-30` is the resting width and `grow`
+ * is what lets two chips share a wide row instead of huddling at one end.
  */
-const chipBase = 'flex h-9 w-full items-center gap-1.5 rounded-surface border ps-2.5 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';
+const chipBase = 'flex h-9 w-30 grow items-center gap-1.5 rounded-surface border ps-3 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';
 const chipIdle = 'border-line bg-base-3 hover:bg-base-2';
 const chipLive = 'border-btn-primary-border bg-btn-primary/15';
-
-/** The space between two chips, in pixels, since Swiper takes this as a number rather than a class. */
-const chipGap = 6;
 
 /**
  * DashboardBrowserTabs - The open tabs, as a strip under the browser toolbar.
@@ -70,7 +63,7 @@ const chipGap = 6;
  */
 export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, onAdd }: { tabs: BrowserTab[]; active: number; onPick: (id: number) => void; onClose: (id: number) => void; onAdd: () => void })
 {
-    const swiperRef = useRef<SwiperType>(undefined);
+    const stripRef = useRef<HTMLDivElement>(null);
 
     const at = tabs.findIndex((item) => item.id === active);
 
@@ -84,8 +77,8 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
     const listed = tabs.some((item) => item.index >= 0);
 
     // Brings the tab in front into view when it was chosen from somewhere else — opening one, or
-    // closing the one that was there. Told to update first, since a slide added in this same commit is
-    // one Swiper has not measured yet and sliding to it would land on the wrong chip.
+    // closing the one that was there. `scrollIntoView` on the chip itself rather than a computed
+    // offset: the chips grow to share the row, so their positions are not a function of the index.
     useEffect(() =>
     {
         if (at < 0)
@@ -93,8 +86,7 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
             return;
         }
 
-        swiperRef.current?.update();
-        swiperRef.current?.slideTo(at);
+        stripRef.current?.children[at]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     }, [ at, tabs.length ]);
 
     if (!listed)
@@ -119,26 +111,21 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
             <div className='min-w-0 flex-1'>
 
                 { /*
-                  * `observer` and `observeParents` are Swiper's own answer to being measured too early.
-                  * The strip is mounted and unmounted with the start screen, and a Swiper that
-                  * initialises before its row has a width lays every chip out against zero and leaves
-                  * the row looking empty. These re-measure when the element or anything above it
-                  * changes, which is the same job the old `ResizeObserver` was doing by hand.
+                  * A scroll container, not a carousel.
+                  *
+                  * This was a Swiper in free mode at `slidesPerView: 'auto'`, which is a description of
+                  * what `overflow-x: auto` already does — plus `observer`/`observeParents` to answer
+                  * being measured before the row had a width, a manual `update()` before every move,
+                  * and a rule in `style.css` to defeat the library's own slide width. A native scroller
+                  * has no measuring step to get wrong, and the browser's own momentum is the one the
+                  * platform uses everywhere else.
+                  *
+                  * `scroll-hidden` is the app's existing opt-out of the native bar; the strip is
+                  * dragged and swiped rather than scrolled by its own gutter.
                   */ }
-                <Swiper
-                    freeMode
-                    observer
-                    observeParents
-                    key={ getLanguage().code }
-                    dir={ getDirection() }
-                    speed={ 250 }
-                    modules={ [ FreeMode, Mousewheel ] }
-                    slidesPerView='auto'
-                    spaceBetween={ chipGap }
-                    initialSlide={ at < 0 ? 0 : at }
-                    mousewheel={ { forceToAxis: true } }
-                    onSwiper={ (swiper) => { swiperRef.current = swiper; } }
-                    className='tab-strip w-full'>
+                <div
+                    ref={ stripRef }
+                    className='scroll-hidden flex w-full gap-2 overflow-x-auto overscroll-x-contain'>
 
                     {
                         tabs.map((item) =>
@@ -148,63 +135,59 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
                             const name = url.length > 0 ? getSiteHost(url) : T('Dashboard.Browser.TabEmpty');
 
                             return (
-                                <SwiperSlide key={ item.id }>
+                                <div key={ item.id } className={ cn(chipBase, item.id === active ? chipLive : chipIdle) }>
 
-                                    <div className={ cn(chipBase, item.id === active ? chipLive : chipIdle) }>
+                                    <Button
+                                        aria-current={ item.id === active }
+                                        title={ url.length > 0 ? url : name }
+                                        onClick={ () => { onPick(item.id); } }
+                                        className='flex min-w-0 flex-1 cursor-pointer items-center gap-1.5'>
 
-                                        <Button
-                                            aria-current={ item.id === active }
-                                            title={ url.length > 0 ? url : name }
-                                            onClick={ () => { onPick(item.id); } }
-                                            className='flex min-w-0 flex-1 cursor-pointer items-center gap-1.5'>
+                                        {
+                                            url.length > 0 &&
+                                            (
+                                                <TokenIcon
+                                                    kind='unknown'
+                                                    src={ getSiteIcon(url) }
+                                                    symbol={ name.toUpperCase() }
+                                                    className='size-5 text-tiny' />
+                                            )
+                                        }
 
-                                            {
-                                                url.length > 0 &&
-                                                (
-                                                    <TokenIcon
-                                                        kind='unknown'
-                                                        src={ getSiteIcon(url) }
-                                                        symbol={ name.toUpperCase() }
-                                                        className='size-5 text-tiny' />
-                                                )
-                                            }
+                                        <Text
+                                            variant={ item.id === active ? 'captionStrong' : 'caption' }
+                                            className='min-w-0 flex-1 truncate text-start'>
 
-                                            <Text
-                                                variant={ item.id === active ? 'captionStrong' : 'caption' }
-                                                className='min-w-0 flex-1 truncate text-start'>
+                                            <span dir='ltr'>
 
-                                                <span dir='ltr'>
+                                                { name }
 
-                                                    { name }
+                                            </span>
 
-                                                </span>
+                                        </Text>
 
-                                            </Text>
+                                    </Button>
 
-                                        </Button>
-
-                                        { /*
+                                    { /*
                                           * Always present, including on the last tab: closing it leaves
                                           * an empty tab behind rather than an empty strip, so the
                                           * control never has to explain why it is missing.
                                           */ }
-                                        <Button
-                                            aria-label={ T('Dashboard.Browser.TabClose') }
-                                            onClick={ () => { onClose(item.id); } }
-                                            className='tap-44 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'>
+                                    <Button
+                                        aria-label={ T('Dashboard.Browser.TabClose') }
+                                        onClick={ () => { onClose(item.id); } }
+                                        className='tap-44 flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'>
 
-                                            <IoClose size={ 14 } />
+                                        <IoClose size={ 14 } />
 
-                                        </Button>
+                                    </Button>
 
-                                    </div>
-
-                                </SwiperSlide>
+                                </div>
                             );
                         })
                     }
 
-                </Swiper>
+                </div>
 
             </div>
 

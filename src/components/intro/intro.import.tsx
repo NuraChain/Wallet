@@ -1,10 +1,8 @@
-import type { Swiper as SwiperType } from 'swiper';
 import type { VaultKind } from '../../core/vault';
 
 import { Mnemonic } from 'ethers';
 import { useNavigate } from 'react-router';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { useCallback, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import WalletManager from '../../core/wallet';
 
@@ -38,8 +36,6 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 {
     const navigate = useNavigate();
 
-    const swiperRef = useRef<SwiperType>(undefined);
-
     const [ hash, setHash ] = useState('');
     const [ error, setError ] = useState('');
     const [ secret, setSecret ] = useState('');
@@ -48,16 +44,9 @@ export default function IntroImport({ onClose }: { onClose: () => void })
     const [ proceed, setProceed ] = useState(false);
     const [ importing, setImporting ] = useState(false);
 
-    const onSwiper = useCallback((swiper: SwiperType) =>
-    {
-        swiperRef.current = swiper;
-    }, [ ]);
-
     const onSubmit1 = async(chosen: string) =>
     {
         const hash2 = await passwordHash(chosen);
-
-        swiperRef.current?.slideTo(1);
 
         setHash(hash2);
 
@@ -183,12 +172,19 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                 className='mx-auto w-fit px-4 text-small'
                 text={ error } />
 
-            <Swiper
-                onSwiper={ onSwiper }
-                className='h-fit w-full shrink-0'>
-
-                <SwiperSlide className={ proceed ? 'hidden' : '' }>
-
+            { /*
+              * Two steps, rendered one at a time. This was a `Swiper` that nothing ever swiped: the
+              * only way to reach the second step was `slideTo(1)` from the submit handler, and the
+              * first step was taken out of the flow by an inline `display: none` rather than by the
+              * slider. A carousel with no gesture and one programmatic move is a conditional.
+              *
+              * `proceed` was already the state deciding which step is live, so it decides directly
+              * now — and the step that is not showing is unmounted rather than hidden, which is the
+              * behaviour a password field being left behind should have anyway.
+              */ }
+            {
+                !proceed &&
+                (
                     <IntroCredentials
                         prefix='Intro.ImportWallet'
                         submitKey='Submit1'
@@ -196,11 +192,12 @@ export default function IntroImport({ onClose }: { onClose: () => void })
                         submitClass='mb-2'
                         onError={ setError }
                         onSubmit={ onSubmit1 } />
+                )
+            }
 
-                </SwiperSlide>
-
-                <SwiperSlide>
-
+            {
+                proceed &&
+                (
                     <Vertical className='gap-4 px-1 py-2'>
 
                         { /*
@@ -253,9 +250,8 @@ export default function IntroImport({ onClose }: { onClose: () => void })
 
                     </Vertical>
 
-                </SwiperSlide>
-
-            </Swiper>
+                )
+            }
 
         </Sheet>
     );

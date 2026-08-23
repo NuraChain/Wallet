@@ -449,9 +449,14 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                 (
                     <Vertical className='items-center gap-3 py-4'>
 
-                        <Text
-                            variant='body'
-                            className='text-center text-txt-error'
+                        { /*
+                          * The highest-stakes error in a wallet, and it was the one rendered as bare
+                          * red text — no tint, no radius, no padding, unannounced — in a file that
+                          * already used `Alert` correctly twice a hundred lines above.
+                          */ }
+                        <Alert
+                            size='comfortable'
+                            className='w-full'
                             text={ failure.length > 0 ? failure : T('Dashboard.Send.Error') } />
 
                         <Button
