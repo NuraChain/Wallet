@@ -145,7 +145,8 @@
             "InvalidAddress": "Digite um endereço de contrato válido",
             "NotFound": "Nenhum token ERC20 encontrado neste endereço nesta rede",
             "Exists": "Este token já está na sua lista",
-            "Empty": "Nenhum token adicionado ainda"
+            "Empty": "Nenhum token adicionado ainda",
+            "Contract": "Endereço do contrato"
         },
         "Network": {
             "Title": "Rede",
@@ -336,7 +337,6 @@
             "Password": "Senha",
             "Confirm": "Sair",
             "Cancel": "Cancelar",
-            "Pending": "Saindo…",
             "ErrorRequired": "Digite sua senha",
             "ErrorInvalid": "A senha está incorreta"
         },
@@ -344,7 +344,8 @@
             "Name": "Nome",
             "Save": "Salvar",
             "Cancel": "Cancelar",
-            "Invalid": "Digite um endereço da web."
+            "Invalid": "Digite um endereço da web.",
+            "Url": "Endereço web"
         }
     }
 }

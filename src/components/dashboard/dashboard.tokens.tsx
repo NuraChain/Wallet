@@ -87,8 +87,7 @@ export default function DashboardTokens({ network, tokens, prices, onAdd, onRemo
     return (
         <Modal
             scroll
-            onClose={ onClose }
-            panelClass='max-w-[calc(100vw-2rem)]'>
+            onClose={ onClose }>
 
             <ModalHeader
                 title={ T('Dashboard.Tokens.ManageTitle') }
@@ -108,6 +107,7 @@ export default function DashboardTokens({ network, tokens, prices, onAdd, onRemo
                                 value={ contract }
                                 spellCheck={ false }
                                 autoComplete='off'
+                                label={ T('Dashboard.Tokens.Contract') }
                                 placeholder='0x…'
                                 onValue={ setContract }
                                 className='font-mono' />

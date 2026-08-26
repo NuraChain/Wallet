@@ -296,9 +296,13 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
 
                         <Vertical className='gap-1'>
 
-                            <Text text={ T('Dashboard.Send.Recipient') } />
-
+                            { /*
+                              * The label rides on the field rather than as a sibling heading, so the
+                              * input is named to assistive technology by the same words that label it
+                              * on screen — the two inputs of this form were announced unnamed.
+                              */ }
                             <TextField
+                                label={ T('Dashboard.Send.Recipient') }
                                 value={ to }
                                 dir='ltr'
                                 placeholder='0x…'
@@ -319,10 +323,16 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
 
                             </SectionHeader>
 
+                            { /*
+                              * Named rather than labelled: the section header above carries the visible
+                              * words and the Max control sits beside them, so the association is made
+                              * for the reader of the accessibility tree instead of re-laying-out the row.
+                              */ }
                             <TextField
                                 value={ amount }
                                 dir='ltr'
                                 inputMode='decimal'
+                                aria-label={ T('Dashboard.Send.Amount') }
                                 placeholder='0.0'
                                 onValue={ setAmount }
                                 className='font-mono' />
@@ -377,7 +387,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
                                 variant='muted'
                                 size='action'
                                 onClick={ () => { setStep('form'); } }
-                                leftIcon={ <FiArrowLeft size={ 16 } /> }
+                                leftIcon={ <FiArrowLeft size={ 16 } className='rtl:rotate-180' /> }
                                 text={ T('Dashboard.Send.Back') } />
 
                             <Button

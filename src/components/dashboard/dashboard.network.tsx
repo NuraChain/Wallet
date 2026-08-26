@@ -151,6 +151,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                         // ordering inside the string is left to `dir`.
                                         dir={ item.key === 'Name' ? undefined : 'ltr' }
                                         inputMode={ item.numeric ? 'numeric' : undefined }
+                                        aria-label={ T(`Dashboard.Network.${ item.key }`) }
                                         placeholder={ T(`Dashboard.Network.${ item.key }`) }
                                         onValue={ (value) => { setDraft((current) => ({ ...current, [item.key]: value })); } }
                                         className='text-center' />

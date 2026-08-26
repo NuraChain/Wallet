@@ -145,7 +145,8 @@
             "InvalidAddress": "Geçerli bir sözleşme adresi girin",
             "NotFound": "Bu ağda bu adreste ERC20 tokeni bulunamadı",
             "Exists": "Bu token zaten listenizde",
-            "Empty": "Henüz token eklenmedi"
+            "Empty": "Henüz token eklenmedi",
+            "Contract": "Kontrat adresi"
         },
         "Network": {
             "Title": "Ağ",
@@ -336,7 +337,6 @@
             "Password": "Parola",
             "Confirm": "Çıkış yap",
             "Cancel": "İptal",
-            "Pending": "Çıkış yapılıyor…",
             "ErrorRequired": "Lütfen parolanızı girin",
             "ErrorInvalid": "Parola yanlış"
         },
@@ -344,7 +344,8 @@
             "Name": "Ad",
             "Save": "Kaydet",
             "Cancel": "İptal",
-            "Invalid": "Bir web adresi girin."
+            "Invalid": "Bir web adresi girin.",
+            "Url": "Web adresi"
         }
     }
 }

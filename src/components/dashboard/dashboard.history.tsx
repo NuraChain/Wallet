@@ -159,6 +159,7 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
                 value={ query }
                 spellCheck={ false }
                 autoComplete='off'
+                aria-label={ T('Dashboard.Activity.Search') }
                 placeholder={ T('Dashboard.Activity.Search') }
                 onValue={ setQuery }
                 className='h-10 ps-9 pe-3'

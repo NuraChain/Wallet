@@ -145,7 +145,8 @@
             "InvalidAddress": "请输入有效的合约地址",
             "NotFound": "在该网络的此地址上未找到 ERC20 代币",
             "Exists": "该代币已在你的列表中",
-            "Empty": "尚未添加代币"
+            "Empty": "尚未添加代币",
+            "Contract": "合约地址"
         },
         "Network": {
             "Title": "网络",
@@ -336,7 +337,6 @@
             "Password": "密码",
             "Confirm": "退出登录",
             "Cancel": "取消",
-            "Pending": "正在退出…",
             "ErrorRequired": "请输入密码",
             "ErrorInvalid": "密码不正确"
         },
@@ -344,7 +344,8 @@
             "Name": "名称",
             "Save": "保存",
             "Cancel": "取消",
-            "Invalid": "请输入网址。"
+            "Invalid": "请输入网址。",
+            "Url": "网址"
         }
     }
 }

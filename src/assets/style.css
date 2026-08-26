@@ -337,6 +337,14 @@
     user-select: none;
     -webkit-user-drag: none;
     -webkit-user-select: none;
+
+    /*
+     * Android's WebView paints its own grey flash over whatever was tapped. Every control here
+     * already answers a press with a state of its own — a fill step, a scale — so the native
+     * overlay is noise on top of feedback the interface provides anyway, and on the dense rows
+     * of the holdings and history lists it read as a rendering fault.
+     */
+    -webkit-tap-highlight-color: transparent;
 }
 
 /*
@@ -353,9 +361,15 @@ textarea,
     -webkit-user-select: text;
 }
 
-html:lang(en) body {
-    font-family: monospace, sans-serif;
-}
+/*
+ * The body face is the one Tailwind's preflight already puts on `<html>` — `ui-sans-serif` and the
+ * platform faces behind it — so every language reads in its own OS voice: Segoe UI on Windows,
+ * SF on macOS, Roboto on Android. An earlier revision pinned English to the generic `monospace`,
+ * which set the app's default language in Courier New on Windows while the other nine bundles sat
+ * on the sans stack — ten launch languages, several ideas of what the product's typeface is. The
+ * mono voice survives where it was always deliberate: addresses, hashes and amounts carry an
+ * explicit `font-mono`, which is the machine register and nothing else.
+ */
 
 /*
  * Arabic gets the same face as Persian. The `@font-face` above already declares a `unicode-range`

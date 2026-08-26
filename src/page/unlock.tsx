@@ -115,7 +115,11 @@ export default function UnlockPage()
 
                     <div>
 
+                        { /* A real top-level heading: this is one of the screens that is the whole
+                             page rather than a panel within one, and the route error screens above
+                             it already carry the document's outline the same way. */ }
                         <Text
+                            as='h1'
                             variant='heading'
                             text={ T('Unlock.Title') } />
 

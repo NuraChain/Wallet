@@ -6,7 +6,7 @@ import { Autoplay, Pagination } from 'swiper/modules';
 import { motion, AnimatePresence } from 'motion/react';
 import { FiDownload, FiGlobe, FiMoon, FiPlusCircle, FiSun } from 'react-icons/fi';
 import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
-import { useRef, useCallback, useState, type ReactNode } from 'react';
+import { useRef, useCallback, useState, useMemo, type ReactNode } from 'react';
 
 import Text from '../components/ui/text';
 import Button from '../components/ui/button';
@@ -56,6 +56,16 @@ const entryMap: { key: string; icon: IconType; label: string; variant: 'primary'
 export default function IntroPage()
 {
     const swiperRef = useRef<SwiperType>(undefined);
+
+    // Read once rather than subscribed to: the preference cannot change while this screen is up
+    // without the window losing focus, and the carousel is rebuilt on language change anyway.
+    //
+    // The global reduced-motion rule in `style.css` collapses CSS transitions and animations, but
+    // Swiper drives its autoplay from JavaScript timers writing inline transforms, which that rule
+    // never reaches. Left enabled it advances every eight seconds against an explicit user setting,
+    // and `disableOnInteraction` means a touch user cannot even pause it by swiping — hover is the
+    // only brake, and touch has none.
+    const reducedMotion = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, []);
 
     const [ subPage, setSubPage ] = useState<ReactNode>();
     const [ theme, setThemeState ] = useState(getTheme());
@@ -141,7 +151,10 @@ export default function IntroPage()
                         modules={ [ Autoplay, Pagination ] }
                         onSwiper={ onSwiper }
                         loop={ true }
-                        autoplay={ { disableOnInteraction: false, pauseOnMouseEnter: true, delay: 8000 } }
+
+                        // Off entirely under reduced motion: the slides stay where the user put them
+                        // and remain reachable through the pagination bullets, which are clickable.
+                        autoplay={ reducedMotion ? false : { disableOnInteraction: false, pauseOnMouseEnter: true, delay: 8000 } }
                         pagination={ { clickable: true } }
                         className='mt-4 min-h-0 w-full flex-1 sm:mt-8'>
 
@@ -191,8 +204,6 @@ export default function IntroPage()
 
                                     <item.icon size={ 32 } className='shrink-0 p-1.5' />
 
-                                    { /* No colour of its own: the label takes the fill's, which is
-                                      * reversed on the primary entry and normal on the other. */ }
                                     { /* No colour of its own: the label takes the fill's, which is
                                          reversed on the primary entry and normal on the other. */ }
                                     <Text

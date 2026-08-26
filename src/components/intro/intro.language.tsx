@@ -20,7 +20,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void })
         <Modal
             scroll={ true }
             onClose={ onClose }
-            panelClass='w-72 gap-2 rounded-control'>
+            panelClass='w-72 gap-2'>
 
             <ModalHeader
                 title={ T('Intro.Select') }

@@ -230,10 +230,16 @@ export default function DashboardWallet({ address, name, emoji, network, native,
 
             <Vertical className='items-center gap-2 py-2'>
 
+                { /*
+                  * `break-all` is the overflow answer for the one figure that cannot be truncated and
+                  * must never be allowed to push the tab sideways: a portfolio large enough to exceed
+                  * the column wraps across two lines instead of clipping or stretching the layout.
+                  * Ordinary balances never reach it — it exists for the whale, not the norm.
+                  */ }
                 <Text
                     dir='ltr'
                     variant='title'
-                    className='text-display'
+                    className='text-display break-all'
                     text={ headline() } />
 
                 { /*

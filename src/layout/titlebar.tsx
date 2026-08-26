@@ -118,8 +118,11 @@ export default function TitleBar()
 
             <Horizontal className='items-center gap-2 px-2'>
 
+                { /* Decorative: the name beside it is what the bar says, and an unnamed image
+                     would only be announced as "image" ahead of it. */ }
                 <img
                     src={ Logo }
+                    alt=''
                     className='size-4' />
 
                 <Text

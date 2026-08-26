@@ -16,6 +16,11 @@ import { Vertical } from './ui/stack';
  * identical pair, so what a holding is worth is written beside it in one shape rather than three. A
  * holding with no resolvable price passes no `value` and the second line is left out entirely, rather
  * than printing a misleading `$0.00`.
+ *
+ * The block end-aligns both lines. A column of balances that meets at one edge keeps its magnitudes
+ * comparable at a glance — where the digits sit is how a list of amounts is scanned — while centred
+ * figures float at whatever their own width dictates. `dir='ltr'` pins which physical edge that is:
+ * the numbers read left-to-right even in a right-to-left interface.
  * @param {object} props Component props.
  * @param {string} props.amount The balance, already trimmed for display.
  * @param {string} [props.value] The USD worth, when it could be resolved.
@@ -24,7 +29,7 @@ import { Vertical } from './ui/stack';
 export function AssetAmount({ amount, value }: { amount: string; value?: string })
 {
     return (
-        <Vertical dir='ltr' className='shrink-0 items-center'>
+        <Vertical dir='ltr' className='shrink-0 items-end'>
 
             <Text variant='body' className='font-mono' text={ amount } />
 

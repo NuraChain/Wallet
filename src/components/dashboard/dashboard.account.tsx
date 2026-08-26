@@ -193,8 +193,7 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
     return (
         <Modal
             scroll
-            onClose={ onClose }
-            panelClass='max-w-[calc(100vw-2rem)]'>
+            onClose={ onClose }>
 
             <ModalHeader
                 title={ T('Dashboard.Accounts.Title') }
@@ -263,7 +262,15 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
 
                                                     <Text text={ T('Dashboard.Accounts.Emoji') } />
 
-                                                    <div className='grid grid-cols-8 gap-1'>
+                                                    { /*
+                                                      * Five columns rather than eight: at the panel's
+                                                      * narrowest each cell lands at the 44px target the
+                                                      * app's own `tap-44` utility is built around. Eight
+                                                      * columns put the same glyphs at half that — a grid
+                                                      * of mis-taps on exactly the screen where a thumb
+                                                      * picks what an account wears.
+                                                      */ }
+                                                    <div className='grid grid-cols-5 gap-1'>
 
                                                         {
                                                             emojiList.map((emoji) => (
@@ -271,7 +278,7 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
                                                                     key={ emoji }
                                                                     variant='muted'
                                                                     onClick={ () => { onBadge(item.index, emoji); } }
-                                                                    className='size-8 rounded-control text-medium'
+                                                                    className='h-10 w-full rounded-control text-medium'
                                                                     text={ emoji } />
                                                             ))
                                                         }

@@ -119,10 +119,14 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
                 onEnter={ () => { void onConfirm(); } } />
 
             { /*
-              * Cancel carries the emphasis and the destructive button is the quiet one: this
-              * dialog exists to slow the user down, so the prominent control should be the way
-              * back out rather than the one that wipes the wallet.
-              */ }
+                  * Cancel carries the emphasis and the destructive button is the quiet one: this
+                  * dialog exists to slow the user down, so the prominent control should be the way
+                  * back out rather than the one that wipes the wallet.
+                  *
+                  * The busy state is the app's standard one — spinner ahead of the label, control
+                  * disabled — rather than a label swap, which left this the only working form in the
+                  * app whose wait looked like nothing happening.
+                  */ }
             <ModalActions>
 
                 <Button
@@ -135,9 +139,9 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
                     dim
                     variant='danger'
                     size='action'
-                    disabled={ isLoading }
+                    loading={ isLoading }
                     onClick={ () => { void onConfirm(); } }
-                    text={ isLoading ? T('Dashboard.Logout.Pending') : T('Dashboard.Logout.Confirm') } />
+                    text={ T('Dashboard.Logout.Confirm') } />
 
             </ModalActions>
 

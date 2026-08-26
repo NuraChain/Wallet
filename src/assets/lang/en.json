@@ -145,7 +145,8 @@
             "InvalidAddress": "Enter a valid contract address",
             "NotFound": "No ERC20 token found at this address on this network",
             "Exists": "This token is already in your list",
-            "Empty": "No tokens added yet"
+            "Empty": "No tokens added yet",
+            "Contract": "Contract address"
         },
         "Network": {
             "Title": "Network",
@@ -336,7 +337,6 @@
             "Password": "Password",
             "Confirm": "Log out",
             "Cancel": "Cancel",
-            "Pending": "Logging out…",
             "ErrorRequired": "Please enter your password",
             "ErrorInvalid": "Password is incorrect"
         },
@@ -344,7 +344,8 @@
             "Name": "Name",
             "Save": "Save",
             "Cancel": "Cancel",
-            "Invalid": "Enter a web address."
+            "Invalid": "Enter a web address.",
+            "Url": "Web address"
         }
     }
 }

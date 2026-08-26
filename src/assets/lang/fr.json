@@ -145,7 +145,8 @@
             "InvalidAddress": "Saisissez une adresse de contrat valide",
             "NotFound": "Aucun jeton ERC20 trouvé à cette adresse sur ce réseau",
             "Exists": "Ce jeton figure déjà dans votre liste",
-            "Empty": "Aucun jeton ajouté pour l'instant"
+            "Empty": "Aucun jeton ajouté pour l'instant",
+            "Contract": "Adresse du contrat"
         },
         "Network": {
             "Title": "Réseau",
@@ -336,7 +337,6 @@
             "Password": "Mot de passe",
             "Confirm": "Se déconnecter",
             "Cancel": "Annuler",
-            "Pending": "Déconnexion…",
             "ErrorRequired": "Veuillez saisir votre mot de passe",
             "ErrorInvalid": "Mot de passe incorrect"
         },
@@ -344,7 +344,8 @@
             "Name": "Nom",
             "Save": "Enregistrer",
             "Cancel": "Annuler",
-            "Invalid": "Saisissez une adresse web."
+            "Invalid": "Saisissez une adresse web.",
+            "Url": "Adresse web"
         }
     }
 }

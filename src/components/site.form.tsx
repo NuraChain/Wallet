@@ -94,6 +94,7 @@ export default function SiteForm({ title, item, onSave, onClose }: { title: stri
             <Alert text={ error } />
 
             <TextField
+                label={ T('Dashboard.Site.Name') }
                 value={ name }
                 autoComplete='off'
                 placeholder={ T('Dashboard.Site.Name') }
@@ -101,6 +102,7 @@ export default function SiteForm({ title, item, onSave, onClose }: { title: stri
 
             <TextField
                 dir='ltr'
+                label={ T('Dashboard.Site.Url') }
                 value={ url }
                 spellCheck={ false }
                 autoComplete='off'
