@@ -147,7 +147,7 @@ export default function DashboardHistory({
     }, [shown, results.length]);
 
     return (
-        <Modal frame='screen' scale={0.96} onClose={onClose} panelClass='size-full max-w-2xl'>
+        <Modal frame='screen' scale={0.96} onClose={onClose} panelClass='size-full'>
             <ModalHeader
                 title={T('Dashboard.Activity.Title')}
                 subtitle={T('Dashboard.Activity.Count', String(results.length))}
