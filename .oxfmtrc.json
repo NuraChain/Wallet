@@ -1,0 +1,15 @@
+{
+    "$schema": "./node_modules/oxfmt/configuration_schema.json",
+    "tabWidth": 4,
+    "printWidth": 160,
+    "singleQuote": true,
+    "jsxSingleQuote": true,
+    "trailingComma": "none",
+    "objectWrap": "preserve",
+    "experimentalOperatorPosition": "end",
+    "sortTailwindcss": {
+        "stylesheet": "src/assets/style.css",
+        "functions": ["cn"]
+    },
+    "ignorePatterns": ["dist/", "docs/", ".github/", ".claude/", "src-tauri/", "node_modules/", "*.md", "*.yml", "*.yaml"]
+}
