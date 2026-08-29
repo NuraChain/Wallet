@@ -487,7 +487,7 @@ function DashboardView({ vault }: { vault: Vault }) {
      *
      * Scrolling down tucks the bar away so it stops covering the content, scrolling back up (or reaching the top) brings it in. Only the panel the user is looking at may move it.
      *
-     * The bottom of a panel is padded by exactly the height of the bar, so once the user reaches the end there is nothing left for it to cover — it comes back regardless of the scroll direction that got them there.
+     * The bar never covers content — the scroll frame ends at its top edge — so this is only about keeping it out of the way of the eye. It comes back at either end of the scroll regardless of the direction that got the user there.
      * @param {number} index The panel that emitted the event.
      * @returns {(top: number, delta: number, bottom: number) => void} The scroll handler for that panel.
      */

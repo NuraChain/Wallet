@@ -12,7 +12,13 @@ import { useIsWindows } from '../hook/platform';
 export const inset = {
     sheetTop: 'pt-[env(safe-area-inset-top)]',
     modalFrame: 'pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]',
-    tabTop: { windows: 'pt-8', device: 'pt-[calc(0.375rem+env(safe-area-inset-top))]' }
+    tabTop: { windows: 'pt-8', device: 'pt-[calc(0.375rem+env(safe-area-inset-top))]' },
+
+    /*
+     * Where a scrolling tab stops at the bottom: the navigation bar's own top edge, which is its
+     * 56px height plus the 16px it floats above the device inset.
+     */
+    tabBottom: 'pb-[calc(4.5rem+env(safe-area-inset-bottom))]'
 } as const;
 
 /**
@@ -47,12 +53,13 @@ const topMap = {
 
 /**
  * Everything below the top edge, per variant. `tab` is a dashboard content panel: centred, width
- * capped, and padded at the bottom to clear the floating navigation bar — its 56px height plus the
- * 16px it floats above the edge — with a breath of space on top of that. `browser` is the full-bleed surface a web page owns. `intro`
+ * capped, and carrying only a trailing breath at the bottom — clearing the navigation bar is the
+ * scroll frame's job now, since the bar has to be somewhere the content cannot reach rather than
+ * somewhere it is padded away from. `browser` is the full-bleed surface a web page owns. `intro`
  * is the intro page's own frame.
  */
 const bodyMap = {
-    tab: 'mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6',
+    tab: 'mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-4 sm:px-6',
     browser: 'flex size-full flex-col',
     intro: 'bg-base-1 flex size-full flex-col px-4 pb-4 sm:px-6 sm:pb-6'
 } as const;
@@ -87,13 +94,18 @@ export default function PageContainer({
 }
 
 /**
- * ScrollFrame - The frame a scrolling tab's scroll area sits in, and the tab's top clearance.
+ * ScrollFrame - The frame a scrolling tab's scroll area sits in, and both of the tab's clearances.
  *
- * The clearance cannot live inside the scroller, which is the whole reason this exists. Padding
- * scrolls with what it pads: held in `PageContainer` it cleared the title bar at rest and then did
- * nothing, so the tab's content travelled up through the bar's band and came out behind the window
- * controls. On the frame it shortens the viewport instead — the strip stops being somewhere content
- * is drawn and then covered, and becomes somewhere content cannot go.
+ * Neither clearance can live inside the scroller, which is the whole reason this exists. Padding
+ * scrolls with what it pads: held in `PageContainer` it cleared the chrome at rest and then did
+ * nothing, so a tab's content travelled up through the title bar's band and down behind the
+ * navigation pill. On the frame it shortens the viewport instead — those strips stop being somewhere
+ * content is drawn and then covered, and become somewhere content cannot go.
+ *
+ * The cost is that the bottom strip is reserved whether or not the bar is showing: the bar tucks away
+ * on a downward scroll and the space it was occupying stays empty. Reclaiming it would mean resizing
+ * the viewport mid-scroll, which is a reflow on every direction change — a worse trade than the idle
+ * strip.
  *
  * The platform fork stays in this file for the same reason every other one does: a surface picks a
  * frame, it does not copy a formula.
@@ -104,5 +116,5 @@ export default function PageContainer({
 export function ScrollFrame({ children }: { children: ReactNode }) {
     const isWindows = useIsWindows();
 
-    return <div className={cn('size-full', inset.tabTop[isWindows ? 'windows' : 'device'])}>{children}</div>;
+    return <div className={cn('size-full', inset.tabTop[isWindows ? 'windows' : 'device'], inset.tabBottom)}>{children}</div>;
 }
