@@ -11,5 +11,5 @@
         "stylesheet": "src/assets/style.css",
         "functions": ["cn"]
     },
-    "ignorePatterns": ["dist/", "docs/", ".github/", ".claude/", "src-tauri/", "node_modules/", "*.md", "*.yml", "*.yaml"]
+    "ignorePatterns": ["dist/", ".github/", ".claude/", "src-tauri/", "node_modules/", "*.md", "*.yml", "*.yaml"]
 }
