@@ -28,40 +28,30 @@ import { Vertical } from '../ui/stack';
  * @param {number} props.at When the figures on screen were read, or 0 when they never were.
  * @returns {JSX.Element | undefined} The strip, or nothing when everything is current.
  */
-export default function DashboardOffline({ error, at }: { error: boolean; at: number })
-{
+export default function DashboardOffline({ error, at }: { error: boolean; at: number }) {
     const online = useOnline();
 
-    if (online && !error)
-    {
+    if (online && !error) {
         return undefined;
     }
 
     return (
         <Panel className='flex items-center gap-3'>
-
             <IconBox className='size-9'>
-
-                <FiWifiOff size={ 18 } />
-
+                <FiWifiOff size={18} />
             </IconBox>
 
             <Vertical className='min-w-0 flex-1 gap-0.5'>
+                <Text variant='captionStrong' text={online ? T('Dashboard.Offline.Failed') : T('Dashboard.Offline.Title')} />
 
-                <Text
-                    variant='captionStrong'
-                    text={ online ? T('Dashboard.Offline.Failed') : T('Dashboard.Offline.Title') } />
-
-                { /*
-                  * The age is the whole point of the second line, so it is preferred wherever there is
-                  * one. No age means nothing on screen was ever read — the figures are absent rather
-                  * than old — and the line has to say what happens next instead of dating something
-                  * that is not there.
-                  */ }
-                <Text text={ at > 0 ? T('Dashboard.Offline.Updated', formatAge(at)) : T('Dashboard.Offline.Message') } />
-
+                {/*
+                 * The age is the whole point of the second line, so it is preferred wherever there is
+                 * one. No age means nothing on screen was ever read — the figures are absent rather
+                 * than old — and the line has to say what happens next instead of dating something
+                 * that is not there.
+                 */}
+                <Text text={at > 0 ? T('Dashboard.Offline.Updated', formatAge(at)) : T('Dashboard.Offline.Message')} />
             </Vertical>
-
         </Panel>
     );
 }

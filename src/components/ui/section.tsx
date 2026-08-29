@@ -13,15 +13,12 @@ import { Horizontal } from './stack';
  * @param {ReactNode} [props.children] Trailing control (a small button), if the section has one.
  * @returns {JSX.Element} The header row.
  */
-export default function SectionHeader({ title, children }: { title: string; children?: ReactNode })
-{
+export default function SectionHeader({ title, children }: { title: string; children?: ReactNode }) {
     return (
         <Horizontal className='items-center justify-between gap-2'>
+            <Text text={title} />
 
-            <Text text={ title } />
-
-            { children }
-
+            {children}
         </Horizontal>
     );
 }

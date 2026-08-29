@@ -14,8 +14,7 @@ import { cn } from '../../utility/cn';
  * glyph only reads against a light neutral. Its foreground is pinned dark to match, so the index
  * number stays legible on it in either theme.
  */
-const toneMap =
-{
+const toneMap = {
     muted: 'bg-btn-muted text-txt-normal',
     primary: 'bg-btn-primary text-txt-reverse',
     secondary: 'bg-btn-secondary text-txt-reverse',
@@ -37,13 +36,6 @@ const toneMap =
  * @param {ReactNode} props.children The icon, letter, or number inside the box.
  * @returns {JSX.Element} The box.
  */
-export default function IconBox({ tone = 'muted', className = 'size-8', children }: { tone?: keyof typeof toneMap; className?: string; children: ReactNode })
-{
-    return (
-        <div className={ cn('flex shrink-0 items-center justify-center rounded-control', toneMap[tone], className) }>
-
-            { children }
-
-        </div>
-    );
+export default function IconBox({ tone = 'muted', className = 'size-8', children }: { tone?: keyof typeof toneMap; className?: string; children: ReactNode }) {
+    return <div className={cn('flex shrink-0 items-center justify-center rounded-control', toneMap[tone], className)}>{children}</div>;
 }

@@ -22,7 +22,11 @@ import { getSiteHost } from '../core/browser';
  * not the shared type: the two domain shapes live in `core`, and a component reaching down to define
  * what `core` holds would invert the direction the rest of the app imports in.
  */
-interface SiteEntry { id: string; name: string; url: string }
+interface SiteEntry {
+    id: string;
+    name: string;
+    url: string;
+}
 
 /**
  * SiteForm - The dialog behind adding a named address and behind editing one.
@@ -45,18 +49,25 @@ interface SiteEntry { id: string; name: string; url: string }
  * @param {() => void} props.onClose Closes the dialog.
  * @returns {JSX.Element} The dialog.
  */
-export default function SiteForm({ title, item, onSave, onClose }: { title: string; item?: SiteEntry; onSave: (item: SiteEntry) => void; onClose: () => void })
-{
-    const [ name, setName ] = useState(item?.name ?? '');
-    const [ url, setUrl ] = useState(item?.url ?? '');
-    const [ error, setError ] = useState('');
+export default function SiteForm({
+    title,
+    item,
+    onSave,
+    onClose
+}: {
+    title: string;
+    item?: SiteEntry;
+    onSave: (item: SiteEntry) => void;
+    onClose: () => void;
+}) {
+    const [name, setName] = useState(item?.name ?? '');
+    const [url, setUrl] = useState(item?.url ?? '');
+    const [error, setError] = useState('');
 
-    const onConfirm = () =>
-    {
+    const onConfirm = () => {
         const typed = url.trim();
 
-        if (typed.length === 0)
-        {
+        if (typed.length === 0) {
             setError(T('Dashboard.Site.Invalid'));
 
             return;
@@ -64,14 +75,11 @@ export default function SiteForm({ title, item, onSave, onClose }: { title: stri
 
         // A bare host is what someone types, and it is not a URL until it has a scheme. `https` rather
         // than `http`, matching what the address bar does with the same input.
-        const full = (/^[a-z][a-z0-9+.-]*:\/\//iu).test(typed) ? typed : `https://${ typed }`;
+        const full = /^[a-z][a-z0-9+.-]*:\/\//iu.test(typed) ? typed : `https://${typed}`;
 
-        try
-        {
+        try {
             void new URL(full);
-        }
-        catch
-        {
+        } catch {
             setError(T('Dashboard.Site.Invalid'));
 
             return;
@@ -85,46 +93,20 @@ export default function SiteForm({ title, item, onSave, onClose }: { title: stri
     };
 
     return (
-        <Modal onClose={ onClose }>
+        <Modal onClose={onClose}>
+            <ModalHeader title={title} onClose={onClose} />
 
-            <ModalHeader
-                title={ title }
-                onClose={ onClose } />
+            <Alert text={error} />
 
-            <Alert text={ error } />
+            <TextField label={T('Dashboard.Site.Name')} value={name} autoComplete='off' placeholder={T('Dashboard.Site.Name')} onValue={setName} />
 
-            <TextField
-                label={ T('Dashboard.Site.Name') }
-                value={ name }
-                autoComplete='off'
-                placeholder={ T('Dashboard.Site.Name') }
-                onValue={ setName } />
-
-            <TextField
-                dir='ltr'
-                label={ T('Dashboard.Site.Url') }
-                value={ url }
-                spellCheck={ false }
-                autoComplete='off'
-                placeholder='https://…'
-                onValue={ setUrl } />
+            <TextField dir='ltr' label={T('Dashboard.Site.Url')} value={url} spellCheck={false} autoComplete='off' placeholder='https://…' onValue={setUrl} />
 
             <ModalActions>
+                <Button variant='muted' size='action' onClick={onClose} text={T('Dashboard.Site.Cancel')} />
 
-                <Button
-                    variant='muted'
-                    size='action'
-                    onClick={ onClose }
-                    text={ T('Dashboard.Site.Cancel') } />
-
-                <Button
-                    variant='primary'
-                    size='action'
-                    onClick={ onConfirm }
-                    text={ T('Dashboard.Site.Save') } />
-
+                <Button variant='primary' size='action' onClick={onConfirm} text={T('Dashboard.Site.Save')} />
             </ModalActions>
-
         </Modal>
     );
 }

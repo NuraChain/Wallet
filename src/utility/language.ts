@@ -33,8 +33,7 @@ let languageMap: Record<string, Record<string, never>> = {};
  * The order is the one the picker shows, not an alphabetical one — English and Persian lead because
  * they are the two the app shipped with.
  */
-export const languageRecord: { code: LanguageType; country: string; emoji: string; flag: string } [] =
-[
+export const languageRecord: { code: LanguageType; country: string; emoji: string; flag: string }[] = [
     { code: 'en', country: 'us', emoji: '🇺🇸', flag: flagUs },
     { code: 'fa', country: 'ir', emoji: '🇮🇷', flag: flagIr },
     { code: 'ar', country: 'sa', emoji: '🇸🇦', flag: flagSa },
@@ -58,14 +57,11 @@ export const languageRecord: { code: LanguageType; country: string; emoji: strin
  * @param {string} name Dot-separated key path.
  * @returns {string | undefined} Resolved localized string or undefined.
  */
-const resolve = (name: string): string | undefined =>
-{
+const resolve = (name: string): string | undefined => {
     let result = languageMap;
 
-    for (const key of name.split('.'))
-    {
-        if (typeof result[key] === 'undefined')
-        {
+    for (const key of name.split('.')) {
+        if (result[key] === undefined) {
             return undefined;
         }
 
@@ -86,18 +82,17 @@ const resolve = (name: string): string | undefined =>
  * @param {LanguageType} lang Language code to activate.
  * @returns {Promise<void>} Resolves after the bundle is loaded and applied.
  */
-export const setLanguage = async(lang: LanguageType) =>
-{
+export const setLanguage = async (lang: LanguageType) => {
     await setValue('App.Language', lang);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    languageMap = (await import(`../assets/lang/${ lang }.json`)).default;
+    // oxlint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+    languageMap = (await import(`../assets/lang/${lang}.json`)).default;
 
     languageCurrent = lang;
 
     document.documentElement.lang = lang;
 
-    document.documentElement.dir = [ 'fa', 'ar' ].includes(lang) ? 'rtl' : 'ltr';
+    document.documentElement.dir = ['fa', 'ar'].includes(lang) ? 'rtl' : 'ltr';
 
     // Announced last, so a listener that re-renders is reading the bundle that is already in place.
     //
@@ -113,12 +108,10 @@ export const setLanguage = async(lang: LanguageType) =>
  * @param {() => void} listener Called after a new bundle is applied.
  * @returns {() => void} Unsubscribes the listener.
  */
-export const subscribeLanguage = (listener: () => void) =>
-{
+export const subscribeLanguage = (listener: () => void) => {
     on('Language.Change', listener);
 
-    return () =>
-    {
+    return () => {
         off('Language.Change', listener);
     };
 };
@@ -138,12 +131,10 @@ export const getLanguageCode = () => languageCurrent;
  * The returned object can be used for flags, labels, or locale-specific UI.
  * @returns {{ Code: LanguageType; Country: string }} Current language metadata.
  */
-export const getLanguage = () =>
-{
+export const getLanguage = () => {
     const lang = languageRecord.find((i) => i.code === languageCurrent);
 
-    if (lang === undefined)
-    {
+    if (lang === undefined) {
         return languageRecord[0];
     }
 
@@ -160,10 +151,9 @@ export const getLanguage = () =>
  * @param {...(string|number)} args Replacement values for `%s` tokens.
  * @returns {string} Translated string or a visible fallback placeholder.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export const T = (name: string, ...args: (string | number)[]): string =>
-{
-    const template = resolve(name) ?? `[${ name }]`;
+// oxlint-disable-next-line @typescript-eslint/naming-convention
+export const T = (name: string, ...args: (string | number)[]): string => {
+    const template = resolve(name) ?? `[${name}]`;
 
     let index = 0;
 
@@ -179,8 +169,7 @@ export const T = (name: string, ...args: (string | number)[]): string =>
     // the template's own next slot, so the following argument would land inside the ticker and the
     // real slot would survive as a literal `%s`. A replacer's output is never rescanned, so a value
     // can only ever be a value.
-    return template.replace(/%s/gu, () =>
-    {
+    return template.replaceAll('%s', () => {
         const arg = args[index];
 
         index += 1;
@@ -202,8 +191,7 @@ export const T = (name: string, ...args: (string | number)[]): string =>
  * exactly this.
  * @returns {Promise<void>} Resolves after the active language is initialized.
  */
-export const initLanguage = async() =>
-{
+export const initLanguage = async () => {
     const language = await getValue('App.Language').catch(() => undefined);
 
     const record = languageRecord.find((item) => item.code === language);
@@ -211,4 +199,4 @@ export const initLanguage = async() =>
     await setLanguage(record?.code ?? 'en').catch(() => undefined);
 };
 
-export const getDirection = () => ([ 'fa', 'ar' ].includes(languageCurrent) ? 'rtl' : 'ltr');
+export const getDirection = () => (['fa', 'ar'].includes(languageCurrent) ? 'rtl' : 'ltr');

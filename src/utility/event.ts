@@ -10,8 +10,7 @@ import type { LanguageType } from './language';
  *
  * What is left is the two module singletons that need to tell React they changed.
  */
-interface EventMap
-{
+interface EventMap {
     // `language.ts` imports `emit` from here at runtime, so this direction has to stay type-only or
     // the two modules form a cycle. `import type` is erased before the bundler sees it.
     'Language.Change': [code: LanguageType];
@@ -34,8 +33,7 @@ const eventMap = new Map<keyof EventMap, EventCall<keyof EventMap>[]>();
  * @param {T} name - The event name to listen for.
  * @param {EventCall<T>} listener - The callback invoked when the event is emitted.
  */
-export const on = <T extends keyof EventMap>(name: T, listener: EventCall<T>) =>
-{
+export const on = <T extends keyof EventMap>(name: T, listener: EventCall<T>) => {
     const listeners = eventMap.get(name) ?? [];
 
     // @ts-expect-error - TypeScript cannot infer the correct type for listeners, but we ensure type safety through the function signature.
@@ -50,17 +48,14 @@ export const on = <T extends keyof EventMap>(name: T, listener: EventCall<T>) =>
  * @param {T} name - The event name to emit.
  * @param {...EventMap[T]} args - Arguments forwarded to each listener.
  */
-export const emit = <T extends keyof EventMap>(name: T, ...args: EventMap[T]) =>
-{
+export const emit = <T extends keyof EventMap>(name: T, ...args: EventMap[T]) => {
     const listeners = eventMap.get(name);
 
-    if (listeners === undefined)
-    {
+    if (listeners === undefined) {
         return;
     }
 
-    for (const listener of listeners)
-    {
+    for (const listener of listeners) {
         listener(...args);
     }
 };
@@ -71,14 +66,15 @@ export const emit = <T extends keyof EventMap>(name: T, ...args: EventMap[T]) =>
  * @param {T} name - The event name.
  * @param {EventCall<T>} listener - The listener to remove.
  */
-export const off = <T extends keyof EventMap>(name: T, listener: EventCall<T>) =>
-{
+export const off = <T extends keyof EventMap>(name: T, listener: EventCall<T>) => {
     const listeners = eventMap.get(name);
 
-    if (listeners === undefined)
-    {
+    if (listeners === undefined) {
         return;
     }
 
-    eventMap.set(name, listeners.filter((fn) => fn !== listener));
+    eventMap.set(
+        name,
+        listeners.filter((fn) => fn !== listener)
+    );
 };

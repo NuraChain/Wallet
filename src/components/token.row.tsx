@@ -26,17 +26,12 @@ import { Vertical } from './ui/stack';
  * @param {string} [props.value] The USD worth, when it could be resolved.
  * @returns {JSX.Element} The stacked amount.
  */
-export function AssetAmount({ amount, value }: { amount: string; value?: string })
-{
+export function AssetAmount({ amount, value }: { amount: string; value?: string }) {
     return (
         <Vertical dir='ltr' className='shrink-0 items-end'>
+            <Text variant='body' className='font-mono' text={amount} />
 
-            <Text variant='body' className='font-mono' text={ amount } />
-
-            {
-                value !== undefined && <Text className='font-mono' text={ value } />
-            }
-
+            {value !== undefined && <Text className='font-mono' text={value} />}
         </Vertical>
     );
 }
@@ -59,45 +54,51 @@ export function AssetAmount({ amount, value }: { amount: string; value?: string 
  * @param {ReactNode} [props.children] End-of-row content.
  * @returns {JSX.Element} The row.
  */
-export default function TokenRow({ src, symbol, kind = 'unknown', primary = false, subtitle, panel = false, grouped = false, hover = false, children }: { src: string; symbol: string; kind?: ImageKind; primary?: boolean; subtitle: string; panel?: boolean; grouped?: boolean; hover?: boolean; children?: ReactNode })
-{
+export default function TokenRow({
+    src,
+    symbol,
+    kind = 'unknown',
+    primary = false,
+    subtitle,
+    panel = false,
+    grouped = false,
+    hover = false,
+    children
+}: {
+    src: string;
+    symbol: string;
+    kind?: ImageKind;
+    primary?: boolean;
+    subtitle: string;
+    panel?: boolean;
+    grouped?: boolean;
+    hover?: boolean;
+    children?: ReactNode;
+}) {
     return (
         // Asked for rather than always on: these rows are a list to read in the wallet tab, where a
         // surface that lights up under the pointer promises a click that does not happen. In the token
         // manager each one carries its own remove control, so saying which row the pointer is on is
         // the difference between removing that token and its neighbour. `btn-muted-hover` is the same
         // fill the nav bar and the window controls use, so nothing new is painted here.
-        <div className={
-            cn(
+        <div
+            className={cn(
                 'flex items-center gap-3',
-                panel ? `${ surfacePanel } rounded-surface p-3` : '',
+                panel ? `${surfacePanel} rounded-surface p-3` : '',
                 grouped ? 'p-3' : '',
                 !panel && !grouped ? 'p-2' : '',
                 hover && 'transition-colors duration-(--duration-base) ease-initial hover:bg-btn-muted-hover'
-            )
-        }>
-
-            <TokenIcon
-                src={ src }
-                kind={ kind }
-                symbol={ symbol }
-                primary={ primary } />
+            )}
+        >
+            <TokenIcon src={src} kind={kind} symbol={symbol} primary={primary} />
 
             <Vertical className='min-w-0 flex-1'>
+                <Text variant='body' className='truncate' text={symbol} />
 
-                <Text
-                    variant='body'
-                    className='truncate'
-                    text={ symbol } />
-
-                <Text
-                    className='truncate'
-                    text={ subtitle } />
-
+                <Text className='truncate' text={subtitle} />
             </Vertical>
 
-            { children }
-
+            {children}
         </div>
     );
 }

@@ -11,7 +11,12 @@
  * EIP-695 requires. It exists so the legacy `ethereum.chainId` property has an answer before the
  * first round-trip has happened; everything that goes through `request` reads the live value instead.
  */
-export interface DappIdentity { name: string; rdns: string; icon: string; chainId: string }
+export interface DappIdentity {
+    name: string;
+    rdns: string;
+    icon: string;
+    chainId: string;
+}
 
 /**
  * How Nura names itself to a dApp, and the one place to change it.
@@ -30,7 +35,7 @@ export const dappIdentity = (chainId: number): DappIdentity => ({
     name: 'Nura Wallet',
     rdns: 'net.nurachain.wallet',
     icon: __APP_ICON__,
-    chainId: `0x${ chainId.toString(16) }`
+    chainId: `0x${chainId.toString(16)}`
 });
 
 /**
@@ -63,7 +68,7 @@ export const dappScript = (identity: DappIdentity) => `
 
     if (window.__nuraWallet !== undefined) { return; }
 
-    var IDENTITY = ${ JSON.stringify(identity) };
+    var IDENTITY = ${JSON.stringify(identity)};
 
     var pending = {};
     var counter = 0;

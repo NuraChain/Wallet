@@ -21,7 +21,25 @@ import { getConnections } from '../../core/dapp';
 import { forgetDappPage } from '../../core/dapp.bridge';
 import { disconnectAllDapps } from '../../core/dapp.rpc';
 import { dappIdentity, dappScript } from '../../core/dapp.script';
-import { addBrowserVisit, atBrowserStart, clearBrowserHistory, frameLabel, getBrowserFavorites, getBrowserHistory, getBrowserView, getNativeBrowser, getNativeTab, onNativeBrowserState, setBrowserFavorites, setBrowserView, type BrowserFavorite, type BrowserState, type BrowserTab, type BrowserVisit, type BrowserView } from '../../core/browser';
+import {
+    addBrowserVisit,
+    atBrowserStart,
+    clearBrowserHistory,
+    frameLabel,
+    getBrowserFavorites,
+    getBrowserHistory,
+    getBrowserView,
+    getNativeBrowser,
+    getNativeTab,
+    onNativeBrowserState,
+    setBrowserFavorites,
+    setBrowserView,
+    type BrowserFavorite,
+    type BrowserState,
+    type BrowserTab,
+    type BrowserVisit,
+    type BrowserView
+} from '../../core/browser';
 import { Horizontal, Vertical } from '../ui/stack';
 
 /**
@@ -31,26 +49,22 @@ import { Horizontal, Vertical } from '../ui/stack';
  * @param {string} value Raw address-bar input.
  * @returns {string} An absolute URL, or an empty string for empty input.
  */
-const toUrl = (value: string) =>
-{
+const toUrl = (value: string) => {
     const trimmed = value.trim();
 
-    if (trimmed.length === 0)
-    {
+    if (trimmed.length === 0) {
         return '';
     }
 
-    if ((/^https?:\/\//iu).test(trimmed))
-    {
+    if (/^https?:\/\//iu.test(trimmed)) {
         return trimmed;
     }
 
-    if ((/^[^\s/]+\.[^\s]{2,}/u).test(trimmed))
-    {
-        return `https://${ trimmed }`;
+    if (/^[^\s/]+\.[^\s]{2,}/u.test(trimmed)) {
+        return `https://${trimmed}`;
     }
 
-    return `https://duckduckgo.com/?q=${ encodeURIComponent(trimmed) }`;
+    return `https://duckduckgo.com/?q=${encodeURIComponent(trimmed)}`;
 };
 
 /**
@@ -80,16 +94,29 @@ const toUrl = (value: string) =>
  * @param {() => void} props.onExit Leaves the browser for the wallet tab.
  * @returns {JSX.Element} The browser tab.
  */
-export default function DashboardBrowser({ address, network, enabled, request, ticket, onExit }: { address: string; network: Network; enabled: boolean; request: string; ticket: number; onExit: () => void })
-{
-    const [ settings, setSettings ] = useState(false);
-    const [ view, setView ] = useState<BrowserView>('mobile');
-    const [ visits, setVisits ] = useState<BrowserVisit[]>([]);
-    const [ favorites, setFavorites ] = useState<BrowserFavorite[]>([]);
-    const [ icons, setIcons ] = useState({ bytes: 0, count: 0, blocked: 0 });
-    const [ connections, setConnections ] = useState(0);
-    const [ active, setActive ] = useState(1);
-    const [ tabs, setTabs ] = useState<BrowserTab[]>([ { id: 1, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
+export default function DashboardBrowser({
+    address,
+    network,
+    enabled,
+    request,
+    ticket,
+    onExit
+}: {
+    address: string;
+    network: Network;
+    enabled: boolean;
+    request: string;
+    ticket: number;
+    onExit: () => void;
+}) {
+    const [settings, setSettings] = useState(false);
+    const [view, setView] = useState<BrowserView>('mobile');
+    const [visits, setVisits] = useState<BrowserVisit[]>([]);
+    const [favorites, setFavorites] = useState<BrowserFavorite[]>([]);
+    const [icons, setIcons] = useState({ bytes: 0, count: 0, blocked: 0 });
+    const [connections, setConnections] = useState(0);
+    const [active, setActive] = useState(1);
+    const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 1, entries: [], index: -1, draft: '', reload: 0, home: false }]);
 
     // A counter and not state: an id has to be unique against every tab that has ever existed, and two
     // clicks landing in one commit would read the same value out of a render. Ids are never recycled
@@ -100,8 +127,8 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     // Keyed by tab rather than held flat, because every tab has a page of its own to report on. Maps
     // and not objects for the sake of one line: closing a tab has to forget its entry, and a numeric
     // key survives a `Map` unchanged where an object would turn it into a string.
-    const [ live, setLive ] = useState<Map<number, BrowserState>>(new Map());
-    const [ notice, setNotice ] = useState<Map<number, string>>(new Map());
+    const [live, setLive] = useState<Map<number, BrowserState>>(new Map());
+    const [notice, setNotice] = useState<Map<number, string>>(new Map());
 
     // Closing the last tab leaves a fresh one behind, so there is always a tab in front to read from.
     const tab = tabs.find((item) => item.id === active) ?? tabs[0];
@@ -119,15 +146,14 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     // The provider, as every page in this browser will see it. Rebuilt when the chain moves only
     // because the script carries the chain id it should start on; open pages are not reloaded for it,
     // since the provider corrects itself through `chainChanged` the moment the switch happens.
-    const script = useMemo(() => dappScript(dappIdentity(network.chainId)), [ network.chainId ]);
+    const script = useMemo(() => dappScript(dappIdentity(network.chainId)), [network.chainId]);
 
     // Android injects from Kotlin, which needs the script handed to it before a page is opened rather
     // than passed alongside each one — `WebViewCompat.addDocumentStartJavaScript` registers against a
     // view, not against a navigation. Desktop takes it per view instead, through `WebFrame`.
-    useEffect(() =>
-    {
+    useEffect(() => {
         getNativeBrowser()?.setDappScript?.(script);
-    }, [ script ]);
+    }, [script]);
 
     // The native view keeps its own history, so links followed inside a page are navigable too — the
     // component's stack only ever sees what was typed or handed over. Off Android there is no such
@@ -140,40 +166,38 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     /**
      * Rewrites one tab and leaves the others alone.
      */
-    const patch = (id: number, change: (item: BrowserTab) => BrowserTab) =>
-    {
+    const patch = (id: number, change: (item: BrowserTab) => BrowserTab) => {
         setTabs((list) => list.map((item) => (item.id === id ? change(item) : item)));
     };
 
     // Registered against the current tab list rather than once on mount: the bridge names the tab an
     // update belongs to and that name has to be resolved to one of these. An APK from before tabs
     // sends no name and only ever had one page, so its updates belong to whichever tab is in front.
-    useEffect(() => onNativeBrowserState((update) =>
-    {
-        const target = update.id === undefined ? active : tabs.find((item) => frameLabel(item.id) === update.id)?.id;
+    useEffect(
+        () =>
+            onNativeBrowserState((update) => {
+                const target = update.id === undefined ? active : tabs.find((item) => frameLabel(item.id) === update.id)?.id;
 
-        if (target === undefined)
-        {
-            return;
-        }
+                if (target === undefined) {
+                    return;
+                }
 
-        setLive((map) => new Map(map).set(target, update));
+                setLive((map) => new Map(map).set(target, update));
 
-        // A page reached by following links is not on the stack, so its address has to come from the
-        // view that navigated there.
-        if (update.url.length > 0)
-        {
-            patch(target, (item) => ({ ...item, draft: update.url }));
-        }
-    }), [ tabs, active ]);
+                // A page reached by following links is not on the stack, so its address has to come from the
+                // view that navigated there.
+                if (update.url.length > 0) {
+                    patch(target, (item) => ({ ...item, draft: update.url }));
+                }
+            }),
+        [tabs, active]
+    );
 
     // Read once on mount rather than at module scope: this is the only surface that needs either
     // value, and a store read that fails here costs a start screen its shortcuts instead of leaving
     // the whole app unresolved the way the awaits in `app.tsx` do.
-    useEffect(() =>
-    {
-        const load = async() =>
-        {
+    useEffect(() => {
+        const load = async () => {
             setView(await getBrowserView());
             setVisits(await getBrowserHistory());
             setFavorites(await getBrowserFavorites());
@@ -186,10 +210,8 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     // dialog shows, and reading it walks the cache index. Scoped to `unknown`, which is the kind the
     // browser's own tiles and chips store their icons under — the wallet's token and network logos
     // share this cache and are deliberately not counted here or cleared below.
-    useEffect(() =>
-    {
-        if (!settings)
-        {
+    useEffect(() => {
+        if (!settings) {
             return;
         }
 
@@ -199,19 +221,17 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         // time this tab exists the list is already in memory and this is only a snapshot of it for
         // the dialog to count.
         setConnections(getConnections().length);
-    }, [ settings ]);
+    }, [settings]);
 
     // The one shortcut the start screen is handed rather than stores: it points at the active network's
     // explorer, on this account, so it means something different on each chain — and it is absent
     // entirely on a network that declares none. Everything else in that grid is a favourite.
-    const explorer = network.explorerUrl.length > 0 ? { name: T('Dashboard.Browser.Explorer'), url: `${ network.explorerUrl }/address/${ address }` } : undefined;
+    const explorer = network.explorerUrl.length > 0 ? { name: T('Dashboard.Browser.Explorer'), url: `${network.explorerUrl}/address/${address}` } : undefined;
 
-    const onOpen = (value: string) =>
-    {
+    const onOpen = (value: string) => {
         const url = toUrl(value);
 
-        if (url.length === 0)
-        {
+        if (url.length === 0) {
             return;
         }
 
@@ -228,19 +248,15 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
         const id = spawn ? mintRef.current : active;
 
-        if (spawn)
-        {
+        if (spawn) {
             mintRef.current += 1;
 
-            setTabs([ ...tabs, { id, entries: [ url ], index: 0, draft: url, reload: 0, home: false } ]);
+            setTabs([...tabs, { id, entries: [url], index: 0, draft: url, reload: 0, home: false }]);
 
             setActive(id);
-        }
-        else
-        {
-            patch(active, (item) =>
-            {
-                const next = [ ...item.entries.slice(0, item.index + 1), url ];
+        } else {
+            patch(active, (item) => {
+                const next = [...item.entries.slice(0, item.index + 1), url];
 
                 return { ...item, entries: next, index: next.length - 1, draft: url, home: false };
             });
@@ -256,20 +272,16 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
     // A link handed over from another tab (an activity row, say) lands on the history stack exactly as
     // if it had been typed here, so back still returns to whatever the user was browsing before.
-    useEffect(() =>
-    {
-        if (ticket > 0 && request.length > 0)
-        {
+    useEffect(() => {
+        if (ticket > 0 && request.length > 0) {
             onOpen(request);
         }
-    }, [ ticket, request ]);
+    }, [ticket, request]);
 
-    const onStep = (offset: number) =>
-    {
+    const onStep = (offset: number) => {
         // Leaving the start screen is the step the user took to get here, so it is the one back undoes
         // before the page's own history is touched.
-        if (tab.home && offset < 0)
-        {
+        if (tab.home && offset < 0) {
             patch(active, (item) => ({ ...item, home: false }));
 
             return;
@@ -277,14 +289,10 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
         const bridge = getNativeTab(frameLabel(active));
 
-        if (bridge !== undefined)
-        {
-            if (offset < 0)
-            {
+        if (bridge !== undefined) {
+            if (offset < 0) {
                 bridge.back();
-            }
-            else
-            {
+            } else {
                 bridge.forward();
             }
 
@@ -293,8 +301,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
         const next = tab.index + offset;
 
-        if (next < 0 || next >= tab.entries.length)
-        {
+        if (next < 0 || next >= tab.entries.length) {
             return;
         }
 
@@ -308,8 +315,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
      * home meant losing the page and reloading it from scratch on the way back. The page now stays
      * where it is, hidden behind the start screen, and picking the tab in the strip returns to it.
      */
-    const onHome = () =>
-    {
+    const onHome = () => {
         patch(active, (item) => ({ ...item, home: true }));
     };
 
@@ -319,8 +325,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
      * Picking a tab is also the way back out of the start screen, since the strip is only on screen
      * while that is what the front tab shows. A tab with no page of its own simply stays there.
      */
-    const onPickTab = (id: number) =>
-    {
+    const onPickTab = (id: number) => {
         setActive(id);
 
         patch(id, (item) => ({ ...item, home: false }));
@@ -332,13 +337,12 @@ export default function DashboardBrowser({ address, network, enabled, request, t
      * Ids are minted rather than reused, since one names a child webview and a recycled id would hand
      * a new tab the view the closed one left behind.
      */
-    const onAddTab = () =>
-    {
+    const onAddTab = () => {
         const id = mintRef.current;
 
         mintRef.current += 1;
 
-        setTabs([ ...tabs, { id, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
+        setTabs([...tabs, { id, entries: [], index: -1, draft: '', reload: 0, home: false }]);
 
         setActive(id);
     };
@@ -350,39 +354,41 @@ export default function DashboardBrowser({ address, network, enabled, request, t
      * the last tab leaves an empty one rather than an empty browser: there is no state in which this
      * page has no tab, so nothing downstream has to describe one.
      */
-    const onCloseTab = (id: number) =>
-    {
+    const onCloseTab = (id: number) => {
         const at = tabs.findIndex((item) => item.id === id);
 
-        if (at < 0)
-        {
+        if (at === -1) {
             return;
         }
 
         const rest = tabs.filter((item) => item.id !== id);
 
-        if (rest.length === 0)
-        {
+        if (rest.length === 0) {
             const fresh = mintRef.current;
 
             mintRef.current += 1;
 
-            setTabs([ { id: fresh, entries: [], index: -1, draft: '', reload: 0, home: false } ]);
+            setTabs([{ id: fresh, entries: [], index: -1, draft: '', reload: 0, home: false }]);
 
             setActive(fresh);
-        }
-        else
-        {
+        } else {
             setTabs(rest);
 
-            if (id === active)
-            {
+            if (id === active) {
                 setActive(rest[Math.max(0, at - 1)].id);
             }
         }
 
-        setLive((map) => { const next = new Map(map); next.delete(id); return next; });
-        setNotice((map) => { const next = new Map(map); next.delete(id); return next; });
+        setLive((map) => {
+            const next = new Map(map);
+            next.delete(id);
+            return next;
+        });
+        setNotice((map) => {
+            const next = new Map(map);
+            next.delete(id);
+            return next;
+        });
 
         // The page in that tab is gone, so the provider has nobody to address there any more. Left
         // behind, the entry would also keep a record of the site that tab was on for the rest of the
@@ -390,8 +396,7 @@ export default function DashboardBrowser({ address, network, enabled, request, t
         forgetDappPage(frameLabel(id));
     };
 
-    const onView = (chosen: BrowserView) =>
-    {
+    const onView = (chosen: BrowserView) => {
         setView(chosen);
 
         void setBrowserView(chosen);
@@ -399,10 +404,8 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
     // Cleared and re-measured in one step, so the count the dialog shows is what the cache now holds
     // rather than what it held when the dialog opened.
-    const onClearCache = () =>
-    {
-        const run = async() =>
-        {
+    const onClearCache = () => {
+        const run = async () => {
             await imageCache.clearKind('unknown');
 
             setIcons(await imageCache.getCacheSize('unknown'));
@@ -415,10 +418,8 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     // site icons with them — an icon carries the address it was fetched from, so it is the same record
     // written twice. Both figures this dialog shows move together or one of them describes a state
     // that is already gone.
-    const onClear = () =>
-    {
-        const run = async() =>
-        {
+    const onClear = () => {
+        const run = async () => {
             setVisits([]);
 
             await clearBrowserHistory();
@@ -431,10 +432,8 @@ export default function DashboardBrowser({ address, network, enabled, request, t
 
     // Every open page holding an account is told it no longer has one on the way through, which is
     // what lets a dApp put itself back into its signed-out state without the tab being reloaded.
-    const onDisconnect = () =>
-    {
-        const run = async() =>
-        {
+    const onDisconnect = () => {
+        const run = async () => {
             await disconnectAllDapps();
 
             setConnections(0);
@@ -446,250 +445,207 @@ export default function DashboardBrowser({ address, network, enabled, request, t
     // Written through the same call that updates the screen, so the list on disk is whatever is being
     // looked at. An edit replaces the entry holding that id and an addition goes on the end, which is
     // the one place the two cases differ.
-    const onFavorites = (next: BrowserFavorite[]) =>
-    {
+    const onFavorites = (next: BrowserFavorite[]) => {
         setFavorites(next);
 
         void setBrowserFavorites(next);
     };
 
-    const onFavoriteSave = (item: BrowserFavorite) =>
-    {
-        onFavorites(favorites.some((held) => held.id === item.id) ? favorites.map((held) => (held.id === item.id ? item : held)) : [ ...favorites, item ]);
+    const onFavoriteSave = (item: BrowserFavorite) => {
+        onFavorites(favorites.some((held) => held.id === item.id) ? favorites.map((held) => (held.id === item.id ? item : held)) : [...favorites, item]);
     };
 
-    const onFavoriteRemove = (id: string) =>
-    {
+    const onFavoriteRemove = (id: string) => {
         onFavorites(favorites.filter((item) => item.id !== id));
     };
 
     return (
         <Vertical className='relative min-h-0 flex-1'>
-
-            { /* The toolbar sits at the page tone, so the card surfaces inside the page read above it. */ }
+            {/* The toolbar sits at the page tone, so the card surfaces inside the page read above it. */}
             <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
-
-                <Button
-                    variant='danger'
-                    size='iconChip'
-                    aria-label={ T('Dashboard.Browser.Exit') }
-                    onClick={ onExit }
-                    className='shrink-0'>
-
-                    <IoClose size={ 16 } />
-
+                <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} className='shrink-0'>
+                    <IoClose size={16} />
                 </Button>
 
-                { /*
-                  * Back and forward are mirror images of one glyph, so `rtl:` turns each into the
-                  * other instead of the component picking between two icons at render time.
-                  */ }
+                {/*
+                 * Back and forward are mirror images of one glyph, so `rtl:` turns each into the
+                 * other instead of the component picking between two icons at render time.
+                 */}
                 <Button
                     dim
                     variant='chip'
                     size='iconChip'
-                    disabled={ !canBack }
-                    aria-label={ T('Dashboard.Browser.Back') }
-                    onClick={ () => { onStep(-1); } }
-                    className='shrink-0'>
-
-                    <FiArrowLeft size={ 16 } className='rtl:rotate-180' />
-
+                    disabled={!canBack}
+                    aria-label={T('Dashboard.Browser.Back')}
+                    onClick={() => {
+                        onStep(-1);
+                    }}
+                    className='shrink-0'
+                >
+                    <FiArrowLeft size={16} className='rtl:rotate-180' />
                 </Button>
 
                 <Button
                     dim
                     variant='chip'
                     size='iconChip'
-                    disabled={ !canForward }
-                    aria-label={ T('Dashboard.Browser.Forward') }
-                    onClick={ () => { onStep(1); } }
-                    className='shrink-0'>
-
-                    <FiArrowRight size={ 16 } className='rtl:rotate-180' />
-
+                    disabled={!canForward}
+                    aria-label={T('Dashboard.Browser.Forward')}
+                    onClick={() => {
+                        onStep(1);
+                    }}
+                    className='shrink-0'
+                >
+                    <FiArrowRight size={16} className='rtl:rotate-180' />
                 </Button>
 
                 <div className='min-w-0 flex-1'>
-
                     <TextField
-                        dir={ tab.draft.length > 0 ? 'ltr' : undefined }
-                        value={ tab.draft }
-                        placeholder={ T('Dashboard.Browser.Placeholder') }
-                        onValue={ (value) => { patch(active, (item) => ({ ...item, draft: value })); } }
-                        onEnter={ () => { onOpen(tab.draft); } }
+                        dir={tab.draft.length > 0 ? 'ltr' : undefined}
+                        value={tab.draft}
+                        placeholder={T('Dashboard.Browser.Placeholder')}
+                        onValue={(value) => {
+                            patch(active, (item) => ({ ...item, draft: value }));
+                        }}
+                        onEnter={() => {
+                            onOpen(tab.draft);
+                        }}
                         size='compact'
                         className='truncate ps-10 pe-10 text-tiny'
-                        leading={ <FiSearch size={ 16 } className='pointer-events-none absolute inset-s-3 text-txt-muted' /> }
+                        leading={<FiSearch size={16} className='pointer-events-none absolute inset-s-3 text-txt-muted' />}
                         trailing={
-                            current.length > 0 ?
-                                (
-                                    <Button
-                                        size='icon'
-                                        aria-label={ T('Dashboard.Browser.Reload') }
-                                        onClick={ () => { patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false })); } }
-                                        className='absolute inset-e-1 cursor-pointer text-txt-muted hover:text-txt-normal'>
-
-                                        { /* Spinning the reload glyph is the in-flight cue; it is the same
-                                          * control either way, so nothing moves when the load ends. */ }
-                                        <FiRotateCw size={ 16 } className={ state?.loading === true ? 'animate-spin' : '' } />
-
-                                    </Button>
-                                ) :
-                                undefined
-                        } />
-
+                            current.length > 0 ? (
+                                <Button
+                                    size='icon'
+                                    aria-label={T('Dashboard.Browser.Reload')}
+                                    onClick={() => {
+                                        patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false }));
+                                    }}
+                                    className='absolute inset-e-1 cursor-pointer text-txt-muted hover:text-txt-normal'
+                                >
+                                    {/* Spinning the reload glyph is the in-flight cue; it is the same
+                                     * control either way, so nothing moves when the load ends. */}
+                                    <FiRotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
+                                </Button>
+                            ) : undefined
+                        }
+                    />
                 </div>
 
-                { /*
-                  * One control, two jobs, because on the start screen the first of them has nothing to
-                  * do: home is already what is showing, so the button sat there greyed out taking up
-                  * the width. It turns into the way into the browser's settings there instead, and
-                  * goes back to being home the moment a page is up — which is the only time home means
-                  * anything.
-                  */ }
+                {/*
+                 * One control, two jobs, because on the start screen the first of them has nothing to
+                 * do: home is already what is showing, so the button sat there greyed out taking up
+                 * the width. It turns into the way into the browser's settings there instead, and
+                 * goes back to being home the moment a page is up — which is the only time home means
+                 * anything.
+                 */}
                 <Button
                     variant='chip'
                     size='iconChip'
-                    aria-label={ T(start ? 'Dashboard.Browser.Settings' : 'Dashboard.Browser.Home') }
-                    onClick={ start ? () => { setSettings(true); } : onHome }
-                    className='shrink-0'>
-
-                    {
-                        start ? <FiSettings size={ 16 } /> : <FiHome size={ 16 } />
+                    aria-label={T(start ? 'Dashboard.Browser.Settings' : 'Dashboard.Browser.Home')}
+                    onClick={
+                        start
+                            ? () => {
+                                  setSettings(true);
+                              }
+                            : onHome
                     }
-
+                    className='shrink-0'
+                >
+                    {start ? <FiSettings size={16} /> : <FiHome size={16} />}
                 </Button>
-
             </Horizontal>
 
-            {
-                start &&
-                (
-                    <DashboardBrowserTabs
-                        tabs={ tabs }
-                        active={ active }
-                        onPick={ onPickTab }
-                        onClose={ onCloseTab }
-                        onAdd={ onAddTab } />
-                )
-            }
+            {start && <DashboardBrowserTabs tabs={tabs} active={active} onPick={onPickTab} onClose={onCloseTab} onAdd={onAddTab} />}
 
-            { /*
-              * Real load progress from the WebView, on the toolbar's bottom edge where a browser puts
-              * it. It only unmounts once the bar has actually reached the end, so a finished load
-              * reads as finished rather than the bar vanishing mid-way.
-              */ }
+            {/*
+             * Real load progress from the WebView, on the toolbar's bottom edge where a browser puts
+             * it. It only unmounts once the bar has actually reached the end, so a finished load
+             * reads as finished rather than the bar vanishing mid-way.
+             */}
             <div className='relative h-0.5 shrink-0 overflow-hidden'>
-
                 <AnimatePresence>
-
-                    {
-                        state !== undefined && state.loading &&
-                        (
-                            <motion.div
-                                key='progress'
-                                initial={ { opacity: 1 } }
-                                exit={ { opacity: 0 } }
-                                transition={ { duration: 0.25 } }
-                                className='absolute inset-0'>
-
-                                <ProgressBar
-                                    value={ state.progress }
-                                    label={ T('Dashboard.Browser.Loading') }
-                                    className='size-full' />
-
-                            </motion.div>
-                        )
-                    }
-
+                    {state !== undefined && state.loading && (
+                        <motion.div key='progress' initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} className='absolute inset-0'>
+                            <ProgressBar value={state.progress} label={T('Dashboard.Browser.Loading')} className='size-full' />
+                        </motion.div>
+                    )}
                 </AnimatePresence>
-
             </div>
 
-            { /*
-              * One frame per tab, all stacked on the same rectangle and all measurable, with only the
-              * one in front left visible. `invisible` rather than `hidden` on purpose: a frame with no
-              * box reports no size, and both platforms position their view from that box — a tab
-              * brought forward would have nowhere to paint. What actually keeps a background page off
-              * the screen is the native hide inside `WebFrame`; this only stops the DOM underneath one
-              * frame showing through another.
-              */ }
+            {/*
+             * One frame per tab, all stacked on the same rectangle and all measurable, with only the
+             * one in front left visible. `invisible` rather than `hidden` on purpose: a frame with no
+             * box reports no size, and both platforms position their view from that box — a tab
+             * brought forward would have nowhere to paint. What actually keeps a background page off
+             * the screen is the native hide inside `WebFrame`; this only stops the DOM underneath one
+             * frame showing through another.
+             */}
             <div className='relative min-h-0 flex-1'>
+                {tabs.map((item) => {
+                    const front = item.id === active;
 
-                {
-                    tabs.map((item) =>
-                    {
-                        const front = item.id === active;
+                    // Not `enabled` for a tab showing its start screen: the view is hidden so the
+                    // shortcuts underneath can be seen, but the address is left in place so the
+                    // page is kept rather than closed.
+                    const shown = front && !atBrowserStart(item);
 
-                        // Not `enabled` for a tab showing its start screen: the view is hidden so the
-                        // shortcuts underneath can be seen, but the address is left in place so the
-                        // page is kept rather than closed.
-                        const shown = front && !atBrowserStart(item);
-
-                        return (
-                            <WebFrame
-                                key={ item.id }
-                                url={ item.index < 0 ? '' : item.entries[item.index] }
-                                label={ frameLabel(item.id) }
-                                enabled={ enabled && shown }
-                                desktop={ view === 'desktop' }
-                                reload={ item.reload }
-                                script={ script }
-                                title={ T('Dashboard.Browser.Title') }
-                                onFallback={ (value) => { setNotice((map) => new Map(map).set(item.id, value)); } }
-                                className={ cn('absolute inset-0 overflow-hidden bg-base-1', front ? 'visible' : 'invisible') }>
-
-                                {
-                                    front && !shown ?
-                                        (
-                                            <DashboardBrowserStart
-                                                explorer={ explorer }
-                                                favorites={ favorites }
-                                                visits={ visits }
-                                                notice={ notice.get(item.id) ?? '' }
-                                                onOpen={ onOpen }
-                                                onFavoriteSave={ onFavoriteSave }
-                                                onFavoriteRemove={ onFavoriteRemove } />
-                                        ) :
-                                        undefined
-                                }
-
-                            </WebFrame>
-                        );
-                    })
-                }
-
+                    return (
+                        <WebFrame
+                            key={item.id}
+                            url={item.index < 0 ? '' : item.entries[item.index]}
+                            label={frameLabel(item.id)}
+                            enabled={enabled && shown}
+                            desktop={view === 'desktop'}
+                            reload={item.reload}
+                            script={script}
+                            title={T('Dashboard.Browser.Title')}
+                            onFallback={(value) => {
+                                setNotice((map) => new Map(map).set(item.id, value));
+                            }}
+                            className={cn('absolute inset-0 overflow-hidden bg-base-1', front ? 'visible' : 'invisible')}
+                        >
+                            {front && !shown ? (
+                                <DashboardBrowserStart
+                                    explorer={explorer}
+                                    favorites={favorites}
+                                    visits={visits}
+                                    notice={notice.get(item.id) ?? ''}
+                                    onOpen={onOpen}
+                                    onFavoriteSave={onFavoriteSave}
+                                    onFavoriteRemove={onFavoriteRemove}
+                                />
+                            ) : undefined}
+                        </WebFrame>
+                    );
+                })}
             </div>
 
-            { /*
-              * Mounted inside the tab, unlike every other dialog in the app, because this one belongs
-              * to the browser rather than to the wallet. It opens from the start screen only, where no
-              * page is loaded and so no browser view is painted over the layout to cover it.
-              */ }
+            {/*
+             * Mounted inside the tab, unlike every other dialog in the app, because this one belongs
+             * to the browser rather than to the wallet. It opens from the start screen only, where no
+             * page is loaded and so no browser view is painted over the layout to cover it.
+             */}
             <AnimatePresence>
-
-                {
-                    settings &&
-                    (
-                        <DashboardBrowserSettings
-                            key='browser-settings'
-                            view={ view }
-                            visits={ visits.length }
-                            icons={ icons.count }
-                            blocked={ icons.blocked }
-                            iconBytes={ icons.bytes }
-                            connections={ connections }
-                            onView={ onView }
-                            onClear={ onClear }
-                            onClearCache={ onClearCache }
-                            onDisconnect={ onDisconnect }
-                            onClose={ () => { setSettings(false); } } />
-                    )
-                }
-
+                {settings && (
+                    <DashboardBrowserSettings
+                        key='browser-settings'
+                        view={view}
+                        visits={visits.length}
+                        icons={icons.count}
+                        blocked={icons.blocked}
+                        iconBytes={icons.bytes}
+                        connections={connections}
+                        onView={onView}
+                        onClear={onClear}
+                        onClearCache={onClearCache}
+                        onDisconnect={onDisconnect}
+                        onClose={() => {
+                            setSettings(false);
+                        }}
+                    />
+                )}
             </AnimatePresence>
-
         </Vertical>
     );
 }

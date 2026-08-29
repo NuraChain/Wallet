@@ -10,8 +10,7 @@ import type { Token, TokenBalance } from './token';
  * read minutes later. `discovery` is long because the *set* of contracts an account holds changes far
  * more slowly than the amounts in them.
  */
-const tokenCacheConfig =
-{
+const tokenCacheConfig = {
     /** How long held balances answer a read without going back to the chain. */
     balances: 30 * 1000,
 
@@ -63,30 +62,36 @@ const lastNativePrefix = 'token-cache/v1/last-native/';
  * `formatted` is kept beside it rather than recomputed, since it is what the row renders and deriving
  * it again would need the token's decimals at read time.
  */
-interface StoredBalance { address: string; value: string; formatted: string }
+interface StoredBalance {
+    address: string;
+    value: string;
+    formatted: string;
+}
 
 /** What one account's token balances look like in storage. */
-interface StoredBalances { tokens: StoredBalance[]; written: number }
+interface StoredBalances {
+    tokens: StoredBalance[];
+    written: number;
+}
 
 /** What one account's coin balance looks like in storage. */
-interface StoredNative { value: string; written: number }
+interface StoredNative {
+    value: string;
+    written: number;
+}
 
 /**
  * stamp - Reads the write time out of a stored payload, for eviction ordering.
  * @param {string} raw The serialized entry.
  * @returns {number} Its write time, or 0 when it cannot be read.
  */
-const stamp = (raw: string) =>
-{
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+const stamp = (raw: string) => {
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const parsed = JSON.parse(raw) as { written?: unknown };
 
         return typeof parsed.written === 'number' ? parsed.written : 0;
-    }
-    catch
-    {
+    } catch {
         return 0;
     }
 };
@@ -102,7 +107,11 @@ const stamp = (raw: string) =>
  * @param {Token[]} tokens The tracked tokens being read.
  * @returns {string} A stable key.
  */
-export const balanceKey = (address: string, networkId: string, tokens: Token[]) => `${ networkId }|${ address.toLowerCase() }|${ tokens.map((item) => item.address.toLowerCase()).sort().join(',') }`;
+export const balanceKey = (address: string, networkId: string, tokens: Token[]) =>
+    `${networkId}|${address.toLowerCase()}|${tokens
+        .map((item) => item.address.toLowerCase())
+        .sort()
+        .join(',')}`;
 
 /**
  * parseBalances - Reads one stored token-balance entry back onto the live token objects.
@@ -115,41 +124,33 @@ export const balanceKey = (address: string, networkId: string, tokens: Token[]) 
  * @param {Token[]} tokens The tokens currently tracked.
  * @returns {{ tokens: TokenBalance[]; written: number } | undefined} The rows and when they were read.
  */
-const parseBalances = (raw: string | undefined, tokens: Token[]) =>
-{
-    if (raw === undefined)
-    {
+const parseBalances = (raw: string | undefined, tokens: Token[]) => {
+    if (raw === undefined) {
         return undefined;
     }
 
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const parsed = JSON.parse(raw) as StoredBalances;
 
-        if (!Array.isArray(parsed.tokens) || typeof parsed.written !== 'number')
-        {
+        if (!Array.isArray(parsed.tokens) || typeof parsed.written !== 'number') {
             return undefined;
         }
 
-        const byAddress = new Map(tokens.map((item) => [ item.address.toLowerCase(), item ]));
+        const byAddress = new Map(tokens.map((item) => [item.address.toLowerCase(), item]));
 
-        const restored = parsed.tokens.flatMap((item): TokenBalance[] =>
-        {
+        const restored = parsed.tokens.flatMap((item): TokenBalance[] => {
             const token = typeof item.address === 'string' ? byAddress.get(item.address.toLowerCase()) : undefined;
 
-            if (token === undefined || typeof item.value !== 'string' || !(/^\d+$/u).test(item.value))
-            {
+            if (token === undefined || typeof item.value !== 'string' || !/^\d+$/u.test(item.value)) {
                 return [];
             }
 
-            return [ { token, value: BigInt(item.value), formatted: typeof item.formatted === 'string' ? item.formatted : '0' } ];
+            return [{ token, value: BigInt(item.value), formatted: typeof item.formatted === 'string' ? item.formatted : '0' }];
         });
 
         return { tokens: restored, written: parsed.written };
-    }
-    catch
-    {
+    } catch {
         return undefined;
     }
 };
@@ -159,27 +160,21 @@ const parseBalances = (raw: string | undefined, tokens: Token[]) =>
  * @param {string | undefined} raw The serialized entry.
  * @returns {{ value: bigint; written: number } | undefined} The balance and when it was read.
  */
-const parseNative = (raw: string | undefined) =>
-{
-    if (raw === undefined)
-    {
+const parseNative = (raw: string | undefined) => {
+    if (raw === undefined) {
         return undefined;
     }
 
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const parsed = JSON.parse(raw) as StoredNative;
 
-        if (typeof parsed.value !== 'string' || !(/^\d+$/u).test(parsed.value) || typeof parsed.written !== 'number')
-        {
+        if (typeof parsed.value !== 'string' || !/^\d+$/u.test(parsed.value) || typeof parsed.written !== 'number') {
             return undefined;
         }
 
         return { value: BigInt(parsed.value), written: parsed.written };
-    }
-    catch
-    {
+    } catch {
         return undefined;
     }
 };
@@ -194,12 +189,10 @@ const parseNative = (raw: string | undefined) =>
  * @param {Token[]} tokens The tokens currently tracked, which stored rows are matched against.
  * @returns {{ tokens: TokenBalance[]; written: number; fresh: boolean } | undefined} What is held, or `undefined`.
  */
-export const readBalances = (key: string, tokens: Token[]) =>
-{
+export const readBalances = (key: string, tokens: Token[]) => {
     const entry = parseBalances(readRaw('session', balancePrefix + key), tokens);
 
-    if (entry === undefined)
-    {
+    if (entry === undefined) {
         cacheLog('miss', key);
 
         return undefined;
@@ -207,7 +200,7 @@ export const readBalances = (key: string, tokens: Token[]) =>
 
     const fresh = Date.now() - entry.written <= tokenCacheConfig.balances;
 
-    cacheLog(fresh ? 'hit' : 'stale', key, `${ entry.tokens.length } tokens`);
+    cacheLog(fresh ? 'hit' : 'stale', key, `${entry.tokens.length} tokens`);
 
     return { ...entry, fresh };
 };
@@ -235,10 +228,8 @@ export const readLastBalances = (key: string, tokens: Token[]) => parseBalances(
  * @param {string} key The key from `balanceKey`.
  * @param {TokenBalance[]} tokens The balances just read.
  */
-export const writeBalances = (key: string, tokens: TokenBalance[]) =>
-{
-    const payload: StoredBalances =
-    {
+export const writeBalances = (key: string, tokens: TokenBalance[]) => {
+    const payload: StoredBalances = {
         tokens: tokens.map((item) => ({ address: item.token.address, value: item.value.toString(), formatted: item.formatted })),
         written: Date.now()
     };
@@ -251,7 +242,7 @@ export const writeBalances = (key: string, tokens: TokenBalance[]) =>
     prune('session', balancePrefix, tokenCacheConfig.entries, stamp);
     prune('local', lastBalancePrefix, tokenCacheConfig.entries, stamp);
 
-    cacheLog('write', key, `${ tokens.length } tokens`);
+    cacheLog('write', key, `${tokens.length} tokens`);
 };
 
 /**
@@ -259,12 +250,10 @@ export const writeBalances = (key: string, tokens: TokenBalance[]) =>
  * @param {string} key The account and network the balance belongs to.
  * @returns {{ value: bigint; written: number; fresh: boolean } | undefined} What is held, or `undefined`.
  */
-export const readNative = (key: string) =>
-{
+export const readNative = (key: string) => {
     const entry = parseNative(readRaw('session', nativePrefix + key));
 
-    if (entry === undefined)
-    {
+    if (entry === undefined) {
         return undefined;
     }
 
@@ -287,8 +276,7 @@ export const readLastNative = (key: string) => parseNative(readRaw('local', last
  * @param {string} key The account and network the balance belongs to.
  * @param {bigint} value The balance in wei.
  */
-export const writeNative = (key: string, value: bigint) =>
-{
+export const writeNative = (key: string, value: bigint) => {
     const payload: StoredNative = { value: value.toString(), written: Date.now() };
 
     const serialized = JSON.stringify(payload);
@@ -306,7 +294,7 @@ export const writeNative = (key: string, value: bigint) =>
  * @param {number} chainId The chain the sweep runs against.
  * @returns {string} A stable key.
  */
-export const discoveryKey = (address: string, chainId: number) => `${ chainId }|${ address.toLowerCase() }`;
+export const discoveryKey = (address: string, chainId: number) => `${chainId}|${address.toLowerCase()}`;
 
 /**
  * discoveryDue - Whether the sweep is worth running again for this account and chain.
@@ -318,16 +306,14 @@ export const discoveryKey = (address: string, chainId: number) => `${ chainId }|
  * @param {string} key The key from `discoveryKey`.
  * @returns {boolean} True when the sweep should run.
  */
-export const discoveryDue = (key: string) =>
-{
+export const discoveryDue = (key: string) => {
     const raw = readRaw('local', sweepPrefix + key);
 
     const at = raw === undefined ? Number.NaN : Number(raw);
 
     const due = !Number.isFinite(at) || Date.now() - at > tokenCacheConfig.discovery;
 
-    if (!due)
-    {
+    if (!due) {
         cacheLog('skip sweep', key);
     }
 
@@ -338,8 +324,7 @@ export const discoveryDue = (key: string) =>
  * markDiscovered - Records that the sweep finished for this account and chain.
  * @param {string} key The key from `discoveryKey`.
  */
-export const markDiscovered = (key: string) =>
-{
+export const markDiscovered = (key: string) => {
     writeRaw('local', sweepPrefix + key, String(Date.now()));
 
     prune('local', sweepPrefix, tokenCacheConfig.entries, (raw) => Number(raw) || 0);
@@ -355,8 +340,7 @@ export const markDiscovered = (key: string) =>
  * render while the refreshed read runs behind it.
  * @param {(key: string) => boolean} [match] Which keys to drop; omit to drop all of them.
  */
-export const invalidateTokenCache = (match?: (key: string) => boolean) =>
-{
+export const invalidateTokenCache = (match?: (key: string) => boolean) => {
     clearUnder('session', balancePrefix, match);
     clearUnder('session', nativePrefix, match);
     clearUnder('local', lastBalancePrefix, match);

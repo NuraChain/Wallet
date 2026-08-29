@@ -29,24 +29,24 @@ const focusRing = 'outline-2 outline-offset-2 outline-double outline-transparent
  * are transitioned; a blanket `transition-all` would drag layout properties into every hover, and
  * nothing here changes size or position.
  */
-const fillBase = `cursor-pointer ${ focusRing } transition-[background-color,border-color,color] duration-(--duration-fast) ease-initial`;
+const fillBase = `cursor-pointer ${focusRing} transition-[background-color,border-color,color] duration-(--duration-fast) ease-initial`;
 
 /**
  * The quiet workhorse: a soft neutral step over the page, no border, no elevation.
  */
-const fillMuted = `${ fillBase } bg-btn-muted text-txt-muted hover:bg-btn-muted-hover hover:text-txt-normal active:bg-btn-muted-active`;
+const fillMuted = `${fillBase} bg-btn-muted text-txt-muted hover:bg-btn-muted-hover hover:text-txt-normal active:bg-btn-muted-active`;
 
 /**
  * The raised neutral fill.
  */
-const fillNormal = `${ fillBase } bg-btn-normal text-txt-normal hover:bg-btn-normal-hover active:bg-btn-normal-active`;
+const fillNormal = `${fillBase} bg-btn-normal text-txt-normal hover:bg-btn-normal-hover active:bg-btn-normal-active`;
 
-const fillPrimary = `${ fillBase } bg-btn-primary text-txt-reverse hover:bg-btn-primary-hover active:bg-btn-primary-active`;
+const fillPrimary = `${fillBase} bg-btn-primary text-txt-reverse hover:bg-btn-primary-hover active:bg-btn-primary-active`;
 
 /**
  * The filled destructive fill, for an action that ends the session.
  */
-const fillDanger = `${ fillBase } bg-btn-danger text-txt-reverse hover:bg-btn-danger-hover active:bg-btn-danger-active`;
+const fillDanger = `${fillBase} bg-btn-danger text-txt-reverse hover:bg-btn-danger-hover active:bg-btn-danger-active`;
 
 /**
  * The quiet control chip.
@@ -55,7 +55,7 @@ const fillDanger = `${ fillBase } bg-btn-danger text-txt-reverse hover:bg-btn-da
  * the dashboard's account / network / settings row, where three controls sit side by side and none
  * of them is the action the user came for.
  */
-const fillChip = `cursor-pointer ${ focusRing } border border-line bg-base-2 text-txt-normal transition-[background-color,border-color] duration-(--duration-base) ease-initial hover:bg-btn-muted-hover active:bg-btn-normal-active`;
+const fillChip = `cursor-pointer ${focusRing} border border-line bg-base-2 text-txt-normal transition-[background-color,border-color] duration-(--duration-base) ease-initial hover:bg-btn-muted-hover active:bg-btn-normal-active`;
 
 /**
  * The fills a button can wear.
@@ -69,14 +69,13 @@ const fillChip = `cursor-pointer ${ focusRing } border border-line bg-base-2 tex
  * `type='button'` default without inheriting a fill, and they still have to be findable from the
  * keyboard.
  */
-const variantMap =
-{
+const variantMap = {
     bare: focusRing,
     primary: fillPrimary,
     normal: fillNormal,
     muted: fillMuted,
     chip: fillChip,
-    danger: `${ fillMuted } text-txt-error`,
+    danger: `${fillMuted} text-txt-error`,
     destructive: fillDanger
 } as const;
 
@@ -94,8 +93,7 @@ const variantMap =
  * a pixel of what is drawn. A 32px glyph button is a 32px target otherwise, and on a touch screen
  * that is the difference between hitting the control and hitting the row behind it.
  */
-const sizeMap =
-{
+const sizeMap = {
     none: '',
     small: 'h-8 gap-1 rounded-control px-3 text-tiny',
     action: 'h-11 rounded-surface text-small',
@@ -136,28 +134,54 @@ const sizeMap =
  * @param {string} [props.className] Extra classes; conflicting utilities override the variant's.
  * @returns {JSX.Element} The button.
  */
-export default function Button({ variant = 'bare', size = 'none', text, loading = false, dim = false, fullWidth = false, leftIcon, rightIcon, className = '', type = 'button', disabled = false, children, ...rest }: { variant?: keyof typeof variantMap; size?: keyof typeof sizeMap; text?: string; loading?: boolean; dim?: boolean; fullWidth?: boolean; leftIcon?: ReactNode; rightIcon?: ReactNode } & ButtonHTMLAttributes<HTMLButtonElement>)
-{
+export default function Button({
+    variant = 'bare',
+    size = 'none',
+    text,
+    loading = false,
+    dim = false,
+    fullWidth = false,
+    leftIcon,
+    rightIcon,
+    className = '',
+    type = 'button',
+    disabled = false,
+    children,
+    ...rest
+}: {
+    variant?: keyof typeof variantMap;
+    size?: keyof typeof sizeMap;
+    text?: string;
+    loading?: boolean;
+    dim?: boolean;
+    fullWidth?: boolean;
+    leftIcon?: ReactNode;
+    rightIcon?: ReactNode;
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
     const inactive = disabled || loading;
 
     return (
         <button
-            type={ type }
-            disabled={ inactive }
-            aria-busy={ loading || undefined }
-            className={ cn(variant !== 'bare' && 'flex items-center justify-center gap-2 disabled:cursor-not-allowed!', variantMap[variant], sizeMap[size], fullWidth && 'w-full', dim && 'disabled:opacity-60', className) }
-            { ...rest }>
+            type={type}
+            disabled={inactive}
+            aria-busy={loading || undefined}
+            className={cn(
+                variant !== 'bare' && 'flex items-center justify-center gap-2 disabled:cursor-not-allowed!',
+                variantMap[variant],
+                sizeMap[size],
+                fullWidth && 'w-full',
+                dim && 'disabled:opacity-60',
+                className
+            )}
+            {...rest}
+        >
+            {loading && <Spinner size={16} className='shrink-0' />}
 
-            {
-                loading && <Spinner size={ 16 } className='shrink-0' />
-            }
+            {leftIcon}
 
-            { leftIcon }
+            {text ?? children}
 
-            { text ?? children }
-
-            { rightIcon }
-
+            {rightIcon}
         </button>
     );
 }

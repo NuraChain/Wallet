@@ -8,8 +8,7 @@ import { getValue, setValue } from './storage';
  *
  * `emoji` is absent until the user picks one, and the account falls back to showing its index. It is never empty: clearing the badge removes the field rather than storing a blank.
  */
-export interface Account
-{
+export interface Account {
     index: number;
     name: string;
     emoji?: string;
@@ -48,7 +47,7 @@ export const accountFirst = 1;
  * @param {number} index The derivation index.
  * @returns {string} The localized default label.
  */
-export const defaultAccountName = (index: number) => `${ T('Dashboard.Account') } ${ index + 1 }`;
+export const defaultAccountName = (index: number) => `${T('Dashboard.Account')} ${index + 1}`;
 
 /**
  * normalize - Coerces whatever is in storage into a usable, ordered account list.
@@ -57,27 +56,22 @@ export const defaultAccountName = (index: number) => `${ T('Dashboard.Account') 
  * @param {unknown} parsed The raw parsed JSON value.
  * @returns {Account[]} The valid accounts, ordered by index.
  */
-const normalize = (parsed: unknown) =>
-{
+const normalize = (parsed: unknown) => {
     const accounts: Account[] = [];
     const entries: unknown[] = Array.isArray(parsed) ? parsed : [];
 
-    for (const entry of entries)
-    {
-        if (typeof entry !== 'object' || entry === null || !('index' in entry) || !('name' in entry))
-        {
+    for (const entry of entries) {
+        if (typeof entry !== 'object' || entry === null || !('index' in entry) || !('name' in entry)) {
             continue;
         }
 
         const { index, name } = entry;
 
-        if (typeof index !== 'number' || !Number.isInteger(index) || index < 0 || index >= accountLimit)
-        {
+        if (typeof index !== 'number' || !Number.isInteger(index) || index < 0 || index >= accountLimit) {
             continue;
         }
 
-        if (accounts.some((item) => item.index === index))
-        {
+        if (accounts.some((item) => item.index === index)) {
             continue;
         }
 
@@ -86,7 +80,7 @@ const normalize = (parsed: unknown) =>
         accounts.push({
             index,
             name: typeof name === 'string' && name.trim().length > 0 ? name : defaultAccountName(index),
-            ...typeof emoji === 'string' && emoji.length > 0 && emoji.length <= emojiLimit ? { emoji } : {}
+            ...(typeof emoji === 'string' && emoji.length > 0 && emoji.length <= emojiLimit ? { emoji } : {})
         });
     }
 
@@ -99,34 +93,24 @@ const normalize = (parsed: unknown) =>
  * Wallets created before multi-account support only stored a single `Wallet.Name`; that label is migrated onto slot 0 so an upgrade keeps the name the user chose.
  * @returns {Promise<{ accounts: Account[]; active: number }>} The stored accounts (never empty) and the active derivation index.
  */
-export const loadAccounts = async() =>
-{
+export const loadAccounts = async () => {
     // Three independent reads, and every one is a Tauri IPC round-trip. Awaited one after another they
     // cost three round-trips of latency on the dashboard's first render to answer one question; they
     // do not depend on each other, so they go together.
-    const [ stored, legacyName, storedActive ] = await Promise.all([
-        getValue('Wallet.Accounts'),
-        getValue('Wallet.Name'),
-        getValue('Wallet.Active')
-    ]);
+    const [stored, legacyName, storedActive] = await Promise.all([getValue('Wallet.Accounts'), getValue('Wallet.Name'), getValue('Wallet.Active')]);
 
     let accounts: Account[] = [];
 
-    if (stored !== undefined && stored.length > 0)
-    {
-        try
-        {
+    if (stored !== undefined && stored.length > 0) {
+        try {
             accounts = normalize(JSON.parse(stored));
-        }
-        catch
-        {
+        } catch {
             accounts = [];
         }
     }
 
-    if (accounts.length === 0)
-    {
-        accounts = [ { index: 0, name: legacyName !== undefined && legacyName.length > 0 ? legacyName : defaultAccountName(0) } ];
+    if (accounts.length === 0) {
+        accounts = [{ index: 0, name: legacyName !== undefined && legacyName.length > 0 ? legacyName : defaultAccountName(0) }];
     }
 
     const parsedActive = storedActive === undefined ? Number.NaN : Number(storedActive);
@@ -141,8 +125,7 @@ export const loadAccounts = async() =>
  * @param {Account[]} accounts The accounts to store.
  * @returns {Promise<void>} Resolves once written.
  */
-export const saveAccounts = async(accounts: Account[]) =>
-{
+export const saveAccounts = async (accounts: Account[]) => {
     await setValue('Wallet.Accounts', JSON.stringify(accounts));
 };
 
@@ -151,7 +134,6 @@ export const saveAccounts = async(accounts: Account[]) =>
  * @param {number} index The active derivation index.
  * @returns {Promise<void>} Resolves once written.
  */
-export const saveActiveAccount = async(index: number) =>
-{
+export const saveActiveAccount = async (index: number) => {
     await setValue('Wallet.Active', String(index));
 };

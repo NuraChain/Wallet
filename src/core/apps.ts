@@ -12,7 +12,11 @@ import { getValue, setValue } from '../utility/storage';
  * most likely to be the one being changed, and a list keyed on the thing being edited loses track of
  * the row halfway through the edit.
  */
-export interface DappEntry { id: string; name: string; url: string }
+export interface DappEntry {
+    id: string;
+    name: string;
+    url: string;
+}
 
 /**
  * The apps a wallet starts with.
@@ -25,7 +29,7 @@ export interface DappEntry { id: string; name: string; url: string }
  * price from — see [price.ts](price.ts). A wallet that values a coin from a site it will not offer to
  * open is a wallet keeping a secret about where its numbers come from.
  */
-const defaultApps: DappEntry[] = [ { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' } ];
+const defaultApps: DappEntry[] = [{ id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' }];
 
 /**
  * getApps - The kept dApps, in the order they are shown.
@@ -38,29 +42,23 @@ const defaultApps: DappEntry[] = [ { id: 'swap', name: 'Swap', url: 'https://swa
  * favourites reader — a grid of shortcuts is not worth failing the tab over.
  * @returns {Promise<DappEntry[]>} The stored apps, or the seeded ones.
  */
-export const getApps = async(): Promise<DappEntry[]> =>
-{
+export const getApps = async (): Promise<DappEntry[]> => {
     const stored = await getValue('App.Apps');
 
-    if (stored === undefined)
-    {
+    if (stored === undefined) {
         return defaultApps;
     }
 
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const parsed = JSON.parse(stored) as DappEntry[];
 
-        if (!Array.isArray(parsed))
-        {
+        if (!Array.isArray(parsed)) {
             return [];
         }
 
         return parsed.filter((item) => typeof item?.id === 'string' && typeof item.name === 'string' && typeof item.url === 'string' && item.url.length > 0);
-    }
-    catch
-    {
+    } catch {
         return [];
     }
 };
@@ -70,4 +68,4 @@ export const getApps = async(): Promise<DappEntry[]> =>
  * @param {DappEntry[]} list The list to store, in display order.
  * @returns {Promise<void>} Resolves once written.
  */
-export const setApps = async(list: DappEntry[]) => setValue('App.Apps', JSON.stringify(list));
+export const setApps = async (list: DappEntry[]) => setValue('App.Apps', JSON.stringify(list));

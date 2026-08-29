@@ -5,8 +5,7 @@ import { setValue, getValue } from '../utility/storage';
  *
  * `custom` marks user-added networks, which are the only ones that can be removed. `explorerApi` is the Etherscan-compatible endpoint used for transaction history; when it is absent the explorer's own `/api` path is assumed.
  */
-export interface Network
-{
+export interface Network {
     id: string;
     name: string;
     chainId: number;
@@ -55,8 +54,7 @@ export const nuraChainId = 1020;
  *
  * Nura Chain leads the list, which also makes it the network a fresh install starts on.
  */
-export const defaultNetworks: Network[] =
-[
+export const defaultNetworks: Network[] = [
     {
         id: 'nura',
         name: 'Nura Chain',
@@ -79,7 +77,7 @@ export const defaultNetworks: Network[] =
         // Unauthorized without a key. The last two are kept as trailing fallbacks — they cost nothing
         // while the ones above them answer, and either may come back.
         rpcUrl: 'https://ethereum.publicnode.com',
-        rpcBackups: [ 'https://eth.drpc.org', 'https://cloudflare-eth.com', 'https://eth.llamarpc.com', 'https://rpc.ankr.com/eth' ],
+        rpcBackups: ['https://eth.drpc.org', 'https://cloudflare-eth.com', 'https://eth.llamarpc.com', 'https://rpc.ankr.com/eth'],
         explorerUrl: 'https://etherscan.io',
         explorerApi: 'https://eth.blockscout.com/api',
         decimals: 18,
@@ -91,7 +89,7 @@ export const defaultNetworks: Network[] =
         chainId: 56,
         symbol: 'BNB',
         rpcUrl: 'https://bsc-dataseed.binance.org',
-        rpcBackups: [ 'https://bsc-rpc.publicnode.com', 'https://bsc.publicnode.com' ],
+        rpcBackups: ['https://bsc-rpc.publicnode.com', 'https://bsc.publicnode.com'],
         explorerUrl: 'https://bscscan.com',
         // BscScan's API, at the address BscScan itself now publishes: its V1 host is retired and
         // answers every call with a migration notice, and the `/api` path guessed from the explorer
@@ -135,7 +133,7 @@ export const getNetworkRevision = () => networkRevision;
  * Return every known network: the built-in ones followed by user-added ones.
  * @returns {Network[]} All selectable networks.
  */
-export const getNetworks = () => [ ...defaultNetworks, ...customNetworks ];
+export const getNetworks = () => [...defaultNetworks, ...customNetworks];
 
 /**
  * Return the active network, falling back to the first built-in one if the stored id is unknown.
@@ -150,28 +148,25 @@ export const getNetwork = () => getNetworks().find((item) => item.id === network
  * @param {Network} network The network to resolve.
  * @returns {string} The API base URL, or an empty string when none can be derived.
  */
-export const getExplorerApi = (network: Network) =>
-{
-    const guessed = network.explorerUrl.length === 0 ? '' : `${ network.explorerUrl.replace(/\/+$/, '') }/api`;
+export const getExplorerApi = (network: Network) => {
+    const guessed = network.explorerUrl.length === 0 ? '' : `${network.explorerUrl.replace(/\/+$/, '')}/api`;
 
     const base = network.explorerApi !== undefined && network.explorerApi.length > 0 ? network.explorerApi : guessed;
 
-    if (base.length === 0 || network.explorerKey === undefined || network.explorerKey.length === 0)
-    {
+    if (base.length === 0 || network.explorerKey === undefined || network.explorerKey.length === 0) {
         return base;
     }
 
     // Folded into the base rather than added by each caller: every one of them already appends its own
     // query with the same `?`-or-`&` test, so a key carried here rides along with all of them.
-    return `${ base }${ base.includes('?') ? '&' : '?' }apikey=${ encodeURIComponent(network.explorerKey) }`;
+    return `${base}${base.includes('?') ? '&' : '?'}apikey=${encodeURIComponent(network.explorerKey)}`;
 };
 
 /**
  * Persist the current list of custom networks.
  * @returns {Promise<void>} Resolves once the list is written.
  */
-const persistCustom = async() =>
-{
+const persistCustom = async () => {
     await setValue('App.Networks', JSON.stringify(customNetworks));
 };
 
@@ -182,10 +177,8 @@ const persistCustom = async() =>
  * @param {string} id Network id to activate.
  * @returns {Promise<void>} Resolves after the preference is saved.
  */
-export const setNetwork = async(id: string) =>
-{
-    if (!getNetworks().some((item) => item.id === id))
-    {
+export const setNetwork = async (id: string) => {
+    if (!getNetworks().some((item) => item.id === id)) {
         return;
     }
 
@@ -201,11 +194,10 @@ export const setNetwork = async(id: string) =>
  * @param {Omit<Network, 'id' | 'custom'>} input The network fields supplied by the user.
  * @returns {Promise<Network>} The stored network.
  */
-export const addNetwork = async(input: Omit<Network, 'id' | 'custom'>) =>
-{
-    const network: Network = { ...input, id: `custom-${ input.chainId }`, custom: true };
+export const addNetwork = async (input: Omit<Network, 'id' | 'custom'>) => {
+    const network: Network = { ...input, id: `custom-${input.chainId}`, custom: true };
 
-    customNetworks = [ ...customNetworks.filter((item) => item.id !== network.id), network ];
+    customNetworks = [...customNetworks.filter((item) => item.id !== network.id), network];
 
     networkRevision += 1;
 
@@ -223,12 +215,10 @@ export const addNetwork = async(input: Omit<Network, 'id' | 'custom'>) =>
  * @param {string} id Network id to remove.
  * @returns {Promise<void>} Resolves after the change is persisted.
  */
-export const removeNetwork = async(id: string) =>
-{
+export const removeNetwork = async (id: string) => {
     const target = customNetworks.find((item) => item.id === id);
 
-    if (target === undefined)
-    {
+    if (target === undefined) {
         return;
     }
 
@@ -238,8 +228,7 @@ export const removeNetwork = async(id: string) =>
 
     await persistCustom();
 
-    if (networkCurrentId === id)
-    {
+    if (networkCurrentId === id) {
         await setNetwork(defaultNetworks[0].id);
     }
 };
@@ -250,39 +239,37 @@ export const removeNetwork = async(id: string) =>
  * Malformed stored data is ignored so a corrupt entry can never crash startup.
  * @returns {Promise<void>} Resolves after the active network is initialized.
  */
-export const initNetwork = async() =>
-{
+export const initNetwork = async () => {
     // Read defensively, like the theme and the language beside it: this is awaited before the first
     // render, and a storage read that throws here would leave the app with no window rather than with
     // the built-in networks it can perfectly well fall back to.
     const storedNetworks = await getValue('App.Networks').catch(() => undefined);
 
-    if (storedNetworks !== undefined)
-    {
-        try
-        {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    if (storedNetworks !== undefined) {
+        try {
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const parsed = JSON.parse(storedNetworks) as Network[];
 
-            if (Array.isArray(parsed))
-            {
+            if (Array.isArray(parsed)) {
                 customNetworks = parsed
                     .filter((item) => typeof item.id === 'string' && typeof item.chainId === 'number' && typeof item.rpcUrl === 'string')
                     // A network stored before backups existed has none, and a corrupted list should
                     // cost the extra endpoints rather than the whole network.
-                    .map((item) => ({ ...item, rpcBackups: Array.isArray(item.rpcBackups) ? item.rpcBackups.filter((url): url is string => typeof url === 'string' && url.length > 0) : [] }));
+                    .map((item) => ({
+                        ...item,
+                        rpcBackups: Array.isArray(item.rpcBackups)
+                            ? item.rpcBackups.filter((url): url is string => typeof url === 'string' && url.length > 0)
+                            : []
+                    }));
             }
-        }
-        catch
-        {
+        } catch {
             customNetworks = [];
         }
     }
 
     const storedCurrent = await getValue('App.Network').catch(() => undefined);
 
-    if (storedCurrent !== undefined && getNetworks().some((item) => item.id === storedCurrent))
-    {
+    if (storedCurrent !== undefined && getNetworks().some((item) => item.id === storedCurrent)) {
         networkCurrentId = storedCurrent;
     }
 };

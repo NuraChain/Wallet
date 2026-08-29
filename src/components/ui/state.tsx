@@ -15,10 +15,9 @@ import { surfacePanel } from './panel';
  * a bare ellipsis on the wallet headline. Two of those five rendered the identical message from the
  * identical data source at two different paddings, one screen apart from each other.
  */
-const iconMap =
-{
-    empty: <FiInbox size={ 24 } className='text-txt-muted' />,
-    loading: <Spinner size={ 24 } className='text-txt-muted' />
+const iconMap = {
+    empty: <FiInbox size={24} className='text-txt-muted' />,
+    loading: <Spinner size={24} className='text-txt-muted' />
 } as const;
 
 /**
@@ -39,17 +38,25 @@ const iconMap =
  * @param {string} [props.className] Extra classes for the block.
  * @returns {JSX.Element} The block.
  */
-export default function StatusBlock({ state = 'empty', text, panel = false, className = '' }: { state?: keyof typeof iconMap; text: string; panel?: boolean; className?: string })
-{
+export default function StatusBlock({
+    state = 'empty',
+    text,
+    panel = false,
+    className = ''
+}: {
+    state?: keyof typeof iconMap;
+    text: string;
+    panel?: boolean;
+    className?: string;
+}) {
     return (
         <div
             aria-live='polite'
-            className={ cn('flex flex-col items-center gap-1 text-center', panel ? `${ surfacePanel } rounded-surface px-3 py-6` : 'py-10', className) }>
+            className={cn('flex flex-col items-center gap-1 text-center', panel ? `${surfacePanel} rounded-surface px-3 py-6` : 'py-10', className)}
+        >
+            {iconMap[state]}
 
-            { iconMap[state] }
-
-            <Text variant='bodyMuted' text={ text } />
-
+            <Text variant='bodyMuted' text={text} />
         </div>
     );
 }

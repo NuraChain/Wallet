@@ -24,8 +24,7 @@ import { Horizontal, Vertical } from '../ui/stack';
  * platform this ships to, and one tap beats typing. They are chosen to stay distinguishable at 20px
  * and to avoid anything that renders as a flat box on an older Android WebView.
  */
-const emojiList =
-[
+const emojiList = [
     '🦊',
     '🐺',
     '🐱',
@@ -69,28 +68,39 @@ const emojiList =
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The account modal.
  */
-export default function DashboardAccount({ vault, accounts, active, onSelect, onUpdate, onClose }: { vault: Vault; accounts: Account[]; active: number; onSelect: (index: number) => void; onUpdate: (index: number, patch: Partial<Account>) => void; onClose: () => void })
-{
+export default function DashboardAccount({
+    vault,
+    accounts,
+    active,
+    onSelect,
+    onUpdate,
+    onClose
+}: {
+    vault: Vault;
+    accounts: Account[];
+    active: number;
+    onSelect: (index: number) => void;
+    onUpdate: (index: number, patch: Partial<Account>) => void;
+    onClose: () => void;
+}) {
     const derivable = vaultDerivable(vault);
 
-    const [ draft, setDraft ] = useState('');
-    const [ editing, setEditing ] = useState(-1);
-    const [ picking, setPicking ] = useState(-1);
-    const [ adding, setAdding ] = useState(false);
-    const [ error, setError ] = useState('');
-    const [ draftIndex, setDraftIndex ] = useState('');
+    const [draft, setDraft] = useState('');
+    const [editing, setEditing] = useState(-1);
+    const [picking, setPicking] = useState(-1);
+    const [adding, setAdding] = useState(false);
+    const [error, setError] = useState('');
+    const [draftIndex, setDraftIndex] = useState('');
 
-    const addresses = useMemo(() =>
-    {
+    const addresses = useMemo(() => {
         const map: Record<number, string> = {};
 
-        for (const item of accounts)
-        {
+        for (const item of accounts) {
             map[item.index] = vaultAddress(vault, item.index);
         }
 
         return map;
-    }, [ vault, accounts ]);
+    }, [vault, accounts]);
 
     /**
      * parseIndex - Reads the typed index, or `undefined` when it is not a usable one.
@@ -101,19 +111,16 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
      * @param {string} value The raw input.
      * @returns {number | undefined} The index, or `undefined` when out of range or not an integer.
      */
-    const parseIndex = (value: string) =>
-    {
+    const parseIndex = (value: string) => {
         const trimmed = value.trim();
 
-        if (trimmed.length === 0)
-        {
+        if (trimmed.length === 0) {
             return undefined;
         }
 
         const parsed = Number(trimmed);
 
-        if (!Number.isInteger(parsed) || parsed < accountFirst || parsed >= accountLimit)
-        {
+        if (!Number.isInteger(parsed) || parsed < accountFirst || parsed >= accountLimit) {
             return undefined;
         }
 
@@ -122,26 +129,22 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
 
     // Deriving the address as the index is typed lets the user confirm which account they are about
     // to add before it exists, which matters when the index is the only thing identifying it.
-    const preview = useMemo(() =>
-    {
+    const preview = useMemo(() => {
         const index = parseIndex(draftIndex);
 
         return index === undefined ? '' : vaultAddress(vault, index);
-    }, [ vault, draftIndex ]);
+    }, [vault, draftIndex]);
 
-    const onEdit = (index: number, name: string) =>
-    {
+    const onEdit = (index: number, name: string) => {
         setPicking(-1);
         setEditing(index);
         setDraft(name);
     };
 
-    const onSave = () =>
-    {
+    const onSave = () => {
         const trimmed = draft.trim();
 
-        if (trimmed.length > 0)
-        {
+        if (trimmed.length > 0) {
             onUpdate(editing, { name: trimmed });
         }
 
@@ -156,26 +159,22 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
      * @param {number} index The account being changed.
      * @param {string | undefined} emoji The badge, or `undefined` to clear it.
      */
-    const onBadge = (index: number, emoji: string | undefined) =>
-    {
+    const onBadge = (index: number, emoji: string | undefined) => {
         onUpdate(index, { emoji });
 
         setPicking(-1);
     };
 
-    const onCreate = () =>
-    {
+    const onCreate = () => {
         const index = parseIndex(draftIndex);
 
-        if (index === undefined)
-        {
+        if (index === undefined) {
             setError(T('Dashboard.Accounts.ErrorIndex', String(accountFirst), String(accountLimit - 1)));
 
             return;
         }
 
-        if (accounts.some((item) => item.index === index))
-        {
+        if (accounts.some((item) => item.index === index)) {
             setError(T('Dashboard.Accounts.ErrorExists'));
 
             return;
@@ -191,261 +190,198 @@ export default function DashboardAccount({ vault, accounts, active, onSelect, on
     };
 
     return (
-        <Modal
-            scroll
-            onClose={ onClose }>
+        <Modal scroll onClose={onClose}>
+            <ModalHeader title={T('Dashboard.Accounts.Title')} subtitle={T('Dashboard.Accounts.Subtitle')} onClose={onClose} />
 
-            <ModalHeader
-                title={ T('Dashboard.Accounts.Title') }
-                subtitle={ T('Dashboard.Accounts.Subtitle') }
-                onClose={ onClose } />
+            {adding ? (
+                <Vertical className='gap-2'>
+                    <Alert text={error} />
 
-            {
-                adding ?
-                    (
-                        <Vertical className='gap-2'>
+                    <TextField
+                        autoFocus
+                        dir='ltr'
+                        value={draftIndex}
+                        inputMode='numeric'
+                        label={T('Dashboard.Accounts.Index')}
+                        placeholder={T('Dashboard.Accounts.IndexHint')}
+                        onValue={setDraftIndex}
+                        onEnter={onCreate}
+                        className='font-mono'
+                    />
 
-                            <Alert text={ error } />
+                    <Text text={T('Dashboard.Accounts.IndexNote')} />
 
-                            <TextField
-                                autoFocus
-                                dir='ltr'
-                                value={ draftIndex }
-                                inputMode='numeric'
-                                label={ T('Dashboard.Accounts.Index') }
-                                placeholder={ T('Dashboard.Accounts.IndexHint') }
-                                onValue={ setDraftIndex }
-                                onEnter={ onCreate }
-                                className='font-mono' />
+                    {preview.length > 0 && <ReadonlyField value={preview} />}
 
-                            <Text text={ T('Dashboard.Accounts.IndexNote') } />
+                    <ModalActions>
+                        <Button
+                            variant='muted'
+                            size='action'
+                            onClick={() => {
+                                setAdding(false);
+                                setError('');
+                            }}
+                            text={T('Dashboard.Accounts.Back')}
+                        />
 
-                            {
-                                preview.length > 0 && <ReadonlyField value={ preview } />
-                            }
+                        <Button variant='primary' size='action' onClick={onCreate} text={T('Dashboard.Accounts.Create')} />
+                    </ModalActions>
+                </Vertical>
+            ) : (
+                <>
+                    <ModalBody>
+                        {accounts.map((item) => {
+                            const isActive = item.index === active;
+                            const name = item.name.length > 0 ? item.name : defaultAccountName(item.index);
+                            const hasBadge = item.emoji !== undefined && item.emoji.length > 0;
 
-                            <ModalActions>
+                            if (picking === item.index) {
+                                return (
+                                    <Vertical key={item.index} className='gap-2'>
+                                        <Text text={T('Dashboard.Accounts.Emoji')} />
 
-                                <Button
-                                    variant='muted'
-                                    size='action'
-                                    onClick={ () => { setAdding(false); setError(''); } }
-                                    text={ T('Dashboard.Accounts.Back') } />
-
-                                <Button
-                                    variant='primary'
-                                    size='action'
-                                    onClick={ onCreate }
-                                    text={ T('Dashboard.Accounts.Create') } />
-
-                            </ModalActions>
-
-                        </Vertical>
-                    ) :
-                    (
-                        <>
-                            <ModalBody>
-
-                                {
-                                    accounts.map((item) =>
-                                    {
-                                        const isActive = item.index === active;
-                                        const name = item.name.length > 0 ? item.name : defaultAccountName(item.index);
-                                        const hasBadge = item.emoji !== undefined && item.emoji.length > 0;
-
-                                        if (picking === item.index)
-                                        {
-                                            return (
-                                                <Vertical
-                                                    key={ item.index }
-                                                    className='gap-2'>
-
-                                                    <Text text={ T('Dashboard.Accounts.Emoji') } />
-
-                                                    { /*
-                                                      * Five columns rather than eight: at the panel's
-                                                      * narrowest each cell lands at the 44px target the
-                                                      * app's own `tap-44` utility is built around. Eight
-                                                      * columns put the same glyphs at half that — a grid
-                                                      * of mis-taps on exactly the screen where a thumb
-                                                      * picks what an account wears.
-                                                      */ }
-                                                    <div className='grid grid-cols-5 gap-1'>
-
-                                                        {
-                                                            emojiList.map((emoji) => (
-                                                                <Button
-                                                                    key={ emoji }
-                                                                    variant='muted'
-                                                                    onClick={ () => { onBadge(item.index, emoji); } }
-                                                                    className='h-10 w-full rounded-control text-medium'
-                                                                    text={ emoji } />
-                                                            ))
-                                                        }
-
-                                                    </div>
-
-                                                    <Button
-                                                        variant='normal'
-                                                        size='action'
-                                                        onClick={ () => { onBadge(item.index, undefined); } }
-                                                        text={ T('Dashboard.Accounts.EmojiClear') } />
-
-                                                </Vertical>
-                                            );
-                                        }
-
-                                        if (editing === item.index)
-                                        {
-                                            return (
-                                                <Horizontal
-                                                    key={ item.index }
-                                                    className='gap-2'>
-
-                                                    <div className='flex-1'>
-
-                                                        <TextField
-                                                            autoFocus
-                                                            value={ draft }
-                                                            placeholder={ name }
-                                                            onValue={ setDraft }
-                                                            onEnter={ onSave } />
-
-                                                    </div>
-
-                                                    <Button
-                                                        variant='primary'
-                                                        size='action'
-                                                        onClick={ onSave }
-                                                        className='px-4'
-                                                        text={ T('Dashboard.Accounts.Save') } />
-
-                                                </Horizontal>
-                                            );
-                                        }
-
-                                        return (
-                                            <Horizontal
-                                                key={ item.index }
-                                                className={ `items-center gap-2 rounded-surface border border-transparent p-2 transition-colors duration-(--duration-fast) ${ isActive ? selectedTint : 'hover:bg-btn-muted-hover' }` }>
-
-                                                { /*
-                                                  * The disc is its own control so tapping it opens the
-                                                  * badge picker, which means it cannot stay inside the
-                                                  * select button — a button inside a button is invalid.
-                                                  * The pair is wrapped so both gaps stay what they were.
-                                                  */ }
-                                                <Horizontal className='min-w-0 flex-1 items-center gap-3'>
-
-                                                    <Button
-                                                        onClick={ () => { setEditing(-1); setPicking(item.index); } }
-                                                        aria-label={ T('Dashboard.Accounts.Emoji') }
-                                                        className='shrink-0 cursor-pointer'>
-
-                                                        { /* An emoji needs the extra step to read at disc size; a bare index does not. */ }
-                                                        { /*
-                                                          * The badge tile does not change with the
-                                                          * active account: the row's tint and its tick
-                                                          * already say which one that is, and a branded
-                                                          * fill under an emoji only fights it.
-                                                          */ }
-                                                        <IconBox
-                                                            tone='badge'
-                                                            className={ cn('size-9', hasBadge ? 'text-medium' : 'text-small') }>
-
-                                                            { hasBadge ? item.emoji : item.index }
-
-                                                        </IconBox>
-
-                                                    </Button>
-
-                                                    <Button
-                                                        onClick={ () => { onSelect(item.index); } }
-                                                        className='flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start'>
-
-                                                        <Vertical className='min-w-0 flex-1'>
-
-                                                            <Text
-                                                                variant='body'
-                                                                className='truncate'
-                                                                text={ name } />
-
-                                                            { /*
-                                                              * `dir` sits on the span, not the block: on
-                                                              * the block it would also flip `text-start`
-                                                              * to the left under Persian, leaving the
-                                                              * address hanging under a right-aligned name.
-                                                              */ }
-                                                            <Text className='truncate font-mono'>
-
-                                                                <span dir='ltr'>
-
-                                                                    { shortAddress(addresses[item.index] ?? '') }
-
-                                                                </span>
-
-                                                            </Text>
-
-                                                        </Vertical>
-
-                                                        {
-                                                            isActive &&
-                                                            (
-                                                                <FiCheck size={ 18 } className='shrink-0 text-txt-normal' />
-                                                            )
-                                                        }
-
-                                                    </Button>
-
-                                                </Horizontal>
-
+                                        {/*
+                                         * Five columns rather than eight: at the panel's
+                                         * narrowest each cell lands at the 44px target the
+                                         * app's own `tap-44` utility is built around. Eight
+                                         * columns put the same glyphs at half that — a grid
+                                         * of mis-taps on exactly the screen where a thumb
+                                         * picks what an account wears.
+                                         */}
+                                        <div className='grid grid-cols-5 gap-1'>
+                                            {emojiList.map((emoji) => (
                                                 <Button
+                                                    key={emoji}
                                                     variant='muted'
-                                                    size='icon'
-                                                    aria-label={ T('Dashboard.Accounts.Rename') }
-                                                    onClick={ () => { onEdit(item.index, name); } }
-                                                    className='shrink-0'>
+                                                    onClick={() => {
+                                                        onBadge(item.index, emoji);
+                                                    }}
+                                                    className='h-10 w-full rounded-control text-medium'
+                                                    text={emoji}
+                                                />
+                                            ))}
+                                        </div>
 
-                                                    <FiEdit2 size={ 14 } />
-
-                                                </Button>
-
-                                            </Horizontal>
-                                        );
-                                    })
-                                }
-
-                            </ModalBody>
-
-                            { /*
-                              * A private key is one account and no index derives another, so the add
-                              * form is withheld rather than shown and then refused — and the line that
-                              * replaces it says why, since an absent button explains nothing on its own.
-                              */ }
-                            {
-                                derivable ?
-                                    (
-                                        <ModalActions>
-
-                                            <Button
-                                                variant='normal'
-                                                size='action'
-                                                onClick={ () => { setAdding(true); setError(''); setDraftIndex(''); } }
-                                                leftIcon={ <FiPlus size={ 16 } /> }
-                                                text={ T('Dashboard.Accounts.Add') } />
-
-                                        </ModalActions>
-                                    ) :
-                                    (
-                                        <Text
-                                            className='pt-1 text-center'
-                                            text={ T('Dashboard.Accounts.SingleNote') } />
-                                    )
+                                        <Button
+                                            variant='normal'
+                                            size='action'
+                                            onClick={() => {
+                                                onBadge(item.index, undefined);
+                                            }}
+                                            text={T('Dashboard.Accounts.EmojiClear')}
+                                        />
+                                    </Vertical>
+                                );
                             }
-                        </>
-                    )
-            }
 
+                            if (editing === item.index) {
+                                return (
+                                    <Horizontal key={item.index} className='gap-2'>
+                                        <div className='flex-1'>
+                                            <TextField autoFocus value={draft} placeholder={name} onValue={setDraft} onEnter={onSave} />
+                                        </div>
+
+                                        <Button variant='primary' size='action' onClick={onSave} className='px-4' text={T('Dashboard.Accounts.Save')} />
+                                    </Horizontal>
+                                );
+                            }
+
+                            return (
+                                <Horizontal
+                                    key={item.index}
+                                    className={`items-center gap-2 rounded-surface border border-transparent p-2 transition-colors duration-(--duration-fast) ${isActive ? selectedTint : 'hover:bg-btn-muted-hover'}`}
+                                >
+                                    {/*
+                                     * The disc is its own control so tapping it opens the
+                                     * badge picker, which means it cannot stay inside the
+                                     * select button — a button inside a button is invalid.
+                                     * The pair is wrapped so both gaps stay what they were.
+                                     */}
+                                    <Horizontal className='min-w-0 flex-1 items-center gap-3'>
+                                        <Button
+                                            onClick={() => {
+                                                setEditing(-1);
+                                                setPicking(item.index);
+                                            }}
+                                            aria-label={T('Dashboard.Accounts.Emoji')}
+                                            className='shrink-0 cursor-pointer'
+                                        >
+                                            {/* An emoji needs the extra step to read at disc size; a bare index does not. */}
+                                            {/*
+                                             * The badge tile does not change with the
+                                             * active account: the row's tint and its tick
+                                             * already say which one that is, and a branded
+                                             * fill under an emoji only fights it.
+                                             */}
+                                            <IconBox tone='badge' className={cn('size-9', hasBadge ? 'text-medium' : 'text-small')}>
+                                                {hasBadge ? item.emoji : item.index}
+                                            </IconBox>
+                                        </Button>
+
+                                        <Button
+                                            onClick={() => {
+                                                onSelect(item.index);
+                                            }}
+                                            className='flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start'
+                                        >
+                                            <Vertical className='min-w-0 flex-1'>
+                                                <Text variant='body' className='truncate' text={name} />
+
+                                                {/*
+                                                 * `dir` sits on the span, not the block: on
+                                                 * the block it would also flip `text-start`
+                                                 * to the left under Persian, leaving the
+                                                 * address hanging under a right-aligned name.
+                                                 */}
+                                                <Text className='truncate font-mono'>
+                                                    <span dir='ltr'>{shortAddress(addresses[item.index] ?? '')}</span>
+                                                </Text>
+                                            </Vertical>
+
+                                            {isActive && <FiCheck size={18} className='shrink-0 text-txt-normal' />}
+                                        </Button>
+                                    </Horizontal>
+
+                                    <Button
+                                        variant='muted'
+                                        size='icon'
+                                        aria-label={T('Dashboard.Accounts.Rename')}
+                                        onClick={() => {
+                                            onEdit(item.index, name);
+                                        }}
+                                        className='shrink-0'
+                                    >
+                                        <FiEdit2 size={14} />
+                                    </Button>
+                                </Horizontal>
+                            );
+                        })}
+                    </ModalBody>
+
+                    {/*
+                     * A private key is one account and no index derives another, so the add
+                     * form is withheld rather than shown and then refused — and the line that
+                     * replaces it says why, since an absent button explains nothing on its own.
+                     */}
+                    {derivable ? (
+                        <ModalActions>
+                            <Button
+                                variant='normal'
+                                size='action'
+                                onClick={() => {
+                                    setAdding(true);
+                                    setError('');
+                                    setDraftIndex('');
+                                }}
+                                leftIcon={<FiPlus size={16} />}
+                                text={T('Dashboard.Accounts.Add')}
+                            />
+                        </ModalActions>
+                    ) : (
+                        <Text className='pt-1 text-center' text={T('Dashboard.Accounts.SingleNote')} />
+                    )}
+                </>
+            )}
         </Modal>
     );
 }

@@ -33,13 +33,14 @@ export const surfacePanel = 'border border-line bg-base-2';
  * @param {ReactNode} props.children The card content.
  * @returns {JSX.Element} The card.
  */
-export default function Panel({ className = '', children, ...rest }: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
-{
+export default function Panel({
+    className = '',
+    children,
+    ...rest
+}: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
     return (
-        <div className={ cn(surfacePanel, 'rounded-surface p-4', className) } { ...rest }>
-
-            { children }
-
+        <div className={cn(surfacePanel, 'rounded-surface p-4', className)} {...rest}>
+            {children}
         </div>
     );
 }

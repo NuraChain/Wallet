@@ -12,18 +12,15 @@ import { passwordHash } from '../../core/password';
 import { unlockSession } from '../../core/session';
 import { setValue, setValueEncrypted } from '../../utility/storage';
 
-export default function IntroWallet({ onClose }: { onClose: () => void })
-{
+export default function IntroWallet({ onClose }: { onClose: () => void }) {
     const navigate = useNavigate();
 
-    const [ error, setError ] = useState('');
+    const [error, setError] = useState('');
 
-    const onCreateWallet = async(password: string) =>
-    {
+    const onCreateWallet = async (password: string) => {
         const mnemonic = WalletManager.Generate();
 
-        if (mnemonic === undefined)
-        {
+        if (mnemonic === undefined) {
             setError(T('Intro.CreateWallet.ErrorGenerate'));
 
             return;
@@ -41,23 +38,12 @@ export default function IntroWallet({ onClose }: { onClose: () => void })
     };
 
     return (
-        <Sheet onClose={ onClose }>
+        <Sheet onClose={onClose}>
+            <SheetHeader title={T('Intro.CreateWallet.Title')} subtitle={T('Intro.CreateWallet.Subtitle')} />
 
-            <SheetHeader
-                title={ T('Intro.CreateWallet.Title') }
-                subtitle={ T('Intro.CreateWallet.Subtitle') } />
+            <Alert className='mx-auto w-fit px-4 text-small' text={error} />
 
-            <Alert
-                className='mx-auto w-fit px-4 text-small'
-                text={ error } />
-
-            <IntroCredentials
-                prefix='Intro.CreateWallet'
-                submitKey='Submit'
-                className='shrink-0'
-                onError={ setError }
-                onSubmit={ onCreateWallet } />
-
+            <IntroCredentials prefix='Intro.CreateWallet' submitKey='Submit' className='shrink-0' onError={setError} onSubmit={onCreateWallet} />
         </Sheet>
     );
 }

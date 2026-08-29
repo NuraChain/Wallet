@@ -11,7 +11,13 @@ import { getValue, setValue } from '../utility/storage';
  * `label` names the view the call came from, which is what a reply and any later event have to be
  * addressed by — the browser holds a page per tab and they all speak at once.
  */
-export interface DappEnvelope { id: string; label: string; origin: string; method: string; params: unknown[] }
+export interface DappEnvelope {
+    id: string;
+    label: string;
+    origin: string;
+    method: string;
+    params: unknown[];
+}
 
 /**
  * What went wrong, in the shape EIP-1193 requires of a rejected request.
@@ -19,7 +25,11 @@ export interface DappEnvelope { id: string; label: string; origin: string; metho
  * `data` carries whatever the underlying RPC returned when a node is the thing that refused; a dApp
  * decoding a revert reason reads it out of there.
  */
-export interface DappFailure { code: number; message: string; data?: unknown }
+export interface DappFailure {
+    code: number;
+    message: string;
+    data?: unknown;
+}
 
 /**
  * The answer to one call.
@@ -27,7 +37,11 @@ export interface DappFailure { code: number; message: string; data?: unknown }
  * Exactly one of `result` and `error` is meaningful, and `error` is what decides which: a resolved
  * request can perfectly well answer `null`, so the presence of `result` cannot be the test.
  */
-export interface DappReply { id: string; result?: unknown; error?: DappFailure }
+export interface DappReply {
+    id: string;
+    result?: unknown;
+    error?: DappFailure;
+}
 
 /**
  * The error codes a provider is allowed to reject with.
@@ -38,8 +52,7 @@ export interface DappReply { id: string; result?: unknown; error?: DappFailure }
  *
  * The negative codes are JSON-RPC 2.0's own, reused by EIP-1474 for the transport itself.
  */
-export const dappError =
-{
+export const dappError = {
     rejected: 4001,
     unauthorized: 4100,
     unsupported: 4200,
@@ -62,8 +75,7 @@ export const dappError =
  * serializes to `{}`, so the conversion has to be deliberate. `DappFailure` is the wire shape and
  * `describe` in [dapp.rpc.ts](dapp.rpc.ts) is the one place that crosses between them.
  */
-export class DappError extends Error
-{
+export class DappError extends Error {
     public readonly code: number;
     public readonly data: unknown;
 
@@ -73,8 +85,7 @@ export class DappError extends Error
      * @param {string} message Human-readable reason, which most dApp libraries surface verbatim.
      * @param {unknown} [data] Anything the caller should be able to decode, such as a revert payload.
      */
-    public constructor(code: number, message: string, data?: unknown)
-    {
+    public constructor(code: number, message: string, data?: unknown) {
         super(message);
 
         this.name = 'DappError';
@@ -106,10 +117,8 @@ export const failure = (code: number, message: string, data?: unknown) => new Da
  * @param {string} url The page address, as the native side reported it.
  * @returns {string} The origin, or an empty string when the address is unusable.
  */
-export const siteOrigin = (url: string) =>
-{
-    try
-    {
+export const siteOrigin = (url: string) => {
+    try {
         const parsed = new URL(url);
 
         // Only the two web schemes. The browser refuses to load anything else (see
@@ -117,9 +126,7 @@ export const siteOrigin = (url: string) =>
         // `file://` or a custom scheme is a provider that answers whatever manages to get loaded, and
         // the origin of those is either opaque or chosen by whoever crafted the address.
         return parsed.protocol === 'https:' || parsed.protocol === 'http:' ? parsed.origin : '';
-    }
-    catch
-    {
+    } catch {
         return '';
     }
 };
@@ -146,24 +153,19 @@ let granted: string[] = [];
  * grants, which the user can give again, rather than the app.
  * @returns {Promise<string[]>} The origins as they now stand.
  */
-export const loadConnections = async(): Promise<string[]> =>
-{
+export const loadConnections = async (): Promise<string[]> => {
     const stored = await getValue('Browser.Connections').catch(() => undefined);
 
-    if (stored === undefined)
-    {
+    if (stored === undefined) {
         return granted;
     }
 
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const parsed = JSON.parse(stored) as string[];
 
         granted = Array.isArray(parsed) ? parsed.filter((item) => typeof item === 'string' && item.length > 0) : [];
-    }
-    catch
-    {
+    } catch {
         granted = [];
     }
 
@@ -192,14 +194,12 @@ export const isConnected = (origin: string) => origin.length > 0 && granted.incl
  * @param {string} origin The origin to approve.
  * @returns {Promise<void>} Resolves once written.
  */
-export const grantConnection = async(origin: string) =>
-{
-    if (origin.length === 0 || granted.includes(origin))
-    {
+export const grantConnection = async (origin: string) => {
+    if (origin.length === 0 || granted.includes(origin)) {
         return;
     }
 
-    granted = [ ...granted, origin ];
+    granted = [...granted, origin];
 
     await setValue('Browser.Connections', JSON.stringify(granted));
 };
@@ -213,10 +213,8 @@ export const grantConnection = async(origin: string) =>
  * @param {string} origin The origin to forget.
  * @returns {Promise<void>} Resolves once written.
  */
-export const revokeConnection = async(origin: string) =>
-{
-    if (!granted.includes(origin))
-    {
+export const revokeConnection = async (origin: string) => {
+    if (!granted.includes(origin)) {
         return;
     }
 
@@ -233,8 +231,7 @@ export const revokeConnection = async(origin: string) =>
  * list of sites it has visited.
  * @returns {Promise<void>} Resolves once written.
  */
-export const clearConnections = async() =>
-{
+export const clearConnections = async () => {
     granted = [];
 
     await setValue('Browser.Connections', JSON.stringify(granted));

@@ -37,60 +37,71 @@ import { inset, layer } from '../../layout/container';
  * @param {ReactNode} props.children The dialog content.
  * @returns {JSX.Element} The modal.
  */
-export function Modal({ onClose, frame = 'center', scroll = false, scale = 0.9, panelClass = '', children }: { onClose: () => void; frame?: 'center' | 'screen'; scroll?: boolean; scale?: number; panelClass?: string; children: ReactNode })
-{
+export function Modal({
+    onClose,
+    frame = 'center',
+    scroll = false,
+    scale = 0.9,
+    panelClass = '',
+    children
+}: {
+    onClose: () => void;
+    frame?: 'center' | 'screen';
+    scroll?: boolean;
+    scale?: number;
+    panelClass?: string;
+    children: ReactNode;
+}) {
     const { panelRef, titleId } = useDialog(onClose);
 
     return (
         <>
-            { /*
-              * The scrim does not blur, and now that the surfaces are opaque there is nothing left to
-              * blur it with. It never should have: every other filtered surface in the app bounded a
-              * box, while this one covered the whole window *and* faded, so the compositor re-ran a
-              * full-viewport filter on every frame of the animation. The dim in `bg-scrim` was always
-              * what separated the dialog from the page, and it carries more of that job now.
-              */ }
+            {/*
+             * The scrim does not blur, and now that the surfaces are opaque there is nothing left to
+             * blur it with. It never should have: every other filtered surface in the app bounded a
+             * box, while this one covered the whole window *and* faded, so the compositor re-ran a
+             * full-viewport filter on every frame of the animation. The dim in `bg-scrim` was always
+             * what separated the dialog from the page, and it carries more of that job now.
+             */}
             <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className={ cn('absolute size-full cursor-pointer bg-scrim', layer.dialog) }
-                onClick={ onClose } />
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className={cn('absolute size-full cursor-pointer bg-scrim', layer.dialog)}
+                onClick={onClose}
+            />
 
             <div
-                className={
-                    cn(
-                        frame === 'screen' ?
-                            `absolute inset-0 flex items-center justify-center p-4 ${ inset.modalFrame }` :
-                            'absolute inset-0 m-auto flex size-fit items-center justify-center',
-                        layer.dialog
-                    )
-                }>
-
-                { /*
-                  * `tabIndex={-1}` is what lets the panel take focus on open without becoming a stop
-                  * on the tab ring. `aria-labelledby` points at whatever `ModalHeader` rendered, which
-                  * is the only reason the title had to become a real element rather than a styled div.
-                  */ }
+                className={cn(
+                    frame === 'screen'
+                        ? `absolute inset-0 flex items-center justify-center p-4 ${inset.modalFrame}`
+                        : 'absolute inset-0 m-auto flex size-fit items-center justify-center',
+                    layer.dialog
+                )}
+            >
+                {/*
+                 * `tabIndex={-1}` is what lets the panel take focus on open without becoming a stop
+                 * on the tab ring. `aria-labelledby` points at whatever `ModalHeader` rendered, which
+                 * is the only reason the title had to become a real element rather than a styled div.
+                 */}
                 <motion.div
-                    ref={ panelRef }
+                    ref={panelRef}
                     role='dialog'
                     aria-modal
-                    aria-labelledby={ titleId }
-                    tabIndex={ -1 }
-                    initial={ { opacity: 0, scale } }
-                    animate={ { opacity: 1, scale: 1 } }
-                    exit={ { opacity: 0, scale } }
-                    className={ cn(surfacePanel, 'flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-dialog p-5 shadow-float outline-none', scroll && 'max-h-[80dvh] overflow-y-auto', panelClass) }>
-
-                    <DialogTitleContext value={ titleId }>
-
-                        { children }
-
-                    </DialogTitleContext>
-
+                    aria-labelledby={titleId}
+                    tabIndex={-1}
+                    initial={{ opacity: 0, scale }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale }}
+                    className={cn(
+                        surfacePanel,
+                        'flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',
+                        scroll && 'max-h-[80dvh] overflow-y-auto',
+                        panelClass
+                    )}
+                >
+                    <DialogTitleContext value={titleId}>{children}</DialogTitleContext>
                 </motion.div>
-
             </div>
         </>
     );
@@ -120,53 +131,56 @@ export function Modal({ onClose, frame = 'center', scroll = false, scale = 0.9, 
  * @param {() => void} props.onClose Closes the dialog.
  * @returns {JSX.Element} The header row.
  */
-export function ModalHeader({ title, subtitle = '', leading, close = 'icon', closeLabel = '', titleClass = '', groupClass = '', className = '', onClose }: { title: string; subtitle?: string; leading?: ReactNode; close?: 'icon' | 'chip'; closeLabel?: string; titleClass?: string; groupClass?: string; className?: string; onClose: () => void })
-{
+export function ModalHeader({
+    title,
+    subtitle = '',
+    leading,
+    close = 'icon',
+    closeLabel = '',
+    titleClass = '',
+    groupClass = '',
+    className = '',
+    onClose
+}: {
+    title: string;
+    subtitle?: string;
+    leading?: ReactNode;
+    close?: 'icon' | 'chip';
+    closeLabel?: string;
+    titleClass?: string;
+    groupClass?: string;
+    className?: string;
+    onClose: () => void;
+}) {
     const titleId = useDialogTitleId();
 
     // A real `h2` carrying the id the dialog points `aria-labelledby` at. It was a styled `div`, so
     // every dialog in the app opened without a name and announced only that a dialog had opened.
-    const heading = (
-        <Text
-            as='h2'
-            id={ titleId }
-            variant='title'
-            className={ cn('min-w-0', titleClass) }
-            text={ title } />
-    );
+    const heading = <Text as='h2' id={titleId} variant='title' className={cn('min-w-0', titleClass)} text={title} />;
 
     return (
-        <div className={ cn('flex shrink-0 items-center justify-between gap-3', className) }>
+        <div className={cn('flex shrink-0 items-center justify-between gap-3', className)}>
+            {subtitle.length === 0 && leading === undefined ? (
+                heading
+            ) : (
+                <div className={cn(leading === undefined ? 'flex min-w-0 flex-col' : 'flex min-w-0 items-center gap-2', groupClass)}>
+                    {leading}
 
-            {
-                subtitle.length === 0 && leading === undefined ?
-                    heading :
-                    (
-                        <div className={ cn(leading === undefined ? 'flex min-w-0 flex-col' : 'flex min-w-0 items-center gap-2', groupClass) }>
+                    {heading}
 
-                            { leading }
-
-                            { heading }
-
-                            {
-                                subtitle.length > 0 && <Text text={ subtitle } />
-                            }
-
-                        </div>
-                    )
-            }
+                    {subtitle.length > 0 && <Text text={subtitle} />}
+                </div>
+            )}
 
             <Button
-                variant={ close === 'chip' ? 'chip' : 'muted' }
-                size={ close === 'chip' ? 'iconChip' : 'icon' }
-                aria-label={ closeLabel.length > 0 ? closeLabel : T('App.Close') }
-                onClick={ onClose }
-                className='shrink-0'>
-
-                <IoClose size={ 20 } />
-
+                variant={close === 'chip' ? 'chip' : 'muted'}
+                size={close === 'chip' ? 'iconChip' : 'icon'}
+                aria-label={closeLabel.length > 0 ? closeLabel : T('App.Close')}
+                onClick={onClose}
+                className='shrink-0'
+            >
+                <IoClose size={20} />
             </Button>
-
         </div>
     );
 }
@@ -198,15 +212,8 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
  * @param {ReactNode} props.children The scrolling content.
  * @returns {JSX.Element} The scroll region.
  */
-export function ModalBody({ className = '', children }: { className?: string; children: ReactNode })
-{
-    return (
-        <div className={ cn('-m-3 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-3 *:shrink-0', className) }>
-
-            { children }
-
-        </div>
-    );
+export function ModalBody({ className = '', children }: { className?: string; children: ReactNode }) {
+    return <div className={cn('-m-3 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-3 *:shrink-0', className)}>{children}</div>;
 }
 
 /**
@@ -220,13 +227,6 @@ export function ModalBody({ className = '', children }: { className?: string; ch
  * @param {ReactNode} props.children The controls, usually two buttons.
  * @returns {JSX.Element} The footer row.
  */
-export function ModalActions({ className = '', children }: { className?: string; children: ReactNode })
-{
-    return (
-        <div className={ cn('mt-1 flex shrink-0 gap-2 *:flex-1', className) }>
-
-            { children }
-
-        </div>
-    );
+export function ModalActions({ className = '', children }: { className?: string; children: ReactNode }) {
+    return <div className={cn('mt-1 flex shrink-0 gap-2 *:flex-1', className)}>{children}</div>;
 }

@@ -17,7 +17,7 @@ const host = process.env.TAURI_DEV_HOST;
  * Read at config time, so the value is a literal in the output. Nothing looks it up at runtime, which
  * also means the browser preview shows the same number as a packaged build.
  */
-const version = (/^version\s*=\s*"(?<semver>[^"]+)"/mu).exec(readFileSync('src-tauri/Cargo.toml', 'utf8'))?.groups?.semver ?? '0.0.0';
+const version = /^version\s*=\s*"(?<semver>[^"]+)"/mu.exec(readFileSync('src-tauri/Cargo.toml', 'utf8'))?.groups?.semver ?? '0.0.0';
 
 /**
  * The app logo as a data URI, for the wallet's EIP-6963 announcement.
@@ -32,50 +32,37 @@ const version = (/^version\s*=\s*"(?<semver>[^"]+)"/mu).exec(readFileSync('src-t
  * that is precisely what cannot be used. The same file the title bar shows, so the wallet a dApp
  * offers looks like the wallet the user opened.
  */
-const icon = `data:image/png;base64,${ readFileSync('src/assets/image/logo.png').toString('base64') }`;
+const icon = `data:image/png;base64,${readFileSync('src/assets/image/logo.png').toString('base64')}`;
 
 export default defineConfig(() => ({
-
     clearScreen: false,
 
-    define:
-    {
+    define: {
         __APP_VERSION__: JSON.stringify(version),
         __APP_ICON__: JSON.stringify(icon)
     },
 
-    plugins:
-    [
-        react(),
-        tailwind()
-    ],
+    plugins: [react(), tailwind()],
 
-    build:
-    {
+    build: {
         chunkSizeWarningLimit: 1024
     },
 
-    server:
-    {
+    server: {
         port: 1420,
         strictPort: true,
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-nullish-coalescing
+        // oxlint-disable-next-line @typescript-eslint/strict-boolean-expressions, @typescript-eslint/prefer-nullish-coalescing
         host: host || false,
-        // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-        hmr: host ?
-            {
-                protocol: 'ws',
-                host,
-                port: 1421
-            } :
-            undefined,
-        watch:
-        {
-            ignored:
-            [
-                '**/dist/**',
-                '**/src-tauri/**'
-            ]
+        // oxlint-disable-next-line @typescript-eslint/strict-boolean-expressions
+        hmr: host
+            ? {
+                  protocol: 'ws',
+                  host,
+                  port: 1421
+              }
+            : undefined,
+        watch: {
+            ignored: ['**/dist/**', '**/src-tauri/**']
         }
     }
 }));

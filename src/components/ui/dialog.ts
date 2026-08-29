@@ -15,10 +15,8 @@ const stack: (() => void)[] = [];
  * @param {KeyboardEvent} event The key event.
  * @returns {void}
  */
-const onKeyDown = (event: KeyboardEvent) =>
-{
-    if (event.key !== 'Escape' || stack.length === 0)
-    {
+const onKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== 'Escape' || stack.length === 0) {
         return;
     }
 
@@ -31,7 +29,8 @@ const onKeyDown = (event: KeyboardEvent) =>
  * What counts as reachable by Tab. `[tabindex="-1"]` is deliberately excluded: it is focusable by
  * script, which is how the panel itself takes initial focus, but it is not a stop on the tab ring.
  */
-const focusableSelector = 'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
+const focusableSelector =
+    'a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
 
 /**
  * useDismiss - Escape closes this surface, and focus goes back where it came from.
@@ -46,16 +45,13 @@ const focusableSelector = 'a[href],button:not([disabled]),input:not([disabled]),
  * @param {() => void} onClose Dismisses it.
  * @returns {void}
  */
-export const useDismiss = (active: boolean, onClose: () => void) =>
-{
+export const useDismiss = (active: boolean, onClose: () => void) => {
     const closeRef = useRef(onClose);
 
     closeRef.current = onClose;
 
-    useEffect(() =>
-    {
-        if (!active)
-        {
+    useEffect(() => {
+        if (!active) {
             return undefined;
         }
 
@@ -66,26 +62,24 @@ export const useDismiss = (active: boolean, onClose: () => void) =>
          * close - Calls the caller's latest handler.
          * @returns {void}
          */
-        const close = () => { closeRef.current(); };
+        const close = () => {
+            closeRef.current();
+        };
 
         stack.push(close);
 
-        if (stack.length === 1)
-        {
+        if (stack.length === 1) {
             document.addEventListener('keydown', onKeyDown);
         }
 
-        return () =>
-        {
+        return () => {
             const index = stack.indexOf(close);
 
-            if (index >= 0)
-            {
+            if (index !== -1) {
                 stack.splice(index, 1);
             }
 
-            if (stack.length === 0)
-            {
+            if (stack.length === 0) {
                 document.removeEventListener('keydown', onKeyDown);
             }
 
@@ -99,22 +93,19 @@ export const useDismiss = (active: boolean, onClose: () => void) =>
              * opened the language picker is still unmounting long after the picker has taken focus —
              * restoring unconditionally there throws the user out of the dialog they just opened.
              */
-            queueMicrotask(() =>
-            {
+            queueMicrotask(() => {
                 const holder = document.activeElement;
 
-                if (holder !== null && holder !== document.body)
-                {
+                if (holder !== null && holder !== document.body) {
                     return;
                 }
 
-                if (opener instanceof HTMLElement && opener.isConnected)
-                {
+                if (opener instanceof HTMLElement && opener.isConnected) {
                     opener.focus({ preventScroll: true });
                 }
             });
         };
-    }, [ active ]);
+    }, [active]);
 };
 
 /**
@@ -144,20 +135,17 @@ export const useDismiss = (active: boolean, onClose: () => void) =>
  * @param {() => void} onClose Dismisses this dialog.
  * @returns {{ panelRef: React.RefObject<HTMLDivElement | null>, titleId: string }} The ref to put on the panel, and the id to put on its title.
  */
-export const useDialog = (onClose: () => void) =>
-{
+export const useDialog = (onClose: () => void) => {
     const panelRef = useRef<HTMLDivElement>(null);
 
-    const titleId = `${ useId() }-title`;
+    const titleId = `${useId()}-title`;
 
     useDismiss(true, onClose);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         const panel = panelRef.current;
 
-        if (panel === null)
-        {
+        if (panel === null) {
             return undefined;
         }
 
@@ -166,17 +154,14 @@ export const useDialog = (onClose: () => void) =>
          * @param {KeyboardEvent} event The key event.
          * @returns {void}
          */
-        const onTab = (event: KeyboardEvent) =>
-        {
-            if (event.key !== 'Tab')
-            {
+        const onTab = (event: KeyboardEvent) => {
+            if (event.key !== 'Tab') {
                 return;
             }
 
-            const items = [ ...panel.querySelectorAll<HTMLElement>(focusableSelector) ].filter((item) => item.offsetParent !== null);
+            const items = [...panel.querySelectorAll<HTMLElement>(focusableSelector)].filter((item) => item.offsetParent !== null);
 
-            if (items.length === 0)
-            {
+            if (items.length === 0) {
                 event.preventDefault();
 
                 return;
@@ -189,14 +174,11 @@ export const useDialog = (onClose: () => void) =>
             // Shift+Tab from there wraps to the end rather than escaping into the page.
             const active = document.activeElement;
 
-            if (event.shiftKey && (active === first || active === panel))
-            {
+            if (event.shiftKey && (active === first || active === panel)) {
                 event.preventDefault();
 
                 last.focus();
-            }
-            else if (!event.shiftKey && active === last)
-            {
+            } else if (!event.shiftKey && active === last) {
                 event.preventDefault();
 
                 first.focus();
@@ -210,8 +192,10 @@ export const useDialog = (onClose: () => void) =>
         // before the user has been told what "this" is.
         panel.focus({ preventScroll: true });
 
-        return () => { panel.removeEventListener('keydown', onTab); };
-    }, [ ]);
+        return () => {
+            panel.removeEventListener('keydown', onTab);
+        };
+    }, []);
 
     return { panelRef, titleId };
 };
@@ -229,7 +213,7 @@ export const useDialog = (onClose: () => void) =>
  * identifier as an intrinsic element, so a context rendered as `<DialogTitleContext value={...}>`
  * cannot be spelled in camelCase and remain a context.
  */
-/* eslint-disable-next-line @typescript-eslint/naming-convention */
+/* oxlint-disable-next-line @typescript-eslint/naming-convention */
 export const DialogTitleContext = createContext<string | undefined>(undefined);
 
 /**

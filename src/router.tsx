@@ -21,12 +21,8 @@ import { getValue } from './utility/storage';
  * because it cannot destroy a wallet that is still on disk — it only offers to create or import one.
  * @returns {Promise<Response>} A redirect to the unlock screen when a wallet exists, else to the intro.
  */
-const launchLoader = async() =>
-{
-    const [ mnemonic, password ] = await Promise.all([
-        getValue('Wallet.Mnemonic').catch(() => undefined),
-        getValue('Wallet.Password').catch(() => undefined)
-    ]);
+const launchLoader = async () => {
+    const [mnemonic, password] = await Promise.all([getValue('Wallet.Mnemonic').catch(() => undefined), getValue('Wallet.Password').catch(() => undefined)]);
 
     const stored = mnemonic !== undefined && mnemonic.length > 0 && password !== undefined && password.length > 0;
 
@@ -66,8 +62,7 @@ export const router = createMemoryRouter([
         Component: RootLayout,
         ErrorBoundary: RouteError,
         HydrateFallback: RouteFallback,
-        children:
-        [
+        children: [
             {
                 index: true,
                 loader: launchLoader,
@@ -75,16 +70,16 @@ export const router = createMemoryRouter([
             },
             {
                 path: 'intro',
-                lazy: { Component: async() => (await import('./page/intro')).default }
+                lazy: { Component: async () => (await import('./page/intro')).default }
             },
             {
                 path: 'unlock',
-                lazy: { Component: async() => (await import('./page/unlock')).default }
+                lazy: { Component: async () => (await import('./page/unlock')).default }
             },
             {
                 path: 'dashboard',
                 loader: dashboardLoader,
-                lazy: { Component: async() => (await import('./page/dashboard')).default }
+                lazy: { Component: async () => (await import('./page/dashboard')).default }
             },
             {
                 path: '*',

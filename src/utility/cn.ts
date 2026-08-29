@@ -16,17 +16,36 @@ type ClassValue = string | number | boolean | null | undefined | ClassValue[] | 
  * wrong and a size looks like a colour: `text-tiny text-txt-error` collapses to one of the two and
  * the alert stops being red, which is exactly what was happening here.
  */
-const sizeMap = new Set([ 'tiny', 'small', 'medium', 'large', 'display', 'xs', 'sm', 'base', 'lg', 'xl', '2xl', '3xl', '4xl', '5xl', '6xl', '7xl', '8xl', '9xl' ]);
+const sizeMap = new Set([
+    'tiny',
+    'small',
+    'medium',
+    'large',
+    'display',
+    'xs',
+    'sm',
+    'base',
+    'lg',
+    'xl',
+    '2xl',
+    '3xl',
+    '4xl',
+    '5xl',
+    '6xl',
+    '7xl',
+    '8xl',
+    '9xl'
+]);
 
 /**
  * Values of `text-*` that set the alignment.
  */
-const alignMap = new Set([ 'left', 'center', 'right', 'justify', 'start', 'end' ]);
+const alignMap = new Set(['left', 'center', 'right', 'justify', 'start', 'end']);
 
 /**
  * Values of `font-*` that set the weight; anything else under that prefix is a family.
  */
-const weightMap = new Set([ 'thin', 'extralight', 'light', 'normal', 'medium', 'semibold', 'bold', 'extrabold', 'black' ]);
+const weightMap = new Set(['thin', 'extralight', 'light', 'normal', 'medium', 'semibold', 'bold', 'extrabold', 'black']);
 
 /**
  * Prefixes that identify a group, longest first so `min-h` is not read as `m` and `inset-x` is not
@@ -40,8 +59,7 @@ const weightMap = new Set([ 'thin', 'extralight', 'light', 'normal', 'medium', '
  * display, `flex-col` a direction, `flex-wrap` a wrap and `flex-1` the shorthand, so one prefix would
  * collapse four properties into one group and `flex flex-col` would lose its display.
  */
-const groupList =
-[
+const groupList = [
     'min-w',
     'max-w',
     'min-h',
@@ -121,33 +139,47 @@ const groupList =
  * `ps` and `pe` are deliberately absent from `px`, since a logical inset and a physical one are
  * separate declarations that Tailwind orders so the logical pair wins on its own.
  */
-const clearMap: Record<string, readonly string[]> =
-{
-    p: [ 'px', 'py', 'ps', 'pe', 'pt', 'pr', 'pb', 'pl' ],
-    px: [ 'pr', 'pl' ],
-    py: [ 'pt', 'pb' ],
-    m: [ 'mx', 'my', 'ms', 'me', 'mt', 'mr', 'mb', 'ml' ],
-    mx: [ 'mr', 'ml' ],
-    my: [ 'mt', 'mb' ],
-    gap: [ 'gap-x', 'gap-y' ],
-    size: [ 'w', 'h' ],
-    inset: [ 'inset-x', 'inset-y', 'inset-s', 'inset-e', 'top', 'right', 'bottom', 'left' ],
-    'inset-x': [ 'right', 'left' ],
-    'inset-y': [ 'top', 'bottom' ],
-    overflow: [ 'overflow-x', 'overflow-y' ],
-    rounded: [ 'rounded-t', 'rounded-r', 'rounded-b', 'rounded-l', 'rounded-s', 'rounded-e', 'rounded-tl', 'rounded-tr', 'rounded-br', 'rounded-bl', 'rounded-ss', 'rounded-se', 'rounded-ee', 'rounded-es' ]
+const clearMap: Record<string, readonly string[]> = {
+    p: ['px', 'py', 'ps', 'pe', 'pt', 'pr', 'pb', 'pl'],
+    px: ['pr', 'pl'],
+    py: ['pt', 'pb'],
+    m: ['mx', 'my', 'ms', 'me', 'mt', 'mr', 'mb', 'ml'],
+    mx: ['mr', 'ml'],
+    my: ['mt', 'mb'],
+    gap: ['gap-x', 'gap-y'],
+    size: ['w', 'h'],
+    inset: ['inset-x', 'inset-y', 'inset-s', 'inset-e', 'top', 'right', 'bottom', 'left'],
+    'inset-x': ['right', 'left'],
+    'inset-y': ['top', 'bottom'],
+    overflow: ['overflow-x', 'overflow-y'],
+    rounded: [
+        'rounded-t',
+        'rounded-r',
+        'rounded-b',
+        'rounded-l',
+        'rounded-s',
+        'rounded-e',
+        'rounded-tl',
+        'rounded-tr',
+        'rounded-br',
+        'rounded-bl',
+        'rounded-ss',
+        'rounded-se',
+        'rounded-ee',
+        'rounded-es'
+    ]
 };
 
 /**
  * Values of `border-*`, `outline-*` and `ring-*` that are a side, a style or an offset rather than a
  * colour. Widths are caught separately, by the leading digit or bracket.
  */
-const edgeMap = new Set([ 'x', 'y', 's', 'e', 't', 'r', 'b', 'l', 'solid', 'dashed', 'dotted', 'double', 'hidden', 'none', 'offset' ]);
+const edgeMap = new Set(['x', 'y', 's', 'e', 't', 'r', 'b', 'l', 'solid', 'dashed', 'dotted', 'double', 'hidden', 'none', 'offset']);
 
 /**
  * The three families that spell a width, a side, a style and a colour with one prefix.
  */
-const edgeList = [ 'border', 'outline', 'ring' ] as const;
+const edgeList = ['border', 'outline', 'ring'] as const;
 
 /**
  * edgeGroup - Names the colour slot of an edge family, or `undefined` for everything else it spells.
@@ -165,25 +197,20 @@ const edgeList = [ 'border', 'outline', 'ring' ] as const;
  * @param {string} name The utility, with variants and the important marker already stripped.
  * @returns {string | undefined} The colour group, or `undefined` to always keep the class.
  */
-const edgeGroup = (name: string) =>
-{
-    for (const family of edgeList)
-    {
-        if (name === family)
-        {
+const edgeGroup = (name: string) => {
+    for (const family of edgeList) {
+        if (name === family) {
             return undefined;
         }
 
-        if (name.startsWith(`${ family }-`))
-        {
+        if (name.startsWith(`${family}-`)) {
             const value = name.slice(family.length + 1).split('/')[0];
 
-            if ((/^[\d[]/u).test(value) || edgeMap.has(value.split('-')[0]))
-            {
+            if (/^[\d[]/u.test(value) || edgeMap.has(value.split('-')[0])) {
                 return undefined;
             }
 
-            return `${ family }-color`;
+            return `${family}-color`;
         }
     }
 
@@ -203,7 +230,7 @@ const edgeGroup = (name: string) =>
  * @param {string} value The part after `text-`, with any slash suffix already removed.
  * @returns {boolean} Whether it parses as a length.
  */
-const isLength = (value: string) => (/^\[-?\d*\.?\d+(?:px|rem|em|ch|ex|vw|vh|vmin|vmax|%|pt|pc|in|cm|mm)\]$/u).test(value);
+const isLength = (value: string) => /^\[-?\d*\.?\d+(?:px|rem|em|ch|ex|vw|vh|vmin|vmax|%|pt|pc|in|cm|mm)\]$/u.test(value);
 
 /**
  * groupOf - Names the property family a utility writes to, or `undefined` when it is not one that can
@@ -211,35 +238,30 @@ const isLength = (value: string) => (/^\[-?\d*\.?\d+(?:px|rem|em|ch|ex|vw|vh|vmi
  * @param {string} utility The utility, with any variants and the important marker already stripped.
  * @returns {string | undefined} The family name, or `undefined` to always keep the class.
  */
-const groupOf = (utility: string) =>
-{
+const groupOf = (utility: string) => {
     const name = utility.startsWith('-') ? utility.slice(1) : utility;
 
-    if (name.startsWith('text-'))
-    {
+    if (name.startsWith('text-')) {
         // The part after a slash is the line height on a size and the opacity on a colour, so it says
         // nothing about which of the two this is.
         const value = name.slice(5).split('/')[0];
 
-        if (sizeMap.has(value) || isLength(value))
-        {
+        if (sizeMap.has(value) || isLength(value)) {
             return 'font-size';
         }
 
         return alignMap.has(value) ? 'text-align' : 'text-color';
     }
 
-    if (name.startsWith('font-'))
-    {
+    if (name.startsWith('font-')) {
         return weightMap.has(name.slice(5)) ? 'font-weight' : 'font-family';
     }
 
-    if (edgeList.some((family) => name === family || name.startsWith(`${ family }-`)))
-    {
+    if (edgeList.some((family) => name === family || name.startsWith(`${family}-`))) {
         return edgeGroup(name);
     }
 
-    return groupList.find((prefix) => name === prefix || name.startsWith(`${ prefix }-`));
+    return groupList.find((prefix) => name === prefix || name.startsWith(`${prefix}-`));
 };
 
 /**
@@ -255,40 +277,34 @@ const groupOf = (utility: string) =>
  * @param {string} value The space-separated class list.
  * @returns {string} The list with overwritten utilities removed.
  */
-const mergeClasses = (value: string) =>
-{
+const mergeClasses = (value: string) => {
     const parts = value.split(' ').filter((item) => item.length > 0);
 
     const names = new Set<string>();
     const groups = new Set<string>();
     const result: string[] = [];
 
-    for (let index = parts.length - 1; index >= 0; index--)
-    {
+    for (let index = parts.length - 1; index >= 0; index--) {
         const part = parts[index];
 
-        if (names.has(part))
-        {
+        if (names.has(part)) {
             continue;
         }
 
         const split = part.lastIndexOf(':');
-        const variant = split < 0 ? '' : part.slice(0, split + 1);
-        const group = groupOf((split < 0 ? part : part.slice(split + 1)).replace(/!$/u, ''));
+        const variant = split === -1 ? '' : part.slice(0, split + 1);
+        const group = groupOf((split === -1 ? part : part.slice(split + 1)).replace(/!$/u, ''));
 
-        if (group !== undefined)
-        {
+        if (group !== undefined) {
             const key = variant + group;
 
-            if (groups.has(key))
-            {
+            if (groups.has(key)) {
                 continue;
             }
 
             groups.add(key);
 
-            for (const cleared of clearMap[group] ?? [])
-            {
+            for (const cleared of clearMap[group] ?? []) {
                 groups.add(variant + cleared);
             }
         }
@@ -313,28 +329,22 @@ const mergeClasses = (value: string) =>
  * @param {ClassValue} value A string, number, boolean, nullish value, array or record.
  * @returns {string} The classes it contributes, or an empty string when it contributes none.
  */
-const flattenValue = (value: ClassValue): string =>
-{
-    if (typeof value === 'string')
-    {
+const flattenValue = (value: ClassValue): string => {
+    if (typeof value === 'string') {
         return value;
     }
 
-    if (typeof value === 'number')
-    {
-        return value === 0 || Number.isNaN(value) ? '' : `${ value }`;
+    if (typeof value === 'number') {
+        return value === 0 || Number.isNaN(value) ? '' : `${value}`;
     }
 
-    if (Array.isArray(value))
-    {
+    if (Array.isArray(value)) {
         const parts: string[] = [];
 
-        for (const item of value)
-        {
+        for (const item of value) {
             const part = flattenValue(item);
 
-            if (part.length > 0)
-            {
+            if (part.length > 0) {
                 parts.push(part);
             }
         }
@@ -344,9 +354,10 @@ const flattenValue = (value: ClassValue): string =>
 
     // `typeof null` is also `object`, so the null check is what separates a record from a nullish
     // conditional that collapsed to nothing.
-    if (typeof value === 'object' && value !== null)
-    {
-        return Object.keys(value).filter((key) => Boolean(value[key])).join(' ');
+    if (typeof value === 'object' && value !== null) {
+        return Object.keys(value)
+            .filter((key) => Boolean(value[key]))
+            .join(' ');
     }
 
     return '';

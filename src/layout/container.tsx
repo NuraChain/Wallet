@@ -9,8 +9,7 @@ import { useIsWindows } from '../hook/platform';
  *
  * These are plain class strings (not computed) so Tailwind's scanner picks them up at build time.
  */
-export const inset =
-{
+export const inset = {
     sheetTop: 'pt-[env(safe-area-inset-top)]',
     modalFrame: 'pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]'
 } as const;
@@ -27,8 +26,7 @@ export const inset =
  * `popover` sits between them for the things that open *within* a surface — the asset picker, the
  * unlock hint — and must not escape their own page.
  */
-export const layer =
-{
+export const layer = {
     chrome: 'z-20',
     popover: 'z-30',
     dialog: 'z-40'
@@ -39,8 +37,7 @@ export const layer =
  * what clears the status bar (plus a breath of space where the content starts with controls) under
  * Android's transparent system bars.
  */
-const topMap =
-{
+const topMap = {
     tab: { windows: 'pt-8', device: 'pt-[calc(0.375rem+env(safe-area-inset-top))]' },
     browser: { windows: 'pt-8', device: 'pt-[env(safe-area-inset-top)]' },
     intro: { windows: 'pt-10', device: 'pt-[env(safe-area-inset-top)]' }
@@ -52,8 +49,7 @@ const topMap =
  * with a breath of space on top of it. `browser` is the full-bleed surface a web page owns. `intro`
  * is the intro page's own frame.
  */
-const bodyMap =
-{
+const bodyMap = {
     tab: 'mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6',
     browser: 'flex size-full flex-col',
     intro: 'bg-base-1 flex size-full flex-col px-4 pb-4 sm:px-6 sm:pb-6'
@@ -71,17 +67,17 @@ const bodyMap =
  * @param {ReactNode} props.children The page content.
  * @returns {JSX.Element} The page frame.
  */
-export default function PageContainer({ variant, className = '', children, ...rest }: { variant: 'tab' | 'browser' | 'intro'; className?: string; children: ReactNode } & HTMLAttributes<HTMLDivElement>)
-{
+export default function PageContainer({
+    variant,
+    className = '',
+    children,
+    ...rest
+}: { variant: 'tab' | 'browser' | 'intro'; className?: string; children: ReactNode } & HTMLAttributes<HTMLDivElement>) {
     const isWindows = useIsWindows();
 
     return (
-        <div
-            className={ cn(bodyMap[variant], isWindows ? topMap[variant].windows : topMap[variant].device, className) }
-            { ...rest }>
-
-            { children }
-
+        <div className={cn(bodyMap[variant], isWindows ? topMap[variant].windows : topMap[variant].device, className)} {...rest}>
+            {children}
         </div>
     );
 }

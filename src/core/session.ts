@@ -27,10 +27,8 @@ const listeners = new Set<() => void>();
 /**
  * announce - Tells every subscribed component the vault changed.
  */
-const announce = () =>
-{
-    for (const listener of listeners)
-    {
+const announce = () => {
+    for (const listener of listeners) {
         listener();
     }
 };
@@ -48,8 +46,7 @@ export const getVault = () => current;
  * @param {Vault} vault The decrypted key material.
  * @returns {void}
  */
-export const unlockSession = (vault: Vault) =>
-{
+export const unlockSession = (vault: Vault) => {
     current = vault;
 
     announce();
@@ -62,8 +59,7 @@ export const unlockSession = (vault: Vault) =>
  * so a stale history entry cannot be walked back into.
  * @returns {void}
  */
-export const lockSession = () =>
-{
+export const lockSession = () => {
     current = undefined;
 
     announce();
@@ -74,12 +70,10 @@ export const lockSession = () =>
  * @param {() => void} listener Called whenever the vault changes.
  * @returns {() => void} The unsubscribe function.
  */
-const subscribe = (listener: () => void) =>
-{
+const subscribe = (listener: () => void) => {
     listeners.add(listener);
 
-    return () =>
-    {
+    return () => {
         listeners.delete(listener);
     };
 };

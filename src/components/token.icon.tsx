@@ -23,35 +23,44 @@ import type { ImageKind } from '../core/image';
  * @param {string} [props.className] Sizing classes for the disc.
  * @returns {JSX.Element} The icon.
  */
-export default function TokenIcon({ src, symbol, kind = 'unknown', primary = false, className = 'size-9' }: { src: string; symbol: string; kind?: ImageKind; primary?: boolean; className?: string })
-{
-    const [ failed, setFailed ] = useState(false);
+export default function TokenIcon({
+    src,
+    symbol,
+    kind = 'unknown',
+    primary = false,
+    className = 'size-9'
+}: {
+    src: string;
+    symbol: string;
+    kind?: ImageKind;
+    primary?: boolean;
+    className?: string;
+}) {
+    const [failed, setFailed] = useState(false);
 
     const resolved = useCachedImage(src, kind);
 
-    if (resolved.length === 0 || failed)
-    {
+    if (resolved.length === 0 || failed) {
         // The lettered disc is `IconBox` and always was — this component had copied its three
         // classes rather than importing it, which is the whole reason `tone='secondary'` read as a
         // tone nothing used.
         return (
-            <IconBox
-                tone={ primary ? 'primary' : 'secondary' }
-                className={ cn('text-small', className) }>
-
-                { symbol.slice(0, 1) }
-
+            <IconBox tone={primary ? 'primary' : 'secondary'} className={cn('text-small', className)}>
+                {symbol.slice(0, 1)}
             </IconBox>
         );
     }
 
     return (
         <img
-            src={ resolved }
-            alt={ symbol }
+            src={resolved}
+            alt={symbol}
             loading='lazy'
             decoding='async'
-            onError={ () => { setFailed(true); } }
-            className={ cn('shrink-0 rounded-control bg-base-3 object-contain', className) } />
+            onError={() => {
+                setFailed(true);
+            }}
+            className={cn('shrink-0 rounded-control bg-base-3 object-contain', className)}
+        />
     );
 }

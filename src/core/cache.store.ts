@@ -25,15 +25,12 @@ const broken = new Set<CacheArea>();
  * @param {CacheArea} area Which storage to reach for.
  * @returns {Storage | undefined} The storage, or `undefined` to use the shim.
  */
-const backend = (area: CacheArea): Storage | undefined =>
-{
-    if (broken.has(area))
-    {
+const backend = (area: CacheArea): Storage | undefined => {
+    if (broken.has(area)) {
         return undefined;
     }
 
-    try
-    {
+    try {
         const store = area === 'local' ? localStorage : sessionStorage;
 
         // Presence is not availability: a blocked backend throws here rather than on construction.
@@ -43,9 +40,7 @@ const backend = (area: CacheArea): Storage | undefined =>
         store.removeItem(probe);
 
         return store;
-    }
-    catch
-    {
+    } catch {
         broken.add(area);
 
         return undefined;
@@ -66,12 +61,10 @@ const flushDelay = 250;
  * @param {string} key The entry it happened to.
  * @param {string} [detail] Anything worth adding.
  */
-export const cacheLog = (event: string, key: string, detail = '') =>
-{
-    if (import.meta.env.DEV)
-    {
-        // eslint-disable-next-line no-console
-        console.debug(`[cache] ${ event } ${ key }${ detail.length > 0 ? ` ${ detail }` : '' }`);
+export const cacheLog = (event: string, key: string, detail = '') => {
+    if (import.meta.env.DEV) {
+        // oxlint-disable-next-line no-console
+        console.debug(`[cache] ${event} ${key}${detail.length > 0 ? ` ${detail}` : ''}`);
     }
 };
 
@@ -81,29 +74,22 @@ export const cacheLog = (event: string, key: string, detail = '') =>
  * A quota failure drops that one write and leaves the rest alone: losing a cache entry costs a refetch,
  * which is not worth surfacing or retrying.
  */
-const flush = () =>
-{
+const flush = () => {
     timer = undefined;
 
-    for (const [ area, pending ] of dirty)
-    {
+    for (const [area, pending] of dirty) {
         const store = backend(area);
 
-        for (const [ key, value ] of pending)
-        {
-            if (store === undefined)
-            {
-                shim.set(`${ area }:${ key }`, value);
+        for (const [key, value] of pending) {
+            if (store === undefined) {
+                shim.set(`${area}:${key}`, value);
 
                 continue;
             }
 
-            try
-            {
+            try {
                 store.setItem(key, value);
-            }
-            catch
-            {
+            } catch {
                 cacheLog('quota', key);
             }
         }
@@ -118,29 +104,23 @@ const flush = () =>
  * @param {string} key The full key, prefix included.
  * @returns {string | undefined} What is stored, or `undefined`.
  */
-export const readRaw = (area: CacheArea, key: string) =>
-{
+export const readRaw = (area: CacheArea, key: string) => {
     // A write still sitting in the batch is the newest truth, so it answers before storage does.
     const pending = dirty.get(area)?.get(key);
 
-    if (pending !== undefined)
-    {
+    if (pending !== undefined) {
         return pending;
     }
 
     const store = backend(area);
 
-    if (store === undefined)
-    {
-        return shim.get(`${ area }:${ key }`);
+    if (store === undefined) {
+        return shim.get(`${area}:${key}`);
     }
 
-    try
-    {
+    try {
         return store.getItem(key) ?? undefined;
-    }
-    catch
-    {
+    } catch {
         return undefined;
     }
 };
@@ -151,8 +131,7 @@ export const readRaw = (area: CacheArea, key: string) =>
  * @param {string} key The full key, prefix included.
  * @param {string} value The serialized payload.
  */
-export const writeRaw = (area: CacheArea, key: string, value: string) =>
-{
+export const writeRaw = (area: CacheArea, key: string, value: string) => {
     const pending = dirty.get(area) ?? new Map<string, string>();
 
     pending.set(key, value);
@@ -167,25 +146,20 @@ export const writeRaw = (area: CacheArea, key: string, value: string) =>
  * @param {CacheArea} area Which storage to clear from.
  * @param {string} key The full key, prefix included.
  */
-export const removeRaw = (area: CacheArea, key: string) =>
-{
+export const removeRaw = (area: CacheArea, key: string) => {
     dirty.get(area)?.delete(key);
 
     const store = backend(area);
 
-    if (store === undefined)
-    {
-        shim.delete(`${ area }:${ key }`);
+    if (store === undefined) {
+        shim.delete(`${area}:${key}`);
 
         return;
     }
 
-    try
-    {
+    try {
         store.removeItem(key);
-    }
-    catch
-    {
+    } catch {
         // Nothing useful to do; the entry ages out on its own TTL.
     }
 };
@@ -196,8 +170,7 @@ export const removeRaw = (area: CacheArea, key: string) =>
  * @param {string} prefix The namespace to match.
  * @returns {string[]} The matching full keys.
  */
-export const keysUnder = (area: CacheArea, prefix: string) =>
-{
+export const keysUnder = (area: CacheArea, prefix: string) => {
     // Queued writes are listed alongside stored ones, because `readRaw` already prefers them and the
     // two disagreeing is a hole rather than a nuance. A `clearUnder` could not see a key written in
     // the last few hundred milliseconds, so it left it alone and the pending flush then wrote it back
@@ -206,47 +179,37 @@ export const keysUnder = (area: CacheArea, prefix: string) =>
     // window, so the bound was measured against a namespace that still looked empty and never fired.
     const found = new Set<string>();
 
-    for (const key of dirty.get(area)?.keys() ?? [])
-    {
-        if (key.startsWith(prefix))
-        {
+    for (const key of dirty.get(area)?.keys() ?? []) {
+        if (key.startsWith(prefix)) {
             found.add(key);
         }
     }
 
     const store = backend(area);
 
-    if (store === undefined)
-    {
-        for (const key of shim.keys())
-        {
-            if (key.startsWith(`${ area }:${ prefix }`))
-            {
+    if (store === undefined) {
+        for (const key of shim.keys()) {
+            if (key.startsWith(`${area}:${prefix}`)) {
                 found.add(key.slice(area.length + 1));
             }
         }
 
-        return [ ...found ];
+        return [...found];
     }
 
-    try
-    {
-        for (let index = 0; index < store.length; index += 1)
-        {
+    try {
+        for (let index = 0; index < store.length; index += 1) {
             const key = store.key(index);
 
-            if (key?.startsWith(prefix) === true)
-            {
+            if (key?.startsWith(prefix) === true) {
                 found.add(key);
             }
         }
-    }
-    catch
-    {
-        return [ ...found ];
+    } catch {
+        return [...found];
     }
 
-    return [ ...found ];
+    return [...found];
 };
 
 /**
@@ -259,12 +222,10 @@ export const keysUnder = (area: CacheArea, prefix: string) =>
  * @param {number} keep How many entries may remain.
  * @param {(raw: string) => number} stampOf Reads the sort stamp out of a stored payload.
  */
-export const prune = (area: CacheArea, prefix: string, keep: number, stampOf: (raw: string) => number) =>
-{
+export const prune = (area: CacheArea, prefix: string, keep: number, stampOf: (raw: string) => number) => {
     const keys = keysUnder(area, prefix);
 
-    if (keys.length <= keep)
-    {
+    if (keys.length <= keep) {
         return;
     }
 
@@ -272,8 +233,7 @@ export const prune = (area: CacheArea, prefix: string, keep: number, stampOf: (r
 
     ranked.sort((left, right) => left.stamp - right.stamp);
 
-    for (const item of ranked.slice(0, keys.length - keep))
-    {
+    for (const item of ranked.slice(0, keys.length - keep)) {
         removeRaw(area, item.key);
 
         cacheLog('evict', item.key);
@@ -286,12 +246,9 @@ export const prune = (area: CacheArea, prefix: string, keep: number, stampOf: (r
  * @param {string} prefix The namespace to clear.
  * @param {(key: string) => boolean} [match] Which keys to drop, given the key without its prefix.
  */
-export const clearUnder = (area: CacheArea, prefix: string, match?: (key: string) => boolean) =>
-{
-    for (const key of keysUnder(area, prefix))
-    {
-        if (match === undefined || match(key.slice(prefix.length)))
-        {
+export const clearUnder = (area: CacheArea, prefix: string, match?: (key: string) => boolean) => {
+    for (const key of keysUnder(area, prefix)) {
+        if (match === undefined || match(key.slice(prefix.length))) {
             removeRaw(area, key);
 
             cacheLog('invalidate', key);

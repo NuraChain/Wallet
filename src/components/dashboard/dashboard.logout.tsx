@@ -18,7 +18,7 @@ import { invalidateTokenCache } from '../../core/token.cache';
 /**
  * Everything the wallet leaves on the device. Logging out means all of it goes.
  */
-const clearList = [ 'Wallet.Mnemonic', 'Wallet.Password', 'Wallet.Name', 'Wallet.Accounts', 'Wallet.Active' ] as const;
+const clearList = ['Wallet.Mnemonic', 'Wallet.Password', 'Wallet.Name', 'Wallet.Accounts', 'Wallet.Active'] as const;
 
 /**
  * DashboardLogout - Password-gated wallet removal.
@@ -34,20 +34,17 @@ const clearList = [ 'Wallet.Mnemonic', 'Wallet.Password', 'Wallet.Name', 'Wallet
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The logout modal.
  */
-export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; onClose: () => void })
-{
+export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; onClose: () => void }) {
     const navigate = useNavigate();
 
-    const [ error, setError ] = useState('');
-    const [ password, setPassword ] = useState('');
-    const [ isLoading, setIsLoading ] = useState(false);
+    const [error, setError] = useState('');
+    const [password, setPassword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const onConfirm = async() =>
-    {
+    const onConfirm = async () => {
         setError('');
 
-        if (password.trim().length === 0)
-        {
+        if (password.trim().length === 0) {
             setError(T('Dashboard.Logout.ErrorRequired'));
 
             return;
@@ -55,13 +52,11 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
 
         setIsLoading(true);
 
-        try
-        {
+        try {
             const outcome = await passwordCheck(password);
 
             // Nothing stored means there is nothing left to log out of, so the wallet is already gone.
-            if (outcome === 'missing')
-            {
+            if (outcome === 'missing') {
                 lockSession();
 
                 await navigate('/intro', { replace: true });
@@ -69,8 +64,7 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
                 return;
             }
 
-            if (outcome === 'invalid')
-            {
+            if (outcome === 'invalid') {
                 setError(T('Dashboard.Logout.ErrorInvalid'));
 
                 return;
@@ -89,62 +83,52 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
             lockSession();
 
             await navigate('/intro', { replace: true });
-        }
-        finally
-        {
+        } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <Modal
-            scroll
-            onClose={ onClose }>
+        <Modal scroll onClose={onClose}>
+            <ModalHeader title={T('Dashboard.Logout.Title')} onClose={onClose} />
 
-            <ModalHeader
-                title={ T('Dashboard.Logout.Title') }
-                onClose={ onClose } />
+            <Alert variant='warning' text={kind === 'privateKey' ? T('Dashboard.Logout.MessageKey') : T('Dashboard.Logout.Message')} />
 
-            <Alert
-                variant='warning'
-                text={ kind === 'privateKey' ? T('Dashboard.Logout.MessageKey') : T('Dashboard.Logout.Message') } />
-
-            <Alert text={ error } />
+            <Alert text={error} />
 
             <PasswordField
                 size='compact'
-                label={ T('Dashboard.Logout.Password') }
-                value={ password }
-                onValue={ setPassword }
-                onEnter={ () => { void onConfirm(); } } />
+                label={T('Dashboard.Logout.Password')}
+                value={password}
+                onValue={setPassword}
+                onEnter={() => {
+                    void onConfirm();
+                }}
+            />
 
-            { /*
-                  * Cancel carries the emphasis and the destructive button is the quiet one: this
-                  * dialog exists to slow the user down, so the prominent control should be the way
-                  * back out rather than the one that wipes the wallet.
-                  *
-                  * The busy state is the app's standard one — spinner ahead of the label, control
-                  * disabled — rather than a label swap, which left this the only working form in the
-                  * app whose wait looked like nothing happening.
-                  */ }
+            {/*
+             * Cancel carries the emphasis and the destructive button is the quiet one: this
+             * dialog exists to slow the user down, so the prominent control should be the way
+             * back out rather than the one that wipes the wallet.
+             *
+             * The busy state is the app's standard one — spinner ahead of the label, control
+             * disabled — rather than a label swap, which left this the only working form in the
+             * app whose wait looked like nothing happening.
+             */}
             <ModalActions>
-
-                <Button
-                    variant='primary'
-                    size='action'
-                    onClick={ onClose }
-                    text={ T('Dashboard.Logout.Cancel') } />
+                <Button variant='primary' size='action' onClick={onClose} text={T('Dashboard.Logout.Cancel')} />
 
                 <Button
                     dim
                     variant='danger'
                     size='action'
-                    loading={ isLoading }
-                    onClick={ () => { void onConfirm(); } }
-                    text={ T('Dashboard.Logout.Confirm') } />
-
+                    loading={isLoading}
+                    onClick={() => {
+                        void onConfirm();
+                    }}
+                    text={T('Dashboard.Logout.Confirm')}
+                />
             </ModalActions>
-
         </Modal>
     );
 }

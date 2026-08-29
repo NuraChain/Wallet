@@ -14,15 +14,12 @@ import { line } from './boundary';
  * @param {unknown} error Whatever the router caught.
  * @returns {string} A single descriptive line.
  */
-const describe = (error: unknown) =>
-{
-    if (isRouteErrorResponse(error))
-    {
-        return `${ error.status } ${ error.statusText }`;
+const describe = (error: unknown) => {
+    if (isRouteErrorResponse(error)) {
+        return `${error.status} ${error.statusText}`;
     }
 
-    if (error instanceof Error && error.message.length > 0)
-    {
+    if (error instanceof Error && error.message.length > 0) {
         return error.message;
     }
 
@@ -39,29 +36,33 @@ const describe = (error: unknown) =>
  * restart.
  * @returns {JSX.Element} The route failure screen.
  */
-export default function RouteError()
-{
+export default function RouteError() {
     const error = useRouteError();
     const navigate = useNavigate();
 
     return (
         <FailureScreen
-            title={ line('App.Failure.Title', 'Nura Wallet could not start') }
-            body={ line('App.Failure.Message', 'Your wallet is still on this device. Reloading usually clears this.') }
-            detail={ describe(error) }>
-
+            title={line('App.Failure.Title', 'Nura Wallet could not start')}
+            body={line('App.Failure.Message', 'Your wallet is still on this device. Reloading usually clears this.')}
+            detail={describe(error)}
+        >
             <Button
                 variant='muted'
                 size='action'
-                onClick={ () => { void navigate('/', { replace: true }); } }
-                text={ line('App.Failure.Home', 'Start over') } />
+                onClick={() => {
+                    void navigate('/', { replace: true });
+                }}
+                text={line('App.Failure.Home', 'Start over')}
+            />
 
             <Button
                 variant='primary'
                 size='action'
-                onClick={ () => { window.location.reload(); } }
-                text={ line('App.Failure.Reload', 'Reload') } />
-
+                onClick={() => {
+                    window.location.reload();
+                }}
+                text={line('App.Failure.Reload', 'Reload')}
+            />
         </FailureScreen>
     );
 }
@@ -74,21 +75,22 @@ export default function RouteError()
  * It says so plainly instead of showing a web-style 404.
  * @returns {JSX.Element} The not-found screen.
  */
-export function NotFound()
-{
+export function NotFound() {
     const navigate = useNavigate();
 
     return (
         <FailureScreen
-            title={ line('App.Missing.Title', 'This screen does not exist') }
-            body={ line('App.Missing.Message', 'Nothing was lost. Your wallet is still on this device.') }>
-
+            title={line('App.Missing.Title', 'This screen does not exist')}
+            body={line('App.Missing.Message', 'Nothing was lost. Your wallet is still on this device.')}
+        >
             <Button
                 variant='primary'
                 size='action'
-                onClick={ () => { void navigate('/', { replace: true }); } }
-                text={ line('App.Failure.Home', 'Start over') } />
-
+                onClick={() => {
+                    void navigate('/', { replace: true });
+                }}
+                text={line('App.Failure.Home', 'Start over')}
+            />
         </FailureScreen>
     );
 }

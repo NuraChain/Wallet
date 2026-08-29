@@ -19,21 +19,18 @@ import { unlockSession } from '../core/session';
 import { getValueEncrypted } from '../utility/storage';
 import { Horizontal } from '../components/ui/stack';
 
-export default function UnlockPage()
-{
+export default function UnlockPage() {
     const navigate = useNavigate();
 
-    const [ error, setError ] = useState('');
-    const [ password, setPassword ] = useState('');
-    const [ showHint, setShowHint ] = useState(false);
-    const [ isLoading, setIsLoading ] = useState(false);
+    const [error, setError] = useState('');
+    const [password, setPassword] = useState('');
+    const [showHint, setShowHint] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const onUnlock = async() =>
-    {
+    const onUnlock = async () => {
         setError('');
 
-        if (password.trim().length === 0)
-        {
+        if (password.trim().length === 0) {
             setError(T('Unlock.ErrorRequired'));
 
             return;
@@ -41,20 +38,17 @@ export default function UnlockPage()
 
         setIsLoading(true);
 
-        try
-        {
+        try {
             const outcome = await passwordCheck(password);
 
             // No stored hash means there is no wallet on this device, so there is nothing to unlock.
-            if (outcome === 'missing')
-            {
+            if (outcome === 'missing') {
                 await navigate('/intro', { replace: true });
 
                 return;
             }
 
-            if (outcome === 'invalid')
-            {
+            if (outcome === 'invalid') {
                 setError(T('Unlock.ErrorInvalid'));
 
                 return;
@@ -62,8 +56,7 @@ export default function UnlockPage()
 
             const secret = await getValueEncrypted('Wallet.Mnemonic', password);
 
-            if (secret === undefined)
-            {
+            if (secret === undefined) {
                 setError(T('Unlock.ErrorMissing'));
 
                 return;
@@ -78,15 +71,11 @@ export default function UnlockPage()
             unlockSession(readVault(secret));
 
             await navigate('/dashboard', { replace: true });
-        }
-        catch
-        {
+        } catch {
             // Decryption throws on a bad key or a corrupted payload. Without this the rejection went
             // nowhere and the button simply re-enabled, which reads as the app ignoring the tap.
             setError(T('Unlock.ErrorMissing'));
-        }
-        finally
-        {
+        } finally {
             setIsLoading(false);
         }
     };
@@ -101,92 +90,83 @@ export default function UnlockPage()
      * as well faded a background against itself.
      */
     return (
-        <PageContainer
-            variant='intro'
-            className='items-center justify-center'>
-
+        <PageContainer variant='intro' className='items-center justify-center'>
             <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                transition={ { type: 'tween' } }
-                className={ cn(surfacePanel, 'flex w-full max-w-md flex-col gap-4 rounded-dialog p-6') }>
-
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ type: 'tween' }}
+                className={cn(surfacePanel, 'flex w-full max-w-md flex-col gap-4 rounded-dialog p-6')}
+            >
                 <Horizontal className='items-center justify-between gap-2'>
-
                     <div>
-
-                        { /* A real top-level heading: this is one of the screens that is the whole
+                        {/* A real top-level heading: this is one of the screens that is the whole
                              page rather than a panel within one, and the route error screens above
-                             it already carry the document's outline the same way. */ }
-                        <Text
-                            as='h1'
-                            variant='heading'
-                            text={ T('Unlock.Title') } />
+                             it already carry the document's outline the same way. */}
+                        <Text as='h1' variant='heading' text={T('Unlock.Title')} />
 
-                        <Text text={ T('Unlock.Subtitle') } />
-
+                        <Text text={T('Unlock.Subtitle')} />
                     </div>
 
-                    <div className={ `relative ${ layer.popover }` }>
-
+                    <div className={`relative ${layer.popover}`}>
                         <Button
                             variant='muted'
                             size='iconLarge'
-                            onClick={ () => { setShowHint((value) => !value); } }
-                            className='shrink-0'>
-
-                            <FiHelpCircle size={ 18 } />
-
+                            onClick={() => {
+                                setShowHint((value) => !value);
+                            }}
+                            className='shrink-0'
+                        >
+                            <FiHelpCircle size={18} />
                         </Button>
 
                         <Popover
-                            open={ showHint }
+                            open={showHint}
                             anchor='inset-e-0 top-12'
-                            onClose={ () => { setShowHint(false); } }
-                            className='w-56 p-3 text-start text-tiny text-txt-normal'>
-
-                            { T('Unlock.Recovery') }
-
+                            onClose={() => {
+                                setShowHint(false);
+                            }}
+                            className='w-56 p-3 text-start text-tiny text-txt-normal'
+                        >
+                            {T('Unlock.Recovery')}
                         </Popover>
-
                     </div>
-
                 </Horizontal>
 
-                <Alert
-                    size='comfortable'
-                    className='mt-2'
-                    text={ error } />
+                <Alert size='comfortable' className='mt-2' text={error} />
 
                 <PasswordField
-                    label={ T('Unlock.Password') }
-                    value={ password }
-                    lockSize={ 18 }
-                    onValue={ setPassword }
-                    onEnter={ () => { void onUnlock(); } } />
+                    label={T('Unlock.Password')}
+                    value={password}
+                    lockSize={18}
+                    onValue={setPassword}
+                    onEnter={() => {
+                        void onUnlock();
+                    }}
+                />
 
-                { /*
-                  * The spinner replaces the label rather than joining it. Unlocking takes a moment —
-                  * Argon2id is meant to — and the spinner alone says "working" without a second word
-                  * appearing where the first one was.
-                  *
-                  * `min-w` holds the resting width so the button does not shrink around the spinner
-                  * and snap back, and it is wide enough for either language's label.
-                  *
-                  * The label the spinner replaced becomes the accessible name for as long as it is
-                  * gone, so a screen reader still hears what the button is doing.
-                  */ }
+                {/*
+                 * The spinner replaces the label rather than joining it. Unlocking takes a moment —
+                 * Argon2id is meant to — and the spinner alone says "working" without a second word
+                 * appearing where the first one was.
+                 *
+                 * `min-w` holds the resting width so the button does not shrink around the spinner
+                 * and snap back, and it is wide enough for either language's label.
+                 *
+                 * The label the spinner replaced becomes the accessible name for as long as it is
+                 * gone, so a screen reader still hears what the button is doing.
+                 */}
                 <Button
                     dim
                     variant='primary'
                     size='submit'
-                    loading={ isLoading }
-                    onClick={ () => { void onUnlock(); } }
+                    loading={isLoading}
+                    onClick={() => {
+                        void onUnlock();
+                    }}
                     className='mx-auto sm:w-fit sm:min-w-40 sm:px-8'
-                    text={ T('Unlock.Submit') } />
-
+                    text={T('Unlock.Submit')}
+                />
             </motion.div>
-
         </PageContainer>
     );
 }

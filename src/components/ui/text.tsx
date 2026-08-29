@@ -19,8 +19,7 @@ import { cn } from '../../utility/cn';
  * copy-address button were spelling `text-tiny` onto a bare `div` for exactly that reason, which is
  * the drift this component exists to stop.
  */
-const variantMap =
-{
+const variantMap = {
     caption: 'text-tiny text-txt-muted',
     captionStrong: 'text-tiny text-txt-normal',
     inherit: 'text-tiny',
@@ -59,14 +58,21 @@ const variantMap =
  * JSX reads a lowercase tag as an intrinsic element. A component arriving through a prop has to be
  * bound to a capitalised name before it can be rendered, so this is the one shape that cannot obey.
  */
-/* eslint-disable-next-line @typescript-eslint/naming-convention */
-export default function Text({ variant = 'caption', as: Tag = 'div', text, className = '', children, ...rest }: { variant?: keyof typeof variantMap; as?: ElementType; text?: string; className?: string; children?: ReactNode } & Omit<HTMLAttributes<HTMLElement>, 'className' | 'children'>)
-{
+/* oxlint-disable-next-line @typescript-eslint/naming-convention */
+export default function Text({
+    variant = 'caption',
+    as: Tag = 'div',
+    text,
+    className = '',
+    children,
+    ...rest
+}: { variant?: keyof typeof variantMap; as?: ElementType; text?: string; className?: string; children?: ReactNode } & Omit<
+    HTMLAttributes<HTMLElement>,
+    'className' | 'children'
+>) {
     return (
-        <Tag className={ cn(variantMap[variant], className) } { ...rest }>
-
-            { text ?? children }
-
+        <Tag className={cn(variantMap[variant], className)} {...rest}>
+            {text ?? children}
         </Tag>
     );
 }

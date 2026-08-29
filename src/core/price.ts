@@ -17,7 +17,10 @@ export type PriceMap = Record<string, number>;
  * It is `0` when nothing could be resolved at all, which is the caller's signal to show no figure
  * instead of a confident zero.
  */
-export interface PriceRead { prices: PriceMap; at: number }
+export interface PriceRead {
+    prices: PriceMap;
+    at: number;
+}
 
 /**
  * What marks a pricing id as belonging to Nura's own market rather than to CoinGecko.
@@ -38,7 +41,7 @@ const marketPrefix = 'nura:';
  * The chain's native coin has no contract to name it by, and the market prices its wrapped form, so
  * this stands in for the address the other market ids are built from.
  */
-const nativeMarketId = `${ marketPrefix }native`;
+const nativeMarketId = `${marketPrefix}native`;
 
 /**
  * The symbol the market lists the wrapped native coin under.
@@ -79,7 +82,7 @@ const nuraAssets = 'https://raw.githubusercontent.com/NuraChain/Asset/refs/heads
 /**
  * Native coin logos Trust Wallet does not carry, by chain id.
  */
-const nativeLogos: Record<number, string | undefined> = { [nuraChainId]: `${ nuraAssets }/Nura.png` };
+const nativeLogos: Record<number, string | undefined> = { [nuraChainId]: `${nuraAssets}/Nura.png` };
 
 /**
  * Token logos Trust Wallet does not carry, by chain id and then by contract address.
@@ -88,12 +91,10 @@ const nativeLogos: Record<number, string | undefined> = { [nuraChainId]: `${ nur
  * checksummed address the token was stored with, and a table written in one casing and read in another
  * is a table that never matches.
  */
-const tokenLogos: Record<number, Record<string, string | undefined> | undefined> =
-{
-    [nuraChainId]:
-    {
-        '0xd4221ad9772bf5ba7423a044bbbee6af2154a5fc': `${ nuraAssets }/BNB.svg`,
-        '0x4e0db0b1da408faf5637202cf48b0bc7733be6dc': `${ nuraAssets }/USDT.svg`
+const tokenLogos: Record<number, Record<string, string | undefined> | undefined> = {
+    [nuraChainId]: {
+        '0xd4221ad9772bf5ba7423a044bbbee6af2154a5fc': `${nuraAssets}/BNB.svg`,
+        '0x4e0db0b1da408faf5637202cf48b0bc7733be6dc': `${nuraAssets}/USDT.svg`
     }
 };
 
@@ -130,10 +131,17 @@ const priceFresh = 60 * 1000;
 const priceEntries = 64;
 
 /** One coin's price as it is stored. */
-interface StoredPrice { usd: number; at: number }
+interface StoredPrice {
+    usd: number;
+    at: number;
+}
 
 /** One row of the Nura market listing, of which only the address, the symbol and the price are read. */
-interface MarketToken { address?: unknown; symbol?: unknown; priceUsd?: unknown }
+interface MarketToken {
+    address?: unknown;
+    symbol?: unknown;
+    priceUsd?: unknown;
+}
 
 /**
  * When each source was last asked, in memory only.
@@ -168,7 +176,8 @@ export const getNativeCoinId = (chainId: number) => nativeIds[chainId] ?? '';
  * @param {string} coinId The CoinGecko id the token was stored with.
  * @returns {string} The pricing id, or an empty string when the asset cannot be priced.
  */
-export const getTokenCoinId = (chainId: number, address: string, coinId: string) => (chainId === nuraChainId ? `${ marketPrefix }${ address.toLowerCase() }` : coinId);
+export const getTokenCoinId = (chainId: number, address: string, coinId: string) =>
+    chainId === nuraChainId ? `${marketPrefix}${address.toLowerCase()}` : coinId;
 
 /**
  * getNativeLogo - Remote logo for a chain's native coin.
@@ -177,18 +186,16 @@ export const getTokenCoinId = (chainId: number, address: string, coinId: string)
  * @param {number} chainId The chain id.
  * @returns {string} The logo URL, or an empty string when the chain is unknown.
  */
-export const getNativeLogo = (chainId: number) =>
-{
+export const getNativeLogo = (chainId: number) => {
     const named = nativeLogos[chainId];
 
-    if (named !== undefined)
-    {
+    if (named !== undefined) {
         return named;
     }
 
     const folder = assetFolders[chainId];
 
-    return folder === undefined ? '' : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${ folder }/info/logo.png`;
+    return folder === undefined ? '' : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${folder}/info/logo.png`;
 };
 
 /**
@@ -202,18 +209,16 @@ export const getNativeLogo = (chainId: number) =>
  * @param {string} address The checksummed contract address.
  * @returns {string} The logo URL, or an empty string when the chain is unknown.
  */
-export const getTokenLogo = (chainId: number, address: string) =>
-{
+export const getTokenLogo = (chainId: number, address: string) => {
     const named = tokenLogos[chainId]?.[address.toLowerCase()];
 
-    if (named !== undefined)
-    {
+    if (named !== undefined) {
         return named;
     }
 
     const folder = assetFolders[chainId];
 
-    return folder === undefined ? '' : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${ folder }/assets/${ address }/logo.png`;
+    return folder === undefined ? '' : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${folder}/assets/${address}/logo.png`;
 };
 
 /**
@@ -221,27 +226,21 @@ export const getTokenLogo = (chainId: number, address: string) =>
  * @param {string | undefined} raw The serialized entry.
  * @returns {StoredPrice | undefined} The price, or `undefined`.
  */
-const parsePrice = (raw: string | undefined) =>
-{
-    if (raw === undefined)
-    {
+const parsePrice = (raw: string | undefined) => {
+    if (raw === undefined) {
         return undefined;
     }
 
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const parsed = JSON.parse(raw) as StoredPrice;
 
-        if (typeof parsed.usd !== 'number' || !Number.isFinite(parsed.usd) || typeof parsed.at !== 'number')
-        {
+        if (typeof parsed.usd !== 'number' || !Number.isFinite(parsed.usd) || typeof parsed.at !== 'number') {
             return undefined;
         }
 
         return parsed;
-    }
-    catch
-    {
+    } catch {
         return undefined;
     }
 };
@@ -251,14 +250,12 @@ const parsePrice = (raw: string | undefined) =>
  * @param {Map<string, StoredPrice>} held The resolved prices.
  * @returns {PriceRead} The prices, stamped with the age of the oldest of them.
  */
-const collect = (held: Map<string, StoredPrice>): PriceRead =>
-{
+const collect = (held: Map<string, StoredPrice>): PriceRead => {
     const prices: PriceMap = {};
 
     let at = 0;
 
-    for (const [ id, entry ] of held)
-    {
+    for (const [id, entry] of held) {
         prices[id] = entry.usd;
 
         // The oldest, because that is what the figure they add up to is worth: a total is only as
@@ -283,10 +280,8 @@ const collect = (held: Map<string, StoredPrice>): PriceRead =>
  * @param {number} at When it was read.
  * @returns {void}
  */
-const keep = (held: Map<string, StoredPrice>, wanted: Set<string>, id: string, usd: number, at: number) =>
-{
-    if (wanted.has(id))
-    {
+const keep = (held: Map<string, StoredPrice>, wanted: Set<string>, id: string, usd: number, at: number) => {
+    if (wanted.has(id)) {
         held.set(id, { usd, at });
     }
 
@@ -303,44 +298,36 @@ const keep = (held: Map<string, StoredPrice>, wanted: Set<string>, id: string, u
  * @param {Set<string>} wanted The ids this read was asked for.
  * @returns {Promise<void>} Resolves once the call has been made, or skipped.
  */
-const readGecko = async(ids: string[], held: Map<string, StoredPrice>, wanted: Set<string>) =>
-{
+const readGecko = async (ids: string[], held: Map<string, StoredPrice>, wanted: Set<string>) => {
     const key = ids.join(',');
 
-    if (Date.now() - (asked.get(key) ?? 0) < priceFresh)
-    {
+    if (Date.now() - (asked.get(key) ?? 0) < priceFresh) {
         return;
     }
 
     // Recorded before the request rather than after it, so two callers arriving together send one.
     asked.set(key, Date.now());
 
-    try
-    {
+    try {
         // `httpRequest` rather than `fetch`: read natively, so a price stops depending on CoinGecko's
         // CORS header staying as it is — see [request.ts](request.ts).
-        const response = await httpRequest(`${ endpoint }?ids=${ encodeURIComponent(key) }&vs_currencies=usd`);
+        const response = await httpRequest(`${endpoint}?ids=${encodeURIComponent(key)}&vs_currencies=usd`);
 
-        if (response.ok)
-        {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const parsed = await response.json() as Record<string, { usd?: unknown } | undefined>;
+        if (response.ok) {
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const parsed = (await response.json()) as Record<string, { usd?: unknown } | undefined>;
 
             const at = Date.now();
 
-            for (const id of ids)
-            {
+            for (const id of ids) {
                 const entry = parsed[id];
 
-                if (entry !== undefined && typeof entry.usd === 'number' && Number.isFinite(entry.usd))
-                {
+                if (entry !== undefined && typeof entry.usd === 'number' && Number.isFinite(entry.usd)) {
                     keep(held, wanted, id, entry.usd, at);
                 }
             }
         }
-    }
-    catch
-    {
+    } catch {
         // An unreachable endpoint leaves `held` exactly as it was, which is the point — and the record
         // of having asked is dropped, so the reconnect that follows retries at once instead of waiting
         // out a window meant for answers. A request the endpoint *did* answer badly keeps its record:
@@ -360,52 +347,42 @@ const readGecko = async(ids: string[], held: Map<string, StoredPrice>, wanted: S
  * @param {Set<string>} wanted The ids this read was asked for.
  * @returns {Promise<void>} Resolves once the call has been made, or skipped.
  */
-const readMarket = async(held: Map<string, StoredPrice>, wanted: Set<string>) =>
-{
-    if (Date.now() - (asked.get(marketPrefix) ?? 0) < priceFresh)
-    {
+const readMarket = async (held: Map<string, StoredPrice>, wanted: Set<string>) => {
+    if (Date.now() - (asked.get(marketPrefix) ?? 0) < priceFresh) {
         return;
     }
 
     asked.set(marketPrefix, Date.now());
 
-    try
-    {
+    try {
         const response = await httpRequest(marketEndpoint);
 
-        if (response.ok)
-        {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const parsed = await response.json() as MarketToken[];
+        if (response.ok) {
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const parsed = (await response.json()) as MarketToken[];
 
-            if (!Array.isArray(parsed))
-            {
+            if (!Array.isArray(parsed)) {
                 return;
             }
 
             const at = Date.now();
 
-            for (const entry of parsed)
-            {
-                if (typeof entry?.address !== 'string' || typeof entry.priceUsd !== 'number' || !Number.isFinite(entry.priceUsd))
-                {
+            for (const entry of parsed) {
+                if (typeof entry?.address !== 'string' || typeof entry.priceUsd !== 'number' || !Number.isFinite(entry.priceUsd)) {
                     continue;
                 }
 
-                keep(held, wanted, `${ marketPrefix }${ entry.address.toLowerCase() }`, entry.priceUsd, at);
+                keep(held, wanted, `${marketPrefix}${entry.address.toLowerCase()}`, entry.priceUsd, at);
 
                 // The wrapper's price is the coin's, so the same number is filed twice under two ids.
                 // The alternative is for every caller holding the native coin to know which contract
                 // wraps it, which is a fact about this chain and belongs here.
-                if (entry.symbol === wrappedSymbol)
-                {
+                if (entry.symbol === wrappedSymbol) {
                     keep(held, wanted, nativeMarketId, entry.priceUsd, at);
                 }
             }
         }
-    }
-    catch
-    {
+    } catch {
         asked.delete(marketPrefix);
     }
 };
@@ -429,32 +406,27 @@ const readMarket = async(held: Map<string, StoredPrice>, wanted: Set<string>) =>
  * @param {string[]} ids Pricing ids, as `getNativeCoinId` and `getTokenCoinId` give them.
  * @returns {Promise<PriceRead>} The prices that could be resolved, and how old the oldest is.
  */
-export const readPrices = async(ids: string[]): Promise<PriceRead> =>
-{
-    const unique = [ ...new Set(ids.filter((id) => id.length > 0)) ].sort((left, right) => left.localeCompare(right));
+export const readPrices = async (ids: string[]): Promise<PriceRead> => {
+    const unique = [...new Set(ids.filter((id) => id.length > 0))].sort((left, right) => left.localeCompare(right));
 
     // Nothing to price is not a failed lookup: a chain with no listed coin — every custom network —
     // has a knowable answer of "no prices", and it is current rather than missing.
-    if (unique.length === 0)
-    {
+    if (unique.length === 0) {
         return { prices: {}, at: Date.now() };
     }
 
     const wanted = new Set(unique);
     const held = new Map<string, StoredPrice>();
 
-    for (const id of unique)
-    {
+    for (const id of unique) {
         const entry = parsePrice(readRaw('local', pricePrefix + id));
 
-        if (entry !== undefined)
-        {
+        if (entry !== undefined) {
             held.set(id, entry);
         }
     }
 
-    const due = unique.filter((id) =>
-    {
+    const due = unique.filter((id) => {
         const entry = held.get(id);
 
         return entry === undefined || Date.now() - entry.at > priceFresh;
@@ -462,8 +434,7 @@ export const readPrices = async(ids: string[]): Promise<PriceRead> =>
 
     // Skipped rather than attempted while the link is down: the request cannot succeed, and spending a
     // timeout to find that out only delays the held answer this returns either way.
-    if (due.length === 0 || !isOnline())
-    {
+    if (due.length === 0 || !isOnline()) {
         return collect(held);
     }
 

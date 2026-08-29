@@ -27,40 +27,30 @@ import { Horizontal, Vertical } from './stack';
  * @param {ReactNode} props.children The actions, laid out as a row.
  * @returns {JSX.Element} The screen.
  */
-export default function FailureScreen({ title, body, detail = '', className = '', children }: { title: string; body: string; detail?: string; className?: string; children: ReactNode })
-{
+export default function FailureScreen({
+    title,
+    body,
+    detail = '',
+    className = '',
+    children
+}: {
+    title: string;
+    body: string;
+    detail?: string;
+    className?: string;
+    children: ReactNode;
+}) {
     return (
         <div className='flex size-full items-center justify-center bg-base-1 px-4'>
+            <Vertical className={cn(surfacePanel, 'w-full max-w-md gap-3 rounded-dialog p-6 text-center', className)}>
+                <Text as='h1' variant='heading' text={title} />
 
-            <Vertical className={ cn(surfacePanel, 'w-full max-w-md gap-3 rounded-dialog p-6 text-center', className) }>
+                <Text variant='bodyMuted' text={body} />
 
-                <Text
-                    as='h1'
-                    variant='heading'
-                    text={ title } />
+                {detail.length > 0 && <Text dir='ltr' className='rounded-surface bg-base-3 p-2 font-mono break-all select-text!' text={detail} />}
 
-                <Text
-                    variant='bodyMuted'
-                    text={ body } />
-
-                {
-                    detail.length > 0 &&
-                    (
-                        <Text
-                            dir='ltr'
-                            className='rounded-surface bg-base-3 p-2 font-mono break-all select-text!'
-                            text={ detail } />
-                    )
-                }
-
-                <Horizontal className='gap-2 *:flex-1'>
-
-                    { children }
-
-                </Horizontal>
-
+                <Horizontal className='gap-2 *:flex-1'>{children}</Horizontal>
             </Vertical>
-
         </div>
     );
 }

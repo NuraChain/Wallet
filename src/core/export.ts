@@ -6,16 +6,13 @@ import { BaseDirectory, mkdir, writeFile, writeTextFile } from '@tauri-apps/plug
  * Both calls return an empty string on success, or a short reason on failure — `unsupported` when the
  * device predates scoped storage, otherwise whatever the platform reported.
  */
-interface AndroidBridge
-{
+interface AndroidBridge {
     saveImage: (base64Png: string, name: string) => string;
     saveText: (text: string, name: string) => string;
 }
 
-declare global
-{
-    interface Window
-    {
+declare global {
+    interface Window {
         __nuraExport?: AndroidBridge;
     }
 }
@@ -27,8 +24,7 @@ declare global
  * wrapped to match. Both resolve to an empty string on success or a short reason on failure, so the
  * caller reports the outcome the same way on either platform.
  */
-export interface Exporter
-{
+export interface Exporter {
     saveImage: (base64Png: string, name: string) => Promise<string>;
     saveText: (text: string, name: string) => Promise<string>;
 }
@@ -55,37 +51,28 @@ const reason = (cause: unknown) => (cause instanceof Error && cause.message.leng
  *
  * The capability grants writes to those two directories only; nothing else on disk is reachable.
  */
-const desktopExporter: Exporter =
-{
-    saveImage: async(base64Png: string, name: string) =>
-    {
-        try
-        {
+const desktopExporter: Exporter = {
+    saveImage: async (base64Png: string, name: string) => {
+        try {
             const binary = atob(base64Png);
             const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
 
             await mkdir(pictureFolder, { baseDir: BaseDirectory.Picture, recursive: true });
 
-            await writeFile(`${ pictureFolder }/${ name }`, bytes, { baseDir: BaseDirectory.Picture });
+            await writeFile(`${pictureFolder}/${name}`, bytes, { baseDir: BaseDirectory.Picture });
 
             return '';
-        }
-        catch (cause)
-        {
+        } catch (cause) {
             return reason(cause);
         }
     },
 
-    saveText: async(text: string, name: string) =>
-    {
-        try
-        {
+    saveText: async (text: string, name: string) => {
+        try {
             await writeTextFile(name, text, { baseDir: BaseDirectory.Download });
 
             return '';
-        }
-        catch (cause)
-        {
+        } catch (cause) {
             return reason(cause);
         }
     }
@@ -98,18 +85,16 @@ const desktopExporter: Exporter =
  * reach. Everywhere else the filesystem plugin does the same job, so there is always one of the two.
  * @returns {Exporter} The exporter for this platform.
  */
-export const getExporter = (): Exporter =>
-{
+export const getExporter = (): Exporter => {
     const bridge = window.__nuraExport;
 
-    if (bridge === undefined)
-    {
+    if (bridge === undefined) {
         return desktopExporter;
     }
 
     return {
-        saveImage: async(base64Png: string, name: string) => Promise.resolve(bridge.saveImage(base64Png, name)),
-        saveText: async(text: string, name: string) => Promise.resolve(bridge.saveText(text, name))
+        saveImage: async (base64Png: string, name: string) => bridge.saveImage(base64Png, name),
+        saveText: async (text: string, name: string) => bridge.saveText(text, name)
     };
 };
 
@@ -123,8 +108,7 @@ export const getExporter = (): Exporter =>
  * @param {string} warning Cautionary line printed under the words.
  * @returns {string} Base64 PNG data, without the data-URL prefix.
  */
-export const phraseToPng = (words: string[], title: string, warning: string) =>
-{
+export const phraseToPng = (words: string[], title: string, warning: string) => {
     const columns = 3;
     const rows = Math.ceil(words.length / columns);
     const cell = { width: 300, height: 84 };
@@ -140,8 +124,7 @@ export const phraseToPng = (words: string[], title: string, warning: string) =>
 
     const context = canvas.getContext('2d');
 
-    if (context === null)
-    {
+    if (context === null) {
         return '';
     }
 
@@ -152,8 +135,7 @@ export const phraseToPng = (words: string[], title: string, warning: string) =>
     context.font = 'bold 40px sans-serif';
     context.fillText(title, pad, pad + 44);
 
-    words.forEach((word, index) =>
-    {
+    words.forEach((word, index) => {
         const x = pad + (index % columns) * cell.width;
         const y = pad + 120 + Math.floor(index / columns) * cell.height;
 

@@ -27,34 +27,27 @@ import { cn } from '../../utility/cn';
  * @param {string} [props.className] Extra classes for the track.
  * @returns {JSX.Element} The bar.
  */
-export default function ProgressBar({ value, label = '', className = '' }: { value?: number; label?: string; className?: string })
-{
+export default function ProgressBar({ value, label = '', className = '' }: { value?: number; label?: string; className?: string }) {
     const determinate = value !== undefined;
 
     return (
         <div
             role='progressbar'
-            aria-label={ label.length > 0 ? label : undefined }
-            aria-valuemin={ determinate ? 0 : undefined }
-            aria-valuemax={ determinate ? 100 : undefined }
-            aria-valuenow={ determinate ? Math.round(value) : undefined }
-            className={ cn('relative h-0.5 overflow-hidden', className) }>
-
-            {
-                determinate ?
-                    (
-                        <div
-                            className='absolute inset-y-0 inset-s-0 min-w-1.5 bg-btn-primary'
-                            style={ { width: `${ value }%` } } />
-                    ) :
-                    (
-                        <motion.span
-                            animate={ { insetInlineStart: [ '-50%', '100%' ] } }
-                            transition={ { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } }
-                            className='absolute inset-y-0 inset-s-0 w-1/2 rounded-full bg-btn-primary' />
-                    )
-            }
-
+            aria-label={label.length > 0 ? label : undefined}
+            aria-valuemin={determinate ? 0 : undefined}
+            aria-valuemax={determinate ? 100 : undefined}
+            aria-valuenow={determinate ? Math.round(value) : undefined}
+            className={cn('relative h-0.5 overflow-hidden', className)}
+        >
+            {determinate ? (
+                <div className='absolute inset-y-0 inset-s-0 min-w-1.5 bg-btn-primary' style={{ width: `${value}%` }} />
+            ) : (
+                <motion.span
+                    animate={{ insetInlineStart: ['-50%', '100%'] }}
+                    transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+                    className='absolute inset-y-0 inset-s-0 w-1/2 rounded-full bg-btn-primary'
+                />
+            )}
         </div>
     );
 }

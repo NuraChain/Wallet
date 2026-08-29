@@ -16,8 +16,7 @@ export type { Transaction };
 /**
  * One row of an Etherscan-compatible `txlist` / `tokentx` response. Every field arrives as a string, and the token-only fields are absent on native transfers.
  */
-interface ExplorerRow
-{
+interface ExplorerRow {
     hash?: unknown;
     from?: unknown;
     to?: unknown;
@@ -42,7 +41,10 @@ const pageSize = 50;
  * request — no key, a chain its plan does not cover, a host that has moved — produced an empty list,
  * which the UI then showed as "no transactions": the account looked untouched instead of unreadable.
  */
-interface ExplorerAnswer { items: Transaction[]; notice: string }
+interface ExplorerAnswer {
+    items: Transaction[];
+    notice: string;
+}
 
 /**
  * Read one Etherscan-compatible action and map it into transactions.
@@ -53,25 +55,22 @@ interface ExplorerAnswer { items: Transaction[]; notice: string }
  * @param {Network} network Active network, which supplies the API base, the native symbol and its decimals.
  * @returns {Promise<ExplorerAnswer>} The mapped transactions, or the reason there are none.
  */
-const readAction = async(action: string, address: string, network: Network): Promise<ExplorerAnswer> =>
-{
+const readAction = async (action: string, address: string, network: Network): Promise<ExplorerAnswer> => {
     const api = getExplorerApi(network);
-    const query = `module=account&action=${ action }&address=${ encodeURIComponent(address) }&page=1&offset=${ pageSize }&sort=desc`;
+    const query = `module=account&action=${action}&address=${encodeURIComponent(address)}&page=1&offset=${pageSize}&sort=desc`;
 
     // `httpRequest` rather than `fetch`: Nura's explorer is unreadable from the webview, and a history
     // list is the one screen that cannot fall back to asking the chain directly — see [request.ts](../core/request.ts).
-    const response = await httpRequest(`${ api }${ api.includes('?') ? '&' : '?' }${ query }`);
+    const response = await httpRequest(`${api}${api.includes('?') ? '&' : '?'}${query}`);
 
-    if (!response.ok)
-    {
-        return { items: [], notice: `explorer answered HTTP ${ response.status }` };
+    if (!response.ok) {
+        return { items: [], notice: `explorer answered HTTP ${response.status}` };
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const parsed = await response.json() as { result?: unknown; message?: unknown };
+    // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const parsed = (await response.json()) as { result?: unknown; message?: unknown };
 
-    if (!Array.isArray(parsed.result))
-    {
+    if (!Array.isArray(parsed.result)) {
         // A refusal states its reason where the rows would be, and that sentence is worth more to the
         // user than a blank list — it is the difference between "nothing happened here" and "this
         // network's explorer will not answer without a key".
@@ -84,13 +83,11 @@ const readAction = async(action: string, address: string, network: Network): Pro
 
     const owner = address.toLowerCase();
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const rows = parsed.result as ExplorerRow[];
 
-    const items = rows.flatMap((row, index): Transaction[] =>
-    {
-        if (typeof row.hash !== 'string' || typeof row.from !== 'string' || typeof row.value !== 'string')
-        {
+    const items = rows.flatMap((row, index): Transaction[] => {
+        if (typeof row.hash !== 'string' || typeof row.from !== 'string' || typeof row.value !== 'string') {
             return [];
         }
 
@@ -98,8 +95,7 @@ const readAction = async(action: string, address: string, network: Network): Pro
 
         // A native row worth nothing is a contract call, not a transfer — and it is usually the very
         // transaction that carried a token transfer already listed by `tokentx`.
-        if (!isToken && row.value === '0')
-        {
+        if (!isToken && row.value === '0') {
             return [];
         }
 
@@ -107,16 +103,18 @@ const readAction = async(action: string, address: string, network: Network): Pro
         const decimals = typeof row.tokenDecimal === 'string' ? Number(row.tokenDecimal) : network.decimals;
         const symbol = isToken ? String(row.tokenSymbol) : network.symbol;
 
-        return [ {
-            id: `${ action }-${ index }-${ row.hash }`,
-            hash: row.hash,
-            from: row.from,
-            to,
-            value: formatUnits(row.value, Number.isInteger(decimals) ? decimals : 18),
-            symbol,
-            timestamp: typeof row.timeStamp === 'string' ? Number(row.timeStamp) : 0,
-            incoming: to.toLowerCase() === owner
-        } ];
+        return [
+            {
+                id: `${action}-${index}-${row.hash}`,
+                hash: row.hash,
+                from: row.from,
+                to,
+                value: formatUnits(row.value, Number.isInteger(decimals) ? decimals : 18),
+                symbol,
+                timestamp: typeof row.timeStamp === 'string' ? Number(row.timeStamp) : 0,
+                incoming: to.toLowerCase() === owner
+            }
+        ];
     });
 
     return { items, notice: '' };
@@ -179,8 +177,7 @@ const unsupportedFor = 30 * 24 * 60 * 60 * 1000;
 /**
  * One row of a GoldRush response. Snake case because that is what the API sends.
  */
-interface CovalentRow
-{
+interface CovalentRow {
     tx_hash?: unknown;
     from_address?: unknown;
     to_address?: unknown;
@@ -192,8 +189,7 @@ interface CovalentRow
 /**
  * One entry of a GoldRush `transfers` array: the movement itself, already decoded.
  */
-interface CovalentTransfer
-{
+interface CovalentTransfer {
     tx_hash?: unknown;
     from_address?: unknown;
     to_address?: unknown;
@@ -213,35 +209,29 @@ interface CovalentTransfer
  * @param {string} path The path under the chain, starting with a slash.
  * @returns {Promise<unknown[]>} The `items` array, or an empty list.
  */
-const covalentGet = async(chainId: number, path: string): Promise<unknown[]> =>
-{
-    try
-    {
+const covalentGet = async (chainId: number, path: string): Promise<unknown[]> => {
+    try {
         // `httpRequest`, as with the explorer above: the bearer token goes out on a native request,
         // which no page origin and no preflight is involved in — see [request.ts](../core/request.ts).
-        const response = await httpRequest(`${ covalentBase }/${ chainId }${ path }`, { headers: { Authorization: `Bearer ${ covalentKey }` } });
+        const response = await httpRequest(`${covalentBase}/${chainId}${path}`, { headers: { Authorization: `Bearer ${covalentKey}` } });
 
-        if (!response.ok)
-        {
-            if (response.status === notImplemented)
-            {
+        if (!response.ok) {
+            if (response.status === notImplemented) {
                 writeRaw('local', unsupportedKey + String(chainId), String(Date.now()));
             }
 
             return [];
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const parsed = await response.json() as { data?: { items?: unknown } };
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const parsed = (await response.json()) as { data?: { items?: unknown } };
 
         const items: unknown = parsed.data?.items;
 
         // `Array.isArray` on an `unknown` narrows to `any[]`, which is exactly what must not escape
         // this function — every caller reads the rows field by field and checks each type as it goes.
-        return Array.isArray(items) ? items as unknown[] : [];
-    }
-    catch
-    {
+        return Array.isArray(items) ? (items as unknown[]) : [];
+    } catch {
         return [];
     }
 };
@@ -251,10 +241,8 @@ const covalentGet = async(chainId: number, path: string): Promise<unknown[]> =>
  * @param {unknown} value The `block_signed_at` field.
  * @returns {number} Unix seconds, or zero when it cannot be read.
  */
-const covalentSeconds = (value: unknown) =>
-{
-    if (typeof value !== 'string')
-    {
+const covalentSeconds = (value: unknown) => {
+    if (typeof value !== 'string') {
         return 0;
     }
 
@@ -274,19 +262,16 @@ const covalentSeconds = (value: unknown) =>
  * @param {Network} network Active network, which supplies the chain id, symbol and decimals.
  * @returns {Promise<Transaction[]>} The coin transfers.
  */
-const readCovalentNative = async(address: string, network: Network): Promise<Transaction[]> =>
-{
-    const items = await covalentGet(network.chainId, `/address/${ encodeURIComponent(address) }/transactions_v3/?no-logs=true`);
+const readCovalentNative = async (address: string, network: Network): Promise<Transaction[]> => {
+    const items = await covalentGet(network.chainId, `/address/${encodeURIComponent(address)}/transactions_v3/?no-logs=true`);
 
     const owner = address.toLowerCase();
 
-    return items.flatMap((raw, index): Transaction[] =>
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return items.flatMap((raw, index): Transaction[] => {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const row = raw as CovalentRow;
 
-        if (typeof row.tx_hash !== 'string' || typeof row.from_address !== 'string' || typeof row.value !== 'string')
-        {
+        if (typeof row.tx_hash !== 'string' || typeof row.from_address !== 'string' || typeof row.value !== 'string') {
             return [];
         }
 
@@ -294,21 +279,22 @@ const readCovalentNative = async(address: string, network: Network): Promise<Tra
 
         // A row worth nothing moved no coin, and a row this account is neither side of is one it only
         // appears in through a log — the token pass below is what reads those.
-        if (row.value === '0' || (row.from_address.toLowerCase() !== owner && to.toLowerCase() !== owner))
-        {
+        if (row.value === '0' || (row.from_address.toLowerCase() !== owner && to.toLowerCase() !== owner)) {
             return [];
         }
 
-        return [ {
-            id: `covalent-native-${ index }-${ row.tx_hash }`,
-            hash: row.tx_hash,
-            from: row.from_address,
-            to,
-            value: formatUnits(row.value, network.decimals),
-            symbol: network.symbol,
-            timestamp: covalentSeconds(row.block_signed_at),
-            incoming: to.toLowerCase() === owner
-        } ];
+        return [
+            {
+                id: `covalent-native-${index}-${row.tx_hash}`,
+                hash: row.tx_hash,
+                from: row.from_address,
+                to,
+                value: formatUnits(row.value, network.decimals),
+                symbol: network.symbol,
+                timestamp: covalentSeconds(row.block_signed_at),
+                incoming: to.toLowerCase() === owner
+            }
+        ];
     });
 };
 
@@ -319,32 +305,30 @@ const readCovalentNative = async(address: string, network: Network): Promise<Tra
  * @param {Token} token The contract to ask about.
  * @returns {Promise<Transaction[]>} That token's transfers.
  */
-const readCovalentToken = async(address: string, network: Network, token: Token): Promise<Transaction[]> =>
-{
-    const items = await covalentGet(network.chainId, `/address/${ encodeURIComponent(address) }/transfers_v2/?contract-address=${ encodeURIComponent(token.address) }`);
+const readCovalentToken = async (address: string, network: Network, token: Token): Promise<Transaction[]> => {
+    const items = await covalentGet(
+        network.chainId,
+        `/address/${encodeURIComponent(address)}/transfers_v2/?contract-address=${encodeURIComponent(token.address)}`
+    );
 
     const owner = address.toLowerCase();
 
-    return items.flatMap((raw, index): Transaction[] =>
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return items.flatMap((raw, index): Transaction[] => {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const row = raw as CovalentRow;
 
-        if (!Array.isArray(row.transfers))
-        {
+        if (!Array.isArray(row.transfers)) {
             return [];
         }
 
-        return row.transfers.flatMap((entry, inner): Transaction[] =>
-        {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        return row.transfers.flatMap((entry, inner): Transaction[] => {
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const move = entry as CovalentTransfer;
 
             const rowHash = typeof row.tx_hash === 'string' ? row.tx_hash : '';
             const hash = typeof move.tx_hash === 'string' ? move.tx_hash : rowHash;
 
-            if (hash.length === 0 || typeof move.delta !== 'string')
-            {
+            if (hash.length === 0 || typeof move.delta !== 'string') {
                 return [];
             }
 
@@ -352,18 +336,21 @@ const readCovalentToken = async(address: string, network: Network, token: Token)
             const to = typeof move.to_address === 'string' ? move.to_address : '';
 
             const decimals = typeof move.contract_decimals === 'number' ? move.contract_decimals : token.decimals;
-            const ticker = typeof move.contract_ticker_symbol === 'string' && move.contract_ticker_symbol.length > 0 ? move.contract_ticker_symbol : token.symbol;
+            const ticker =
+                typeof move.contract_ticker_symbol === 'string' && move.contract_ticker_symbol.length > 0 ? move.contract_ticker_symbol : token.symbol;
 
-            return [ {
-                id: `covalent-${ token.address }-${ index }-${ inner }-${ hash }`,
-                hash,
-                from,
-                to,
-                value: formatUnits(move.delta, decimals),
-                symbol: ticker,
-                timestamp: covalentSeconds(move.block_signed_at ?? row.block_signed_at),
-                incoming: to.toLowerCase() === owner
-            } ];
+            return [
+                {
+                    id: `covalent-${token.address}-${index}-${inner}-${hash}`,
+                    hash,
+                    from,
+                    to,
+                    value: formatUnits(move.delta, decimals),
+                    symbol: ticker,
+                    timestamp: covalentSeconds(move.block_signed_at ?? row.block_signed_at),
+                    incoming: to.toLowerCase() === owner
+                }
+            ];
         });
     });
 };
@@ -378,8 +365,7 @@ const readCovalentToken = async(address: string, network: Network, token: Token)
  * @param {number} chainId The chain about to be asked about.
  * @returns {boolean} False only while a recent `501` is on record.
  */
-const supportsChain = (chainId: number) =>
-{
+const supportsChain = (chainId: number) => {
     const marked = Number(readRaw('local', unsupportedKey + String(chainId)) ?? '0');
 
     return !Number.isFinite(marked) || Date.now() - marked > unsupportedFor;
@@ -392,11 +378,10 @@ const supportsChain = (chainId: number) =>
  * @param {Token[]} tokens Tracked tokens, of which the first few are asked about.
  * @returns {Promise<Transaction[]>} Everything found, in no particular order.
  */
-const readCovalent = async(address: string, network: Network, tokens: Token[]): Promise<Transaction[]> =>
-{
-    const reads = [ readCovalentNative(address, network), ...tokens.slice(0, covalentTokens).map(async(token) => readCovalentToken(address, network, token)) ];
+const readCovalent = async (address: string, network: Network, tokens: Token[]): Promise<Transaction[]> => {
+    const reads = [readCovalentNative(address, network), ...tokens.slice(0, covalentTokens).map(async (token) => readCovalentToken(address, network, token))];
 
-    const results = await Promise.all(reads.map(async(read) => read.catch((): Transaction[] => [])));
+    const results = await Promise.all(reads.map(async (read) => read.catch((): Transaction[] => [])));
 
     return results.flat();
 };
@@ -404,7 +389,10 @@ const readCovalent = async(address: string, network: Network, tokens: Token[]): 
 /**
  * What one full read produced: the rows, newest first, and why there were none if there were none.
  */
-interface HistoryRead { sorted: Transaction[]; reason: string }
+interface HistoryRead {
+    sorted: Transaction[];
+    reason: string;
+}
 
 /**
  * One read per cache key, however many callers ask for it while it is running.
@@ -428,42 +416,45 @@ const inflight = new Map<string, Promise<HistoryRead>>();
  * @param {string} api The resolved explorer API base.
  * @returns {Promise<HistoryRead>} The ordered rows and the reason there were none.
  */
-const load = async(key: string, address: string, network: Network, tokens: Token[], api: string): Promise<HistoryRead> =>
-{
+const load = async (key: string, address: string, network: Network, tokens: Token[], api: string): Promise<HistoryRead> => {
     const held = inflight.get(key);
 
-    if (held !== undefined)
-    {
+    if (held !== undefined) {
         return held;
     }
 
-    const request = (async(): Promise<HistoryRead> =>
-    {
-        const answers = api.length === 0 ?
-            [ { items: [], notice: 'this network has no explorer API configured' } ] :
-            await Promise.all([ 'txlist', 'tokentx' ].map(async(action) => readAction(action, address, network).catch((cause: unknown): ExplorerAnswer => ({ items: [], notice: cause instanceof Error ? cause.message : String(cause) }))));
+    const request = (async (): Promise<HistoryRead> => {
+        const answers =
+            api.length === 0
+                ? [{ items: [], notice: 'this network has no explorer API configured' }]
+                : await Promise.all(
+                      ['txlist', 'tokentx'].map(async (action) =>
+                          readAction(action, address, network).catch((cause: unknown): ExplorerAnswer => ({
+                              items: [],
+                              notice: cause instanceof Error ? cause.message : String(cause)
+                          }))
+                      )
+                  );
 
         const found = answers.flatMap((item) => item.items);
 
         // Asked only where the explorer came up empty, so the chains it already serves cost no
         // credits. An account that genuinely has no transactions pays one wasted request for that.
-        const merged = found.length > 0 || !supportsChain(network.chainId) ? found : await readCovalent(address, network, tokens).catch((): Transaction[] => []);
+        const merged =
+            found.length > 0 || !supportsChain(network.chainId) ? found : await readCovalent(address, network, tokens).catch((): Transaction[] => []);
 
         const sorted = merged.sort((left, right) => right.timestamp - left.timestamp);
 
         // Only worth saying when there is nothing to show. One call failing while another returned
         // rows is not something the user needs told about.
-        return { sorted, reason: sorted.length > 0 ? '' : answers.map((item) => item.notice).find((text) => text.length > 0) ?? '' };
+        return { sorted, reason: sorted.length > 0 ? '' : (answers.map((item) => item.notice).find((text) => text.length > 0) ?? '') };
     })();
 
     inflight.set(key, request);
 
-    try
-    {
+    try {
         return await request;
-    }
-    finally
-    {
+    } finally {
         inflight.delete(key);
     }
 };
@@ -485,12 +476,11 @@ const load = async(key: string, address: string, network: Network, tokens: Token
  * @param {Token[]} tokens Tracked tokens, used only by the GoldRush fallback.
  * @returns {{ items: Transaction[]; loading: boolean; notice: string }} History state.
  */
-export const useHistory = (address: string, network: Network, tokens: Token[]) =>
-{
-    const [ items, setItems ] = useState<Transaction[]>([]);
-    const [ notice, setNotice ] = useState('');
-    const [ loading, setLoading ] = useState(true);
-    const [ nonce, setNonce ] = useState(0);
+export const useHistory = (address: string, network: Network, tokens: Token[]) => {
+    const [items, setItems] = useState<Transaction[]>([]);
+    const [notice, setNotice] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [nonce, setNonce] = useState(0);
 
     const online = useOnline();
 
@@ -498,8 +488,7 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
     // the one case a fresh cache entry is not allowed to answer.
     const lastNonce = useRef(nonce);
 
-    const refresh = useCallback(() =>
-    {
+    const refresh = useCallback(() => {
         setNonce((current) => current + 1);
     }, []);
 
@@ -507,10 +496,14 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
 
     const tokenKey = tokens.map((item) => item.address).join(',');
 
-    const key = historyKey(address, network.chainId, api, tokens.map((item) => item.address));
+    const key = historyKey(
+        address,
+        network.chainId,
+        api,
+        tokens.map((item) => item.address)
+    );
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         let active = true;
 
         // Stale-while-revalidate. A held answer is rendered on the spot and the network runs behind it,
@@ -525,30 +518,28 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
 
         lastNonce.current = nonce;
 
-        if (hit !== undefined)
-        {
+        if (hit !== undefined) {
             touchHistory(key);
 
             setItems(hit.entry.items.slice(0, pageSize));
             setNotice(hit.entry.notice);
             setLoading(false);
 
-            if (hit.fresh && !forced)
-            {
-                return () => { active = false; };
+            if (hit.fresh && !forced) {
+                return () => {
+                    active = false;
+                };
             }
         }
 
-        const run = async() =>
-        {
+        const run = async () => {
             setLoading(hit === undefined);
 
             // Nothing to ask while the link is down. Whatever the cache holds is already on screen and
             // stays there — a transaction that happened stays happened — and the tab says why it cannot
             // be refreshed. Storing an empty result here would be the opposite: it would replace a
             // readable history with the record of a moment there was no wifi.
-            if (!isOnline())
-            {
+            if (!isOnline()) {
                 setLoading(false);
 
                 return;
@@ -560,8 +551,7 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
             // fetch it would have started is the fetch already happening.
             const { sorted, reason } = await load(key, address, network, tokens, api);
 
-            if (!active)
-            {
+            if (!active) {
                 return;
             }
 
@@ -569,8 +559,7 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
             // account being empty. Rows already held are kept rather than cleared, which is what stops
             // a dropped connection turning a populated list into an empty one. Nothing is written
             // either: a failure is not an answer, and storing it would age out the good rows behind it.
-            if (sorted.length === 0 && reason.length > 0 && hit !== undefined && hit.entry.items.length > 0)
-            {
+            if (sorted.length === 0 && reason.length > 0 && hit !== undefined && hit.entry.items.length > 0) {
                 setLoading(false);
 
                 return;
@@ -589,12 +578,11 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
 
         void run();
 
-        return () =>
-        {
+        return () => {
             active = false;
         };
         // `online` joins the list so the read the link outage skipped happens the moment it returns.
-    }, [ address, network.id, api, tokenKey, nonce, key, online ]);
+    }, [address, network.id, api, tokenKey, nonce, key, online]);
 
     return { items, loading, notice, refresh };
 };

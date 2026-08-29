@@ -16,25 +16,20 @@ import { imageCache, type ImageKind } from '../core/image';
  * @param {ImageKind} [kind] What sort of image it is, which sets how long it stays fresh.
  * @returns {string} A URL to display, or an empty string when there is nothing to show.
  */
-export const useCachedImage = (url: string, kind: ImageKind = 'unknown') =>
-{
-    const [ source, setSource ] = useState('');
+export const useCachedImage = (url: string, kind: ImageKind = 'unknown') => {
+    const [source, setSource] = useState('');
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         let live = true;
 
         setSource('');
 
-        if (url.length === 0)
-        {
+        if (url.length === 0) {
             return undefined;
         }
 
-        void imageCache.get(url, kind).then((value) =>
-        {
-            if (live)
-            {
+        void imageCache.get(url, kind).then((value) => {
+            if (live) {
                 // Falls back to the address itself when the cache comes back with nothing. The cache
                 // reads bytes, so it needs the host's permission to be read cross-origin; an `img` tag
                 // does not, and most sites serve their favicon without that header. Cached is still the
@@ -45,11 +40,10 @@ export const useCachedImage = (url: string, kind: ImageKind = 'unknown') =>
             }
         });
 
-        return () =>
-        {
+        return () => {
             live = false;
         };
-    }, [ url, kind ]);
+    }, [url, kind]);
 
     return source;
 };

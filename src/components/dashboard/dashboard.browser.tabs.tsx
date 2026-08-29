@@ -29,7 +29,8 @@ import { Horizontal } from '../ui/stack';
  * the strip scrolling natively there is nothing to outrank it: `w-30` is the resting width and `grow`
  * is what lets two chips share a wide row instead of huddling at one end.
  */
-const chipBase = 'flex h-9 w-30 grow items-center gap-1 rounded-surface border ps-3 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';
+const chipBase =
+    'flex h-9 w-30 grow items-center gap-1 rounded-surface border ps-3 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';
 const chipIdle = 'border-line bg-base-3 hover:bg-base-2';
 const chipLive = selectedTint;
 
@@ -66,8 +67,19 @@ const chipLive = selectedTint;
  * @param {() => void} props.onAdd Opens a new, empty tab.
  * @returns {JSX.Element} The tab strip.
  */
-export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, onAdd }: { tabs: BrowserTab[]; active: number; onPick: (id: number) => void; onClose: (id: number) => void; onAdd: () => void })
-{
+export default function DashboardBrowserTabs({
+    tabs,
+    active,
+    onPick,
+    onClose,
+    onAdd
+}: {
+    tabs: BrowserTab[];
+    active: number;
+    onPick: (id: number) => void;
+    onClose: (id: number) => void;
+    onAdd: () => void;
+}) {
     const stripRef = useRef<HTMLDivElement>(null);
 
     const at = tabs.findIndex((item) => item.id === active);
@@ -84,118 +96,82 @@ export default function DashboardBrowserTabs({ tabs, active, onPick, onClose, on
     // Brings the tab in front into view when it was chosen from somewhere else — opening one, or
     // closing the one that was there. `scrollIntoView` on the chip itself rather than a computed
     // offset: the chips grow to share the row, so their positions are not a function of the index.
-    useEffect(() =>
-    {
-        if (at < 0)
-        {
+    useEffect(() => {
+        if (at === -1) {
             return;
         }
 
         stripRef.current?.children[at]?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    }, [ at, tabs.length ]);
+    }, [at, tabs.length]);
 
-    if (!listed)
-    {
+    if (!listed) {
         return undefined;
     }
 
     return (
         <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
-
-            <Button
-                variant='chip'
-                size='iconChip'
-                aria-label={ T('Dashboard.Browser.TabNew') }
-                onClick={ onAdd }
-                className='size-8 shrink-0'>
-
-                <FiPlus size={ 16 } />
-
+            <Button variant='chip' size='iconChip' aria-label={T('Dashboard.Browser.TabNew')} onClick={onAdd} className='size-8 shrink-0'>
+                <FiPlus size={16} />
             </Button>
 
             <div className='min-w-0 flex-1'>
+                {/*
+                 * A scroll container, not a carousel.
+                 *
+                 * This was a Swiper in free mode at `slidesPerView: 'auto'`, which is a description of
+                 * what `overflow-x: auto` already does — plus `observer`/`observeParents` to answer
+                 * being measured before the row had a width, a manual `update()` before every move,
+                 * and a rule in `style.css` to defeat the library's own slide width. A native scroller
+                 * has no measuring step to get wrong, and the browser's own momentum is the one the
+                 * platform uses everywhere else.
+                 *
+                 * `scroll-hidden` is the app's existing opt-out of the native bar; the strip is
+                 * dragged and swiped rather than scrolled by its own gutter.
+                 */}
+                <div ref={stripRef} className='scroll-hidden flex w-full gap-2 overflow-x-auto overscroll-x-contain'>
+                    {tabs.map((item) => {
+                        const url = item.index < 0 ? '' : item.entries[item.index];
 
-                { /*
-                  * A scroll container, not a carousel.
-                  *
-                  * This was a Swiper in free mode at `slidesPerView: 'auto'`, which is a description of
-                  * what `overflow-x: auto` already does — plus `observer`/`observeParents` to answer
-                  * being measured before the row had a width, a manual `update()` before every move,
-                  * and a rule in `style.css` to defeat the library's own slide width. A native scroller
-                  * has no measuring step to get wrong, and the browser's own momentum is the one the
-                  * platform uses everywhere else.
-                  *
-                  * `scroll-hidden` is the app's existing opt-out of the native bar; the strip is
-                  * dragged and swiped rather than scrolled by its own gutter.
-                  */ }
-                <div
-                    ref={ stripRef }
-                    className='scroll-hidden flex w-full gap-2 overflow-x-auto overscroll-x-contain'>
+                        const name = url.length > 0 ? getSiteHost(url) : T('Dashboard.Browser.TabEmpty');
 
-                    {
-                        tabs.map((item) =>
-                        {
-                            const url = item.index < 0 ? '' : item.entries[item.index];
+                        return (
+                            <div key={item.id} className={cn(chipBase, item.id === active ? chipLive : chipIdle)}>
+                                <Button
+                                    aria-current={item.id === active}
+                                    title={url.length > 0 ? url : name}
+                                    onClick={() => {
+                                        onPick(item.id);
+                                    }}
+                                    className='flex min-w-0 flex-1 cursor-pointer items-center gap-1.5'
+                                >
+                                    {url.length > 0 && (
+                                        <TokenIcon kind='unknown' src={getSiteIcon(url)} symbol={name.toUpperCase()} className='size-5 text-tiny' />
+                                    )}
 
-                            const name = url.length > 0 ? getSiteHost(url) : T('Dashboard.Browser.TabEmpty');
+                                    <Text variant={item.id === active ? 'captionStrong' : 'caption'} className='min-w-0 flex-1 truncate text-start'>
+                                        <span dir='ltr'>{name}</span>
+                                    </Text>
+                                </Button>
 
-                            return (
-                                <div key={ item.id } className={ cn(chipBase, item.id === active ? chipLive : chipIdle) }>
-
-                                    <Button
-                                        aria-current={ item.id === active }
-                                        title={ url.length > 0 ? url : name }
-                                        onClick={ () => { onPick(item.id); } }
-                                        className='flex min-w-0 flex-1 cursor-pointer items-center gap-1.5'>
-
-                                        {
-                                            url.length > 0 &&
-                                            (
-                                                <TokenIcon
-                                                    kind='unknown'
-                                                    src={ getSiteIcon(url) }
-                                                    symbol={ name.toUpperCase() }
-                                                    className='size-5 text-tiny' />
-                                            )
-                                        }
-
-                                        <Text
-                                            variant={ item.id === active ? 'captionStrong' : 'caption' }
-                                            className='min-w-0 flex-1 truncate text-start'>
-
-                                            <span dir='ltr'>
-
-                                                { name }
-
-                                            </span>
-
-                                        </Text>
-
-                                    </Button>
-
-                                    { /*
-                                          * Always present, including on the last tab: closing it leaves
-                                          * an empty tab behind rather than an empty strip, so the
-                                          * control never has to explain why it is missing.
-                                          */ }
-                                    <Button
-                                        aria-label={ T('Dashboard.Browser.TabClose') }
-                                        onClick={ () => { onClose(item.id); } }
-                                        className='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'>
-
-                                        <IoClose size={ 14 } />
-
-                                    </Button>
-
-                                </div>
-                            );
-                        })
-                    }
-
+                                {/*
+                                 * Always present, including on the last tab: closing it leaves
+                                 * an empty tab behind rather than an empty strip, so the
+                                 * control never has to explain why it is missing.
+                                 */}
+                                <Button
+                                    aria-label={T('Dashboard.Browser.TabClose')}
+                                    onClick={() => {
+                                        onClose(item.id);
+                                    }}
+                                    className='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'
+                                >
+                                    <IoClose size={14} />
+                                </Button>
+                            </div>
+                        );
+                    })}
                 </div>
-
             </div>
-
         </Horizontal>
     );
 }

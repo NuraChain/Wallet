@@ -18,32 +18,29 @@ type ClipboardState = 'idle' | 'done' | 'failed';
  * @param {number} [reset] Milliseconds before returning to `idle`, or `0` to stay.
  * @returns {{ state: ClipboardState; copy: (value: string) => Promise<void> }} The state and the copy action.
  */
-export const useClipboard = (reset = 1400) =>
-{
-    const [ state, setState ] = useState<ClipboardState>('idle');
+export const useClipboard = (reset = 1400) => {
+    const [state, setState] = useState<ClipboardState>('idle');
 
-    useEffect(() =>
-    {
-        if (state === 'idle' || reset <= 0)
-        {
+    useEffect(() => {
+        if (state === 'idle' || reset <= 0) {
             return undefined;
         }
 
-        const timer = setTimeout(() => { setState('idle'); }, reset);
+        const timer = setTimeout(() => {
+            setState('idle');
+        }, reset);
 
-        return () => { clearTimeout(timer); };
-    }, [ state, reset ]);
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [state, reset]);
 
-    const copy = async(value: string) =>
-    {
-        try
-        {
+    const copy = async (value: string) => {
+        try {
             await navigator.clipboard.writeText(value);
 
             setState('done');
-        }
-        catch
-        {
+        } catch {
             setState('failed');
         }
     };

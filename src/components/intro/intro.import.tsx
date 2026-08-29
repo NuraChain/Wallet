@@ -26,26 +26,23 @@ import { Horizontal, Vertical } from '../ui/stack';
  * A phrase is first because it is what most wallets hand out and what restores every account; a key
  * restores the one account it is, which is what `KeyNote` says under the field.
  */
-const methodList: { kind: VaultKind; label: string }[] =
-[
+const methodList: { kind: VaultKind; label: string }[] = [
     { kind: 'mnemonic', label: 'Intro.ImportWallet.MethodPhrase' },
     { kind: 'privateKey', label: 'Intro.ImportWallet.MethodKey' }
 ];
 
-export default function IntroImport({ onClose }: { onClose: () => void })
-{
+export default function IntroImport({ onClose }: { onClose: () => void }) {
     const navigate = useNavigate();
 
-    const [ hash, setHash ] = useState('');
-    const [ error, setError ] = useState('');
-    const [ secret, setSecret ] = useState('');
-    const [ method, setMethod ] = useState<VaultKind>('mnemonic');
-    const [ password, setPassword ] = useState('');
-    const [ proceed, setProceed ] = useState(false);
-    const [ importing, setImporting ] = useState(false);
+    const [hash, setHash] = useState('');
+    const [error, setError] = useState('');
+    const [secret, setSecret] = useState('');
+    const [method, setMethod] = useState<VaultKind>('mnemonic');
+    const [password, setPassword] = useState('');
+    const [proceed, setProceed] = useState(false);
+    const [importing, setImporting] = useState(false);
 
-    const onSubmit1 = async(chosen: string) =>
-    {
+    const onSubmit1 = async (chosen: string) => {
         const hash2 = await passwordHash(chosen);
 
         setHash(hash2);
@@ -64,8 +61,7 @@ export default function IntroImport({ onClose }: { onClose: () => void })
      * @param {VaultKind} kind The method the user picked.
      * @returns {void}
      */
-    const onMethod = (kind: VaultKind) =>
-    {
+    const onMethod = (kind: VaultKind) => {
         setMethod(kind);
         setSecret('');
         setError('');
@@ -79,14 +75,11 @@ export default function IntroImport({ onClose }: { onClose: () => void })
      * whichever way it was written. What is stored is then exactly what `readVault` will read back.
      * @returns {string | undefined} The secret to persist, or `undefined` once the error is set.
      */
-    const validate = () =>
-    {
+    const validate = () => {
         const entered = secret.trim();
 
-        if (method === 'privateKey')
-        {
-            if (!WalletManager.ValidatePrivateKey(entered))
-            {
+        if (method === 'privateKey') {
+            if (!WalletManager.ValidatePrivateKey(entered)) {
                 setError(T('Intro.ImportWallet.ErrorInvalidKey'));
 
                 return undefined;
@@ -95,18 +88,16 @@ export default function IntroImport({ onClose }: { onClose: () => void })
             return WalletManager.FromPrivateKey(entered).retrieve().Private;
         }
 
-        const phrase = entered.replace(/\s+/g, ' ');
+        const phrase = entered.replaceAll(/\s+/g, ' ');
         const words = phrase.split(' ');
 
-        if (words.length !== 12 && words.length !== 24)
-        {
+        if (words.length !== 12 && words.length !== 24) {
             setError(T('Intro.ImportWallet.ErrorInvalidLength'));
 
             return undefined;
         }
 
-        if (!Mnemonic.isValidMnemonic(phrase.normalize('NFKD')))
-        {
+        if (!Mnemonic.isValidMnemonic(phrase.normalize('NFKD'))) {
             setError(T('Intro.ImportWallet.ErrorInvalidLength'));
 
             return undefined;
@@ -125,24 +116,20 @@ export default function IntroImport({ onClose }: { onClose: () => void })
      * the whole sequence again while the first was still running.
      * @returns {Promise<void>} Resolves once the wallet is open, or once the failure is shown.
      */
-    const onSubmit2 = async() =>
-    {
-        if (importing)
-        {
+    const onSubmit2 = async () => {
+        if (importing) {
             return;
         }
 
         const stored = validate();
 
-        if (stored === undefined)
-        {
+        if (stored === undefined) {
             return;
         }
 
         setImporting(true);
 
-        try
-        {
+        try {
             await setValueEncrypted('Wallet.Mnemonic', stored, password);
 
             await setValue('Wallet.Password', hash);
@@ -150,109 +137,82 @@ export default function IntroImport({ onClose }: { onClose: () => void })
             unlockSession({ kind: method, secret: stored });
 
             await navigate('/dashboard', { replace: true });
-        }
-        catch
-        {
+        } catch {
             setError(T('Intro.ImportWallet.ErrorGenerate'));
-        }
-        finally
-        {
+        } finally {
             setImporting(false);
         }
     };
 
     return (
-        <Sheet onClose={ onClose }>
+        <Sheet onClose={onClose}>
+            <SheetHeader title={T('Intro.ImportWallet.Title')} subtitle={T('Intro.ImportWallet.Subtitle')} />
 
-            <SheetHeader
-                title={ T('Intro.ImportWallet.Title') }
-                subtitle={ T('Intro.ImportWallet.Subtitle') } />
+            <Alert className='mx-auto w-fit px-4 text-small' text={error} />
 
-            <Alert
-                className='mx-auto w-fit px-4 text-small'
-                text={ error } />
+            {/*
+             * Two steps, rendered one at a time. This was a `Swiper` that nothing ever swiped: the
+             * only way to reach the second step was `slideTo(1)` from the submit handler, and the
+             * first step was taken out of the flow by an inline `display: none` rather than by the
+             * slider. A carousel with no gesture and one programmatic move is a conditional.
+             *
+             * `proceed` was already the state deciding which step is live, so it decides directly
+             * now — and the step that is not showing is unmounted rather than hidden, which is the
+             * behaviour a password field being left behind should have anyway.
+             */}
+            {!proceed && (
+                <IntroCredentials prefix='Intro.ImportWallet' submitKey='Submit1' className='px-1' submitClass='mb-2' onError={setError} onSubmit={onSubmit1} />
+            )}
 
-            { /*
-              * Two steps, rendered one at a time. This was a `Swiper` that nothing ever swiped: the
-              * only way to reach the second step was `slideTo(1)` from the submit handler, and the
-              * first step was taken out of the flow by an inline `display: none` rather than by the
-              * slider. A carousel with no gesture and one programmatic move is a conditional.
-              *
-              * `proceed` was already the state deciding which step is live, so it decides directly
-              * now — and the step that is not showing is unmounted rather than hidden, which is the
-              * behaviour a password field being left behind should have anyway.
-              */ }
-            {
-                !proceed &&
-                (
-                    <IntroCredentials
-                        prefix='Intro.ImportWallet'
-                        submitKey='Submit1'
-                        className='px-1'
-                        submitClass='mb-2'
-                        onError={ setError }
-                        onSubmit={ onSubmit1 } />
-                )
-            }
+            {proceed && (
+                <Vertical className='gap-4 px-1 py-2'>
+                    {/*
+                     * A pair of buttons rather than a tab strip: there are two of them and they
+                     * swap the field below rather than the whole screen, so the lighter control
+                     * is the honest one.
+                     */}
+                    <Horizontal className='gap-2'>
+                        {methodList.map((item) => (
+                            <Button
+                                key={item.kind}
+                                variant={method === item.kind ? 'primary' : 'muted'}
+                                onClick={() => {
+                                    onMethod(item.kind);
+                                }}
+                                className='h-10 min-w-0 flex-1 rounded-control text-small'
+                                text={T(item.label)}
+                            />
+                        ))}
+                    </Horizontal>
 
-            {
-                proceed &&
-                (
-                    <Vertical className='gap-4 px-1 py-2'>
+                    {/*
+                     * One field for both, but a key is a single unbroken token that must not be
+                     * reordered by the paragraph direction, so it is pinned to LTR and set in the
+                     * mono face the rest of the app uses for addresses.
+                     */}
+                    <TextArea
+                        value={secret}
+                        label={method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message')}
+                        dir={method === 'privateKey' ? 'ltr' : undefined}
+                        onValue={setSecret}
+                        className={cn('min-h-28 sm:min-h-36', method === 'privateKey' && 'font-mono break-all')}
+                        placeholder={method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message')}
+                    />
 
-                        { /*
-                          * A pair of buttons rather than a tab strip: there are two of them and they
-                          * swap the field below rather than the whole screen, so the lighter control
-                          * is the honest one.
-                          */ }
-                        <Horizontal className='gap-2'>
+                    {method === 'privateKey' && <Text text={T('Intro.ImportWallet.KeyNote')} />}
 
-                            {
-                                methodList.map((item) => (
-                                    <Button
-                                        key={ item.kind }
-                                        variant={ method === item.kind ? 'primary' : 'muted' }
-                                        onClick={ () => { onMethod(item.kind); } }
-                                        className='h-10 min-w-0 flex-1 rounded-control text-small'
-                                        text={ T(item.label) } />
-                                ))
-                            }
-
-                        </Horizontal>
-
-                        { /*
-                          * One field for both, but a key is a single unbroken token that must not be
-                          * reordered by the paragraph direction, so it is pinned to LTR and set in the
-                          * mono face the rest of the app uses for addresses.
-                          */ }
-                        <TextArea
-                            value={ secret }
-                            label={ method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message') }
-                            dir={ method === 'privateKey' ? 'ltr' : undefined }
-                            onValue={ setSecret }
-                            className={ cn('min-h-28 sm:min-h-36', method === 'privateKey' && 'font-mono break-all') }
-                            placeholder={ method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message') } />
-
-                        {
-                            method === 'privateKey' &&
-                            (
-                                <Text text={ T('Intro.ImportWallet.KeyNote') } />
-                            )
-                        }
-
-                        <Button
-                            variant='primary'
-                            size='submit'
-                            loading={ importing }
-                            onClick={ () => { void onSubmit2(); } }
-                            className='mx-auto sm:w-fit sm:px-8'
-                            text={ T('Intro.ImportWallet.Submit2') } />
-
-                    </Vertical>
-
-                )
-            }
-
+                    <Button
+                        variant='primary'
+                        size='submit'
+                        loading={importing}
+                        onClick={() => {
+                            void onSubmit2();
+                        }}
+                        className='mx-auto sm:w-fit sm:px-8'
+                        text={T('Intro.ImportWallet.Submit2')}
+                    />
+                </Vertical>
+            )}
         </Sheet>
     );
 }

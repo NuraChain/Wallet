@@ -40,35 +40,32 @@ export const isRedeemCode = (code: string) => uuidPattern.test(code.trim());
  * @param {string} code The redeem code.
  * @returns {Promise<RedeemResult>} What happened.
  */
-export const redeemCode = async(address: string, code: string): Promise<RedeemResult> =>
-{
+export const redeemCode = async (address: string, code: string): Promise<RedeemResult> => {
     const trimmed = code.trim();
 
-    if (endpoint.length === 0)
-    {
+    if (endpoint.length === 0) {
         // Stub: accept anything well-formed, with a short delay so the pending state is visible.
-        await new Promise((resolve) => { setTimeout(resolve, 900); });
+        await new Promise((resolve) => {
+            setTimeout(resolve, 900);
+        });
 
-        return { ok: true, message: `Stub: code ${ trimmed } accepted for ${ address }. No request was sent — the endpoint is not configured yet.` };
+        return { ok: true, message: `Stub: code ${trimmed} accepted for ${address}. No request was sent — the endpoint is not configured yet.` };
     }
 
-    try
-    {
+    try {
         const response = await httpRequest(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ address, code: trimmed })
         });
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const body = await response.json() as { message?: unknown };
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const body = (await response.json()) as { message?: unknown };
 
         const message = typeof body.message === 'string' ? body.message : '';
 
         return response.ok ? { ok: true, message } : { ok: false, message };
-    }
-    catch
-    {
+    } catch {
         return { ok: false, message: '' };
     }
 };

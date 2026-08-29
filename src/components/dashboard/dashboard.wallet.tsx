@@ -53,7 +53,12 @@ const unknownAmount = '—';
  * `at` is when the figure was read and `0` means never, which is what separates "you hold nothing"
  * from "this could not be read".
  */
-interface BalanceView { formatted: string; loading: boolean; error: boolean; at: number }
+interface BalanceView {
+    formatted: string;
+    loading: boolean;
+    error: boolean;
+    at: number;
+}
 
 /**
  * DashboardWallet - Primary account view: portfolio value, address, transfer actions, holdings, and history.
@@ -86,8 +91,49 @@ interface BalanceView { formatted: string; loading: boolean; error: boolean; at:
  * @param {() => void} props.onOverview Opens the full history page.
  * @returns {JSX.Element} The wallet tab.
  */
-export default function DashboardWallet({ address, name, emoji, network, native, tokens, total, totalLoading, totalAt, prices, history, onSend, onReceive, onRedeem, onNetwork, onAccounts, onTokens, onSettings, onTransaction, onOverview }: { address: string; name: string; emoji: string; network: Network; native: BalanceView; tokens: TokenBalance[]; total: number; totalLoading: boolean; totalAt: number; prices: PriceMap; history: { items: Transaction[]; loading: boolean; notice: string }; onSend: () => void; onReceive: () => void; onRedeem: () => void; onNetwork: () => void; onAccounts: () => void; onTokens: () => void; onSettings: () => void; onTransaction: (hash: string) => void; onOverview: () => void })
-{
+export default function DashboardWallet({
+    address,
+    name,
+    emoji,
+    network,
+    native,
+    tokens,
+    total,
+    totalLoading,
+    totalAt,
+    prices,
+    history,
+    onSend,
+    onReceive,
+    onRedeem,
+    onNetwork,
+    onAccounts,
+    onTokens,
+    onSettings,
+    onTransaction,
+    onOverview
+}: {
+    address: string;
+    name: string;
+    emoji: string;
+    network: Network;
+    native: BalanceView;
+    tokens: TokenBalance[];
+    total: number;
+    totalLoading: boolean;
+    totalAt: number;
+    prices: PriceMap;
+    history: { items: Transaction[]; loading: boolean; notice: string };
+    onSend: () => void;
+    onReceive: () => void;
+    onRedeem: () => void;
+    onNetwork: () => void;
+    onAccounts: () => void;
+    onTokens: () => void;
+    onSettings: () => void;
+    onTransaction: (hash: string) => void;
+    onOverview: () => void;
+}) {
     // The icon carries the feedback, so it only has to stay swapped long enough to register.
     const clipboard = useClipboard();
 
@@ -106,10 +152,8 @@ export default function DashboardWallet({ address, name, emoji, network, native,
      * the one worth being careful about — it used to print `$0.00`.
      * @returns {string} What to show as the headline.
      */
-    const headline = () =>
-    {
-        if (totalLoading || native.loading)
-        {
+    const headline = () => {
+        if (totalLoading || native.loading) {
             return '…';
         }
 
@@ -120,10 +164,8 @@ export default function DashboardWallet({ address, name, emoji, network, native,
      * nativeAmount - The coin balance, on the same three-way rule as the headline.
      * @returns {string} What to show on the coin row.
      */
-    const nativeAmount = () =>
-    {
-        if (native.loading)
-        {
+    const nativeAmount = () => {
+        if (native.loading) {
             return '…';
         }
 
@@ -136,8 +178,7 @@ export default function DashboardWallet({ address, name, emoji, network, native,
      * bar says so. Send carries the accent because it is the action with consequences; the other two
      * stay neutral and equal.
      */
-    const actionMap: { key: string; icon: IconType; primary: boolean; onClick: () => void }[] =
-    [
+    const actionMap: { key: string; icon: IconType; primary: boolean; onClick: () => void }[] = [
         { key: 'Dashboard.Send.Title', icon: FiArrowUpRight, primary: true, onClick: onSend },
         { key: 'Dashboard.Receive.Title', icon: FiArrowDownLeft, primary: false, onClick: onReceive },
         { key: 'Dashboard.Redeem.Title', icon: FiGift, primary: false, onClick: onRedeem }
@@ -152,12 +193,10 @@ export default function DashboardWallet({ address, name, emoji, network, native,
      * @param {string} formatted The balance as a decimal string.
      * @returns {string | undefined} The formatted USD value, or `undefined` when it cannot be priced.
      */
-    const rowValue = (coinId: string, formatted: string) =>
-    {
+    const rowValue = (coinId: string, formatted: string) => {
         const price = prices[coinId];
 
-        if (price === undefined)
-        {
+        if (price === undefined) {
             return undefined;
         }
 
@@ -166,278 +205,194 @@ export default function DashboardWallet({ address, name, emoji, network, native,
 
     return (
         <Vertical className='mt-2 gap-4'>
-
             <Horizontal className='items-center gap-2'>
-
-                <Button
-                    variant='chip'
-                    onClick={ onAccounts }
-                    className={ chipClass }>
-
-                    { /* The badge the account switcher set, or the generic person until one is chosen. */ }
-                    <IconBox tone='badge' className={ cn('size-7', emoji.length > 0 && 'text-small') }>
-
-                        {
-                            emoji.length > 0 ? emoji : <HiOutlineUser size={ 14 } />
-                        }
-
+                <Button variant='chip' onClick={onAccounts} className={chipClass}>
+                    {/* The badge the account switcher set, or the generic person until one is chosen. */}
+                    <IconBox tone='badge' className={cn('size-7', emoji.length > 0 && 'text-small')}>
+                        {emoji.length > 0 ? emoji : <HiOutlineUser size={14} />}
                     </IconBox>
 
-                    { /*
-                      * `captionStrong` is the chip's own pairing — the `text-tiny` on the capsule and
-                      * the `text-txt-normal` on its fill — so naming it here changes nothing on screen.
-                      */ }
-                    <Text
-                        variant='captionStrong'
-                        className={ chipLabelClass }
-                        text={ name } />
+                    {/*
+                     * `captionStrong` is the chip's own pairing — the `text-tiny` on the capsule and
+                     * the `text-txt-normal` on its fill — so naming it here changes nothing on screen.
+                     */}
+                    <Text variant='captionStrong' className={chipLabelClass} text={name} />
 
-                    <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />
-
+                    <IoChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
 
-                <Button
-                    variant='chip'
-                    onClick={ onNetwork }
-                    className={ chipClass }>
+                <Button variant='chip' onClick={onNetwork} className={chipClass}>
+                    <TokenIcon primary kind='network' src={getNativeLogo(network.chainId)} symbol={network.symbol} className='size-7 shrink-0 text-tiny' />
 
-                    <TokenIcon
-                        primary
-                        kind='network'
-                        src={ getNativeLogo(network.chainId) }
-                        symbol={ network.symbol }
-                        className='size-7 shrink-0 text-tiny' />
+                    <Text variant='captionStrong' className={chipLabelClass} text={network.name} />
 
-                    <Text
-                        variant='captionStrong'
-                        className={ chipLabelClass }
-                        text={ network.name } />
-
-                    <IoChevronDown size={ 12 } className='shrink-0 opacity-40' />
-
+                    <IoChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
 
-                <Button
-                    variant='chip'
-                    size='iconChip'
-                    onClick={ onSettings }
-                    aria-label={ T('Dashboard.Settings.Title') }
-                    className='shrink-0'>
-
-                    <HiOutlineCog6Tooth size={ 17 } />
-
+                <Button variant='chip' size='iconChip' onClick={onSettings} aria-label={T('Dashboard.Settings.Title')} className='shrink-0'>
+                    <HiOutlineCog6Tooth size={17} />
                 </Button>
-
             </Horizontal>
 
-            <DashboardOffline error={ native.error } at={ native.at } />
+            <DashboardOffline error={native.error} at={native.at} />
 
-            { /*
-              * Left-aligned, not centred. The figure is the tab's headline and the address under it
-              * is its caption; centring both floated them in the column and pushed every row below
-              * into a different rhythm. Aligned to the content edge, the tab reads top-down like
-              * everything else on it.
-              */ }
+            {/*
+             * Left-aligned, not centred. The figure is the tab's headline and the address under it
+             * is its caption; centring both floated them in the column and pushed every row below
+             * into a different rhythm. Aligned to the content edge, the tab reads top-down like
+             * everything else on it.
+             */}
             <Vertical className='items-start gap-1.5 py-2 ps-1'>
+                {/*
+                 * `break-all` is the overflow answer for the one figure that cannot be truncated and
+                 * must never be allowed to push the tab sideways: a portfolio large enough to exceed
+                 * the column wraps across two lines instead of clipping or stretching the layout.
+                 * Ordinary balances never reach it — it exists for the whale, not the norm.
+                 */}
+                <Text dir='ltr' variant='display' className='break-all' text={headline()} />
 
-                { /*
-                  * `break-all` is the overflow answer for the one figure that cannot be truncated and
-                  * must never be allowed to push the tab sideways: a portfolio large enough to exceed
-                  * the column wraps across two lines instead of clipping or stretching the layout.
-                  * Ordinary balances never reach it — it exists for the whale, not the norm.
-                  */ }
-                <Text
-                    dir='ltr'
-                    variant='display'
-                    className='break-all'
-                    text={ headline() } />
-
-                { /*
-                  * No `aria-label`: it read "Copy" and, being a name on a composite control, replaced
-                  * the address it was offering to copy. The action leads as visually-hidden text and
-                  * the address follows as itself, so the control announces both.
-                  */ }
+                {/*
+                 * No `aria-label`: it read "Copy" and, being a name on a composite control, replaced
+                 * the address it was offering to copy. The action leads as visually-hidden text and
+                 * the address follows as itself, so the control announces both.
+                 */}
                 <Button
-                    onClick={ () => { void clipboard.copy(address); } }
-                    className='flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal'>
-
-                    <span className='sr-only'>
-
-                        { T('Dashboard.Copy') }
-
-                    </span>
+                    onClick={() => {
+                        void clipboard.copy(address);
+                    }}
+                    className='flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal'
+                >
+                    <span className='sr-only'>{T('Dashboard.Copy')}</span>
 
                     <span dir='ltr' className='font-mono'>
-
-                        { shortAddress(address) }
-
+                        {shortAddress(address)}
                     </span>
 
-                    { /*
-                      * The confirmation is the glyph itself: it turns into a tick, scales up and
-                      * settles back. A caption under the address shifted the layout and had to be
-                      * read; this is understood at a glance and takes no space.
-                      */ }
+                    {/*
+                     * The confirmation is the glyph itself: it turns into a tick, scales up and
+                     * settles back. A caption under the address shifted the layout and had to be
+                     * read; this is understood at a glance and takes no space.
+                     */}
                     <span className='relative flex size-5 shrink-0 items-center justify-center'>
-
-                        <AnimatePresence initial={ false } mode='wait'>
-
-                            {
-                                copied ?
-                                    (
-                                        <motion.span
-                                            key='done'
-                                            initial={ { scale: 0.4, opacity: 0 } }
-                                            animate={ { scale: [ 0.4, 1.35, 1 ], opacity: 1 } }
-                                            exit={ { scale: 0.4, opacity: 0 } }
-                                            transition={ { duration: 0.35 } }
-                                            className='absolute text-txt-normal'>
-
-                                            <HiOutlineCheck size={ 18 } />
-
-                                        </motion.span>
-                                    ) :
-                                    (
-                                        <motion.span
-                                            key='copy'
-                                            initial={ { scale: 0.6, opacity: 0 } }
-                                            animate={ { scale: 1, opacity: 1 } }
-                                            exit={ { scale: 0.6, opacity: 0 } }
-                                            transition={ { duration: 0.18 } }
-                                            className='absolute'>
-
-                                            <HiOutlineSquare2Stack size={ 18 } />
-
-                                        </motion.span>
-                                    )
-                            }
-
+                        <AnimatePresence initial={false} mode='wait'>
+                            {copied ? (
+                                <motion.span
+                                    key='done'
+                                    initial={{ scale: 0.4, opacity: 0 }}
+                                    animate={{ scale: [0.4, 1.35, 1], opacity: 1 }}
+                                    exit={{ scale: 0.4, opacity: 0 }}
+                                    transition={{ duration: 0.35 }}
+                                    className='absolute text-txt-normal'
+                                >
+                                    <HiOutlineCheck size={18} />
+                                </motion.span>
+                            ) : (
+                                <motion.span
+                                    key='copy'
+                                    initial={{ scale: 0.6, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.6, opacity: 0 }}
+                                    transition={{ duration: 0.18 }}
+                                    className='absolute'
+                                >
+                                    <HiOutlineSquare2Stack size={18} />
+                                </motion.span>
+                            )}
                         </AnimatePresence>
-
                     </span>
-
                 </Button>
-
             </Vertical>
 
-            { /*
-              * The transfer bar. One surface, three equal segments, hairline seams; `overflow-hidden`
-              * is what makes the segments' own hover fills respect the group's radius. Send carries
-              * the accent fill and its reversed label — the one segment with consequences — while the
-              * neutral halves answer hover in the shared muted step.
-              */ }
+            {/*
+             * The transfer bar. One surface, three equal segments, hairline seams; `overflow-hidden`
+             * is what makes the segments' own hover fills respect the group's radius. Send carries
+             * the accent fill and its reversed label — the one segment with consequences — while the
+             * neutral halves answer hover in the shared muted step.
+             */}
             <Horizontal className='overflow-hidden rounded-surface border border-line bg-base-2'>
+                {actionMap.map((item, index) => (
+                    <Fragment key={item.key}>
+                        {index > 0 && (
+                            <span
+                                // A seam, not a divider between cards: the bar is one control.
+                                aria-hidden
+                                className='w-px shrink-0 bg-line'
+                            />
+                        )}
 
-                {
-                    actionMap.map((item, index) => (
-                        <Fragment key={ item.key }>
+                        <Button
+                            onClick={item.onClick}
+                            className={cn(
+                                'flex h-14 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 transition-colors duration-(--duration-fast)',
+                                item.primary
+                                    ? 'bg-btn-primary text-txt-reverse hover:bg-btn-primary-hover active:bg-btn-primary-active'
+                                    : 'text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active'
+                            )}
+                        >
+                            <item.icon size={18} className='shrink-0' />
 
-                            {
-                                index > 0 &&
-                                (
-                                    <span
-
-                                        // A seam, not a divider between cards: the bar is one control.
-                                        aria-hidden
-                                        className='w-px shrink-0 bg-line' />
-                                )
-                            }
-
-                            <Button
-                                onClick={ item.onClick }
-                                className={
-                                    cn(
-                                        'flex h-14 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 transition-colors duration-(--duration-fast)',
-                                        item.primary ?
-                                            'bg-btn-primary text-txt-reverse hover:bg-btn-primary-hover active:bg-btn-primary-active' :
-                                            'text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active'
-                                    )
-                                }>
-
-                                <item.icon size={ 18 } className='shrink-0' />
-
-                                <Text
-                                    variant='inherit'
-                                    className='truncate text-small font-medium'
-                                    text={ T(item.key) } />
-
-                            </Button>
-
-                        </Fragment>
-                    ))
-                }
-
+                            <Text variant='inherit' className='truncate text-small font-medium' text={T(item.key)} />
+                        </Button>
+                    </Fragment>
+                ))}
             </Horizontal>
 
             <Vertical className='gap-2'>
-
-                <SectionHeader title={ T('Dashboard.Tokens.Title') }>
-
-                    <Button
-                        variant='muted'
-                        size='small'
-                        onClick={ onTokens }
-                        leftIcon={ <HiOutlineSquares2X2 size={ 14 } /> }
-                        text={ T('Dashboard.Tokens.Manage') } />
-
+                <SectionHeader title={T('Dashboard.Tokens.Title')}>
+                    <Button variant='muted' size='small' onClick={onTokens} leftIcon={<HiOutlineSquares2X2 size={14} />} text={T('Dashboard.Tokens.Manage')} />
                 </SectionHeader>
 
-                { /*
-                  * One surface around the holdings rather than a card per row: the list is a column
-                  * to scan, and hairlines between rows hold it together without the stack-of-boxes
-                  * weight a panel per holding carried.
-                  */ }
+                {/*
+                 * One surface around the holdings rather than a card per row: the list is a column
+                 * to scan, and hairlines between rows hold it together without the stack-of-boxes
+                 * weight a panel per holding carried.
+                 */}
                 <ListCard>
-
                     <TokenRow
                         grouped
                         primary
                         kind='network'
-                        src={ getNativeLogo(network.chainId) }
-                        symbol={ network.symbol }
-                        subtitle={ network.coin ?? network.name }>
-
-                        { /*
-                          * The coin's own row follows the same rule as the headline: an amount that was
-                          * never read is a dash, not a zero. Its USD line is left out with it, since
-                          * pricing a balance nobody knows would be twice the invention.
-                          */ }
+                        src={getNativeLogo(network.chainId)}
+                        symbol={network.symbol}
+                        subtitle={network.coin ?? network.name}
+                    >
+                        {/*
+                         * The coin's own row follows the same rule as the headline: an amount that was
+                         * never read is a dash, not a zero. Its USD line is left out with it, since
+                         * pricing a balance nobody knows would be twice the invention.
+                         */}
                         <AssetAmount
-                            amount={ nativeAmount() }
-                            value={ native.loading || native.at === 0 ? undefined : rowValue(getNativeCoinId(network.chainId), native.formatted) } />
-
+                            amount={nativeAmount()}
+                            value={native.loading || native.at === 0 ? undefined : rowValue(getNativeCoinId(network.chainId), native.formatted)}
+                        />
                     </TokenRow>
 
-                    {
-                        tokens.map((item) => (
-                            <TokenRow
-                                grouped
-                                key={ item.token.address }
-                                kind='token'
-                                src={ getTokenLogo(network.chainId, item.token.address) }
-                                symbol={ item.token.symbol }
-                                subtitle={ item.token.name }>
-
-                                <AssetAmount
-                                    amount={ trimAmount(item.formatted) }
-                                    value={ rowValue(getTokenCoinId(network.chainId, item.token.address, item.token.coinId), item.formatted) } />
-
-                            </TokenRow>
-                        ))
-                    }
-
+                    {tokens.map((item) => (
+                        <TokenRow
+                            grouped
+                            key={item.token.address}
+                            kind='token'
+                            src={getTokenLogo(network.chainId, item.token.address)}
+                            symbol={item.token.symbol}
+                            subtitle={item.token.name}
+                        >
+                            <AssetAmount
+                                amount={trimAmount(item.formatted)}
+                                value={rowValue(getTokenCoinId(network.chainId, item.token.address, item.token.coinId), item.formatted)}
+                            />
+                        </TokenRow>
+                    ))}
                 </ListCard>
-
             </Vertical>
 
             <DashboardActivity
-                items={ history.items }
-                loading={ history.loading }
-                notice={ history.notice }
-                canOpen={ network.explorerUrl.length > 0 }
-                onOpen={ onTransaction }
-                onOverview={ onOverview } />
-
+                items={history.items}
+                loading={history.loading}
+                notice={history.notice}
+                canOpen={network.explorerUrl.length > 0}
+                onOpen={onTransaction}
+                onOverview={onOverview}
+            />
         </Vertical>
     );
 }

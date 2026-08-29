@@ -9,14 +9,12 @@ import { getLanguage } from './language';
  * @param {number} tail Trailing characters to keep.
  * @returns {string} Shortened address.
  */
-export const shortAddress = (address: string, lead = 6, tail = 4) =>
-{
-    if (address.length <= lead + tail)
-    {
+export const shortAddress = (address: string, lead = 6, tail = 4) => {
+    if (address.length <= lead + tail) {
         return address;
     }
 
-    return `${ address.slice(0, lead) }…${ address.slice(-tail) }`;
+    return `${address.slice(0, lead)}…${address.slice(-tail)}`;
 };
 
 /**
@@ -29,7 +27,13 @@ export const shortAddress = (address: string, lead = 6, tail = 4) =>
  * @param {number} value Amount in USD.
  * @returns {string} Formatted amount, e.g. `$2,000.00` or `$0.000277`.
  */
-export const formatUsd = (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: value !== 0 && Math.abs(value) < 0.01 ? 6 : 2 }).format(value);
+export const formatUsd = (value: number) =>
+    new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: value !== 0 && Math.abs(value) < 0.01 ? 6 : 2
+    }).format(value);
 
 /**
  * Format a unix timestamp as a short calendar date in the active UI language.
@@ -38,10 +42,8 @@ export const formatUsd = (value: number) => new Intl.NumberFormat('en-US', { sty
  * @param {number} timestamp Seconds since the unix epoch.
  * @returns {string} Localized short date, or an empty string.
  */
-export const formatDate = (timestamp: number) =>
-{
-    if (!Number.isFinite(timestamp) || timestamp <= 0)
-    {
+export const formatDate = (timestamp: number) => {
+    if (!Number.isFinite(timestamp) || timestamp <= 0) {
         return '';
     }
 
@@ -56,8 +58,7 @@ export const formatDate = (timestamp: number) =>
  * a week — "12 days ago" is as clear as "2 weeks ago" and needs neither the extra rows nor the
  * approximation that a month is 4.35 weeks.
  */
-const ageUnits: { unit: Intl.RelativeTimeFormatUnit; size: number }[] =
-[
+const ageUnits: { unit: Intl.RelativeTimeFormatUnit; size: number }[] = [
     { unit: 'second', size: 60 },
     { unit: 'minute', size: 60 },
     { unit: 'hour', size: 24 },
@@ -74,10 +75,8 @@ const ageUnits: { unit: Intl.RelativeTimeFormatUnit; size: number }[] =
  * @param {number} at Milliseconds since the unix epoch, as `Date.now()` reports them.
  * @returns {string} A localized relative time, or an empty string when there is no moment to describe.
  */
-export const formatAge = (at: number) =>
-{
-    if (!Number.isFinite(at) || at <= 0)
-    {
+export const formatAge = (at: number) => {
+    if (!Number.isFinite(at) || at <= 0) {
         return '';
     }
 
@@ -85,10 +84,8 @@ export const formatAge = (at: number) =>
     // put a cached value in the future.
     let amount = Math.max(0, Math.round((Date.now() - at) / 1000));
 
-    for (const step of ageUnits)
-    {
-        if (amount < step.size)
-        {
+    for (const step of ageUnits) {
+        if (amount < step.size) {
             return new Intl.RelativeTimeFormat(getLanguage().code, { numeric: 'auto' }).format(-amount, step.unit);
         }
 
@@ -106,15 +103,13 @@ export const formatAge = (at: number) =>
  * @param {number} max Maximum fraction digits to keep.
  * @returns {string} Trimmed amount.
  */
-export const trimAmount = (amount: string, max = 6) =>
-{
-    if (!amount.includes('.'))
-    {
+export const trimAmount = (amount: string, max = 6) => {
+    if (!amount.includes('.')) {
         return amount;
     }
 
-    const [ whole, fraction ] = amount.split('.');
+    const [whole, fraction] = amount.split('.');
     const cut = fraction.slice(0, max).replace(/0+$/, '');
 
-    return cut.length > 0 ? `${ whole }.${ cut }` : whole;
+    return cut.length > 0 ? `${whole}.${cut}` : whole;
 };

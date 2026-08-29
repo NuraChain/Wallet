@@ -18,7 +18,7 @@ import { getTheme, setTheme } from '../../utility/theme';
  * The "go here" chevron, mirrored by the `rtl:` variant rather than by reading the active language at
  * render time — the document already carries `dir`, so the stylesheet can answer this on its own.
  */
-const chevron = <IoChevronForward size={ 18 } className='text-txt-muted rtl:rotate-180' />;
+const chevron = <IoChevronForward size={18} className='text-txt-muted rtl:rotate-180' />;
 
 /**
  * DashboardSettings - App settings: language, theme, lock, and logout.
@@ -35,12 +35,24 @@ const chevron = <IoChevronForward size={ 18 } className='text-txt-muted rtl:rota
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The settings modal.
  */
-export default function DashboardSettings({ kind, onLanguage, onPhrase, onLock, onLogout, onClose }: { kind: VaultKind; onLanguage: () => void; onPhrase: () => void; onLock: () => void; onLogout: () => void; onClose: () => void })
-{
-    const [ theme, setThemeState ] = useState(getTheme());
+export default function DashboardSettings({
+    kind,
+    onLanguage,
+    onPhrase,
+    onLock,
+    onLogout,
+    onClose
+}: {
+    kind: VaultKind;
+    onLanguage: () => void;
+    onPhrase: () => void;
+    onLock: () => void;
+    onLogout: () => void;
+    onClose: () => void;
+}) {
+    const [theme, setThemeState] = useState(getTheme());
 
-    const onToggleTheme = () =>
-    {
+    const onToggleTheme = () => {
         const next = getTheme() === 'light' ? 'dark' : 'light';
 
         setThemeState(next);
@@ -49,104 +61,60 @@ export default function DashboardSettings({ kind, onLanguage, onPhrase, onLock, 
     };
 
     return (
-        <Modal
-            scroll
-            onClose={ onClose }>
-
-            <ModalHeader
-                title={ T('Dashboard.Settings.Title') }
-                onClose={ onClose } />
+        <Modal scroll onClose={onClose}>
+            <ModalHeader title={T('Dashboard.Settings.Title')} onClose={onClose} />
 
             <MenuRow
                 leading={
-                    (
-                        <IconBox>
-
-                            <FiGlobe size={ 16 } />
-
-                        </IconBox>
-                    )
+                    <IconBox>
+                        <FiGlobe size={16} />
+                    </IconBox>
                 }
-                label={ T('Intro.Language') }
-                onClick={ onLanguage }
-                trailing={ chevron } />
+                label={T('Intro.Language')}
+                onClick={onLanguage}
+                trailing={chevron}
+            />
+
+            <MenuRow
+                leading={<IconBox>{theme === 'light' ? <FiMoon size={16} /> : <FiSun size={16} />}</IconBox>}
+                label={T('Dashboard.Settings.Theme')}
+                onClick={onToggleTheme}
+                trailing={<Text text={theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark')} />}
+            />
 
             <MenuRow
                 leading={
-                    (
-                        <IconBox>
-
-                            { theme === 'light' ? <FiMoon size={ 16 } /> : <FiSun size={ 16 } /> }
-
-                        </IconBox>
-                    )
+                    <IconBox>
+                        <HiOutlineDocumentText size={16} />
+                    </IconBox>
                 }
-                label={ T('Dashboard.Settings.Theme') }
-                onClick={ onToggleTheme }
-                trailing={ <Text text={ theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark') } /> } />
+                label={kind === 'privateKey' ? T('Dashboard.Phrase.TitleKey') : T('Dashboard.Phrase.Title')}
+                onClick={onPhrase}
+                trailing={chevron}
+            />
 
-            <MenuRow
-                leading={
-                    (
-                        <IconBox>
-
-                            <HiOutlineDocumentText size={ 16 } />
-
-                        </IconBox>
-                    )
-                }
-                label={ kind === 'privateKey' ? T('Dashboard.Phrase.TitleKey') : T('Dashboard.Phrase.Title') }
-                onClick={ onPhrase }
-                trailing={ chevron } />
-
-            { /* Both are session-ending actions, so they share one row rather than a line each. */ }
+            {/* Both are session-ending actions, so they share one row rather than a line each. */}
             <ModalActions>
+                <Button variant='primary' size='action' onClick={onLock} className='min-w-0'>
+                    <HiOutlineLockClosed size={16} className='shrink-0' />
 
-                <Button
-                    variant='primary'
-                    size='action'
-                    onClick={ onLock }
-                    className='min-w-0'>
-
-                    <HiOutlineLockClosed size={ 16 } className='shrink-0' />
-
-                    <span className='truncate'>
-
-                        { T('Dashboard.Lock') }
-
-                    </span>
-
+                    <span className='truncate'>{T('Dashboard.Lock')}</span>
                 </Button>
 
-                <Button
-                    variant='destructive'
-                    size='action'
-                    onClick={ onLogout }
-                    className='min-w-0'>
+                <Button variant='destructive' size='action' onClick={onLogout} className='min-w-0'>
+                    <FiLogOut size={16} className='shrink-0 rtl:rotate-180' />
 
-                    <FiLogOut size={ 16 } className='shrink-0 rtl:rotate-180' />
-
-                    <span className='truncate'>
-
-                        { T('Dashboard.Settings.Logout') }
-
-                    </span>
-
+                    <span className='truncate'>{T('Dashboard.Settings.Logout')}</span>
                 </Button>
-
             </ModalActions>
 
-            { /*
-              * The last line on the panel, under the actions: it is the sort of thing looked for only
-              * when reporting a problem, so it sits below everything that is here to be used rather
-              * than between the settings and the buttons that end the session. The number is the one
-              * baked in from `Cargo.toml`.
-              */ }
-            <Text
-                dir='ltr'
-                className='pt-1 text-center'
-                text={ T('Dashboard.Settings.Version', __APP_VERSION__) } />
-
+            {/*
+             * The last line on the panel, under the actions: it is the sort of thing looked for only
+             * when reporting a problem, so it sits below everything that is here to be used rather
+             * than between the settings and the buttons that end the session. The number is the one
+             * baked in from `Cargo.toml`.
+             */}
+            <Text dir='ltr' className='pt-1 text-center' text={T('Dashboard.Settings.Version', __APP_VERSION__)} />
         </Modal>
     );
 }

@@ -17,13 +17,14 @@ import { cn } from '../../utility/cn';
  * @param {ReactNode} props.children The row content.
  * @returns {JSX.Element} The row.
  */
-export function Horizontal({ className = '', children, ...rest }: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
-{
+export function Horizontal({
+    className = '',
+    children,
+    ...rest
+}: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
     return (
-        <div className={ cn('flex', className) } { ...rest }>
-
-            { children }
-
+        <div className={cn('flex', className)} {...rest}>
+            {children}
         </div>
     );
 }
@@ -44,13 +45,14 @@ export function Horizontal({ className = '', children, ...rest }: { className?: 
  * @param {ReactNode} props.children The column content.
  * @returns {JSX.Element} The column.
  */
-export function Vertical({ className = '', children, ...rest }: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
-{
+export function Vertical({
+    className = '',
+    children,
+    ...rest
+}: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
     return (
-        <div className={ cn('flex flex-col', className) } { ...rest }>
-
-            { children }
-
+        <div className={cn('flex flex-col', className)} {...rest}>
+            {children}
         </div>
     );
 }

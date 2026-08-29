@@ -21,13 +21,10 @@ import { Horizontal } from '../components/ui/stack';
  * resolved within a frame or two and this never paints at all.
  * @returns {JSX.Element} A centered spinner.
  */
-export function RouteFallback()
-{
+export function RouteFallback() {
     return (
         <div className='flex size-full items-center justify-center bg-base-1'>
-
             <Spinner />
-
         </div>
     );
 }
@@ -44,8 +41,7 @@ export function RouteFallback()
  * costs the tray and not the window.
  * @returns {JSX.Element} The shell.
  */
-export default function RootLayout()
-{
+export default function RootLayout() {
     const isWindows = useIsWindows();
 
     // Subscribed for the same reason `TitleBar` subscribes, and it is the same bug: the tray labels
@@ -54,35 +50,28 @@ export default function RootLayout()
     // had already found and solved this; the tray had not.
     const language = useLanguage();
 
-    useEffect(() =>
-    {
-        if (!isWindows)
-        {
+    useEffect(() => {
+        if (!isWindows) {
             return;
         }
 
-        const windowsTray = async() =>
-        {
+        const windowsTray = async () => {
             const appIcon = await defaultWindowIcon();
 
-            if (appIcon)
-            {
-                const trayMenuOption: MenuOptions =
-                {
+            if (appIcon) {
+                const trayMenuOption: MenuOptions = {
                     items: [
                         {
                             id: 'open',
                             text: T('App.Tray.Open'),
-                            action: () =>
-                            {
+                            action: () => {
                                 void getCurrentWindow().show();
                             }
                         },
                         {
                             id: 'quit',
                             text: T('App.Tray.Quit'),
-                            action: () =>
-                            {
+                            action: () => {
                                 void getCurrentWindow().close();
                             }
                         }
@@ -97,20 +86,17 @@ export default function RootLayout()
 
         // The tray is a nicety and its plugin can refuse — a rejection here used to be an unhandled
         // one, which is a crash report the user never sees and a window that opened anyway.
-        void windowsTray().catch((cause: unknown) =>
-        {
-            // eslint-disable-next-line no-console
+        void windowsTray().catch((cause: unknown) => {
+            // oxlint-disable-next-line no-console
             console.error('[tray]', cause);
         });
-    }, [ isWindows, language ]);
+    }, [isWindows, language]);
 
     return (
         <Horizontal className='relative size-full'>
-
             <TitleBar />
 
             <Outlet />
-
         </Horizontal>
     );
 }

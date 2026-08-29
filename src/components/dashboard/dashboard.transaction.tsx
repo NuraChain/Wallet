@@ -34,8 +34,7 @@ import { Vertical } from '../ui/stack';
  * @param {(hash: string) => void} props.onOpen Opens the transaction on the explorer.
  * @returns {JSX.Element} The row.
  */
-export default function TransactionRow({ item, canOpen, onOpen }: { item: Transaction; canOpen: boolean; onOpen: (hash: string) => void })
-{
+export default function TransactionRow({ item, canOpen, onOpen }: { item: Transaction; canOpen: boolean; onOpen: (hash: string) => void }) {
     /*
      * No `aria-label` on the row. It carried one reading only "Open", and a name on a composite
      * control replaces everything inside it — so every transaction in the app announced as the single
@@ -47,52 +46,39 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
      */
     return (
         <Button
-            disabled={ !canOpen }
-            onClick={ () => { onOpen(item.hash); } }
-            className={ cn('flex shrink-0 items-center gap-3 p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-muted-hover') }>
-
+            disabled={!canOpen}
+            onClick={() => {
+                onOpen(item.hash);
+            }}
+            className={cn('flex shrink-0 items-center gap-3 p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-muted-hover')}
+        >
             <IconBox tone='muted' className='size-9'>
-
-                {
-                    item.incoming ? <FiArrowDownLeft size={ 18 } /> : <FiArrowUpRight size={ 18 } />
-                }
-
+                {item.incoming ? <FiArrowDownLeft size={18} /> : <FiArrowUpRight size={18} />}
             </IconBox>
 
             <Vertical className='min-w-0 flex-1'>
+                <Text variant='body' text={item.incoming ? T('Dashboard.Activity.Received') : T('Dashboard.Activity.Sent')} />
 
-                <Text
-                    variant='body'
-                    text={ item.incoming ? T('Dashboard.Activity.Received') : T('Dashboard.Activity.Sent') } />
-
-                <Text
-                    dir='ltr'
-                    className='truncate font-mono'
-                    text={ item.incoming ? shortAddress(item.from) : shortAddress(item.to) } />
-
+                <Text dir='ltr' className='truncate font-mono' text={item.incoming ? shortAddress(item.from) : shortAddress(item.to)} />
             </Vertical>
 
-            { /*
-              * `min-w-0 truncate` because `item.symbol` is whatever the contract calls itself. Every
-              * other region on this row already had both; this one was `shrink-0` with neither, so an
-              * airdrop-spam token with a sentence for a ticker pushed the row open.
-              */ }
+            {/*
+             * `min-w-0 truncate` because `item.symbol` is whatever the contract calls itself. Every
+             * other region on this row already had both; this one was `shrink-0` with neither, so an
+             * airdrop-spam token with a sentence for a ticker pushed the row open.
+             */}
             <Vertical className='min-w-0 shrink-0 items-end'>
-
                 <Text
                     dir='ltr'
                     variant='body'
-                    className={ `truncate font-mono ${ item.incoming ? 'text-txt-success' : 'text-txt-error' }` }
-                    text={ `${ item.incoming ? '+' : '-' }${ trimAmount(item.value) } ${ item.symbol }` } />
+                    className={`truncate font-mono ${item.incoming ? 'text-txt-success' : 'text-txt-error'}`}
+                    text={`${item.incoming ? '+' : '-'}${trimAmount(item.value)} ${item.symbol}`}
+                />
 
-                <Text text={ formatDate(item.timestamp) } />
-
+                <Text text={formatDate(item.timestamp)} />
             </Vertical>
 
-            {
-                canOpen && <Text className='sr-only' text={ T('Dashboard.Activity.Open') } />
-            }
-
+            {canOpen && <Text className='sr-only' text={T('Dashboard.Activity.Open')} />}
         </Button>
     );
 }

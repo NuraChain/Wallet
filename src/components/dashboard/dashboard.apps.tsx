@@ -23,16 +23,8 @@ import { Horizontal, Vertical } from '../ui/stack';
  * @param {string} props.className Sizing and corner for the icon.
  * @returns {JSX.Element} The icon.
  */
-function AppIcon({ item, className }: { item: DappEntry; className: string })
-{
-    return (
-        <TokenIcon
-            primary
-            kind='unknown'
-            src={ getSiteIcon(item.url) }
-            symbol={ item.name }
-            className={ className } />
-    );
+function AppIcon({ item, className }: { item: DappEntry; className: string }) {
+    return <TokenIcon primary kind='unknown' src={getSiteIcon(item.url)} symbol={item.name} className={className} />;
 }
 
 /**
@@ -54,33 +46,20 @@ function AppIcon({ item, className }: { item: DappEntry; className: string })
  * @param {boolean} props.connected Whether this app's origin is allowed to see the account.
  * @returns {JSX.Element} The host line.
  */
-function AppHost({ item, connected }: { item: DappEntry; connected: boolean })
-{
+function AppHost({ item, connected }: { item: DappEntry; connected: boolean }) {
     return (
         <Horizontal className='min-w-0 items-center gap-1.5'>
+            {connected && <span aria-hidden className='size-1.5 shrink-0 rounded-xs bg-txt-success' />}
 
-            {
-                connected && <span aria-hidden className='size-1.5 shrink-0 rounded-xs bg-txt-success' />
-            }
-
-            { /*
-              * The host is Latin however the interface reads, so it is isolated rather than aligned:
-              * the span keeps its characters in order and the card keeps the line on its own start
-              * edge, which is what a Persian layout needs and what `dir='ltr'` on the line itself
-              * would have taken away.
-              */ }
-            <Text
-                variant='caption'
-                className='min-w-0 flex-1 truncate font-mono'>
-
-                <span dir='ltr'>
-
-                    { getSiteHost(item.url) }
-
-                </span>
-
+            {/*
+             * The host is Latin however the interface reads, so it is isolated rather than aligned:
+             * the span keeps its characters in order and the card keeps the line on its own start
+             * edge, which is what a Persian layout needs and what `dir='ltr'` on the line itself
+             * would have taken away.
+             */}
+            <Text variant='caption' className='min-w-0 flex-1 truncate font-mono'>
+                <span dir='ltr'>{getSiteHost(item.url)}</span>
             </Text>
-
         </Horizontal>
     );
 }
@@ -102,69 +81,67 @@ function AppHost({ item, connected }: { item: DappEntry; connected: boolean })
  * @param {(id: string) => void} props.onRemove Drops this app.
  * @returns {JSX.Element} The row.
  */
-function AppRow({ item, connected, onEdit, onRemove }: { item: DappEntry; connected: boolean; onEdit: (item: DappEntry) => void; onRemove: (id: string) => void })
-{
+function AppRow({
+    item,
+    connected,
+    onEdit,
+    onRemove
+}: {
+    item: DappEntry;
+    connected: boolean;
+    onEdit: (item: DappEntry) => void;
+    onRemove: (id: string) => void;
+}) {
     const controls = useDragControls();
 
     return (
-        <Reorder.Item
-            as='div'
-            value={ item }
-            dragListener={ false }
-            dragControls={ controls }
-            className='flex items-center gap-2'>
-
-            { /*
-              * `touch-none` on the grip rather than on the row: the browser would otherwise read the
-              * first millimetre of a drag as a scroll and take the gesture away mid-move, which on a
-              * phone is every drag. Only the grip gives that up, so the rest of the list still scrolls
-              * with a finger.
-              */ }
+        <Reorder.Item as='div' value={item} dragListener={false} dragControls={controls} className='flex items-center gap-2'>
+            {/*
+             * `touch-none` on the grip rather than on the row: the browser would otherwise read the
+             * first millimetre of a drag as a scroll and take the gesture away mid-move, which on a
+             * phone is every drag. Only the grip gives that up, so the rest of the list still scrolls
+             * with a finger.
+             */}
             <Button
                 variant='muted'
                 size='icon'
-                onPointerDown={ (event) => { controls.start(event); } }
-                aria-label={ T('Dashboard.Apps.Reorder') }
-                className='shrink-0 cursor-grab touch-none text-txt-muted active:cursor-grabbing'>
-
-                <MdDragIndicator size={ 18 } />
-
+                onPointerDown={(event) => {
+                    controls.start(event);
+                }}
+                aria-label={T('Dashboard.Apps.Reorder')}
+                className='shrink-0 cursor-grab touch-none text-txt-muted active:cursor-grabbing'
+            >
+                <MdDragIndicator size={18} />
             </Button>
 
             <Button
                 variant='muted'
-                title={ item.url }
-                onClick={ () => { onEdit(item); } }
-                className='min-w-0 flex-1 justify-start gap-2.5 rounded-surface p-2 text-start'>
-
-                <AppIcon
-                    item={ item }
-                    className='size-8 rounded-control text-tiny' />
+                title={item.url}
+                onClick={() => {
+                    onEdit(item);
+                }}
+                className='min-w-0 flex-1 justify-start gap-2.5 rounded-surface p-2 text-start'
+            >
+                <AppIcon item={item} className='size-8 rounded-control text-tiny' />
 
                 <Vertical className='min-w-0 flex-1 gap-0.5'>
+                    <Text variant='body' className='truncate' text={item.name} />
 
-                    <Text
-                        variant='body'
-                        className='truncate'
-                        text={ item.name } />
-
-                    <AppHost item={ item } connected={ connected } />
-
+                    <AppHost item={item} connected={connected} />
                 </Vertical>
-
             </Button>
 
             <Button
                 variant='danger'
                 size='icon'
-                onClick={ () => { onRemove(item.id); } }
-                aria-label={ T('Dashboard.Apps.Remove') }
-                className='shrink-0'>
-
-                <FiTrash2 size={ 16 } />
-
+                onClick={() => {
+                    onRemove(item.id);
+                }}
+                aria-label={T('Dashboard.Apps.Remove')}
+                className='shrink-0'
+            >
+                <FiTrash2 size={16} />
             </Button>
-
         </Reorder.Item>
     );
 }
@@ -198,62 +175,52 @@ function AppRow({ item, connected, onEdit, onRemove }: { item: DappEntry; connec
  * @param {(url: string) => void} props.onOpen Opens one app in the browser tab.
  * @returns {JSX.Element} The apps tab.
  */
-export default function DashboardApps({ active, onOpen }: { active: boolean; onOpen: (url: string) => void })
-{
-    const [ apps, setList ] = useState<DappEntry[]>([]);
-    const [ granted, setGranted ] = useState<string[]>([]);
-    const [ editing, setEditing ] = useState(false);
+export default function DashboardApps({ active, onOpen }: { active: boolean; onOpen: (url: string) => void }) {
+    const [apps, setList] = useState<DappEntry[]>([]);
+    const [granted, setGranted] = useState<string[]>([]);
+    const [editing, setEditing] = useState(false);
 
     // Which app the dialog is open on: an item to edit one, `true` to add, `false` for closed. One
     // piece of state rather than an open flag beside a selection, so the two cannot disagree about
     // whether the dialog is showing an entry that is no longer there.
-    const [ editor, setEditor ] = useState<DappEntry | boolean>(false);
+    const [editor, setEditor] = useState<DappEntry | boolean>(false);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         let alive = true;
 
-        void getApps().then((stored) =>
-        {
-            if (alive)
-            {
+        void getApps().then((stored) => {
+            if (alive) {
                 setList(stored);
             }
         });
 
-        return () =>
-        {
+        return () => {
             alive = false;
         };
-    }, [ ]);
+    }, []);
 
     // Re-read on arrival rather than once at mount. Swiper builds all three panels up front, so this
     // one is constructed long before it is looked at — and the grants change on the tab next door,
     // where connecting to a site is the whole point. Landing here is exactly when the answer is worth
     // asking for again, and it is the cheapest place to notice. A grant made while this tab is already
     // on screen still waits for the next visit, which is the one case this does not cover.
-    useEffect(() =>
-    {
-        if (!active)
-        {
+    useEffect(() => {
+        if (!active) {
             return undefined;
         }
 
         let alive = true;
 
-        void loadConnections().then((list) =>
-        {
-            if (alive)
-            {
+        void loadConnections().then((list) => {
+            if (alive) {
                 setGranted(list);
             }
         });
 
-        return () =>
-        {
+        return () => {
             alive = false;
         };
-    }, [ active ]);
+    }, [active]);
 
     /**
      * commit - Shows a new list and stores it.
@@ -264,8 +231,7 @@ export default function DashboardApps({ active, onOpen }: { active: boolean; onO
      * @param {DappEntry[]} list The list as it now stands.
      * @returns {void}
      */
-    const commit = (list: DappEntry[]) =>
-    {
+    const commit = (list: DappEntry[]) => {
         setList(list);
 
         void setApps(list);
@@ -280,11 +246,10 @@ export default function DashboardApps({ active, onOpen }: { active: boolean; onO
      * @param {DappEntry} item The app the dialog produced.
      * @returns {void}
      */
-    const onSave = (item: DappEntry) =>
-    {
+    const onSave = (item: DappEntry) => {
         const known = apps.some((entry) => entry.id === item.id);
 
-        commit(known ? apps.map((entry) => (entry.id === item.id ? item : entry)) : [ ...apps, item ]);
+        commit(known ? apps.map((entry) => (entry.id === item.id ? item : entry)) : [...apps, item]);
 
         setEditor(false);
     };
@@ -304,140 +269,113 @@ export default function DashboardApps({ active, onOpen }: { active: boolean; onO
      * @param {DappEntry} item The app.
      * @returns {string} The full address, and its connection when it has one.
      */
-    const tileTitle = (item: DappEntry) => (isGranted(item) ? `${ item.url } — ${ T('Dashboard.Apps.Connected') }` : item.url);
+    const tileTitle = (item: DappEntry) => (isGranted(item) ? `${item.url} — ${T('Dashboard.Apps.Connected')}` : item.url);
 
     return (
         <Vertical className='mt-2 gap-4'>
-
-            <SectionHeader title={ T('Dashboard.Apps.Title') }>
-
+            <SectionHeader title={T('Dashboard.Apps.Title')}>
                 <Button
                     variant='muted'
                     size='small'
-                    onClick={ () => { setEditing(!editing); } }
-                    leftIcon={ editing ? <FiCheck size={ 14 } /> : <FiEdit3 size={ 14 } /> }
-                    text={ editing ? T('Dashboard.Apps.Done') : T('Dashboard.Apps.Manage') } />
-
+                    onClick={() => {
+                        setEditing(!editing);
+                    }}
+                    leftIcon={editing ? <FiCheck size={14} /> : <FiEdit3 size={14} />}
+                    text={editing ? T('Dashboard.Apps.Done') : T('Dashboard.Apps.Manage')}
+                />
             </SectionHeader>
 
-            {
-                editing ?
-                    (
-                        <Vertical className='gap-2'>
+            {editing ? (
+                <Vertical className='gap-2'>
+                    {apps.length > 1 && <Text variant='caption' text={T('Dashboard.Apps.Reorder')} />}
 
-                            {
-                                apps.length > 1 &&
-                                (
-                                    <Text
-                                        variant='caption'
-                                        text={ T('Dashboard.Apps.Reorder') } />
-                                )
-                            }
+                    <Reorder.Group as='div' axis='y' values={apps} onReorder={commit} className='flex flex-col gap-2'>
+                        {apps.map((item) => (
+                            <AppRow
+                                key={item.id}
+                                item={item}
+                                connected={isGranted(item)}
+                                onEdit={setEditor}
+                                onRemove={(id) => {
+                                    commit(apps.filter((entry) => entry.id !== id));
+                                }}
+                            />
+                        ))}
+                    </Reorder.Group>
 
-                            <Reorder.Group
-                                as='div'
-                                axis='y'
-                                values={ apps }
-                                onReorder={ commit }
-                                className='flex flex-col gap-2'>
-
-                                {
-                                    apps.map((item) => (
-                                        <AppRow
-                                            key={ item.id }
-                                            item={ item }
-                                            connected={ isGranted(item) }
-                                            onEdit={ setEditor }
-                                            onRemove={ (id) => { commit(apps.filter((entry) => entry.id !== id)); } } />
-                                    ))
-                                }
-
-                            </Reorder.Group>
-
+                    <Button
+                        variant='normal'
+                        size='action'
+                        onClick={() => {
+                            setEditor(true);
+                        }}
+                        leftIcon={<FiPlus size={16} />}
+                        text={T('Dashboard.Apps.Add')}
+                    />
+                </Vertical>
+            ) : (
+                <div className='grid grid-cols-2 gap-3 empty:hidden'>
+                    {
+                        /*
+                         * The `chip` material — the card tone over a hairline — rather than a
+                         * fill of its own invention. These tiles are the whole of what this tab
+                         * has to say, so they wear the same surface as the holdings list and
+                         * the activity group one tab over: one idea of what content looks like
+                         * across the whole app.
+                         */
+                        apps.map((item) => (
                             <Button
-                                variant='normal'
-                                size='action'
-                                onClick={ () => { setEditor(true); } }
-                                leftIcon={ <FiPlus size={ 16 } /> }
-                                text={ T('Dashboard.Apps.Add') } />
+                                key={item.id}
+                                variant='chip'
+                                title={tileTitle(item)}
+                                onClick={() => {
+                                    onOpen(item.url);
+                                }}
+                                className='h-30 flex-col items-start justify-start gap-3 rounded-surface p-3 text-start'
+                            >
+                                <AppIcon item={item} className='size-10 rounded-surface text-small' />
 
-                        </Vertical>
-                    ) :
-                    (
-                        <div className='grid grid-cols-2 gap-3 empty:hidden'>
+                                <Vertical className='mt-auto w-full min-w-0 gap-1'>
+                                    <Text variant='body' className='w-full truncate' text={item.name} />
 
-                            {
-                                /*
-                                 * The `chip` material — the card tone over a hairline — rather than a
-                                 * fill of its own invention. These tiles are the whole of what this tab
-                                 * has to say, so they wear the same surface as the holdings list and
-                                 * the activity group one tab over: one idea of what content looks like
-                                 * across the whole app.
-                                 */
-                                apps.map((item) => (
-                                    <Button
-                                        key={ item.id }
-                                        variant='chip'
-                                        title={ tileTitle(item) }
-                                        onClick={ () => { onOpen(item.url); } }
-                                        className='h-30 flex-col items-start justify-start gap-3 rounded-surface p-3 text-start'>
+                                    <AppHost item={item} connected={isGranted(item)} />
+                                </Vertical>
+                            </Button>
+                        ))
+                    }
+                </div>
+            )}
 
-                                        <AppIcon
-                                            item={ item }
-                                            className='size-10 rounded-surface text-small' />
+            {/*
+             * An empty shelf carries the way off it. Left as a sentence alone it was a dead end that
+             * told the user to press Edit first, which is a step the tab has no reason to charge for.
+             */}
+            {!editing && apps.length === 0 && (
+                <Vertical className='gap-3'>
+                    <StatusBlock panel text={T('Dashboard.Apps.Empty')} />
 
-                                        <Vertical className='mt-auto w-full min-w-0 gap-1'>
+                    <Button
+                        variant='normal'
+                        size='action'
+                        onClick={() => {
+                            setEditor(true);
+                        }}
+                        leftIcon={<FiPlus size={16} />}
+                        text={T('Dashboard.Apps.Add')}
+                    />
+                </Vertical>
+            )}
 
-                                            <Text
-                                                variant='body'
-                                                className='w-full truncate'
-                                                text={ item.name } />
-
-                                            <AppHost item={ item } connected={ isGranted(item) } />
-
-                                        </Vertical>
-
-                                    </Button>
-                                ))
-                            }
-
-                        </div>
-                    )
-            }
-
-            { /*
-              * An empty shelf carries the way off it. Left as a sentence alone it was a dead end that
-              * told the user to press Edit first, which is a step the tab has no reason to charge for.
-              */ }
-            {
-                !editing && apps.length === 0 &&
-                (
-                    <Vertical className='gap-3'>
-
-                        <StatusBlock panel text={ T('Dashboard.Apps.Empty') } />
-
-                        <Button
-                            variant='normal'
-                            size='action'
-                            onClick={ () => { setEditor(true); } }
-                            leftIcon={ <FiPlus size={ 16 } /> }
-                            text={ T('Dashboard.Apps.Add') } />
-
-                    </Vertical>
-                )
-            }
-
-            {
-                editor !== false &&
-                (
-                    <SiteForm
-                        item={ editor === true ? undefined : editor }
-                        title={ editor === true ? T('Dashboard.Apps.Add') : T('Dashboard.Apps.Edit') }
-                        onSave={ onSave }
-                        onClose={ () => { setEditor(false); } } />
-                )
-            }
-
+            {editor !== false && (
+                <SiteForm
+                    item={editor === true ? undefined : editor}
+                    title={editor === true ? T('Dashboard.Apps.Add') : T('Dashboard.Apps.Edit')}
+                    onSave={onSave}
+                    onClose={() => {
+                        setEditor(false);
+                    }}
+                />
+            )}
         </Vertical>
     );
 }

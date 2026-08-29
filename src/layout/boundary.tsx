@@ -16,16 +16,19 @@ import { T } from '../utility/language';
  * @param {string} fallback What to show when the bundle has nothing under that key.
  * @returns {string} The translated line, or the fallback.
  */
-export const line = (key: string, fallback: string) =>
-{
+export const line = (key: string, fallback: string) => {
     const value = T(key);
 
-    return value === `[${ key }]` ? fallback : value;
+    return value === `[${key}]` ? fallback : value;
 };
 
-interface BoundaryProps { children: ReactNode }
+interface BoundaryProps {
+    children: ReactNode;
+}
 
-interface BoundaryState { message: string }
+interface BoundaryState {
+    message: string;
+}
 
 /**
  * ErrorBoundary - The wall between one component throwing and the user facing a blank window.
@@ -41,8 +44,7 @@ interface BoundaryState { message: string }
  *
  * A class, and the only one in `src/`: `getDerivedStateFromError` has no hook equivalent.
  */
-export default class ErrorBoundary extends Component<BoundaryProps, BoundaryState>
-{
+export default class ErrorBoundary extends Component<BoundaryProps, BoundaryState> {
     public override state: BoundaryState = { message: '' };
 
     /**
@@ -50,8 +52,7 @@ export default class ErrorBoundary extends Component<BoundaryProps, BoundaryStat
      * @param {unknown} error Whatever was thrown.
      * @returns {BoundaryState} The state carrying its message.
      */
-    public static getDerivedStateFromError(error: unknown): BoundaryState
-    {
+    public static getDerivedStateFromError(error: unknown): BoundaryState {
         return { message: error instanceof Error && error.message.length > 0 ? error.message : 'unknown error' };
     }
 
@@ -59,27 +60,27 @@ export default class ErrorBoundary extends Component<BoundaryProps, BoundaryStat
      * render - The tree, or the failure screen once something in it has thrown.
      * @returns {ReactNode} What to show.
      */
-    public override render(): ReactNode
-    {
+    public override render(): ReactNode {
         const { message } = this.state;
 
-        if (message.length === 0)
-        {
+        if (message.length === 0) {
             return this.props.children;
         }
 
         return (
             <FailureScreen
-                title={ line('App.Failure.Title', 'Nura Wallet could not start') }
-                body={ line('App.Failure.Message', 'Your wallet is still on this device. Reloading usually clears this.') }
-                detail={ message }>
-
+                title={line('App.Failure.Title', 'Nura Wallet could not start')}
+                body={line('App.Failure.Message', 'Your wallet is still on this device. Reloading usually clears this.')}
+                detail={message}
+            >
                 <Button
                     variant='primary'
                     size='action'
-                    onClick={ () => { window.location.reload(); } }
-                    text={ line('App.Failure.Reload', 'Reload') } />
-
+                    onClick={() => {
+                        window.location.reload();
+                    }}
+                    text={line('App.Failure.Reload', 'Reload')}
+                />
             </FailureScreen>
         );
     }

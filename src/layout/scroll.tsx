@@ -77,12 +77,10 @@ const undamped = (offset: number) => -limit * Math.log(1 - Math.min(Math.max(off
  * @param {HTMLElement} element The element to measure.
  * @returns {number} Its current vertical translation in pixels.
  */
-const painted = (element: HTMLElement) =>
-{
+const painted = (element: HTMLElement) => {
     const { transform } = getComputedStyle(element);
 
-    if (transform === 'none' || transform === '')
-    {
+    if (transform === 'none' || transform === '') {
         return 0;
     }
 
@@ -113,8 +111,17 @@ const painted = (element: HTMLElement) =>
  * @param {() => Promise<void> | void} [props.onRefresh] Called when the user pulls past the threshold. Omit to disable the gesture.
  * @returns {JSX.Element} The scroll container.
  */
-export default function ScrollArea({ className = '', children, onScrollChange, onRefresh }: { className?: string; children: ReactNode; onScrollChange?: (top: number, delta: number, bottom: number) => void; onRefresh?: () => Promise<void> | void })
-{
+export default function ScrollArea({
+    className = '',
+    children,
+    onScrollChange,
+    onRefresh
+}: {
+    className?: string;
+    children: ReactNode;
+    onScrollChange?: (top: number, delta: number, bottom: number) => void;
+    onRefresh?: () => Promise<void> | void;
+}) {
     const lastRef = useRef(0);
     const barRef = useRef<HTMLDivElement>(null);
     const glyphRef = useRef<HTMLDivElement>(null);
@@ -143,27 +150,24 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
     // the scroll that reached the top.
     const lastWheelRef = useRef(0);
 
-    const [ dragging, setDragging ] = useState(false);
-    const [ refreshing, setRefreshing ] = useState(false);
-    const [ thumb, setThumb ] = useState({ size: 0, visible: false });
+    const [dragging, setDragging] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
+    const [thumb, setThumb] = useState({ size: 0, visible: false });
 
     // Kept in a ref so the gesture listeners below can stay bound for the life of the component instead
     // of being torn down and re-attached every time the parent re-renders with a new closure.
     refreshRef.current = onRefresh;
 
-    const measure = useCallback(() =>
-    {
+    const measure = useCallback(() => {
         const element = viewportRef.current;
 
-        if (element === null)
-        {
+        if (element === null) {
             return;
         }
 
         const scrollable = element.scrollHeight - element.clientHeight;
 
-        if (scrollable <= 0)
-        {
+        if (scrollable <= 0) {
             setThumb((current) => (current.visible ? { size: 0, visible: false } : current));
 
             return;
@@ -177,51 +181,50 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
         // exactly zero times.
         setThumb((current) => (current.visible && current.size === size ? current : { size, visible: true }));
 
-        if (barRef.current !== null)
-        {
-            barRef.current.style.transform = `translateY(${ (element.scrollTop / scrollable) * (element.clientHeight - size) }px)`;
+        if (barRef.current !== null) {
+            barRef.current.style.transform = `translateY(${(element.scrollTop / scrollable) * (element.clientHeight - size)}px)`;
         }
-    }, [ ]);
+    }, []);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         const element = viewportRef.current;
-        const observer = new ResizeObserver(() => { measure(); });
+        const observer = new ResizeObserver(() => {
+            measure();
+        });
 
-        if (element !== null)
-        {
+        if (element !== null) {
             measure();
 
             observer.observe(element);
 
-            for (const child of element.children)
-            {
+            for (const child of element.children) {
                 observer.observe(child);
             }
         }
 
-        return () => { observer.disconnect(); };
-    }, [ measure ]);
+        return () => {
+            observer.disconnect();
+        };
+    }, [measure]);
 
     // The thumb is painted by `measure`, which cannot reach it on the pass that first mounts it. One
     // more call once it exists puts it in the right place; the equality check above stops this settling
     // into a loop.
-    useEffect(() => { measure(); }, [ measure, thumb.visible ]);
+    useEffect(() => {
+        measure();
+    }, [measure, thumb.visible]);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         const element = viewportRef.current;
 
-        if (element === null)
-        {
+        if (element === null) {
             return undefined;
         }
 
         /**
          * Everything the gesture puts on screen, in one place and never more than once a frame.
          */
-        const paint = () =>
-        {
+        const paint = () => {
             frameRef.current = undefined;
 
             const offset = pullRef.current;
@@ -230,19 +233,17 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
 
             // Cleared rather than zeroed at rest, so the element goes back to carrying no inline style at
             // all and the classes below are what describe it again.
-            element.style.transform = offset === 0 ? '' : `translateY(${ offset }px)`;
+            element.style.transform = offset === 0 ? '' : `translateY(${offset}px)`;
 
-            if (badge !== null)
-            {
-                badge.style.height = offset === 0 ? '' : `${ offset }px`;
-                badge.style.opacity = offset === 0 ? '' : `${ Math.min(offset / threshold, 1) }`;
+            if (badge !== null) {
+                badge.style.height = offset === 0 ? '' : `${offset}px`;
+                badge.style.opacity = offset === 0 ? '' : `${Math.min(offset / threshold, 1)}`;
             }
 
-            if (glyph !== null)
-            {
+            if (glyph !== null) {
                 // The glyph winds up with the pull right until the work starts, at which point it is the
                 // app's standard spinner and a leftover rotation would only fight it.
-                glyph.style.transform = phaseRef.current === 'refreshing' ? '' : `rotate(${ offset * 4 }deg)`;
+                glyph.style.transform = phaseRef.current === 'refreshing' ? '' : `rotate(${offset * 4}deg)`;
             }
         };
 
@@ -254,18 +255,16 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
          * old gate was `pull > 0`, which the release falsified in the very commit that moved the content
          * home, so the return never eased — it snapped.
          */
-        const ease = (on: boolean) =>
-        {
+        const ease = (on: boolean) => {
             const badge = indicatorRef.current;
 
             element.style.transitionProperty = on ? 'transform' : '';
-            element.style.transitionDuration = on ? `${ spring }ms` : '';
+            element.style.transitionDuration = on ? `${spring}ms` : '';
             element.style.transitionTimingFunction = on ? easing : '';
 
-            if (badge !== null)
-            {
+            if (badge !== null) {
                 badge.style.transitionProperty = on ? 'height, opacity' : '';
-                badge.style.transitionDuration = on ? `${ spring }ms` : '';
+                badge.style.transitionDuration = on ? `${spring}ms` : '';
                 badge.style.transitionTimingFunction = on ? easing : '';
             }
         };
@@ -273,8 +272,7 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
         /**
          * Move now, following the input — no easing, coalesced to one paint per frame.
          */
-        const track = (offset: number) =>
-        {
+        const track = (offset: number) => {
             pullRef.current = offset;
 
             // Short-circuits, so a second event in the same frame updates the target and rides the
@@ -286,10 +284,8 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
          * Move under the spring's own power, which means painting synchronously: the transition has to
          * see the value change in the same task that turned it on.
          */
-        const glide = (offset: number) =>
-        {
-            if (frameRef.current !== undefined)
-            {
+        const glide = (offset: number) => {
+            if (frameRef.current !== undefined) {
                 cancelAnimationFrame(frameRef.current);
 
                 frameRef.current = undefined;
@@ -308,10 +304,8 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
          * back feels like catching it rather than like starting again.
          * @returns {number} The raw travel the gesture is resuming from.
          */
-        const begin = () =>
-        {
-            if (springRef.current !== undefined)
-            {
+        const begin = () => {
+            if (springRef.current !== undefined) {
                 clearTimeout(springRef.current);
 
                 springRef.current = undefined;
@@ -338,8 +332,7 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
          * Nothing is holding the pull any more, so stop paying for the compositor hint and let the
          * classes describe the elements again.
          */
-        const rest = () =>
-        {
+        const rest = () => {
             phaseRef.current = 'idle';
             rawRef.current = 0;
 
@@ -351,18 +344,15 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
         /**
          * Send the content home and mark it arrived once it has, the return leg every ending shares.
          */
-        const settle = () =>
-        {
+        const settle = () => {
             phaseRef.current = 'releasing';
 
             glide(0);
 
-            springRef.current = setTimeout(() =>
-            {
+            springRef.current = setTimeout(() => {
                 springRef.current = undefined;
 
-                if (phaseRef.current === 'releasing')
-                {
+                if (phaseRef.current === 'releasing') {
                     rest();
                 }
             }, spring);
@@ -371,10 +361,8 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
         /**
          * The gesture stopped being ours — the scroller took it.
          */
-        const cancel = () =>
-        {
-            if (settleRef.current !== undefined)
-            {
+        const cancel = () => {
+            if (settleRef.current !== undefined) {
                 clearTimeout(settleRef.current);
 
                 settleRef.current = undefined;
@@ -382,12 +370,9 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
 
             originRef.current = undefined;
 
-            if (pullRef.current > 0)
-            {
+            if (pullRef.current > 0) {
                 settle();
-            }
-            else
-            {
+            } else {
                 rest();
             }
         };
@@ -400,15 +385,12 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
          * means. Only a live pull can release; a touch that never pulled and a stray timer both land
          * here and both mean nothing.
          */
-        const release = () =>
-        {
-            if (phaseRef.current !== 'pulling')
-            {
+        const release = () => {
+            if (phaseRef.current !== 'pulling') {
                 return;
             }
 
-            if (settleRef.current !== undefined)
-            {
+            if (settleRef.current !== undefined) {
                 clearTimeout(settleRef.current);
 
                 settleRef.current = undefined;
@@ -416,8 +398,7 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
 
             const handler = refreshRef.current;
 
-            if (pullRef.current < threshold || handler === undefined)
-            {
+            if (pullRef.current < threshold || handler === undefined) {
                 settle();
 
                 return;
@@ -431,41 +412,35 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
             // Park the indicator at the threshold while the work runs, then let it spring back.
             glide(threshold);
 
-            void Promise.resolve(handler()).finally(() =>
-            {
+            void Promise.resolve(handler()).finally(() => {
                 setRefreshing(false);
 
                 settle();
             });
         };
 
-        const onTouchStart = (event: TouchEvent) =>
-        {
+        const onTouchStart = (event: TouchEvent) => {
             const touch = event.touches[0];
 
             originRef.current = undefined;
 
-            if (touch === undefined || refreshRef.current === undefined || phaseRef.current === 'refreshing' || element.scrollTop > 0)
-            {
+            if (touch === undefined || refreshRef.current === undefined || phaseRef.current === 'refreshing' || element.scrollTop > 0) {
                 return;
             }
 
             originRef.current = { y: touch.clientY, seed: begin() };
         };
 
-        const onTouchMove = (event: TouchEvent) =>
-        {
+        const onTouchMove = (event: TouchEvent) => {
             const origin = originRef.current;
             const touch = event.touches[0];
 
-            if (origin === undefined || touch === undefined)
-            {
+            if (origin === undefined || touch === undefined) {
                 return;
             }
 
             // The moment the list is scrolled the gesture belongs to the scroller, not to us.
-            if (element.scrollTop > 0)
-            {
+            if (element.scrollTop > 0) {
                 cancel();
 
                 return;
@@ -477,16 +452,14 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
 
             // Without this the WebView rubber-bands the whole page and the pull looks doubled. Only while
             // there is a pull to protect: at zero the scroller is meant to have the gesture back.
-            if (raw > 0 && event.cancelable)
-            {
+            if (raw > 0 && event.cancelable) {
                 event.preventDefault();
             }
 
             track(damped(raw));
         };
 
-        const onTouchEnd = () =>
-        {
+        const onTouchEnd = () => {
             originRef.current = undefined;
 
             release();
@@ -507,19 +480,15 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
          * short timer that every event pushes back, which is also what keeps trackpad momentum from
          * releasing early in the middle of one flick.
          */
-        const onWheel = (event: WheelEvent) =>
-        {
-            if (refreshRef.current === undefined || phaseRef.current === 'refreshing')
-            {
+        const onWheel = (event: WheelEvent) => {
+            if (refreshRef.current === undefined || phaseRef.current === 'refreshing') {
                 return;
             }
 
             // Scrolled away from the top and the gesture belongs to the scroller, the same rule the
             // touch path follows.
-            if (element.scrollTop > 0)
-            {
-                if (phaseRef.current === 'pulling')
-                {
+            if (element.scrollTop > 0) {
+                if (phaseRef.current === 'pulling') {
                     cancel();
                 }
 
@@ -536,10 +505,8 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
 
             lastWheelRef.current = now;
 
-            if (phaseRef.current !== 'pulling')
-            {
-                if (!idle || event.deltaY >= 0)
-                {
+            if (phaseRef.current !== 'pulling') {
+                if (!idle || event.deltaY >= 0) {
                     return;
                 }
 
@@ -552,13 +519,11 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
 
             track(damped(rawRef.current));
 
-            if (settleRef.current !== undefined)
-            {
+            if (settleRef.current !== undefined) {
                 clearTimeout(settleRef.current);
             }
 
-            settleRef.current = setTimeout(() =>
-            {
+            settleRef.current = setTimeout(() => {
                 settleRef.current = undefined;
 
                 release();
@@ -571,33 +536,28 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
         element.addEventListener('touchcancel', onTouchEnd, { passive: true });
         element.addEventListener('wheel', onWheel, { passive: true });
 
-        return () =>
-        {
+        return () => {
             element.removeEventListener('touchstart', onTouchStart);
             element.removeEventListener('touchmove', onTouchMove);
             element.removeEventListener('touchend', onTouchEnd);
             element.removeEventListener('touchcancel', onTouchEnd);
             element.removeEventListener('wheel', onWheel);
 
-            if (settleRef.current !== undefined)
-            {
+            if (settleRef.current !== undefined) {
                 clearTimeout(settleRef.current);
             }
 
-            if (springRef.current !== undefined)
-            {
+            if (springRef.current !== undefined) {
                 clearTimeout(springRef.current);
             }
 
-            if (frameRef.current !== undefined)
-            {
+            if (frameRef.current !== undefined) {
                 cancelAnimationFrame(frameRef.current);
             }
         };
-    }, [ ]);
+    }, []);
 
-    const onScroll = (event: UIEvent<HTMLDivElement>) =>
-    {
+    const onScroll = (event: UIEvent<HTMLDivElement>) => {
         const element = event.currentTarget;
         const top = element.scrollTop;
         const delta = top - lastRef.current;
@@ -609,12 +569,10 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
         onScrollChange?.(top, delta, Math.max(element.scrollHeight - element.clientHeight - top, 0));
     };
 
-    const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) =>
-    {
+    const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
         const element = viewportRef.current;
 
-        if (element === null)
-        {
+        if (element === null) {
             return;
         }
 
@@ -625,32 +583,27 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
         setDragging(true);
     };
 
-    const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) =>
-    {
+    const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
         const drag = dragRef.current;
         const element = viewportRef.current;
 
-        if (drag === undefined || element === null)
-        {
+        if (drag === undefined || element === null) {
             return;
         }
 
         const track = element.clientHeight - thumb.size;
 
-        if (track <= 0)
-        {
+        if (track <= 0) {
             return;
         }
 
         element.scrollTop = drag.top + ((event.clientY - drag.origin) / track) * (element.scrollHeight - element.clientHeight);
     };
 
-    const onPointerUp = (event: ReactPointerEvent<HTMLDivElement>) =>
-    {
+    const onPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
         dragRef.current = undefined;
 
-        if (event.currentTarget.hasPointerCapture(event.pointerId))
-        {
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
             event.currentTarget.releasePointerCapture(event.pointerId);
         }
 
@@ -658,52 +611,36 @@ export default function ScrollArea({ className = '', children, onScrollChange, o
     };
 
     return (
-        <div className={ `relative ${ className }` }>
-
-            { /*
-              * Always mounted, and hidden by being nothing tall and nothing opaque. Mounting it on the
-              * first movement would mean the frame that starts the pull has nothing to paint into, and
-              * unmounting it at zero would cut the spring off half way home.
-              */ }
+        <div className={`relative ${className}`}>
+            {/*
+             * Always mounted, and hidden by being nothing tall and nothing opaque. Mounting it on the
+             * first movement would mean the frame that starts the pull has nothing to paint into, and
+             * unmounting it at zero would cut the spring off half way home.
+             */}
             <div
-                ref={ indicatorRef }
-                className='pointer-events-none absolute inset-x-0 top-0 z-10 flex h-0 items-center justify-center overflow-hidden opacity-0'>
-
-                <div ref={ glyphRef } className='text-txt-muted'>
-                    {
-                        refreshing ?
-                            <Spinner size={ 18 } /> :
-                            <FiLoader size={ 18 } />
-                    }
+                ref={indicatorRef}
+                className='pointer-events-none absolute inset-x-0 top-0 z-10 flex h-0 items-center justify-center overflow-hidden opacity-0'
+            >
+                <div ref={glyphRef} className='text-txt-muted'>
+                    {refreshing ? <Spinner size={18} /> : <FiLoader size={18} />}
                 </div>
-
             </div>
 
-            <div
-                ref={ viewportRef }
-                onScroll={ onScroll }
-                className='scroll-hidden size-full overflow-y-auto overscroll-contain'>
-
-                {
-                    children
-                }
-
+            <div ref={viewportRef} onScroll={onScroll} className='scroll-hidden size-full overflow-y-auto overscroll-contain'>
+                {children}
             </div>
 
-            {
-                thumb.visible &&
-                (
-                    <div
-                        ref={ barRef }
-                        onPointerUp={ onPointerUp }
-                        onPointerDown={ onPointerDown }
-                        onPointerMove={ onPointerMove }
-                        onPointerCancel={ onPointerUp }
-                        style={ { height: `${ thumb.size }px` } }
-                        className={ `absolute inset-e-1 top-0 z-10 w-1.5 cursor-pointer rounded-full bg-scrollbar transition-colors duration-(--duration-base) ${ dragging ? 'bg-scrollbar-hover' : 'hover:bg-scrollbar-hover' }` } />
-                )
-            }
-
+            {thumb.visible && (
+                <div
+                    ref={barRef}
+                    onPointerUp={onPointerUp}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerCancel={onPointerUp}
+                    style={{ height: `${thumb.size}px` }}
+                    className={`absolute inset-e-1 top-0 z-10 w-1.5 cursor-pointer rounded-full bg-scrollbar transition-colors duration-(--duration-base) ${dragging ? 'bg-scrollbar-hover' : 'hover:bg-scrollbar-hover'}`}
+                />
+            )}
         </div>
     );
 }

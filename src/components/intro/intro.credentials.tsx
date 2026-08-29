@@ -12,8 +12,7 @@ import { passwordIssue } from '../../core/password';
 /**
  * Which key under the flow's prefix explains each broken rule.
  */
-const issueMap =
-{
+const issueMap = {
     mismatch: 'ErrorMismatch',
     length: 'ErrorLength'
 } as const;
@@ -41,25 +40,35 @@ const issueMap =
  * @param {(password: string) => Promise<void>} props.onSubmit Runs the flow with the accepted password.
  * @returns {JSX.Element} The credentials form.
  */
-export default function IntroCredentials({ prefix, submitKey, className = '', submitClass = '', onError, onSubmit }: { prefix: string; submitKey: string; className?: string; submitClass?: string; onError: (message: string) => void; onSubmit: (password: string) => Promise<void> })
-{
-    const [ agree, setAgree ] = useState(false);
-    const [ loading, setLoading ] = useState(false);
-    const [ confirm, setConfirm ] = useState('');
-    const [ password, setPassword ] = useState('');
+export default function IntroCredentials({
+    prefix,
+    submitKey,
+    className = '',
+    submitClass = '',
+    onError,
+    onSubmit
+}: {
+    prefix: string;
+    submitKey: string;
+    className?: string;
+    submitClass?: string;
+    onError: (message: string) => void;
+    onSubmit: (password: string) => Promise<void>;
+}) {
+    const [agree, setAgree] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [confirm, setConfirm] = useState('');
+    const [password, setPassword] = useState('');
 
-    const onSend = async() =>
-    {
-        if (loading)
-        {
+    const onSend = async () => {
+        if (loading) {
             return;
         }
 
         const issue = passwordIssue(password, confirm);
 
-        if (issue !== undefined)
-        {
-            onError(T(`${ prefix }.${ issueMap[issue] }`));
+        if (issue !== undefined) {
+            onError(T(`${prefix}.${issueMap[issue]}`));
 
             return;
         }
@@ -68,61 +77,66 @@ export default function IntroCredentials({ prefix, submitKey, className = '', su
 
         setLoading(true);
 
-        try
-        {
+        try {
             await onSubmit(password);
-        }
-        catch
-        {
+        } catch {
             // The flow this hands off to writes the vault. A rejection there used to land nowhere:
             // the spinner stopped, the button came back, and the wallet had not been saved — the one
             // failure in the app where saying nothing leaves the user believing the opposite of what
             // happened. `ErrorGenerate` exists under both prefixes and is worded for each flow.
-            onError(T(`${ prefix }.ErrorGenerate`));
-        }
-        finally
-        {
+            onError(T(`${prefix}.ErrorGenerate`));
+        } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className={ cn('flex flex-col gap-2', className) }>
-
-            { /*
-              * Both fields name themselves to the password manager. Without `autoComplete` a manager
-              * sees three indistinguishable password boxes across the app and cannot tell the one
-              * being set from the one being entered.
-              */ }
+        <div className={cn('flex flex-col gap-2', className)}>
+            {/*
+             * Both fields name themselves to the password manager. Without `autoComplete` a manager
+             * sees three indistinguishable password boxes across the app and cannot tell the one
+             * being set from the one being entered.
+             */}
             <PasswordField
-                label={ T(`${ prefix }.Password`) }
-                value={ password }
+                label={T(`${prefix}.Password`)}
+                value={password}
                 autoComplete='new-password'
-                onValue={ setPassword }
-                onEnter={ () => { void onSend(); } } />
+                onValue={setPassword}
+                onEnter={() => {
+                    void onSend();
+                }}
+            />
 
             <PasswordField
-                label={ T(`${ prefix }.Confirm`) }
-                value={ confirm }
+                label={T(`${prefix}.Confirm`)}
+                value={confirm}
                 autoComplete='new-password'
-                onValue={ setConfirm }
-                onEnter={ () => { void onSend(); } } />
+                onValue={setConfirm}
+                onEnter={() => {
+                    void onSend();
+                }}
+            />
 
             <Checkbox
-                checked={ agree }
-                onToggle={ () => { setAgree(!agree); } }
-                text={ T(`${ prefix }.Agreement`) } />
+                checked={agree}
+                onToggle={() => {
+                    setAgree(!agree);
+                }}
+                text={T(`${prefix}.Agreement`)}
+            />
 
             <Button
                 dim
                 variant='primary'
                 size='submit'
-                loading={ loading }
-                disabled={ !agree }
-                onClick={ () => { void onSend(); } }
-                text={ T(`${ prefix }.${ submitKey }`) }
-                className={ cn('mx-auto sm:w-fit sm:px-8', submitClass) } />
-
+                loading={loading}
+                disabled={!agree}
+                onClick={() => {
+                    void onSend();
+                }}
+                text={T(`${prefix}.${submitKey}`)}
+                className={cn('mx-auto sm:w-fit sm:px-8', submitClass)}
+            />
         </div>
     );
 }

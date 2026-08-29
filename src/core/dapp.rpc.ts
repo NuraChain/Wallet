@@ -7,7 +7,19 @@ import { httpRequest } from './request';
 import { getProvider } from './network.provider';
 import { emitDappEvent, getDappPages } from './dapp.bridge';
 import { addNetwork, getNetwork, getNetworks, setNetwork } from './network';
-import { DappError, clearConnections, dappError, failure, getConnections, grantConnection, isConnected, revokeConnection, type DappEnvelope, type DappFailure, type DappReply } from './dapp';
+import {
+    DappError,
+    clearConnections,
+    dappError,
+    failure,
+    getConnections,
+    grantConnection,
+    isConnected,
+    revokeConnection,
+    type DappEnvelope,
+    type DappFailure,
+    type DappReply
+} from './dapp';
 
 /**
  * What a pending dialog is asking the user to allow.
@@ -25,8 +37,7 @@ export type DappPromptKind = 'connect' | 'signature' | 'typed' | 'transaction' |
  * judge — the difference between the site they opened and one that opened itself in a frame is the
  * whole of what a signing prompt protects.
  */
-export interface DappPrompt
-{
+export interface DappPrompt {
     id: string;
     kind: DappPromptKind;
     origin: string;
@@ -127,8 +138,7 @@ let watchAsset: ((address: string) => Promise<boolean>) | undefined;
  * @param {number} index Its derivation index, used to build a signer.
  * @returns {void}
  */
-export const setDappAccount = (address: string, index: number) =>
-{
+export const setDappAccount = (address: string, index: number) => {
     activeAddress = address;
     activeAccount = index;
 };
@@ -138,8 +148,7 @@ export const setDappAccount = (address: string, index: number) =>
  * @param {(address: string) => Promise<boolean>} handler Adds the token and reports whether it worked.
  * @returns {void}
  */
-export const setDappWatchAsset = (handler: (address: string) => Promise<boolean>) =>
-{
+export const setDappWatchAsset = (handler: (address: string) => Promise<boolean>) => {
     watchAsset = handler;
 };
 
@@ -151,7 +160,7 @@ export const setDappWatchAsset = (handler: (address: string) => Promise<boolean>
  * @param {number} id The chain id.
  * @returns {string} The minimal hex form.
  */
-const chainHex = (id: number) => `0x${ id.toString(16) }`;
+const chainHex = (id: number) => `0x${id.toString(16)}`;
 
 const promptListeners = new Set<() => void>();
 
@@ -169,20 +178,16 @@ const changeListeners = new Set<() => void>();
  * @param {() => void} listener Called after the router changed something the dashboard owns.
  * @returns {() => void} Unsubscribes the listener.
  */
-export const subscribeDappChange = (listener: () => void) =>
-{
+export const subscribeDappChange = (listener: () => void) => {
     changeListeners.add(listener);
 
-    return () =>
-    {
+    return () => {
         changeListeners.delete(listener);
     };
 };
 
-const announceChange = () =>
-{
-    for (const listener of changeListeners)
-    {
+const announceChange = () => {
+    for (const listener of changeListeners) {
         listener();
     }
 };
@@ -199,20 +204,16 @@ let prompts: DappPrompt[] = [];
 /** What each pending dialog is blocking on, keyed by prompt id. */
 const waiting = new Map<string, (approved: boolean) => void>();
 
-const announcePrompts = () =>
-{
-    for (const listener of promptListeners)
-    {
+const announcePrompts = () => {
+    for (const listener of promptListeners) {
         listener();
     }
 };
 
-const subscribePrompts = (listener: () => void) =>
-{
+const subscribePrompts = (listener: () => void) => {
     promptListeners.add(listener);
 
-    return () =>
-    {
+    return () => {
         promptListeners.delete(listener);
     };
 };
@@ -240,12 +241,10 @@ export const useDappPrompt = () => useSyncExternalStore(subscribePrompts, getDap
  * @param {boolean} approved What the user decided.
  * @returns {void}
  */
-const settle = (id: string, approved: boolean) =>
-{
+const settle = (id: string, approved: boolean) => {
     const release = waiting.get(id);
 
-    if (release === undefined)
-    {
+    if (release === undefined) {
         return;
     }
 
@@ -264,8 +263,7 @@ const settle = (id: string, approved: boolean) =>
  * @param {boolean} approved True when the user approved it.
  * @returns {void}
  */
-export const resolveDappPrompt = (id: string, approved: boolean) =>
-{
+export const resolveDappPrompt = (id: string, approved: boolean) => {
     settle(id, approved);
 };
 
@@ -277,10 +275,8 @@ export const resolveDappPrompt = (id: string, approved: boolean) =>
  * shows a spinner for good.
  * @returns {void}
  */
-export const rejectDappPrompts = () =>
-{
-    for (const id of [ ...waiting.keys() ])
-    {
+export const rejectDappPrompts = () => {
+    for (const id of [...waiting.keys()]) {
         settle(id, false);
     }
 };
@@ -290,16 +286,16 @@ export const rejectDappPrompts = () =>
  * @param {Omit<DappPrompt, 'id'>} detail Everything but the identity, which is minted here.
  * @returns {Promise<boolean>} Whether the user approved.
  */
-const ask = async(detail: Omit<DappPrompt, 'id'>) => new Promise<boolean>((resolve) =>
-{
-    const id = `${ Date.now().toString(36) }-${ Math.random().toString(36).slice(2) }`;
+const ask = async (detail: Omit<DappPrompt, 'id'>) =>
+    new Promise<boolean>((resolve) => {
+        const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
-    waiting.set(id, resolve);
+        waiting.set(id, resolve);
 
-    prompts = [ ...prompts, { ...detail, id } ];
+        prompts = [...prompts, { ...detail, id }];
 
-    announcePrompts();
-});
+        announcePrompts();
+    });
 
 /**
  * approve - Asks, and turns a refusal into the rejection EIP-1193 defines for it.
@@ -309,12 +305,10 @@ const ask = async(detail: Omit<DappPrompt, 'id'>) => new Promise<boolean>((resol
  * @param {Omit<DappPrompt, 'id'>} detail The dialog to show.
  * @returns {Promise<void>} Resolves when approved, rejects with 4001 when not.
  */
-const approve = async(detail: Omit<DappPrompt, 'id'>) =>
-{
+const approve = async (detail: Omit<DappPrompt, 'id'>) => {
     const allowed = await ask(detail);
 
-    if (!allowed)
-    {
+    if (!allowed) {
         throw failure(dappError.rejected, 'The user rejected the request');
     }
 };
@@ -336,49 +330,41 @@ const approve = async(detail: Omit<DappPrompt, 'id'>) =>
  * @param {unknown[]} params Its parameters, as the page sent them.
  * @returns {Promise<unknown>} Whatever the node returned.
  */
-const rpc = async(method: string, params: unknown[]): Promise<unknown> =>
-{
+const rpc = async (method: string, params: unknown[]): Promise<unknown> => {
     const network = getNetwork();
 
-    const endpoints = [ network.rpcUrl, ...network.rpcBackups ?? [] ].map((url) => url.trim()).filter((url) => url.length > 0);
+    const endpoints = [network.rpcUrl, ...(network.rpcBackups ?? [])].map((url) => url.trim()).filter((url) => url.length > 0);
 
     let reached = false;
 
-    for (const url of endpoints)
-    {
+    for (const url of endpoints) {
         let body: unknown;
 
-        try
-        {
-            // eslint-disable-next-line no-await-in-loop
+        try {
+            // oxlint-disable-next-line no-await-in-loop
             const response = await httpRequest(url, {
                 method: 'POST',
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params })
             });
 
-            if (!response.ok)
-            {
+            if (!response.ok) {
                 continue;
             }
 
-            // eslint-disable-next-line no-await-in-loop
+            // oxlint-disable-next-line no-await-in-loop
             body = await response.json();
-        }
-        catch
-        {
+        } catch {
             continue;
         }
 
         reached = true;
 
-        if (typeof body !== 'object' || body === null)
-        {
+        if (typeof body !== 'object' || body === null) {
             continue;
         }
 
-        if ('error' in body && typeof body.error === 'object' && body.error !== null)
-        {
+        if ('error' in body && typeof body.error === 'object' && body.error !== null) {
             const detail = body.error;
 
             const code = 'code' in detail && typeof detail.code === 'number' ? detail.code : dappError.internal;
@@ -390,7 +376,7 @@ const rpc = async(method: string, params: unknown[]): Promise<unknown> =>
         return 'result' in body ? body.result : null;
     }
 
-    throw failure(reached ? dappError.internal : dappError.disconnected, reached ? 'No endpoint returned a usable answer' : `Could not reach ${ network.name }`);
+    throw failure(reached ? dappError.internal : dappError.disconnected, reached ? 'No endpoint returned a usable answer' : `Could not reach ${network.name}`);
 };
 
 /**
@@ -400,12 +386,10 @@ const rpc = async(method: string, params: unknown[]): Promise<unknown> =>
  * open cannot sign when the dialog is finally answered.
  * @returns {ethers.Wallet} The signer.
  */
-const signerFor = () =>
-{
+const signerFor = () => {
     const vault = getVault();
 
-    if (vault === undefined)
-    {
+    if (vault === undefined) {
         throw failure(dappError.unauthorized, 'The wallet is locked');
     }
 
@@ -417,15 +401,12 @@ const signerFor = () =>
  * @param {string} origin The calling origin.
  * @returns {void}
  */
-const requireGrant = (origin: string) =>
-{
-    if (!isConnected(origin))
-    {
+const requireGrant = (origin: string) => {
+    if (!isConnected(origin)) {
         throw failure(dappError.unauthorized, 'Connect to Nura Wallet before calling this method');
     }
 
-    if (activeAddress.length === 0)
-    {
+    if (activeAddress.length === 0) {
         throw failure(dappError.unauthorized, 'The wallet is locked');
     }
 };
@@ -438,17 +419,15 @@ const requireGrant = (origin: string) =>
  * a stored permission and is why none of them are listed.
  * @returns {object[]} The permission list for a connected site.
  */
-const permissions = () => [ { parentCapability: 'eth_accounts', invoker: '', caveats: [ { type: 'restrictReturnedAccounts', value: [ activeAddress ] } ] } ];
+const permissions = () => [{ parentCapability: 'eth_accounts', invoker: '', caveats: [{ type: 'restrictReturnedAccounts', value: [activeAddress] }] }];
 
 /**
  * readAddress - Pulls an address out of a parameter, or refuses.
  * @param {unknown} value The parameter.
  * @returns {string} The checksummed address.
  */
-const readAddress = (value: unknown) =>
-{
-    if (typeof value !== 'string' || !ethers.isAddress(value))
-    {
+const readAddress = (value: unknown) => {
+    if (typeof value !== 'string' || !ethers.isAddress(value)) {
         throw failure(dappError.invalidParams, 'Expected an address');
     }
 
@@ -473,19 +452,14 @@ const matchesAccount = (value: unknown) => typeof value === 'string' && ethers.i
  * @param {string} value The parameter as the page sent it.
  * @returns {string} Text to show in the dialog.
  */
-const readable = (value: string) =>
-{
-    if (!ethers.isHexString(value))
-    {
+const readable = (value: string) => {
+    if (!ethers.isHexString(value)) {
         return value;
     }
 
-    try
-    {
+    try {
         return ethers.toUtf8String(value);
-    }
-    catch
-    {
+    } catch {
         return value;
     }
 };
@@ -512,38 +486,30 @@ const signBytes = (value: string) => (ethers.isHexString(value) ? ethers.getByte
  * @param {unknown} value The second parameter, a JSON string or an already-parsed object.
  * @returns {{ domain: ethers.TypedDataDomain; types: Record<string, ethers.TypedDataField[]>; message: Record<string, unknown> }} The payload, ready to sign.
  */
-const typedPayload = (value: unknown) =>
-{
+const typedPayload = (value: unknown) => {
     let parsed: unknown = value;
 
-    if (typeof value === 'string')
-    {
-        try
-        {
+    if (typeof value === 'string') {
+        try {
             parsed = JSON.parse(value);
-        }
-        catch
-        {
+        } catch {
             throw failure(dappError.invalidParams, 'Typed data is not valid JSON');
         }
     }
 
-    if (typeof parsed !== 'object' || parsed === null || !('domain' in parsed) || !('types' in parsed) || !('message' in parsed))
-    {
+    if (typeof parsed !== 'object' || parsed === null || !('domain' in parsed) || !('types' in parsed) || !('message' in parsed)) {
         throw failure(dappError.invalidParams, 'Typed data must carry a domain, types and message');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const payload = parsed as { domain: ethers.TypedDataDomain; types: Record<string, ethers.TypedDataField[]>; message: Record<string, unknown> };
 
     const declared = payload.domain.chainId;
 
-    if (declared !== undefined && declared !== null)
-    {
+    if (declared !== undefined && declared !== null) {
         const asNumber = Number(declared);
 
-        if (Number.isFinite(asNumber) && asNumber !== getNetwork().chainId)
-        {
+        if (Number.isFinite(asNumber) && asNumber !== getNetwork().chainId) {
             throw failure(dappError.invalidInput, 'Typed data is for a different chain than the wallet is on');
         }
     }
@@ -564,54 +530,43 @@ const typedPayload = (value: unknown) =>
  * @param {unknown} value The first parameter of `eth_sendTransaction`.
  * @returns {ethers.TransactionRequest} The request to sign.
  */
-const transactionRequest = (value: unknown): ethers.TransactionRequest =>
-{
-    if (typeof value !== 'object' || value === null)
-    {
+const transactionRequest = (value: unknown): ethers.TransactionRequest => {
+    if (typeof value !== 'object' || value === null) {
         throw failure(dappError.invalidParams, 'Expected a transaction object');
     }
 
     const input: Record<string, unknown> = { ...value };
 
-    if (input.from !== undefined && !matchesAccount(input.from))
-    {
+    if (input.from !== undefined && !matchesAccount(input.from)) {
         throw failure(dappError.unauthorized, 'Nura Wallet can only sign for the active account');
     }
 
     const request: ethers.TransactionRequest = { from: activeAddress };
 
-    const quantity = (key: string) =>
-    {
+    const quantity = (key: string) => {
         const raw = input[key];
 
-        if (raw === undefined || raw === null || raw === '')
-        {
+        if (raw === undefined || raw === null || raw === '') {
             return undefined;
         }
 
-        try
-        {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        try {
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             return BigInt(raw as string | number);
-        }
-        catch
-        {
-            throw failure(dappError.invalidParams, `Could not read ${ key }`);
+        } catch {
+            throw failure(dappError.invalidParams, `Could not read ${key}`);
         }
     };
 
     // An absent `to` is a contract deployment, and libraries spell "absent" three different ways —
     // missing, null, or the empty string. Passing the empty string to the address check would refuse a
     // perfectly valid deployment as a malformed address.
-    if (input.to !== undefined && input.to !== null && input.to !== '')
-    {
+    if (input.to !== undefined && input.to !== null && input.to !== '') {
         request.to = readAddress(input.to);
     }
 
-    if (typeof input.data === 'string' && input.data.length > 0)
-    {
-        if (!ethers.isHexString(input.data))
-        {
+    if (typeof input.data === 'string' && input.data.length > 0) {
+        if (!ethers.isHexString(input.data)) {
             throw failure(dappError.invalidParams, 'Transaction data is not a hex string');
         }
 
@@ -624,15 +579,13 @@ const transactionRequest = (value: unknown): ethers.TransactionRequest =>
     // rename happens here rather than being left to surface as a transaction with no limit at all.
     const gas = quantity('gas') ?? quantity('gasLimit');
 
-    if (gas !== undefined)
-    {
+    if (gas !== undefined) {
         request.gasLimit = gas;
     }
 
     const nonce = quantity('nonce');
 
-    if (nonce !== undefined)
-    {
+    if (nonce !== undefined) {
         request.nonce = Number(nonce);
     }
 
@@ -641,17 +594,13 @@ const transactionRequest = (value: unknown): ethers.TransactionRequest =>
     const maxFee = quantity('maxFeePerGas');
     const maxPriority = quantity('maxPriorityFeePerGas');
 
-    if (maxFee !== undefined || maxPriority !== undefined)
-    {
+    if (maxFee !== undefined || maxPriority !== undefined) {
         request.maxFeePerGas = maxFee;
         request.maxPriorityFeePerGas = maxPriority;
-    }
-    else
-    {
+    } else {
         const price = quantity('gasPrice');
 
-        if (price !== undefined)
-        {
+        if (price !== undefined) {
             request.gasPrice = price;
         }
     }
@@ -669,30 +618,25 @@ const transactionRequest = (value: unknown): ethers.TransactionRequest =>
  * @param {ethers.TransactionRequest} request The transaction being reviewed.
  * @returns {Promise<string>} The fee, formatted in the network's symbol, or an empty string.
  */
-const estimateFee = async(request: ethers.TransactionRequest) =>
-{
+const estimateFee = async (request: ethers.TransactionRequest) => {
     const network = getNetwork();
 
-    try
-    {
+    try {
         const provider = getProvider();
 
-        const [ limit, fees ] = await Promise.all([
+        const [limit, fees] = await Promise.all([
             request.gasLimit === undefined || request.gasLimit === null ? provider.estimateGas(request) : Promise.resolve(BigInt(request.gasLimit)),
             provider.getFeeData()
         ]);
 
         const price = fees.maxFeePerGas ?? fees.gasPrice;
 
-        if (price === null || price === undefined)
-        {
+        if (price === null || price === undefined) {
             return '';
         }
 
-        return `${ ethers.formatUnits(limit * price, network.decimals) } ${ network.symbol }`;
-    }
-    catch
-    {
+        return `${ethers.formatUnits(limit * price, network.decimals)} ${network.symbol}`;
+    } catch {
         return '';
     }
 };
@@ -714,41 +658,39 @@ const estimateFee = async(request: ethers.TransactionRequest) =>
  * @param {string} host The hostname as `URL` reports it, IPv6 still bracketed.
  * @returns {boolean} True when the host must not be reachable from a site's request.
  */
-const privateAddress = (host: string) =>
-{
-    const name = host.replace(/^\[|\]$/gu, '').toLowerCase();
+const privateAddress = (host: string) => {
+    const name = host.replaceAll(/^\[|\]$/gu, '').toLowerCase();
 
-    if (name === 'localhost' || name.endsWith('.localhost') || name.endsWith('.local') || name.endsWith('.internal') || name.endsWith('.home.arpa'))
-    {
+    if (name === 'localhost' || name.endsWith('.localhost') || name.endsWith('.local') || name.endsWith('.internal') || name.endsWith('.home.arpa')) {
         return true;
     }
 
-    if (name.includes(':'))
-    {
+    if (name.includes(':')) {
         // Loopback, unspecified, unique-local (fc00::/7), link-local (fe80::/10), and every
         // IPv4-mapped form — the last of these outright, since it is only ever a way of spelling an
         // address the rules below already answer.
-        return name === '::' || name === '::1' || (/^f[cd]/u).test(name) || (/^fe[89ab]/u).test(name) || name.startsWith('::ffff:');
+        return name === '::' || name === '::1' || /^f[cd]/u.test(name) || /^fe[89ab]/u.test(name) || name.startsWith('::ffff:');
     }
 
     const octets = name.split('.').map(Number);
 
     // Not four numbers, so not an IPv4 literal — a DNS name, which the paragraph above explains is
     // not something that can be judged from here.
-    if (octets.length !== 4 || octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255))
-    {
+    if (octets.length !== 4 || octets.some((part) => !Number.isInteger(part) || part < 0 || part > 255)) {
         return false;
     }
 
-    const [ first, second ] = octets;
+    const [first, second] = octets;
 
-    return first === 0 ||
+    return (
+        first === 0 ||
         first === 127 ||
         first === 10 ||
         (first === 172 && second >= 16 && second <= 31) ||
         (first === 192 && second === 168) ||
         (first === 169 && second === 254) ||
-        (first === 100 && second >= 64 && second <= 127);
+        (first === 100 && second >= 64 && second <= 127)
+    );
 };
 
 /**
@@ -763,16 +705,12 @@ const privateAddress = (host: string) =>
  * @param {string} url The candidate address.
  * @returns {boolean} True when it may be stored.
  */
-const siteSuppliedUrl = (url: string) =>
-{
-    try
-    {
+const siteSuppliedUrl = (url: string) => {
+    try {
         const parsed = new URL(url);
 
         return parsed.protocol === 'https:' && !privateAddress(parsed.hostname);
-    }
-    catch
-    {
+    } catch {
         return false;
     }
 };
@@ -790,10 +728,8 @@ const siteSuppliedUrl = (url: string) =>
  * @param {unknown} value The first parameter of `wallet_addEthereumChain`.
  * @returns {{ network: Parameters<typeof addNetwork>[0]; id: number }} The network to store.
  */
-const networkFrom = (value: unknown) =>
-{
-    if (typeof value !== 'object' || value === null || !('chainId' in value))
-    {
+const networkFrom = (value: unknown) => {
+    if (typeof value !== 'object' || value === null || !('chainId' in value)) {
         throw failure(dappError.invalidParams, 'Expected a chain description');
     }
 
@@ -801,15 +737,13 @@ const networkFrom = (value: unknown) =>
 
     const id = typeof input.chainId === 'string' ? Number.parseInt(input.chainId, 16) : Number(input.chainId);
 
-    if (!Number.isInteger(id) || id <= 0)
-    {
+    if (!Number.isInteger(id) || id <= 0) {
         throw failure(dappError.invalidParams, 'Chain id is not a positive integer');
     }
 
     const urls = Array.isArray(input.rpcUrls) ? input.rpcUrls.filter((url): url is string => typeof url === 'string' && siteSuppliedUrl(url)) : [];
 
-    if (urls.length === 0)
-    {
+    if (urls.length === 0) {
         throw failure(dappError.invalidParams, 'At least one https RPC URL is required, and it may not point at a private or loopback address');
     }
 
@@ -822,12 +756,14 @@ const networkFrom = (value: unknown) =>
     // explorer address becomes the base for the history and token-discovery lookups in
     // [history.ts](../hook/history.ts) and [token.ts](token.ts), and those are made by the same native
     // client. An explorer nobody checked is the same reachability problem as an RPC nobody checked.
-    const explorers = Array.isArray(input.blockExplorerUrls) ? input.blockExplorerUrls.filter((url): url is string => typeof url === 'string' && siteSuppliedUrl(url)) : [];
+    const explorers = Array.isArray(input.blockExplorerUrls)
+        ? input.blockExplorerUrls.filter((url): url is string => typeof url === 'string' && siteSuppliedUrl(url))
+        : [];
 
     return {
         id,
         network: {
-            name: typeof input.chainName === 'string' && input.chainName.length > 0 ? input.chainName : `Chain ${ id }`,
+            name: typeof input.chainName === 'string' && input.chainName.length > 0 ? input.chainName : `Chain ${id}`,
             chainId: id,
             symbol,
             rpcUrl: urls[0],
@@ -847,8 +783,7 @@ const networkFrom = (value: unknown) =>
  * connected — sending it to the rest would hand the account to every site the browser has open.
  * @returns {void}
  */
-const broadcast = () =>
-{
+const broadcast = () => {
     const chain = getNetwork().chainId;
 
     const chainMoved = chain !== toldChain;
@@ -857,16 +792,13 @@ const broadcast = () =>
     toldChain = chain;
     toldAddress = activeAddress;
 
-    for (const page of getDappPages())
-    {
-        if (chainMoved)
-        {
+    for (const page of getDappPages()) {
+        if (chainMoved) {
             emitDappEvent(page.label, 'chainChanged', chainHex(chain));
         }
 
-        if (accountMoved && isConnected(page.origin))
-        {
-            emitDappEvent(page.label, 'accountsChanged', [ activeAddress ]);
+        if (accountMoved && isConnected(page.origin)) {
+            emitDappEvent(page.label, 'accountsChanged', [activeAddress]);
         }
     }
 };
@@ -878,8 +810,7 @@ const broadcast = () =>
  * nothing changed: `broadcast` compares against what the pages were last told and stays quiet.
  * @returns {void}
  */
-export const syncDappState = () =>
-{
+export const syncDappState = () => {
     broadcast();
 };
 
@@ -891,14 +822,11 @@ export const syncDappState = () =>
  * @param {string} origin The origin to disconnect.
  * @returns {Promise<void>} Resolves once the grant is gone and the pages have been told.
  */
-export const disconnectDapp = async(origin: string) =>
-{
+export const disconnectDapp = async (origin: string) => {
     await revokeConnection(origin);
 
-    for (const page of getDappPages())
-    {
-        if (page.origin === origin)
-        {
+    for (const page of getDappPages()) {
+        if (page.origin === origin) {
             emitDappEvent(page.label, 'accountsChanged', []);
         }
     }
@@ -916,16 +844,13 @@ export const disconnectDapp = async(origin: string) =>
  * wallet connected to some of the sites the user just asked it to forget.
  * @returns {Promise<void>} Resolves once the grants are gone and the open pages have been told.
  */
-export const disconnectAllDapps = async() =>
-{
+export const disconnectAllDapps = async () => {
     const dropped = new Set(getConnections());
 
     await clearConnections();
 
-    for (const page of getDappPages())
-    {
-        if (dropped.has(page.origin))
-        {
+    for (const page of getDappPages()) {
+        if (dropped.has(page.origin)) {
             emitDappEvent(page.label, 'accountsChanged', []);
         }
     }
@@ -940,19 +865,16 @@ export const disconnectAllDapps = async() =>
  * @param {DappEnvelope} envelope The call, with its origin already established.
  * @returns {Promise<unknown>} The result to send back.
  */
-const route = async(envelope: DappEnvelope): Promise<unknown> =>
-{
+const route = async (envelope: DappEnvelope): Promise<unknown> => {
     const { method, params, origin } = envelope;
 
     const connected = isConnected(origin) && activeAddress.length > 0;
 
-    if (origin.length === 0)
-    {
+    if (origin.length === 0) {
         throw failure(dappError.unauthorized, 'Nura Wallet does not serve this page');
     }
 
-    switch (method)
-    {
+    switch (method) {
         case 'eth_chainId':
             return chainHex(getNetwork().chainId);
 
@@ -962,7 +884,7 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
         // An unconnected page is told nothing rather than told off: EIP-1193 has this answer with an
         // empty list, and every dApp reads that as "not connected yet" and offers its connect button.
         case 'eth_accounts':
-            return connected ? [ activeAddress ] : [];
+            return connected ? [activeAddress] : [];
 
         case 'eth_coinbase':
             return connected ? activeAddress : null;
@@ -971,63 +893,54 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
             return connected ? permissions() : [];
 
         case 'web3_clientVersion':
-            return `NuraWallet/${ __APP_VERSION__ }`;
+            return `NuraWallet/${__APP_VERSION__}`;
 
         case 'eth_requestAccounts':
-        case 'wallet_requestPermissions':
-        {
-            if (activeAddress.length === 0)
-            {
+        case 'wallet_requestPermissions': {
+            if (activeAddress.length === 0) {
                 throw failure(dappError.unauthorized, 'The wallet is locked');
             }
 
-            if (!connected)
-            {
+            if (!connected) {
                 await approve({ kind: 'connect', origin, summary: origin });
 
                 await grantConnection(origin);
 
                 // The page asked, so it is entitled to the answer immediately — but every *other*
                 // page on the same origin is now connected too and has heard nothing.
-                for (const page of getDappPages())
-                {
-                    if (page.origin === origin && page.label !== envelope.label)
-                    {
-                        emitDappEvent(page.label, 'accountsChanged', [ activeAddress ]);
+                for (const page of getDappPages()) {
+                    if (page.origin === origin && page.label !== envelope.label) {
+                        emitDappEvent(page.label, 'accountsChanged', [activeAddress]);
                     }
                 }
             }
 
-            return method === 'eth_requestAccounts' ? [ activeAddress ] : permissions();
+            return method === 'eth_requestAccounts' ? [activeAddress] : permissions();
         }
 
-        case 'wallet_revokePermissions':
-        {
+        case 'wallet_revokePermissions': {
             await disconnectDapp(origin);
 
             return null;
         }
 
-        case 'personal_sign':
-        {
+        case 'personal_sign': {
             requireGrant(origin);
 
             // The spec puts the message first and the address second, and a good number of dApps send
             // them the other way round. Whichever parameter is an address is the address.
-            const [ first, second ] = params;
+            const [first, second] = params;
 
             const swapped = matchesAccount(first);
 
             const payload = swapped ? second : first;
             const signWith = swapped ? first : second;
 
-            if (typeof payload !== 'string')
-            {
+            if (typeof payload !== 'string') {
                 throw failure(dappError.invalidParams, 'Expected a message to sign');
             }
 
-            if (signWith !== undefined && !matchesAccount(signWith))
-            {
+            if (signWith !== undefined && !matchesAccount(signWith)) {
                 throw failure(dappError.unauthorized, 'Nura Wallet can only sign for the active account');
             }
 
@@ -1044,19 +957,17 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
 
         case 'eth_signTypedData':
         case 'eth_signTypedData_v3':
-        case 'eth_signTypedData_v4':
-        {
+        case 'eth_signTypedData_v4': {
             requireGrant(origin);
 
-            const [ first, second ] = params;
+            const [first, second] = params;
 
             const swapped = !matchesAccount(first) && matchesAccount(second);
 
             const signWith = swapped ? second : first;
             const payload = swapped ? first : second;
 
-            if (!matchesAccount(signWith))
-            {
+            if (!matchesAccount(signWith)) {
                 throw failure(dappError.unauthorized, 'Nura Wallet can only sign for the active account');
             }
 
@@ -1067,8 +978,7 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
             return signerFor().signTypedData(typed.domain, typed.types, typed.message);
         }
 
-        case 'eth_sendTransaction':
-        {
+        case 'eth_sendTransaction': {
             requireGrant(origin);
 
             const request = transactionRequest(params[0]);
@@ -1080,10 +990,10 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
             await approve({
                 kind: 'transaction',
                 origin,
-                summary: `${ ethers.formatUnits(request.value ?? 0n, network.decimals) } ${ network.symbol }`,
+                summary: `${ethers.formatUnits(request.value ?? 0n, network.decimals)} ${network.symbol}`,
                 transaction: {
                     to: typeof request.to === 'string' ? request.to : '',
-                    value: `${ ethers.formatUnits(request.value ?? 0n, network.decimals) } ${ network.symbol }`,
+                    value: `${ethers.formatUnits(request.value ?? 0n, network.decimals)} ${network.symbol}`,
                     data: typeof request.data === 'string' ? request.data : '',
                     fee
                 }
@@ -1094,24 +1004,20 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
             return sent.hash;
         }
 
-        case 'wallet_switchEthereumChain':
-        {
+        case 'wallet_switchEthereumChain': {
             const target = params[0];
 
-            if (typeof target !== 'object' || target === null || !('chainId' in target) || typeof target.chainId !== 'string')
-            {
+            if (typeof target !== 'object' || target === null || !('chainId' in target) || typeof target.chainId !== 'string') {
                 throw failure(dappError.invalidParams, 'Expected a hex chain id');
             }
 
             const id = Number.parseInt(target.chainId, 16);
 
-            if (!Number.isInteger(id))
-            {
+            if (!Number.isInteger(id)) {
                 throw failure(dappError.invalidParams, 'Chain id is not a hex number');
             }
 
-            if (id === getNetwork().chainId)
-            {
+            if (id === getNetwork().chainId) {
                 return null;
             }
 
@@ -1119,8 +1025,7 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
 
             // 4902 is the whole reason EIP-3326 has its own code: it is what tells a dApp it may
             // follow up with `wallet_addEthereumChain` rather than give up.
-            if (found === undefined)
-            {
+            if (found === undefined) {
                 throw failure(dappError.chainMissing, 'Nura Wallet does not know this chain', { chainId: target.chainId });
             }
 
@@ -1135,16 +1040,13 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
             return null;
         }
 
-        case 'wallet_addEthereumChain':
-        {
+        case 'wallet_addEthereumChain': {
             const { network, id } = networkFrom(params[0]);
 
             const known = getNetworks().find((item) => item.chainId === id);
 
-            if (known !== undefined)
-            {
-                if (id !== getNetwork().chainId)
-                {
+            if (known !== undefined) {
+                if (id !== getNetwork().chainId) {
                     await approve({ kind: 'chain', origin, summary: known.name, chain: { name: known.name, id, rpc: known.rpcUrl } });
 
                     await setNetwork(known.id);
@@ -1170,19 +1072,16 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
             return null;
         }
 
-        case 'wallet_watchAsset':
-        {
+        case 'wallet_watchAsset': {
             const request = params[0];
 
-            if (typeof request !== 'object' || request === null || !('options' in request))
-            {
+            if (typeof request !== 'object' || request === null || !('options' in request)) {
                 throw failure(dappError.invalidParams, 'Expected a watchAsset request');
             }
 
             const options = request.options;
 
-            if (typeof options !== 'object' || options === null || !('address' in options))
-            {
+            if (typeof options !== 'object' || options === null || !('address' in options)) {
                 throw failure(dappError.invalidParams, 'Expected a token address');
             }
 
@@ -1198,14 +1097,12 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
             return watchAsset === undefined ? false : watchAsset(address);
         }
 
-        default:
-        {
-            if (readMethods.has(method))
-            {
+        default: {
+            if (readMethods.has(method)) {
                 return rpc(method, params);
             }
 
-            throw failure(dappError.unsupported, `Nura Wallet does not support ${ method }`);
+            throw failure(dappError.unsupported, `Nura Wallet does not support ${method}`);
         }
     }
 };
@@ -1219,15 +1116,12 @@ const route = async(envelope: DappEnvelope): Promise<unknown> =>
  * @param {unknown} cause The caught value.
  * @returns {DappFailure} What to send back.
  */
-const describe = (cause: unknown): DappFailure =>
-{
-    if (cause instanceof DappError)
-    {
-        return { code: cause.code, message: cause.message, ...cause.data === undefined ? {} : { data: cause.data } };
+const describe = (cause: unknown): DappFailure => {
+    if (cause instanceof DappError) {
+        return { code: cause.code, message: cause.message, ...(cause.data === undefined ? {} : { data: cause.data }) };
     }
 
-    if (cause instanceof Error)
-    {
+    if (cause instanceof Error) {
         return { code: dappError.internal, message: cause.message };
     }
 
@@ -1243,16 +1137,12 @@ const describe = (cause: unknown): DappFailure =>
  * @param {DappEnvelope} envelope The call, with the origin the native side stamped on it.
  * @returns {Promise<DappReply>} The reply to deliver.
  */
-export const answerDapp = async(envelope: DappEnvelope): Promise<DappReply> =>
-{
-    try
-    {
+export const answerDapp = async (envelope: DappEnvelope): Promise<DappReply> => {
+    try {
         const result = await route(envelope);
 
         return { id: envelope.id, result };
-    }
-    catch (cause)
-    {
+    } catch (cause) {
         return { id: envelope.id, error: describe(cause) };
     }
 };

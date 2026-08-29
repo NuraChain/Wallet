@@ -10,8 +10,7 @@ export type ImageKind = 'network' | 'token' | 'nft' | 'unknown';
 
 const day = 24 * 60 * 60 * 1000;
 
-const lifetime: Record<ImageKind, number> =
-{
+const lifetime: Record<ImageKind, number> = {
     network: 30 * day,
     token: 7 * day,
     nft: 7 * day,
@@ -25,8 +24,7 @@ const lifetime: Record<ImageKind, number> =
  * sent back as `If-None-Match` and `If-Modified-Since`, an unchanged image answers 304 with no body.
  * `used` is the last read, which is what eviction sorts by.
  */
-interface CacheEntry
-{
+interface CacheEntry {
     url: string;
     hash: string;
     file: string;
@@ -98,13 +96,11 @@ const failureCooldown = 5 * 60 * 1000;
  * threw a `TypeError` out of a download that had *succeeded* and had the whole image cache recorded as
  * permanently refused. Only the one call that can legitimately mean "unreadable" raises this.
  */
-class Unreadable extends Error
-{
+class Unreadable extends Error {
     /** What the request actually rejected with, kept because this type replaces it at the catch. */
     public readonly reason: unknown;
 
-    public constructor(reason: unknown)
-    {
+    public constructor(reason: unknown) {
         super('image could not be read');
 
         this.name = 'Unreadable';
@@ -134,21 +130,19 @@ const blockedPrefix = 'image-cache/v1/blocked/';
  * @param {string} url The image address.
  * @returns {string} The full storage key.
  */
-const blockedKey = (kind: ImageKind, url: string) => `${ blockedPrefix }${ kind }/${ url }`;
+const blockedKey = (kind: ImageKind, url: string) => `${blockedPrefix}${kind}/${url}`;
 
 /**
  * blockedScope - The namespace covering one kind, or every kind.
  * @param {ImageKind} [kind] Restrict to one sort of image.
  * @returns {string} The prefix to enumerate under.
  */
-const blockedScope = (kind?: ImageKind) =>
-{
-    if (kind === undefined)
-    {
+const blockedScope = (kind?: ImageKind) => {
+    if (kind === undefined) {
         return blockedPrefix;
     }
 
-    return `${ blockedPrefix }${ kind }/`;
+    return `${blockedPrefix}${kind}/`;
 };
 
 /**
@@ -160,8 +154,7 @@ const blockedScope = (kind?: ImageKind) =>
  * @param {ImageKind} [kind] Restrict to one sort of image.
  * @returns {string[]} The keys still holding anything back.
  */
-const liveBlocks = (kind?: ImageKind) =>
-{
+const liveBlocks = (kind?: ImageKind) => {
     const now = Date.now();
 
     return keysUnder('local', blockedScope(kind)).filter((key) => Number(readRaw('local', key) ?? '0') > now);
@@ -181,8 +174,7 @@ const metaFile = 'metadata.json';
  * `.png` and `.svg` files is one a person can look at and understand, which a directory of extensionless
  * hashes is not.
  */
-const extensions: Record<string, string | undefined> =
-{
+const extensions: Record<string, string | undefined> = {
     'image/png': '.png',
     'image/jpeg': '.jpg',
     'image/gif': '.gif',
@@ -201,14 +193,13 @@ const extensions: Record<string, string | undefined> =
  * itself. Both have to agree before anything is written, so a redirect to an HTML error page cannot be
  * stored as an icon and handed to an `<img>` forever after.
  */
-const signatures: { mime: string; bytes: number[] }[] =
-[
-    { mime: 'image/png', bytes: [ 0x89, 0x50, 0x4E, 0x47 ] },
-    { mime: 'image/jpeg', bytes: [ 0xFF, 0xD8, 0xFF ] },
-    { mime: 'image/gif', bytes: [ 0x47, 0x49, 0x46, 0x38 ] },
-    { mime: 'image/webp', bytes: [ 0x52, 0x49, 0x46, 0x46 ] },
-    { mime: 'image/bmp', bytes: [ 0x42, 0x4D ] },
-    { mime: 'image/x-icon', bytes: [ 0x00, 0x00, 0x01, 0x00 ] }
+const signatures: { mime: string; bytes: number[] }[] = [
+    { mime: 'image/png', bytes: [0x89, 0x50, 0x4e, 0x47] },
+    { mime: 'image/jpeg', bytes: [0xff, 0xd8, 0xff] },
+    { mime: 'image/gif', bytes: [0x47, 0x49, 0x46, 0x38] },
+    { mime: 'image/webp', bytes: [0x52, 0x49, 0x46, 0x46] },
+    { mime: 'image/bmp', bytes: [0x42, 0x4d] },
+    { mime: 'image/x-icon', bytes: [0x00, 0x00, 0x01, 0x00] }
 ];
 
 /** URL to object URL, in insertion order, which is what makes eviction least-recently-used. */
@@ -236,11 +227,10 @@ let saving = 0;
  * @param {string} url The image address.
  * @returns {Promise<string>} Lowercase hex digest.
  */
-const hashUrl = async(url: string) =>
-{
+const hashUrl = async (url: string) => {
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(url));
 
-    return [ ...new Uint8Array(digest) ].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+    return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 };
 
 /**
@@ -256,20 +246,15 @@ const hashUrl = async(url: string) =>
  * memory alone, which costs a re-download per launch and nothing else.
  * @returns {Promise<FileSystemDirectoryHandle | undefined>} The directory, or `undefined`.
  */
-const openStore = async() =>
-{
+const openStore = async () => {
     // The promise is what is cached rather than the handle: two callers arriving together then share
     // one attempt, and nothing is assigned to after an await.
-    opening ??= (async() =>
-    {
-        try
-        {
+    opening ??= (async () => {
+        try {
             const root = await navigator.storage.getDirectory();
 
             return await root.getDirectoryHandle(cacheDirectory, { create: true });
-        }
-        catch
-        {
+        } catch {
             return undefined;
         }
     })();
@@ -282,33 +267,26 @@ const openStore = async() =>
  * @param {FileSystemDirectoryHandle} directory The cache directory.
  * @returns {Promise<Map<string, CacheEntry>>} Entries by URL, or an empty map.
  */
-const readMeta = async(directory: FileSystemDirectoryHandle) =>
-{
+const readMeta = async (directory: FileSystemDirectoryHandle) => {
     const found = new Map<string, CacheEntry>();
 
-    try
-    {
+    try {
         const handle = await directory.getFileHandle(metaFile);
         const text = await (await handle.getFile()).text();
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const parsed = JSON.parse(text) as CacheEntry[];
 
-        if (!Array.isArray(parsed))
-        {
+        if (!Array.isArray(parsed)) {
             return found;
         }
 
-        for (const item of parsed)
-        {
-            if (typeof item?.url === 'string' && typeof item.file === 'string' && typeof item.size === 'number')
-            {
+        for (const item of parsed) {
+            if (typeof item?.url === 'string' && typeof item.file === 'string' && typeof item.size === 'number') {
                 found.set(item.url, item);
             }
         }
-    }
-    catch
-    {
+    } catch {
         return found;
     }
 
@@ -322,12 +300,10 @@ const readMeta = async(directory: FileSystemDirectoryHandle) =>
  * and only the last state of the map is worth writing.
  * @returns {Promise<void>} Resolves once the write is done or superseded.
  */
-const writeMeta = async() =>
-{
+const writeMeta = async () => {
     const directory = await openStore();
 
-    if (directory === undefined)
-    {
+    if (directory === undefined) {
         return;
     }
 
@@ -337,21 +313,17 @@ const writeMeta = async() =>
 
     await Promise.resolve();
 
-    if (ticket !== saving)
-    {
+    if (ticket !== saving) {
         return;
     }
 
-    try
-    {
+    try {
         const handle = await directory.getFileHandle(metaFile, { create: true });
         const writable = await handle.createWritable();
 
-        await writable.write(JSON.stringify([ ...entries.values() ]));
+        await writable.write(JSON.stringify([...entries.values()]));
         await writable.close();
-    }
-    catch
-    {
+    } catch {
         // a cache that cannot record itself still serves this session from memory
     }
 };
@@ -361,16 +333,12 @@ const writeMeta = async() =>
  * @param {string} file The stored filename.
  * @returns {Promise<void>} Resolves when it is no longer there.
  */
-const dropFile = async(file: string) =>
-{
+const dropFile = async (file: string) => {
     const directory = await openStore();
 
-    try
-    {
+    try {
         await directory?.removeEntry(file);
-    }
-    catch
-    {
+    } catch {
         // already gone, which is the state being asked for
     }
 };
@@ -379,26 +347,21 @@ const dropFile = async(file: string) =>
  * evict - Brings the cache back under its size limit, oldest use first.
  * @returns {Promise<void>} Resolves once enough has been removed.
  */
-const evict = async() =>
-{
+const evict = async () => {
     let total = 0;
 
-    for (const entry of entries.values())
-    {
+    for (const entry of entries.values()) {
         total += entry.size;
     }
 
-    if (total <= maxBytes)
-    {
+    if (total <= maxBytes) {
         return;
     }
 
-    const ordered = [ ...entries.values() ].sort((left, right) => left.used - right.used);
+    const ordered = [...entries.values()].sort((left, right) => left.used - right.used);
 
-    for (const entry of ordered)
-    {
-        if (total <= maxBytes)
-        {
+    for (const entry of ordered) {
+        if (total <= maxBytes) {
             break;
         }
 
@@ -406,7 +369,7 @@ const evict = async() =>
 
         total -= entry.size;
 
-        // eslint-disable-next-line no-await-in-loop
+        // oxlint-disable-next-line no-await-in-loop
         await dropFile(entry.file);
     }
 };
@@ -419,12 +382,10 @@ const evict = async() =>
  * is then held to the size limit.
  * @returns {Promise<void>} Resolves once the cache is consistent.
  */
-const sweep = async() =>
-{
+const sweep = async () => {
     const directory = await openStore();
 
-    if (directory === undefined)
-    {
+    if (directory === undefined) {
         return;
     }
 
@@ -432,52 +393,42 @@ const sweep = async() =>
 
     const present = new Set<string>();
 
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const listing = directory as unknown as { keys: () => AsyncIterable<string> };
 
-        for await (const name of listing.keys())
-        {
+        for await (const name of listing.keys()) {
             present.add(name);
         }
-    }
-    catch
-    {
+    } catch {
         // a directory that will not enumerate cannot be reconciled; the entries stand as recorded
         return;
     }
 
     const now = Date.now();
 
-    for (const entry of [ ...entries.values() ])
-    {
-        if (!present.has(entry.file))
-        {
+    for (const entry of [...entries.values()]) {
+        if (!present.has(entry.file)) {
             entries.delete(entry.url);
         }
     }
 
-    const claimed = new Set([ ...entries.values() ].map((entry) => entry.file));
+    const claimed = new Set([...entries.values()].map((entry) => entry.file));
 
-    for (const name of present)
-    {
-        if (name !== metaFile && !claimed.has(name))
-        {
-            // eslint-disable-next-line no-await-in-loop
+    for (const name of present) {
+        if (name !== metaFile && !claimed.has(name)) {
+            // oxlint-disable-next-line no-await-in-loop
             await dropFile(name);
         }
     }
 
-    for (const entry of [ ...entries.values() ])
-    {
+    for (const entry of [...entries.values()]) {
         // Expiry alone is not a reason to delete: an expired image is still the best one available
         // until a fresh copy arrives. Only what has been untouched for a whole extra lifetime goes.
-        if (now > entry.expires + lifetime.unknown)
-        {
+        if (now > entry.expires + lifetime.unknown) {
             entries.delete(entry.url);
 
-            // eslint-disable-next-line no-await-in-loop
+            // oxlint-disable-next-line no-await-in-loop
             await dropFile(entry.file);
         }
     }
@@ -490,8 +441,7 @@ const sweep = async() =>
  * start - Runs the launch sweep once, whoever asks first.
  * @returns {Promise<void>} Resolves when the cache is usable.
  */
-const start = async() =>
-{
+const start = async () => {
     ready ??= sweep().catch(() => undefined);
 
     return ready;
@@ -502,17 +452,14 @@ const start = async() =>
  * @param {string} url The image address.
  * @param {string} object The object URL to hold.
  */
-const remember = (url: string, object: string) =>
-{
+const remember = (url: string, object: string) => {
     memory.delete(url);
     memory.set(url, object);
 
-    while (memory.size > maxMemory)
-    {
+    while (memory.size > maxMemory) {
         const oldest = memory.keys().next();
 
-        if (oldest.done === true)
-        {
+        if (oldest.done === true) {
             break;
         }
 
@@ -520,8 +467,7 @@ const remember = (url: string, object: string) =>
 
         memory.delete(oldest.value);
 
-        if (stale !== undefined)
-        {
+        if (stale !== undefined) {
             URL.revokeObjectURL(stale);
         }
     }
@@ -531,12 +477,10 @@ const remember = (url: string, object: string) =>
  * forget - Drops one address from the memory cache and releases its object URL.
  * @param {string} url The address to forget.
  */
-const forget = (url: string) =>
-{
+const forget = (url: string) => {
     const held = memory.get(url);
 
-    if (held !== undefined)
-    {
+    if (held !== undefined) {
         URL.revokeObjectURL(held);
 
         memory.delete(url);
@@ -547,16 +491,16 @@ const forget = (url: string) =>
  * acquire - Waits for a download slot.
  * @returns {Promise<void>} Resolves when the caller may proceed.
  */
-const acquire = async() =>
-{
-    if (running < maxParallel)
-    {
+const acquire = async () => {
+    if (running < maxParallel) {
         running += 1;
 
         return;
     }
 
-    await new Promise<void>((resolve) => { waiting.push(resolve); });
+    await new Promise<void>((resolve) => {
+        waiting.push(resolve);
+    });
 
     running += 1;
 };
@@ -564,8 +508,7 @@ const acquire = async() =>
 /**
  * release - Hands the slot to whoever is next.
  */
-const release = () =>
-{
+const release = () => {
     running -= 1;
 
     waiting.shift()?.();
@@ -585,15 +528,12 @@ const release = () =>
  * @param {Uint8Array} bytes The start of the body.
  * @returns {boolean} True when it is storable.
  */
-const accepts = (mime: string, bytes: Uint8Array) =>
-{
-    if (!mime.startsWith('image/'))
-    {
+const accepts = (mime: string, bytes: Uint8Array) => {
+    if (!mime.startsWith('image/')) {
         return false;
     }
 
-    if (mime.startsWith('image/svg'))
-    {
+    if (mime.startsWith('image/svg')) {
         return true;
     }
 
@@ -607,17 +547,14 @@ const accepts = (mime: string, bytes: Uint8Array) =>
  * @returns {Promise<{ blob?: Blob; mime: string; etag: string; modified: string; fresh: boolean }>} The body, or a note that it has not changed.
  * @throws {Error} When the response is unusable, which the caller retries.
  */
-const download = async(url: string, known: CacheEntry | undefined) =>
-{
+const download = async (url: string, known: CacheEntry | undefined) => {
     const headers = new Headers();
 
-    if (known !== undefined && known.etag.length > 0)
-    {
+    if (known !== undefined && known.etag.length > 0) {
         headers.set('If-None-Match', known.etag);
     }
 
-    if (known !== undefined && known.modified.length > 0)
-    {
+    if (known !== undefined && known.modified.length > 0) {
         headers.set('If-Modified-Since', known.modified);
     }
 
@@ -637,43 +574,37 @@ const download = async(url: string, known: CacheEntry | undefined) =>
     // Tagged at the throw rather than sniffed at the catch, so that only a request which genuinely
     // never resolved is treated as one. Everything below this line — reading the body, hashing the
     // URL, writing the file — can throw a `TypeError` of its own without meaning anything of the sort.
-    const response = await fetch(url, { headers, redirect: 'follow' }).catch((cause: unknown) =>
-    {
+    const response = await fetch(url, { headers, redirect: 'follow' }).catch((cause: unknown) => {
         throw new Unreadable(cause);
     });
 
-    if (response.status === 304)
-    {
+    if (response.status === 304) {
         return { mime: known?.mime ?? '', etag: known?.etag ?? '', modified: known?.modified ?? '', fresh: false };
     }
 
-    if (!response.ok)
-    {
-        throw new Error(`image responded ${ response.status }`);
+    if (!response.ok) {
+        throw new Error(`image responded ${response.status}`);
     }
 
     const declared = (response.headers.get('content-type') ?? '').split(';')[0].trim().toLowerCase();
     const length = Number(response.headers.get('content-length') ?? '0');
 
-    if (Number.isFinite(length) && length > maxFileBytes)
-    {
+    if (Number.isFinite(length) && length > maxFileBytes) {
         throw new Error('image is larger than the cache accepts');
     }
 
     const buffer = await response.arrayBuffer();
 
-    if (buffer.byteLength > maxFileBytes)
-    {
+    if (buffer.byteLength > maxFileBytes) {
         throw new Error('image is larger than the cache accepts');
     }
 
-    if (!accepts(declared, new Uint8Array(buffer.slice(0, 8))))
-    {
+    if (!accepts(declared, new Uint8Array(buffer.slice(0, 8)))) {
         throw new Error('response is not an image');
     }
 
     return {
-        blob: new Blob([ buffer ], { type: declared }),
+        blob: new Blob([buffer], { type: declared }),
         mime: declared,
         etag: response.headers.get('etag') ?? '',
         modified: response.headers.get('last-modified') ?? '',
@@ -690,12 +621,10 @@ const download = async(url: string, known: CacheEntry | undefined) =>
  * @param {string} control The `Cache-Control` header, if any.
  * @returns {number} Epoch milliseconds.
  */
-const expiryFor = (kind: ImageKind, control: string) =>
-{
-    const age = (/max-age\s*=\s*(?<seconds>\d+)/iu).exec(control)?.groups?.seconds;
+const expiryFor = (kind: ImageKind, control: string) => {
+    const age = /max-age\s*=\s*(?<seconds>\d+)/iu.exec(control)?.groups?.seconds;
 
-    if (age !== undefined)
-    {
+    if (age !== undefined) {
         return Date.now() + Number(age) * 1000;
     }
 
@@ -710,25 +639,20 @@ const expiryFor = (kind: ImageKind, control: string) =>
  * @param {{ mime: string; etag: string; modified: string; control: string }} head What the server said.
  * @returns {Promise<void>} Resolves once written and indexed.
  */
-const keep = async(url: string, kind: ImageKind, blob: Blob, head: { mime: string; etag: string; modified: string; control: string }) =>
-{
+const keep = async (url: string, kind: ImageKind, blob: Blob, head: { mime: string; etag: string; modified: string; control: string }) => {
     const hash = await hashUrl(url);
-    const file = `${ hash }${ extensions[head.mime] ?? '' }`;
+    const file = `${hash}${extensions[head.mime] ?? ''}`;
 
     const directory = await openStore();
 
-    if (directory !== undefined)
-    {
-        try
-        {
+    if (directory !== undefined) {
+        try {
             const handle = await directory.getFileHandle(file, { create: true });
             const writable = await handle.createWritable();
 
             await writable.write(blob);
             await writable.close();
-        }
-        catch
-        {
+        } catch {
             // no disk, no record: the object URL still serves this session
             return;
         }
@@ -736,8 +660,7 @@ const keep = async(url: string, kind: ImageKind, blob: Blob, head: { mime: strin
 
     const previous = entries.get(url);
 
-    if (previous !== undefined && previous.file !== file)
-    {
+    if (previous !== undefined && previous.file !== file) {
         await dropFile(previous.file);
     }
 
@@ -767,10 +690,8 @@ const keep = async(url: string, kind: ImageKind, blob: Blob, head: { mime: strin
  * @param {CacheEntry | undefined} known The entry the server confirmed.
  * @returns {Promise<void>} Resolves once the dates are written.
  */
-const revalidated = async(url: string, kind: ImageKind, known: CacheEntry | undefined) =>
-{
-    if (known === undefined)
-    {
+const revalidated = async (url: string, kind: ImageKind, known: CacheEntry | undefined) => {
+    if (known === undefined) {
         return;
     }
 
@@ -788,21 +709,18 @@ const revalidated = async(url: string, kind: ImageKind, known: CacheEntry | unde
  * @param {string} url The image address.
  * @returns {number} The timestamp before which nothing should try, or 0.
  */
-const blockedUntil = (kind: ImageKind, url: string) =>
-{
+const blockedUntil = (kind: ImageKind, url: string) => {
     const key = blockedKey(kind, url);
 
     const held = cooldown.get(key);
 
-    if (held !== undefined)
-    {
+    if (held !== undefined) {
         return held;
     }
 
     const stored = Number(readRaw('local', key) ?? '0');
 
-    if (!Number.isFinite(stored) || stored === 0)
-    {
+    if (!Number.isFinite(stored) || stored === 0) {
         return 0;
     }
 
@@ -829,8 +747,7 @@ const refusedBefore = (kind: ImageKind, url: string) => readRaw('local', blocked
  * @param {string} url The image address.
  * @param {number} span How long to leave it alone.
  */
-const blockUrl = (kind: ImageKind, url: string, span: number) =>
-{
+const blockUrl = (kind: ImageKind, url: string, span: number) => {
     const key = blockedKey(kind, url);
     const until = Date.now() + span;
 
@@ -851,34 +768,28 @@ const blockUrl = (kind: ImageKind, url: string, span: number) =>
  * @param {CacheEntry | undefined} known What is already held, if anything.
  * @returns {Promise<string>} An object URL, or an empty string when it could not be read.
  */
-const fetchInto = async(url: string, kind: ImageKind, known: CacheEntry | undefined): Promise<string> =>
-{
-    if (Date.now() < blockedUntil(kind, url))
-    {
+const fetchInto = async (url: string, kind: ImageKind, known: CacheEntry | undefined): Promise<string> => {
+    if (Date.now() < blockedUntil(kind, url)) {
         return '';
     }
 
     await acquire();
 
-    try
-    {
-        for (let attempt = 0; attempt < maxAttempts; attempt += 1)
-        {
-            try
-            {
-                // eslint-disable-next-line no-await-in-loop
+    try {
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+            try {
+                // oxlint-disable-next-line no-await-in-loop
                 const result = await download(url, known);
 
-                if (!result.fresh || result.blob === undefined)
-                {
+                if (!result.fresh || result.blob === undefined) {
                     // 304: the bytes on disk are still current, so only the dates move.
-                    // eslint-disable-next-line no-await-in-loop
+                    // oxlint-disable-next-line no-await-in-loop
                     await revalidated(url, kind, known);
 
                     return '';
                 }
 
-                // eslint-disable-next-line no-await-in-loop
+                // oxlint-disable-next-line no-await-in-loop
                 await keep(url, kind, result.blob, { mime: result.mime, etag: result.etag, modified: result.modified, control: '' });
 
                 cooldown.delete(blockedKey(kind, url));
@@ -886,9 +797,7 @@ const fetchInto = async(url: string, kind: ImageKind, known: CacheEntry | undefi
                 removeRaw('local', blockedKey(kind, url));
 
                 return URL.createObjectURL(result.blob);
-            }
-            catch (cause)
-            {
+            } catch (cause) {
                 // A rejected request — as opposed to an error this module threw about a status or a
                 // body — means nothing readable ever arrived: blocked by the origin policy, or no
                 // network. Neither improves by asking twice more, so it stops here.
@@ -900,8 +809,7 @@ const fetchInto = async(url: string, kind: ImageKind, known: CacheEntry | undefi
                 // moment on a hotel wifi cost the byte cache for the whole app for a day. A refusal
                 // that repeats after the short window is the origin policy, which will never not
                 // repeat; one that does not is the bad moment, and it has already cleared itself.
-                if (cause instanceof Unreadable)
-                {
+                if (cause instanceof Unreadable) {
                     const settled = navigator.onLine && refusedBefore(kind, url);
 
                     blockUrl(kind, url, settled ? blockedCooldown : failureCooldown);
@@ -911,8 +819,7 @@ const fetchInto = async(url: string, kind: ImageKind, known: CacheEntry | undefi
 
                 const last = attempt === maxAttempts - 1;
 
-                if (last)
-                {
+                if (last) {
                     // Backing off entirely rather than trying again on the next render: a missing icon
                     // is asked for by every row that shows it, and without this the failure repeats at
                     // the speed of the list.
@@ -921,15 +828,15 @@ const fetchInto = async(url: string, kind: ImageKind, known: CacheEntry | undefi
                     return '';
                 }
 
-                // eslint-disable-next-line no-await-in-loop
-                await new Promise((resolve) => { setTimeout(resolve, backoffBase * 2 ** attempt + Math.floor(Math.random() * backoffBase)); });
+                // oxlint-disable-next-line no-await-in-loop
+                await new Promise((resolve) => {
+                    setTimeout(resolve, backoffBase * 2 ** attempt + Math.floor(Math.random() * backoffBase));
+                });
             }
         }
 
         return '';
-    }
-    finally
-    {
+    } finally {
         release();
     }
 };
@@ -939,29 +846,23 @@ const fetchInto = async(url: string, kind: ImageKind, known: CacheEntry | undefi
  * @param {CacheEntry} entry The entry to read.
  * @returns {Promise<string>} An object URL, or an empty string when the file has gone.
  */
-const readFile = async(entry: CacheEntry) =>
-{
+const readFile = async (entry: CacheEntry) => {
     const directory = await openStore();
 
-    if (directory === undefined)
-    {
+    if (directory === undefined) {
         return '';
     }
 
-    try
-    {
+    try {
         const handle = await directory.getFileHandle(entry.file);
         const file = await handle.getFile();
 
-        if (file.size === 0)
-        {
+        if (file.size === 0) {
             throw new Error('empty file');
         }
 
         return URL.createObjectURL(file);
-    }
-    catch
-    {
+    } catch {
         // The record and the disk disagree, so the record is the one that is wrong.
         entries.delete(entry.url);
 
@@ -975,14 +876,12 @@ const readFile = async(entry: CacheEntry) =>
  * @param {ImageKind} kind What sort of image it is.
  * @returns {Promise<string>} A URL to display, or an empty string when there is nothing to show.
  */
-const resolve = async(url: string, kind: ImageKind): Promise<string> =>
-{
+const resolve = async (url: string, kind: ImageKind): Promise<string> => {
     await start();
 
     const held = memory.get(url);
 
-    if (held !== undefined)
-    {
+    if (held !== undefined) {
         remember(url, held);
 
         return held;
@@ -990,12 +889,10 @@ const resolve = async(url: string, kind: ImageKind): Promise<string> =>
 
     const entry = entries.get(url);
 
-    if (entry !== undefined)
-    {
+    if (entry !== undefined) {
         const object = await readFile(entry);
 
-        if (object.length > 0)
-        {
+        if (object.length > 0) {
             entries.set(url, { ...entry, used: Date.now() });
 
             remember(url, object);
@@ -1004,12 +901,9 @@ const resolve = async(url: string, kind: ImageKind): Promise<string> =>
 
             // Stale but serviceable: the caller gets this now and a fresh copy lands in the cache for
             // next time. A refresh that fails changes nothing, which is the point of doing it after.
-            if (Date.now() > entry.expires)
-            {
-                void fetchInto(url, kind, entry).then((fresh) =>
-                {
-                    if (fresh.length > 0)
-                    {
+            if (Date.now() > entry.expires) {
+                void fetchInto(url, kind, entry).then((fresh) => {
+                    if (fresh.length > 0) {
                         remember(url, fresh);
                     }
                 });
@@ -1021,8 +915,7 @@ const resolve = async(url: string, kind: ImageKind): Promise<string> =>
 
     const object = await fetchInto(url, kind, entry);
 
-    if (object.length > 0)
-    {
+    if (object.length > 0) {
         remember(url, object);
     }
 
@@ -1036,8 +929,7 @@ const resolve = async(url: string, kind: ImageKind): Promise<string> =>
  * memory if it can, from disk if it has it, and from the network only when it must. Callers get a URL
  * they can put in an `img` and nothing else to think about.
  */
-export const imageCache =
-{
+export const imageCache = {
     /**
      * get - A displayable URL for a remote image.
      *
@@ -1049,26 +941,26 @@ export const imageCache =
      * @param {ImageKind} [kind] What sort of image it is, which sets how long it stays fresh.
      * @returns {Promise<string>} A URL to display, or an empty string when there is nothing to show.
      */
-    get: async(url: string, kind: ImageKind = 'unknown'): Promise<string> =>
-    {
-        if (url.length === 0)
-        {
+    get: async (url: string, kind: ImageKind = 'unknown'): Promise<string> => {
+        if (url.length === 0) {
             return '';
         }
 
-        if (!(/^https?:\/\//iu).test(url))
-        {
+        if (!/^https?:\/\//iu.test(url)) {
             return url;
         }
 
         const pending = inflight.get(url);
 
-        if (pending !== undefined)
-        {
+        if (pending !== undefined) {
             return pending;
         }
 
-        const task = resolve(url, kind).catch(() => '').finally(() => { inflight.delete(url); });
+        const task = resolve(url, kind)
+            .catch(() => '')
+            .finally(() => {
+                inflight.delete(url);
+            });
 
         inflight.set(url, task);
 
@@ -1083,9 +975,8 @@ export const imageCache =
      * @param {ImageKind} [kind] What sort of images they are.
      * @returns {Promise<void>} Resolves once every one has settled.
      */
-    prefetch: async(urls: string[], kind: ImageKind = 'unknown') =>
-    {
-        await Promise.all(urls.map(async(url) => imageCache.get(url, kind).catch(() => '')));
+    prefetch: async (urls: string[], kind: ImageKind = 'unknown') => {
+        await Promise.all(urls.map(async (url) => imageCache.get(url, kind).catch(() => '')));
     },
 
     /**
@@ -1093,16 +984,14 @@ export const imageCache =
      * @param {string} url The address to forget.
      * @returns {Promise<void>} Resolves once it is gone.
      */
-    remove: async(url: string) =>
-    {
+    remove: async (url: string) => {
         await start();
 
         forget(url);
 
         const entry = entries.get(url);
 
-        if (entry !== undefined)
-        {
+        if (entry !== undefined) {
             entries.delete(url);
 
             await dropFile(entry.file);
@@ -1114,12 +1003,10 @@ export const imageCache =
      * clear - Empties the cache completely.
      * @returns {Promise<void>} Resolves once nothing is left.
      */
-    clear: async() =>
-    {
+    clear: async () => {
         await start();
 
-        for (const object of memory.values())
-        {
+        for (const object of memory.values()) {
             URL.revokeObjectURL(object);
         }
 
@@ -1128,9 +1015,8 @@ export const imageCache =
 
         clearUnder('local', blockedPrefix);
 
-        for (const entry of [ ...entries.values() ])
-        {
-            // eslint-disable-next-line no-await-in-loop
+        for (const entry of [...entries.values()]) {
+            // oxlint-disable-next-line no-await-in-loop
             await dropFile(entry.file);
         }
 
@@ -1146,30 +1032,27 @@ export const imageCache =
      * until a newer one arrives. Asked for directly, expired means gone.
      * @returns {Promise<number>} How many entries were removed.
      */
-    clearExpired: async() =>
-    {
+    clearExpired: async () => {
         await start();
 
         const now = Date.now();
 
         let removed = 0;
 
-        const stale = [ ...entries.values() ].filter((entry) => now > entry.expires);
+        const stale = [...entries.values()].filter((entry) => now > entry.expires);
 
-        for (const entry of stale)
-        {
+        for (const entry of stale) {
             entries.delete(entry.url);
 
             forget(entry.url);
 
             removed += 1;
 
-            // eslint-disable-next-line no-await-in-loop
+            // oxlint-disable-next-line no-await-in-loop
             await dropFile(entry.file);
         }
 
-        if (removed > 0)
-        {
+        if (removed > 0) {
             await writeMeta();
         }
 
@@ -1188,24 +1071,21 @@ export const imageCache =
      * @param {ImageKind} kind The sort to drop.
      * @returns {Promise<number>} How many entries were removed.
      */
-    clearKind: async(kind: ImageKind) =>
-    {
+    clearKind: async (kind: ImageKind) => {
         await start();
 
-        const matching = [ ...entries.values() ].filter((entry) => (entry.kind ?? 'unknown') === kind);
+        const matching = [...entries.values()].filter((entry) => (entry.kind ?? 'unknown') === kind);
 
-        for (const entry of matching)
-        {
+        for (const entry of matching) {
             entries.delete(entry.url);
 
             forget(entry.url);
 
-            // eslint-disable-next-line no-await-in-loop
+            // oxlint-disable-next-line no-await-in-loop
             await dropFile(entry.file);
         }
 
-        if (matching.length > 0)
-        {
+        if (matching.length > 0) {
             await writeMeta();
         }
 
@@ -1221,10 +1101,8 @@ export const imageCache =
 
         clearUnder('local', scope);
 
-        for (const key of [ ...cooldown.keys() ])
-        {
-            if (key.startsWith(scope))
-            {
+        for (const key of [...cooldown.keys()]) {
+            if (key.startsWith(scope)) {
                 cooldown.delete(key);
             }
         }
@@ -1245,17 +1123,14 @@ export const imageCache =
      * @param {ImageKind} [kind] Restrict the total to one sort of image.
      * @returns {Promise<{ bytes: number; count: number; blocked: number }>} Bytes, images, and refusals held.
      */
-    getCacheSize: async(kind?: ImageKind) =>
-    {
+    getCacheSize: async (kind?: ImageKind) => {
         await start();
 
         let bytes = 0;
         let count = 0;
 
-        for (const entry of entries.values())
-        {
-            if (kind !== undefined && (entry.kind ?? 'unknown') !== kind)
-            {
+        for (const entry of entries.values()) {
+            if (kind !== undefined && (entry.kind ?? 'unknown') !== kind) {
                 continue;
             }
 

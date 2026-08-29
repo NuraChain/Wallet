@@ -20,10 +20,8 @@ let online = navigator.onLine;
  * apply - Records a new belief and announces it, but only when it actually changed.
  * @param {boolean} value What the link now looks like.
  */
-const apply = (value: boolean) =>
-{
-    if (online === value)
-    {
+const apply = (value: boolean) => {
+    if (online === value) {
         return;
     }
 
@@ -32,23 +30,19 @@ const apply = (value: boolean) =>
     emit('Connection.Change', value);
 };
 
-window.addEventListener('online', () =>
-{
+window.addEventListener('online', () => {
     apply(true);
 });
 
-window.addEventListener('offline', () =>
-{
+window.addEventListener('offline', () => {
     apply(false);
 });
 
 // Android suspends the webview with the app in the background, and a link that came and went while it
 // was down leaves no event behind to catch up on. Re-reading on the way back is what stops a returning
 // user from facing an offline banner over a working connection until something else happens to fire.
-document.addEventListener('visibilitychange', () =>
-{
-    if (document.visibilityState === 'visible')
-    {
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
         apply(navigator.onLine);
     }
 });
@@ -64,12 +58,10 @@ export const isOnline = () => online;
  * @param {() => void} listener Called after the belief changes.
  * @returns {() => void} Unsubscribes the listener.
  */
-export const subscribeConnection = (listener: () => void) =>
-{
+export const subscribeConnection = (listener: () => void) => {
     on('Connection.Change', listener);
 
-    return () =>
-    {
+    return () => {
         off('Connection.Change', listener);
     };
 };

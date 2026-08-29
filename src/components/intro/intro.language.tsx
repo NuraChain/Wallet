@@ -5,75 +5,59 @@ import { Modal, ModalBody, ModalHeader } from '../ui/modal';
 
 import { T, getLanguage, setLanguage, languageRecord, type LanguageType } from '../../utility/language';
 
-export default function IntroLanguage({ onClose }: { onClose: () => void })
-{
+export default function IntroLanguage({ onClose }: { onClose: () => void }) {
     const current = getLanguage();
 
-    const handleSelect = async(code: LanguageType) =>
-    {
+    const handleSelect = async (code: LanguageType) => {
         await setLanguage(code);
 
         onClose();
     };
 
     return (
-        <Modal
-            scroll={ true }
-            onClose={ onClose }
-            panelClass='w-72 gap-2'>
+        <Modal scroll onClose={onClose} panelClass='w-72 gap-2'>
+            <ModalHeader title={T('Intro.Select')} onClose={onClose} />
 
-            <ModalHeader
-                title={ T('Intro.Select') }
-                onClose={ onClose } />
-
-            { /*
-              * The list carries its own top padding rather than the panel's gap being padded out by an
-              * empty element, which is how the space under the header used to be made.
-              *
-              * The active row is disabled because it is the one you are already on, not because it is
-              * unavailable — so it keeps the ordinary cursor instead of the "no" one.
-              *
-              * Ten rows of `h-12` outgrow a short window, so the list is a `ModalBody` and the panel
-              * caps itself: with two languages the dialog shrink-wrapped and neither was needed.
-              *
-              * The cap is 18rem because that is five rows (5×3rem plus their four gaps = 17rem) and
-              * one more gap, so the sixth row is cut mid-height rather than landing flush against the
-              * edge — a half-row is what tells you the list keeps going. The panel's own `80vh` is
-              * left as the backstop for a window too short even for this, and on any ordinary window
-              * this is the smaller of the two, which is the point: `80vh` alone let the dialog grow to
-              * most of a desktop screen.
-              */ }
+            {/*
+             * The list carries its own top padding rather than the panel's gap being padded out by an
+             * empty element, which is how the space under the header used to be made.
+             *
+             * The active row is disabled because it is the one you are already on, not because it is
+             * unavailable — so it keeps the ordinary cursor instead of the "no" one.
+             *
+             * Ten rows of `h-12` outgrow a short window, so the list is a `ModalBody` and the panel
+             * caps itself: with two languages the dialog shrink-wrapped and neither was needed.
+             *
+             * The cap is 18rem because that is five rows (5×3rem plus their four gaps = 17rem) and
+             * one more gap, so the sixth row is cut mid-height rather than landing flush against the
+             * edge — a half-row is what tells you the list keeps going. The panel's own `80vh` is
+             * left as the backstop for a window too short even for this, and on any ordinary window
+             * this is the smaller of the two, which is the point: `80vh` alone let the dialog grow to
+             * most of a desktop screen.
+             */}
             <ModalBody className='mt-2 max-h-72 gap-2'>
+                {languageRecord.map((lang) => {
+                    const isActive = lang.code === current.code;
 
-                {
-                    languageRecord.map((lang) =>
-                    {
-                        const isActive = lang.code === current.code;
-
-                        return (
-                            <MenuRow
-                                key={ lang.code }
-                                selected={ isActive }
-                                label={ T(`Language.${ lang.code }`) }
-                                leading={
-                                    (
-                                        // Letterboxed into a square rather than stretched, so a wide
-                                        // 4x3 flag keeps its proportions and every row's icon occupies
-                                        // the same box.
-                                        <img
-                                            src={ lang.flag }
-                                            alt=''
-                                            className='size-4 shrink-0 object-contain' />
-                                    )
-                                }
-                                trailing={ isActive ? <FiCheck size={ 18 } /> : undefined }
-                                onClick={ () => { void handleSelect(lang.code); } } />
-                        );
-                    })
-                }
-
+                    return (
+                        <MenuRow
+                            key={lang.code}
+                            selected={isActive}
+                            label={T(`Language.${lang.code}`)}
+                            leading={
+                                // Letterboxed into a square rather than stretched, so a wide
+                                // 4x3 flag keeps its proportions and every row's icon occupies
+                                // the same box.
+                                <img src={lang.flag} alt='' className='size-4 shrink-0 object-contain' />
+                            }
+                            trailing={isActive ? <FiCheck size={18} /> : undefined}
+                            onClick={() => {
+                                void handleSelect(lang.code);
+                            }}
+                        />
+                    );
+                })}
             </ModalBody>
-
         </Modal>
     );
 }

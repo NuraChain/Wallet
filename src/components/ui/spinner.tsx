@@ -12,11 +12,6 @@ import { cn } from '../../utility/cn';
  * @param {string} [props.className] Extra classes (colour, `shrink-0`, margins).
  * @returns {JSX.Element} The spinning icon.
  */
-export default function Spinner({ size = 16, className = '' }: { size?: number; className?: string })
-{
-    return (
-        <FiLoader
-            size={ size }
-            className={ cn('animate-spin', className) } />
-    );
+export default function Spinner({ size = 16, className = '' }: { size?: number; className?: string }) {
+    return <FiLoader size={size} className={cn('animate-spin', className)} />;
 }

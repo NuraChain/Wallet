@@ -30,8 +30,7 @@ import { Horizontal, Vertical } from '../ui/stack';
 
 type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
 
-interface Asset
-{
+interface Asset {
     key: string;
     symbol: string;
     /** The longer name under the symbol — the coin's, or the token contract's. */
@@ -61,21 +60,58 @@ interface Asset
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The send modal.
  */
-export default function DashboardSend({ vault, index, network, nativeValue, nativeFormatted, tokens, onSent, onClose }: { vault: Vault; index: number; network: Network; nativeValue: bigint; nativeFormatted: string; tokens: TokenBalance[]; onSent: () => void; onClose: () => void })
-{
-    const assets = useMemo<Asset[]>(() => [
-        { key: 'native', symbol: network.symbol, name: network.coin ?? network.name, logo: getNativeLogo(network.chainId), decimals: network.decimals, value: nativeValue, formatted: nativeFormatted },
-        ...tokens.map((item) => ({ key: item.token.address, symbol: item.token.symbol, name: item.token.name, logo: getTokenLogo(network.chainId, item.token.address), decimals: item.token.decimals, value: item.value, formatted: item.formatted, token: { address: item.token.address, decimals: item.token.decimals } }))
-    ], [ network, nativeValue, nativeFormatted, tokens ]);
+export default function DashboardSend({
+    vault,
+    index,
+    network,
+    nativeValue,
+    nativeFormatted,
+    tokens,
+    onSent,
+    onClose
+}: {
+    vault: Vault;
+    index: number;
+    network: Network;
+    nativeValue: bigint;
+    nativeFormatted: string;
+    tokens: TokenBalance[];
+    onSent: () => void;
+    onClose: () => void;
+}) {
+    const assets = useMemo<Asset[]>(
+        () => [
+            {
+                key: 'native',
+                symbol: network.symbol,
+                name: network.coin ?? network.name,
+                logo: getNativeLogo(network.chainId),
+                decimals: network.decimals,
+                value: nativeValue,
+                formatted: nativeFormatted
+            },
+            ...tokens.map((item) => ({
+                key: item.token.address,
+                symbol: item.token.symbol,
+                name: item.token.name,
+                logo: getTokenLogo(network.chainId, item.token.address),
+                decimals: item.token.decimals,
+                value: item.value,
+                formatted: item.formatted,
+                token: { address: item.token.address, decimals: item.token.decimals }
+            }))
+        ],
+        [network, nativeValue, nativeFormatted, tokens]
+    );
 
-    const [ step, setStep ] = useState<Step>('form');
-    const [ error, setError ] = useState('');
-    const [ failure, setFailure ] = useState('');
-    const [ hash, setHash ] = useState('');
-    const [ to, setTo ] = useState('');
-    const [ amount, setAmount ] = useState('');
-    const [ chosen, setChosen ] = useState('native');
-    const [ picking, setPicking ] = useState(false);
+    const [step, setStep] = useState<Step>('form');
+    const [error, setError] = useState('');
+    const [failure, setFailure] = useState('');
+    const [hash, setHash] = useState('');
+    const [to, setTo] = useState('');
+    const [amount, setAmount] = useState('');
+    const [chosen, setChosen] = useState('native');
+    const [picking, setPicking] = useState(false);
 
     const online = useOnline();
 
@@ -93,8 +129,7 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
      * that gets signed before it is read.
      * @param {string} key The asset to switch to.
      */
-    const onAsset = (key: string) =>
-    {
+    const onAsset = (key: string) => {
         setChosen(key);
         setPicking(false);
         setAmount('');
@@ -105,42 +140,34 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
      * What the confirmation screen restates before anything is signed. Three label/value rows drawn
      * the same way, so they are listed rather than written out three times.
      */
-    const reviewMap =
-    [
-        { label: T('Dashboard.Send.Amount'), value: `${ trimAmount(amount) } ${ asset.symbol }`, mono: true },
+    const reviewMap = [
+        { label: T('Dashboard.Send.Amount'), value: `${trimAmount(amount)} ${asset.symbol}`, mono: true },
         { label: T('Dashboard.Send.To'), value: shortAddress(to), mono: true },
         { label: T('Dashboard.Network.Title'), value: network.name, mono: false }
     ];
 
-    const onReview = () =>
-    {
-        if (!isAddress(to))
-        {
+    const onReview = () => {
+        if (!isAddress(to)) {
             setError(T('Dashboard.Send.InvalidAddress'));
 
             return;
         }
 
-        try
-        {
+        try {
             const parsed = parseUnits(amount || '0', asset.decimals);
 
-            if (parsed <= 0n)
-            {
+            if (parsed <= 0n) {
                 setError(T('Dashboard.Send.InvalidAmount'));
 
                 return;
             }
 
-            if (parsed > asset.value)
-            {
+            if (parsed > asset.value) {
                 setError(T('Dashboard.Send.Insufficient'));
 
                 return;
             }
-        }
-        catch
-        {
+        } catch {
             setError(T('Dashboard.Send.InvalidAmount'));
 
             return;
@@ -150,13 +177,11 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
         setStep('review');
     };
 
-    const onConfirm = async() =>
-    {
+    const onConfirm = async () => {
         // Signing is local, broadcasting is not, and a transaction that was never broadcast is a
         // failure worth naming: the generic "try again" sends the user back to a form that will fail
         // the same way until the connection returns.
-        if (!online)
-        {
+        if (!online) {
             setFailure(T('Dashboard.Send.Offline'));
             setStep('error');
 
@@ -165,309 +190,243 @@ export default function DashboardSend({ vault, index, network, nativeValue, nati
 
         setStep('pending');
 
-        try
-        {
+        try {
             const wallet = vaultManager(vault, index);
             const result = await wallet.send(getProvider(), { to, amount, token: asset.token });
 
             setHash(result);
             setStep('success');
             onSent();
-        }
-        catch
-        {
+        } catch {
             setFailure(T('Dashboard.Send.Error'));
             setStep('error');
         }
     };
 
     return (
-        <Modal onClose={ onClose }>
+        <Modal onClose={onClose}>
+            <ModalHeader title={T('Dashboard.Send.Title')} titleClass='truncate' onClose={onClose} />
 
-            <ModalHeader
-                title={ T('Dashboard.Send.Title') }
-                titleClass='truncate'
-                onClose={ onClose } />
+            {step === 'form' && (
+                <Vertical className='gap-3'>
+                    <Alert text={error} />
 
-            {
-                step === 'form' &&
-                (
-                    <Vertical className='gap-3'>
+                    {/*
+                     * Said up front rather than after the review: everything below this line is
+                     * fillable offline and none of it can be sent, so the user should know before
+                     * typing an address rather than at the moment they press confirm.
+                     */}
+                    <Alert variant='warning' text={online ? '' : T('Dashboard.Send.Offline')} />
 
-                        <Alert text={ error } />
-
-                        { /*
-                          * Said up front rather than after the review: everything below this line is
-                          * fillable offline and none of it can be sent, so the user should know before
-                          * typing an address rather than at the moment they press confirm.
-                          */ }
-                        <Alert
-                            variant='warning'
-                            text={ online ? '' : T('Dashboard.Send.Offline') } />
-
-                        { /*
-                          * First, because it decides what everything under it means: the balance the
-                          * Max control offers, the decimals the amount is parsed at, and whether this
-                          * ends up a coin transfer or a call to a contract.
-                          *
-                          * Drawn as the same glass field the recipient is typed into, so the thing that
-                          * opens a list reads as part of the form rather than as another button. The
-                          * list itself is absolute: it lies over what follows instead of pushing the
-                          * dialog taller as it opens.
-                          */ }
-                        <Vertical className='relative gap-1'>
-
-                            <Text text={ T('Dashboard.Send.Asset') } />
-
-                            <Button
-                                aria-haspopup='listbox'
-                                aria-expanded={ picking }
-                                onClick={ () => { setPicking(!picking); } }
-                                className={ cn(fieldSurface, 'flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3') }>
-
-                                <TokenIcon
-                                    primary={ asset.token === undefined }
-                                    kind={ asset.token === undefined ? 'network' : 'token' }
-                                    src={ asset.logo }
-                                    symbol={ asset.symbol }
-                                    className='size-9' />
-
-                                <Vertical className='min-w-0 flex-1 text-start'>
-
-                                    <Text variant='body' className='truncate' text={ asset.symbol } />
-
-                                    <Text className='truncate' text={ asset.name } />
-
-                                </Vertical>
-
-                                <Text
-                                    dir='ltr'
-                                    variant='captionStrong'
-                                    className='shrink-0 font-mono'
-                                    text={ trimAmount(asset.formatted) } />
-
-                                <IoChevronDown size={ 12 } className={ `shrink-0 opacity-40 transition-transform duration-(--duration-base) ${ picking ? 'rotate-180' : '' }` } />
-
-                            </Button>
-
-                            <Popover
-                                role='listbox'
-                                open={ picking }
-                                onClose={ () => { setPicking(false); } }
-                                className='scroll-hidden flex max-h-56 flex-col gap-1 overflow-y-auto'>
-
-                                {
-                                    assets.map((item) => (
-                                        <Button
-                                            key={ item.key }
-                                            role='option'
-                                            aria-selected={ item.key === asset.key }
-                                            onClick={ () => { onAsset(item.key); } }
-                                            className={ `flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2 transition-colors duration-(--duration-fast) ${ item.key === asset.key ? selectedTint : 'hover:bg-btn-muted-hover' }` }>
-
-                                            <TokenIcon
-                                                primary={ item.token === undefined }
-                                                kind={ item.token === undefined ? 'network' : 'token' }
-                                                src={ item.logo }
-                                                symbol={ item.symbol }
-                                                className='size-8' />
-
-                                            <Vertical className='min-w-0 flex-1 text-start'>
-
-                                                <Text variant='body' className='truncate' text={ item.symbol } />
-
-                                                <Text className='truncate' text={ item.name } />
-
-                                            </Vertical>
-
-                                            <Text
-                                                dir='ltr'
-                                                variant='captionStrong'
-                                                className='shrink-0 font-mono'
-                                                text={ trimAmount(item.formatted) } />
-
-                                        </Button>
-                                    ))
-                                }
-
-                            </Popover>
-
-                        </Vertical>
-
-                        <Vertical className='gap-1'>
-
-                            { /*
-                              * The label rides on the field rather than as a sibling heading, so the
-                              * input is named to assistive technology by the same words that label it
-                              * on screen — the two inputs of this form were announced unnamed.
-                              */ }
-                            <TextField
-                                label={ T('Dashboard.Send.Recipient') }
-                                value={ to }
-                                dir='ltr'
-                                placeholder='0x…'
-                                onValue={ setTo }
-                                className='font-mono' />
-
-                        </Vertical>
-
-                        <Vertical className='gap-1'>
-
-                            <SectionHeader title={ T('Dashboard.Send.Amount') }>
-
-                                <Button
-                                    variant='muted'
-                                    onClick={ () => { setAmount(asset.formatted); } }
-                                    className='rounded-control px-2 py-0.5 text-tiny text-txt-muted'
-                                    text={ T('Dashboard.Send.Max', trimAmount(asset.formatted)) } />
-
-                            </SectionHeader>
-
-                            { /*
-                              * Named rather than labelled: the section header above carries the visible
-                              * words and the Max control sits beside them, so the association is made
-                              * for the reader of the accessibility tree instead of re-laying-out the row.
-                              */ }
-                            <TextField
-                                value={ amount }
-                                dir='ltr'
-                                inputMode='decimal'
-                                aria-label={ T('Dashboard.Send.Amount') }
-                                placeholder='0.0'
-                                onValue={ setAmount }
-                                className='font-mono' />
-
-                        </Vertical>
+                    {/*
+                     * First, because it decides what everything under it means: the balance the
+                     * Max control offers, the decimals the amount is parsed at, and whether this
+                     * ends up a coin transfer or a call to a contract.
+                     *
+                     * Drawn as the same glass field the recipient is typed into, so the thing that
+                     * opens a list reads as part of the form rather than as another button. The
+                     * list itself is absolute: it lies over what follows instead of pushing the
+                     * dialog taller as it opens.
+                     */}
+                    <Vertical className='relative gap-1'>
+                        <Text text={T('Dashboard.Send.Asset')} />
 
                         <Button
-                            variant='primary'
-                            size='action'
-                            onClick={ onReview }
-                            text={ T('Dashboard.Send.Review') } />
+                            aria-haspopup='listbox'
+                            aria-expanded={picking}
+                            onClick={() => {
+                                setPicking(!picking);
+                            }}
+                            className={cn(fieldSurface, 'flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3')}
+                        >
+                            <TokenIcon
+                                primary={asset.token === undefined}
+                                kind={asset.token === undefined ? 'network' : 'token'}
+                                src={asset.logo}
+                                symbol={asset.symbol}
+                                className='size-9'
+                            />
 
+                            <Vertical className='min-w-0 flex-1 text-start'>
+                                <Text variant='body' className='truncate' text={asset.symbol} />
+
+                                <Text className='truncate' text={asset.name} />
+                            </Vertical>
+
+                            <Text dir='ltr' variant='captionStrong' className='shrink-0 font-mono' text={trimAmount(asset.formatted)} />
+
+                            <IoChevronDown
+                                size={12}
+                                className={`shrink-0 opacity-40 transition-transform duration-(--duration-base) ${picking ? 'rotate-180' : ''}`}
+                            />
+                        </Button>
+
+                        <Popover
+                            role='listbox'
+                            open={picking}
+                            onClose={() => {
+                                setPicking(false);
+                            }}
+                            className='scroll-hidden flex max-h-56 flex-col gap-1 overflow-y-auto'
+                        >
+                            {assets.map((item) => (
+                                <Button
+                                    key={item.key}
+                                    role='option'
+                                    aria-selected={item.key === asset.key}
+                                    onClick={() => {
+                                        onAsset(item.key);
+                                    }}
+                                    className={`flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2 transition-colors duration-(--duration-fast) ${item.key === asset.key ? selectedTint : 'hover:bg-btn-muted-hover'}`}
+                                >
+                                    <TokenIcon
+                                        primary={item.token === undefined}
+                                        kind={item.token === undefined ? 'network' : 'token'}
+                                        src={item.logo}
+                                        symbol={item.symbol}
+                                        className='size-8'
+                                    />
+
+                                    <Vertical className='min-w-0 flex-1 text-start'>
+                                        <Text variant='body' className='truncate' text={item.symbol} />
+
+                                        <Text className='truncate' text={item.name} />
+                                    </Vertical>
+
+                                    <Text dir='ltr' variant='captionStrong' className='shrink-0 font-mono' text={trimAmount(item.formatted)} />
+                                </Button>
+                            ))}
+                        </Popover>
                     </Vertical>
-                )
-            }
 
-            {
-                step === 'review' &&
-                (
-                    <Vertical className='gap-3'>
+                    <Vertical className='gap-1'>
+                        {/*
+                         * The label rides on the field rather than as a sibling heading, so the
+                         * input is named to assistive technology by the same words that label it
+                         * on screen — the two inputs of this form were announced unnamed.
+                         */}
+                        <TextField label={T('Dashboard.Send.Recipient')} value={to} dir='ltr' placeholder='0x…' onValue={setTo} className='font-mono' />
+                    </Vertical>
 
-                        <Panel className='flex flex-col gap-2'>
-
-                            {
-                                reviewMap.map((item) => (
-                                    <Horizontal
-                                        key={ item.label }
-                                        className='items-center justify-between gap-2'>
-
-                                        <Text text={ item.label } />
-
-                                        { /*
-                                          * `captionStrong` is the muted caption above at the same size
-                                          * in the normal colour, which is the whole difference between
-                                          * a label and its value here.
-                                          */ }
-                                        <Text
-                                            variant='captionStrong'
-                                            dir={ item.mono ? 'ltr' : undefined }
-                                            className={ item.mono ? 'min-w-0 truncate font-mono' : 'min-w-0 truncate' }
-                                            text={ item.value } />
-
-                                    </Horizontal>
-                                ))
-                            }
-
-                        </Panel>
-
-                        <ModalActions className='mt-0'>
-
+                    <Vertical className='gap-1'>
+                        <SectionHeader title={T('Dashboard.Send.Amount')}>
                             <Button
                                 variant='muted'
-                                size='action'
-                                onClick={ () => { setStep('form'); } }
-                                leftIcon={ <FiArrowLeft size={ 16 } className='rtl:rotate-180' /> }
-                                text={ T('Dashboard.Send.Back') } />
+                                onClick={() => {
+                                    setAmount(asset.formatted);
+                                }}
+                                className='rounded-control px-2 py-0.5 text-tiny text-txt-muted'
+                                text={T('Dashboard.Send.Max', trimAmount(asset.formatted))}
+                            />
+                        </SectionHeader>
 
-                            <Button
-                                variant='primary'
-                                size='action'
-                                onClick={ () => { void onConfirm(); } }
-                                text={ T('Dashboard.Send.Confirm') } />
-
-                        </ModalActions>
-
-                    </Vertical>
-                )
-            }
-
-            {
-                step === 'pending' &&
-                (
-                    <Vertical className='items-center gap-3 py-6'>
-
-                        <Spinner size={ 32 } className='text-txt-muted' />
-
-                        <Text variant='bodyMuted' text={ T('Dashboard.Send.Pending') } />
-
-                    </Vertical>
-                )
-            }
-
-            {
-                step === 'success' &&
-                (
-                    <Vertical className='items-center gap-3 py-4'>
-
-                        <FiCheckCircle size={ 40 } className='text-txt-normal' />
-
-                        <Text variant='body' text={ T('Dashboard.Send.Success') } />
-
-                        { /* `text-tiny text-txt-muted` was this box spelling the caption pairing out by
-                          * hand, so it comes from the variant now and the rest rides in beside it. */ }
-                        <Text
+                        {/*
+                         * Named rather than labelled: the section header above carries the visible
+                         * words and the Max control sits beside them, so the association is made
+                         * for the reader of the accessibility tree instead of re-laying-out the row.
+                         */}
+                        <TextField
+                            value={amount}
                             dir='ltr'
-                            className='w-full rounded-surface bg-base-3 p-2 text-center font-mono break-all select-text!'
-                            text={ hash } />
-
-                        <Button
-                            variant='primary'
-                            size='action'
-                            fullWidth
-                            onClick={ onClose }
-                            text={ T('Dashboard.Send.Done') } />
-
+                            inputMode='decimal'
+                            aria-label={T('Dashboard.Send.Amount')}
+                            placeholder='0.0'
+                            onValue={setAmount}
+                            className='font-mono'
+                        />
                     </Vertical>
-                )
-            }
 
-            {
-                step === 'error' &&
-                (
-                    <Vertical className='items-center gap-3 py-4'>
+                    <Button variant='primary' size='action' onClick={onReview} text={T('Dashboard.Send.Review')} />
+                </Vertical>
+            )}
 
-                        { /*
-                          * The highest-stakes error in a wallet, and it was the one rendered as bare
-                          * red text — no tint, no radius, no padding, unannounced — in a file that
-                          * already used `Alert` correctly twice a hundred lines above.
-                          */ }
-                        <Alert
-                            size='comfortable'
-                            className='w-full'
-                            text={ failure.length > 0 ? failure : T('Dashboard.Send.Error') } />
+            {step === 'review' && (
+                <Vertical className='gap-3'>
+                    <Panel className='flex flex-col gap-2'>
+                        {reviewMap.map((item) => (
+                            <Horizontal key={item.label} className='items-center justify-between gap-2'>
+                                <Text text={item.label} />
 
+                                {/*
+                                 * `captionStrong` is the muted caption above at the same size
+                                 * in the normal colour, which is the whole difference between
+                                 * a label and its value here.
+                                 */}
+                                <Text
+                                    variant='captionStrong'
+                                    dir={item.mono ? 'ltr' : undefined}
+                                    className={item.mono ? 'min-w-0 truncate font-mono' : 'min-w-0 truncate'}
+                                    text={item.value}
+                                />
+                            </Horizontal>
+                        ))}
+                    </Panel>
+
+                    <ModalActions className='mt-0'>
                         <Button
                             variant='muted'
                             size='action'
-                            fullWidth
-                            onClick={ () => { setStep('form'); } }
-                            text={ T('Dashboard.Send.Back') } />
+                            onClick={() => {
+                                setStep('form');
+                            }}
+                            leftIcon={<FiArrowLeft size={16} className='rtl:rotate-180' />}
+                            text={T('Dashboard.Send.Back')}
+                        />
 
-                    </Vertical>
-                )
-            }
+                        <Button
+                            variant='primary'
+                            size='action'
+                            onClick={() => {
+                                void onConfirm();
+                            }}
+                            text={T('Dashboard.Send.Confirm')}
+                        />
+                    </ModalActions>
+                </Vertical>
+            )}
 
+            {step === 'pending' && (
+                <Vertical className='items-center gap-3 py-6'>
+                    <Spinner size={32} className='text-txt-muted' />
+
+                    <Text variant='bodyMuted' text={T('Dashboard.Send.Pending')} />
+                </Vertical>
+            )}
+
+            {step === 'success' && (
+                <Vertical className='items-center gap-3 py-4'>
+                    <FiCheckCircle size={40} className='text-txt-normal' />
+
+                    <Text variant='body' text={T('Dashboard.Send.Success')} />
+
+                    {/* `text-tiny text-txt-muted` was this box spelling the caption pairing out by
+                     * hand, so it comes from the variant now and the rest rides in beside it. */}
+                    <Text dir='ltr' className='w-full rounded-surface bg-base-3 p-2 text-center font-mono break-all select-text!' text={hash} />
+
+                    <Button variant='primary' size='action' fullWidth onClick={onClose} text={T('Dashboard.Send.Done')} />
+                </Vertical>
+            )}
+
+            {step === 'error' && (
+                <Vertical className='items-center gap-3 py-4'>
+                    {/*
+                     * The highest-stakes error in a wallet, and it was the one rendered as bare
+                     * red text — no tint, no radius, no padding, unannounced — in a file that
+                     * already used `Alert` correctly twice a hundred lines above.
+                     */}
+                    <Alert size='comfortable' className='w-full' text={failure.length > 0 ? failure : T('Dashboard.Send.Error')} />
+
+                    <Button
+                        variant='muted'
+                        size='action'
+                        fullWidth
+                        onClick={() => {
+                            setStep('form');
+                        }}
+                        text={T('Dashboard.Send.Back')}
+                    />
+                </Vertical>
+            )}
         </Modal>
     );
 }

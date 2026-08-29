@@ -80,8 +80,29 @@ const settleFrames = 90;
  * @param {(notice: string) => void} [props.onFallback] Called with the failure reason when the native webview could not be created.
  * @returns {JSX.Element} The frame.
  */
-export default function WebFrame({ label, url, enabled, desktop = false, reload = 0, title = '', script = '', className = '', children, onFallback }: { label: string; url: string; enabled: boolean; desktop?: boolean; reload?: number; title?: string; script?: string; className?: string; children?: ReactNode; onFallback?: (notice: string) => void })
-{
+export default function WebFrame({
+    label,
+    url,
+    enabled,
+    desktop = false,
+    reload = 0,
+    title = '',
+    script = '',
+    className = '',
+    children,
+    onFallback
+}: {
+    label: string;
+    url: string;
+    enabled: boolean;
+    desktop?: boolean;
+    reload?: number;
+    title?: string;
+    script?: string;
+    className?: string;
+    children?: ReactNode;
+    onFallback?: (notice: string) => void;
+}) {
     const frameRef = useRef<HTMLDivElement>(null);
     const chainRef = useRef<Promise<void>>(Promise.resolve());
 
@@ -102,7 +123,7 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
     const placeRef = useRef<DOMRect>(undefined);
     const placingRef = useRef(false);
 
-    const [ embedded, setEmbedded ] = useState(true);
+    const [embedded, setEmbedded] = useState(true);
 
     // An APK older than this bundle has no way to hide its view, and one older still can only hold a
     // single page — in both cases the frontmost tab is the only one allowed a view, and leaving takes
@@ -115,27 +136,23 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
     const isLive = embedded && url.length > 0;
     const isNativeLive = url.length > 0 && (nativeHides || enabled) && (nativeTabs || enabled);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         enabledRef.current = enabled;
-    }, [ enabled ]);
+    }, [enabled]);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         scriptRef.current = script;
-    }, [ script ]);
+    }, [script]);
 
     // A single failed creation should not strand the rest of the session on the iframe fallback.
-    useEffect(() =>
-    {
+    useEffect(() => {
         setEmbedded(true);
-    }, [ url ]);
+    }, [url]);
 
     // Creation, teardown and visibility all address one webview by label, so they run in order — a
     // close still in flight from the previous URL would otherwise land after the new view was created
     // and kill it, and a `hide` can be asked for before the view it means to hide exists.
-    const queue = useCallback((task: () => Promise<void>) =>
-    {
+    const queue = useCallback((task: () => Promise<void>) => {
         chainRef.current = chainRef.current.then(task, task);
     }, []);
 
@@ -163,47 +180,42 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
      * @param {DOMRect} rect Where the view should be.
      * @returns {void}
      */
-    const place = useCallback((rect: DOMRect) =>
-    {
-        placeRef.current = rect;
+    const place = useCallback(
+        (rect: DOMRect) => {
+            placeRef.current = rect;
 
-        if (placingRef.current)
-        {
-            return;
-        }
-
-        placingRef.current = true;
-
-        queue(async() =>
-        {
-            // Cleared before the rectangle is read rather than after it is applied, so a move arriving
-            // during the round trip below queues a fresh apply behind this one instead of being
-            // dropped as already covered.
-            placingRef.current = false;
-
-            const target = placeRef.current;
-
-            if (target === undefined)
-            {
+            if (placingRef.current) {
                 return;
             }
 
-            try
-            {
-                const view = await Webview.getByLabel(label);
+            placingRef.current = true;
 
-                if (view !== null)
-                {
-                    await view.setPosition(new LogicalPosition(target.x, target.y));
-                    await view.setSize(new LogicalSize(target.width, target.height));
+            queue(async () => {
+                // Cleared before the rectangle is read rather than after it is applied, so a move arriving
+                // during the round trip below queues a fresh apply behind this one instead of being
+                // dropped as already covered.
+                placingRef.current = false;
+
+                const target = placeRef.current;
+
+                if (target === undefined) {
+                    return;
                 }
-            }
-            catch
-            {
-                // the webview can be closing while a move lands
-            }
-        });
-    }, [ label, queue ]);
+
+                try {
+                    const view = await Webview.getByLabel(label);
+
+                    if (view !== null) {
+                        await view.setPosition(new LogicalPosition(target.x, target.y));
+                        await view.setSize(new LogicalSize(target.width, target.height));
+                    }
+                } catch {
+                    // the webview can be closing while a move lands
+                }
+            });
+        },
+        [label, queue]
+    );
 
     /**
      * Follows the frame for a moment and reports every rectangle it comes to rest at.
@@ -220,27 +232,22 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
      * @param {(rect: DOMRect) => void} apply Receives each new rectangle.
      * @returns {() => void} Stops the watch early.
      */
-    const settle = useCallback((apply: (rect: DOMRect) => void) =>
-    {
+    const settle = useCallback((apply: (rect: DOMRect) => void) => {
         let stopped = false;
         let seen = 0;
         let last = '';
 
-        const tick = () =>
-        {
-            if (stopped)
-            {
+        const tick = () => {
+            if (stopped) {
                 return;
             }
 
             const rect = frameRef.current?.getBoundingClientRect();
 
-            if (rect !== undefined && rect.width >= 1 && rect.height >= 1)
-            {
-                const key = `${ rect.x },${ rect.y },${ rect.width },${ rect.height }`;
+            if (rect !== undefined && rect.width >= 1 && rect.height >= 1) {
+                const key = `${rect.x},${rect.y},${rect.width},${rect.height}`;
 
-                if (key !== last)
-                {
+                if (key !== last) {
                     last = key;
 
                     apply(rect);
@@ -249,30 +256,28 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
             seen += 1;
 
-            if (seen < settleFrames)
-            {
+            if (seen < settleFrames) {
                 requestAnimationFrame(tick);
             }
         };
 
         requestAnimationFrame(tick);
 
-        return () => { stopped = true; };
+        return () => {
+            stopped = true;
+        };
     }, []);
 
     // Android: a real `android.webkit.WebView` driven from Kotlin. Tauri's child webview does not
     // exist on Android, and the iframe fallback is refused by anything sending `X-Frame-Options`.
-    useEffect(() =>
-    {
+    useEffect(() => {
         const native = getNativeTab(label);
 
-        if (native === undefined)
-        {
+        if (native === undefined) {
             return undefined;
         }
 
-        if (!isNativeLive)
-        {
+        if (!isNativeLive) {
             native.close();
 
             return undefined;
@@ -290,17 +295,14 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
         // for good, which is what made the browser stick on "loading" now and again. So the same
         // callback both opens on the first usable rectangle and moves the view afterwards; routing
         // moves through `open` instead would reload the page on every keyboard or nav-bar change.
-        const move = () =>
-        {
+        const move = () => {
             const next = frameRef.current?.getBoundingClientRect();
 
-            if (next === undefined || next.width < 1 || next.height < 1)
-            {
+            if (next === undefined || next.width < 1 || next.height < 1) {
                 return;
             }
 
-            if (opened)
-            {
+            if (opened) {
                 native.setBounds(next.x, next.y, next.width, next.height);
 
                 return;
@@ -322,15 +324,13 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
         const observer = new ResizeObserver(move);
 
-        if (frameRef.current !== null)
-        {
+        if (frameRef.current !== null) {
             observer.observe(frameRef.current);
         }
 
         window.addEventListener('resize', move);
 
-        return () =>
-        {
+        return () => {
             cancel();
 
             observer.disconnect();
@@ -339,60 +339,51 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
             native.close();
         };
-    }, [ isNativeLive, label, url, desktop, settle ]);
+    }, [isNativeLive, label, url, desktop, settle]);
 
     // Android visibility. The view is a sibling of the app's own webview rather than something drawn
     // inside it, so nothing in the layout can cover it — leaving the tab, switching to another one or
     // opening a modal has to say so explicitly. Bounds are left where they were, which is what makes
     // coming back instant.
-    useEffect(() =>
-    {
+    useEffect(() => {
         const native = getNativeTab(label);
 
-        if (native === undefined)
-        {
+        if (native === undefined) {
             return undefined;
         }
 
         native.setVisible(enabled);
 
-        if (!enabled)
-        {
+        if (!enabled) {
             return undefined;
         }
 
         // Becoming visible almost always means the tab has just slid in, and where it came to rest is
         // not where it was when the page was opened.
-        return settle((rect) => { native.setBounds(rect.x, rect.y, rect.width, rect.height); });
-    }, [ enabled, isNativeLive, label, settle ]);
+        return settle((rect) => {
+            native.setBounds(rect.x, rect.y, rect.width, rect.height);
+        });
+    }, [enabled, isNativeLive, label, settle]);
 
     // A `reload` bump recreates the desktop child webview, but the native view is long-lived and has
     // a real reload of its own.
-    useEffect(() =>
-    {
-        if (reload > 0)
-        {
+    useEffect(() => {
+        if (reload > 0) {
             getNativeTab(label)?.reload();
         }
-    }, [ reload, label ]);
+    }, [reload, label]);
 
-    useEffect(() =>
-    {
-        if (getNativeBrowser() !== undefined)
-        {
+    useEffect(() => {
+        if (getNativeBrowser() !== undefined) {
             return undefined;
         }
 
-        const destroy = async() =>
-        {
-            try
-            {
+        const destroy = async () => {
+            try {
                 const view = await Webview.getByLabel(label);
 
                 await view?.close();
-            }
-            catch
-            {
+            } catch {
                 // a webview that is already gone is not a failure worth surfacing
             }
         };
@@ -401,30 +392,27 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
         // settled. Giving up there left the page never opening and the placeholder up for good, which
         // is what made the tab stick on "loading"; the Android path above already waited for a usable
         // rectangle, and this one now does the same instead of returning on the first miss.
-        const measure = async() =>
-        {
-            for (let attempt = 0; attempt < 40; attempt += 1)
-            {
+        const measure = async () => {
+            for (let attempt = 0; attempt < 40; attempt += 1) {
                 const rect = frameRef.current?.getBoundingClientRect();
 
-                if (rect !== undefined && rect.width >= 1 && rect.height >= 1)
-                {
+                if (rect !== undefined && rect.width >= 1 && rect.height >= 1) {
                     return rect;
                 }
 
-                // eslint-disable-next-line no-await-in-loop
-                await new Promise((resolve) => { setTimeout(resolve, 50); });
+                // oxlint-disable-next-line no-await-in-loop
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 50);
+                });
             }
 
             return undefined;
         };
 
-        const create = async() =>
-        {
+        const create = async () => {
             const rect = await measure();
 
-            if (rect === undefined)
-            {
+            if (rect === undefined) {
                 onFallback?.('the browser frame never reported a usable size');
 
                 return;
@@ -438,8 +426,7 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
             // provider that lands even slightly late is a provider a dApp has already decided is
             // absent. Everything else about this view — where it sits, whether it is shown, when it
             // closes — is still driven from here through the JavaScript API.
-            try
-            {
+            try {
                 await invoke('browser_open', {
                     label,
                     url,
@@ -450,31 +437,28 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
                     width: rect.width,
                     height: rect.height
                 });
-            }
-            catch (cause)
-            {
+            } catch (cause) {
                 failure = cause instanceof Error ? cause.message : String(cause);
             }
 
             // Success is confirmed by looking the webview up rather than by trusting the call to have
             // finished the job: creation is handed to the main thread inside Tauri, so the command can
             // return before the view actually exists.
-            for (let attempt = 0; attempt < 20 && failure.length === 0; attempt += 1)
-            {
-                // eslint-disable-next-line no-await-in-loop
-                await new Promise((resolve) => { setTimeout(resolve, 100); });
+            for (let attempt = 0; attempt < 20 && failure.length === 0; attempt += 1) {
+                // oxlint-disable-next-line no-await-in-loop
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 100);
+                });
 
-                // eslint-disable-next-line no-await-in-loop
+                // oxlint-disable-next-line no-await-in-loop
                 const view = await Webview.getByLabel(label);
 
-                if (view !== null)
-                {
+                if (view !== null) {
                     // A webview is born visible and there is no option to create it otherwise, so a
                     // page opened from somewhere else — an activity row handing over a link — would
                     // flash over the tab being left before the visibility pass below caught up.
-                    if (!enabledRef.current)
-                    {
-                        // eslint-disable-next-line no-await-in-loop
+                    if (!enabledRef.current) {
+                        // oxlint-disable-next-line no-await-in-loop
                         await view.hide();
                     }
 
@@ -486,12 +470,11 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
                     // resize that a finished slide will never send.
                     const settled = frameRef.current?.getBoundingClientRect();
 
-                    if (settled !== undefined && settled.width >= 1 && settled.height >= 1)
-                    {
-                        // eslint-disable-next-line no-await-in-loop
+                    if (settled !== undefined && settled.width >= 1 && settled.height >= 1) {
+                        // oxlint-disable-next-line no-await-in-loop
                         await view.setPosition(new LogicalPosition(settled.x, settled.y));
 
-                        // eslint-disable-next-line no-await-in-loop
+                        // oxlint-disable-next-line no-await-in-loop
                         await view.setSize(new LogicalSize(settled.width, settled.height));
                     }
 
@@ -504,69 +487,58 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
             onFallback?.(failure.length > 0 ? failure : 'child webview was never created');
         };
 
-        if (!isLive)
-        {
+        if (!isLive) {
             queue(destroy);
 
             return undefined;
         }
 
-        queue(async() =>
-        {
+        queue(async () => {
             await destroy();
             await create();
         });
 
-        return () => { queue(destroy); };
-    }, [ isLive, label, url, reload, desktop, queue ]);
+        return () => {
+            queue(destroy);
+        };
+    }, [isLive, label, url, reload, desktop, queue]);
 
     // Desktop visibility. Queued behind creation for the same reason everything else is: asking a
     // webview that does not exist yet to hide would do nothing and leave it to appear over the modal
     // that wanted it gone.
-    useEffect(() =>
-    {
-        if (!isLive || getNativeBrowser() !== undefined)
-        {
+    useEffect(() => {
+        if (!isLive || getNativeBrowser() !== undefined) {
             return undefined;
         }
 
-        queue(async() =>
-        {
-            try
-            {
+        queue(async () => {
+            try {
                 const view = await Webview.getByLabel(label);
 
-                if (view === null)
-                {
+                if (view === null) {
                     return;
                 }
 
                 await (enabled ? view.show() : view.hide());
-            }
-            catch
-            {
+            } catch {
                 // the webview can be closing while a visibility change lands
             }
         });
 
         return undefined;
-    }, [ isLive, enabled, label, url, reload, queue ]);
+    }, [isLive, enabled, label, url, reload, queue]);
 
-    useEffect(() =>
-    {
-        if (!isLive || getNativeBrowser() !== undefined)
-        {
+    useEffect(() => {
+        if (!isLive || getNativeBrowser() !== undefined) {
             return undefined;
         }
 
-        const sync = () =>
-        {
+        const sync = () => {
             const rect = frameRef.current?.getBoundingClientRect();
 
             // A frame with no box is one the layout has not placed yet, and moving a view onto an
             // empty rectangle would only lose the position it already has.
-            if (rect === undefined || rect.width < 1 || rect.height < 1)
-            {
+            if (rect === undefined || rect.width < 1 || rect.height < 1) {
                 return;
             }
 
@@ -575,8 +547,7 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
         const observer = new ResizeObserver(sync);
 
-        if (frameRef.current !== null)
-        {
+        if (frameRef.current !== null) {
             observer.observe(frameRef.current);
         }
 
@@ -584,47 +555,41 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
 
         // Runs on every change of `enabled` as well, because a tab sliding into place moves the frame
         // without resizing it and this is the only thing that notices.
-        const cancel = settle(() => { sync(); });
+        const cancel = settle(() => {
+            sync();
+        });
 
-        return () =>
-        {
+        return () => {
             cancel();
 
             observer.disconnect();
 
             window.removeEventListener('resize', sync);
         };
-    }, [ isLive, enabled, place, settle ]);
+    }, [isLive, enabled, place, settle]);
 
     return (
-        <div
-            ref={ frameRef }
-            className={ className }>
+        <div ref={frameRef} className={className}>
+            {/*
+             * Children cover the page area when the caller passes them, and the caller decides when
+             * that is — a tab with no address, or the start screen laid over a page that is being
+             * kept alive behind it. What hides the page itself is the native hide, since the view is
+             * painted over the layout and no amount of DOM will cover it; this only decides what is
+             * underneath. The iframe fallback is the one path that does not survive being covered,
+             * which is the degraded path already.
+             */}
+            {children !== undefined && children}
 
-            { /*
-              * Children cover the page area when the caller passes them, and the caller decides when
-              * that is — a tab with no address, or the start screen laid over a page that is being
-              * kept alive behind it. What hides the page itself is the native hide, since the view is
-              * painted over the layout and no amount of DOM will cover it; this only decides what is
-              * underneath. The iframe fallback is the one path that does not survive being covered,
-              * which is the degraded path already.
-              */ }
-            {
-                children !== undefined && children
-            }
-
-            {
-                children === undefined && url.length > 0 && !embedded &&
-                (
-                    <iframe
-                        key={ `${ url }-${ reload }` }
-                        src={ url }
-                        title={ title.length > 0 ? title : T('Dashboard.Browser.Title') }
-                        referrerPolicy='no-referrer'
-                        sandbox='allow-scripts allow-forms allow-popups allow-same-origin'
-                        className='size-full border-0 bg-base-1' />
-                )
-            }
+            {children === undefined && url.length > 0 && !embedded && (
+                <iframe
+                    key={`${url}-${reload}`}
+                    src={url}
+                    title={title.length > 0 ? title : T('Dashboard.Browser.Title')}
+                    referrerPolicy='no-referrer'
+                    sandbox='allow-scripts allow-forms allow-popups allow-same-origin'
+                    className='size-full border-0 bg-base-1'
+                />
+            )}
 
             {
                 // Only the desktop child-webview path has a gap to fill; the native Android view paints
@@ -634,22 +599,16 @@ export default function WebFrame({ label, url, enabled, desktop = false, reload 
                 // The child webview reports no progress, so the indicator is deliberately
                 // indeterminate: a spinner and a sweeping bar that say work is happening without
                 // implying a position. It sat here as motionless text before, which reads as a hang.
-                children === undefined && url.length > 0 && embedded && getNativeBrowser() === undefined &&
-                (
+                children === undefined && url.length > 0 && embedded && getNativeBrowser() === undefined && (
                     <Vertical className='size-full items-center justify-center gap-3 text-tiny text-txt-muted'>
+                        <Spinner size={22} />
 
-                        <Spinner size={ 22 } />
+                        <Text text={T('Dashboard.Browser.Loading')} />
 
-                        <Text text={ T('Dashboard.Browser.Loading') } />
-
-                        <ProgressBar
-                            label={ T('Dashboard.Browser.Loading') }
-                            className='w-32 rounded-full bg-base-3' />
-
+                        <ProgressBar label={T('Dashboard.Browser.Loading')} className='w-32 rounded-full bg-base-3' />
                     </Vertical>
                 )
             }
-
         </div>
     );
 }

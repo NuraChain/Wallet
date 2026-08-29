@@ -10,8 +10,7 @@ import { getValue, setValue } from '../utility/storage';
  *
  * `coinId` is the CoinGecko id used for pricing. Most user-added contracts have none, in which case the token still shows its balance but contributes nothing to the portfolio total.
  */
-export interface Token
-{
+export interface Token {
     address: string;
     symbol: string;
     name: string;
@@ -22,8 +21,7 @@ export interface Token
 /**
  * A token paired with the connected account's balance.
  */
-export interface TokenBalance
-{
+export interface TokenBalance {
     token: Token;
     value: bigint;
     formatted: string;
@@ -53,8 +51,7 @@ export type HiddenMap = Record<number, string[]>;
 /**
  * Minimal ERC20 read surface used for balance lookups and contract discovery.
  */
-export const erc20Abi =
-[
+export const erc20Abi = [
     'function balanceOf(address owner) view returns (uint256)',
     'function decimals() view returns (uint8)',
     'function symbol() view returns (string)',
@@ -73,17 +70,14 @@ export const erc20Abi =
  * anything else. Metadata is stated rather than read from each contract, so a chain with no explorer
  * costs one `balanceOf` per entry instead of four calls.
  */
-const knownTokens: Record<number, Token[] | undefined> =
-{
-    1:
-    [
+const knownTokens: Record<number, Token[] | undefined> = {
+    1: [
         { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', name: 'Tether USD', decimals: 6, coinId: 'tether' },
         { address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', symbol: 'USDC', name: 'USD Coin', decimals: 6, coinId: 'usd-coin' },
         { address: '0x6B175474E89094C44Da98b954EedeAC495271d0F', symbol: 'DAI', name: 'Dai Stablecoin', decimals: 18, coinId: 'dai' },
         { address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', symbol: 'WETH', name: 'Wrapped Ether', decimals: 18, coinId: 'weth' }
     ],
-    56:
-    [
+    56: [
         { address: '0x55d398326f99059fF775485246999027B3197955', symbol: 'USDT', name: 'Tether USD', decimals: 18, coinId: 'tether' },
         { address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d', symbol: 'USDC', name: 'USD Coin', decimals: 18, coinId: 'usd-coin' },
         { address: '0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56', symbol: 'BUSD', name: 'Binance USD', decimals: 18, coinId: 'binance-usd' },
@@ -97,7 +91,8 @@ const knownTokens: Record<number, Token[] | undefined> =
  * @param {string} address Contract address.
  * @returns {string} The coin id, or an empty string.
  */
-const getCoinId = (chainId: number, address: string) => knownTokens[chainId]?.find((item) => item.address.toLowerCase() === address.toLowerCase())?.coinId ?? '';
+const getCoinId = (chainId: number, address: string) =>
+    knownTokens[chainId]?.find((item) => item.address.toLowerCase() === address.toLowerCase())?.coinId ?? '';
 
 /**
  * loadTokens - Reads the per-chain list of user-added tokens.
@@ -105,44 +100,38 @@ const getCoinId = (chainId: number, address: string) => knownTokens[chainId]?.fi
  * A malformed entry is dropped rather than thrown on, so corrupted storage degrades to "no tokens added" instead of crashing the dashboard.
  * @returns {Promise<TokenMap>} Added tokens per chain id.
  */
-export const loadTokens = async(): Promise<TokenMap> =>
-{
+export const loadTokens = async (): Promise<TokenMap> => {
     const stored = await getValue('Wallet.Tokens');
 
-    if (stored === undefined || stored.length === 0)
-    {
+    if (stored === undefined || stored.length === 0) {
         return {};
     }
 
     const tokens: TokenMap = {};
 
-    try
-    {
+    try {
         const parsed: unknown = JSON.parse(stored);
 
-        if (typeof parsed !== 'object' || parsed === null)
-        {
+        if (typeof parsed !== 'object' || parsed === null) {
             return {};
         }
 
-        for (const [ chain, list ] of Object.entries<unknown>({ ...parsed }))
-        {
+        for (const [chain, list] of Object.entries<unknown>({ ...parsed })) {
             const chainId = Number(chain);
 
-            if (Number.isInteger(chainId) && Array.isArray(list))
-            {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                const entries = list.filter((item): item is Token => typeof item === 'object' && item !== null && typeof (item as Token).address === 'string' && typeof (item as Token).decimals === 'number');
+            if (Number.isInteger(chainId) && Array.isArray(list)) {
+                // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const entries = list.filter(
+                    (item): item is Token =>
+                        typeof item === 'object' && item !== null && typeof (item as Token).address === 'string' && typeof (item as Token).decimals === 'number'
+                );
 
-                if (entries.length > 0)
-                {
+                if (entries.length > 0) {
                     tokens[chainId] = entries;
                 }
             }
         }
-    }
-    catch
-    {
+    } catch {
         return {};
     }
 
@@ -154,8 +143,7 @@ export const loadTokens = async(): Promise<TokenMap> =>
  * @param {TokenMap} tokens Added tokens per chain id.
  * @returns {Promise<void>} Resolves once written.
  */
-export const saveTokens = async(tokens: TokenMap) =>
-{
+export const saveTokens = async (tokens: TokenMap) => {
     await setValue('Wallet.Tokens', JSON.stringify(tokens));
 };
 
@@ -166,43 +154,34 @@ export const saveTokens = async(tokens: TokenMap) =>
  * is dropped rather than thrown on: a corrupted entry should cost one suppression, not the dashboard.
  * @returns {Promise<HiddenMap>} Removed contract addresses per chain id.
  */
-export const loadHiddenTokens = async(): Promise<HiddenMap> =>
-{
+export const loadHiddenTokens = async (): Promise<HiddenMap> => {
     const stored = await getValue('Wallet.TokensHidden');
 
-    if (stored === undefined || stored.length === 0)
-    {
+    if (stored === undefined || stored.length === 0) {
         return {};
     }
 
     const hidden: HiddenMap = {};
 
-    try
-    {
+    try {
         const parsed: unknown = JSON.parse(stored);
 
-        if (typeof parsed !== 'object' || parsed === null)
-        {
+        if (typeof parsed !== 'object' || parsed === null) {
             return {};
         }
 
-        for (const [ chain, list ] of Object.entries<unknown>({ ...parsed }))
-        {
+        for (const [chain, list] of Object.entries<unknown>({ ...parsed })) {
             const chainId = Number(chain);
 
-            if (Number.isInteger(chainId) && Array.isArray(list))
-            {
+            if (Number.isInteger(chainId) && Array.isArray(list)) {
                 const entries = list.filter((item): item is string => typeof item === 'string' && isAddress(item)).map((item) => item.toLowerCase());
 
-                if (entries.length > 0)
-                {
+                if (entries.length > 0) {
                     hidden[chainId] = entries;
                 }
             }
         }
-    }
-    catch
-    {
+    } catch {
         return {};
     }
 
@@ -214,8 +193,7 @@ export const loadHiddenTokens = async(): Promise<HiddenMap> =>
  * @param {HiddenMap} hidden Removed contract addresses per chain id.
  * @returns {Promise<void>} Resolves once written.
  */
-export const saveHiddenTokens = async(hidden: HiddenMap) =>
-{
+export const saveHiddenTokens = async (hidden: HiddenMap) => {
     await setValue('Wallet.TokensHidden', JSON.stringify(hidden));
 };
 
@@ -229,12 +207,11 @@ export const saveHiddenTokens = async(hidden: HiddenMap) =>
  * @param {string} address The contract address, in any case.
  * @returns {HiddenMap} A new map including that address.
  */
-export const hideToken = (hidden: HiddenMap, chainId: number, address: string): HiddenMap =>
-{
+export const hideToken = (hidden: HiddenMap, chainId: number, address: string): HiddenMap => {
     const entry = address.toLowerCase();
     const list = hidden[chainId] ?? [];
 
-    return list.includes(entry) ? hidden : { ...hidden, [chainId]: [ ...list, entry ] };
+    return list.includes(entry) ? hidden : { ...hidden, [chainId]: [...list, entry] };
 };
 
 /**
@@ -247,8 +224,7 @@ export const hideToken = (hidden: HiddenMap, chainId: number, address: string): 
  * @param {string} address The contract address, in any case.
  * @returns {HiddenMap} A new map without that address.
  */
-export const unhideToken = (hidden: HiddenMap, chainId: number, address: string): HiddenMap =>
-{
+export const unhideToken = (hidden: HiddenMap, chainId: number, address: string): HiddenMap => {
     const entry = address.toLowerCase();
     const list = hidden[chainId] ?? [];
 
@@ -264,25 +240,25 @@ export const unhideToken = (hidden: HiddenMap, chainId: number, address: string)
  * @returns {Promise<Token>} The resolved token.
  * @throws {Error} When the address is malformed or the contract is not a readable ERC20.
  */
-export const readToken = async(chainId: number, address: string): Promise<Token> =>
-{
-    if (!isAddress(address))
-    {
+export const readToken = async (chainId: number, address: string): Promise<Token> => {
+    if (!isAddress(address)) {
         throw new Error('invalid contract address');
     }
 
     const contract = new Contract(getAddress(address), erc20Abi, getProvider());
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const symbol = await contract.symbol() as string;
+    // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const symbol = (await contract.symbol()) as string;
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const decimals = Number(await contract.decimals() as bigint | number);
+    // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const decimals = Number((await contract.decimals()) as bigint | number);
 
-    const name = await contract.name().then((value: unknown) => (typeof value === 'string' && value.length > 0 ? value : symbol)).catch(() => symbol);
+    const name = await contract
+        .name()
+        .then((value: unknown) => (typeof value === 'string' && value.length > 0 ? value : symbol))
+        .catch(() => symbol);
 
-    if (typeof symbol !== 'string' || symbol.length === 0 || !Number.isInteger(decimals))
-    {
+    if (typeof symbol !== 'string' || symbol.length === 0 || !Number.isInteger(decimals)) {
         throw new Error('contract is not an ERC20 token');
     }
 
@@ -295,8 +271,7 @@ export const readToken = async(chainId: number, address: string): Promise<Token>
  * `tokenlist` names the fields one way and `tokentx` another, so both spellings are accepted and the
  * reader takes whichever is present.
  */
-interface ExplorerToken
-{
+interface ExplorerToken {
     contractAddress?: unknown;
     balance?: unknown;
     name?: unknown;
@@ -316,10 +291,8 @@ interface ExplorerToken
  * @param {unknown} second The `tokentx` spelling.
  * @returns {string} The first usable string, or an empty one.
  */
-const readText = (first: unknown, second: unknown) =>
-{
-    if (typeof first === 'string' && first.length > 0)
-    {
+const readText = (first: unknown, second: unknown) => {
+    if (typeof first === 'string' && first.length > 0) {
         return first;
     }
 
@@ -346,29 +319,24 @@ const discoverLimit = 40;
  * @param {string} address The account address.
  * @returns {Promise<ExplorerToken[]>} The rows, or an empty list when the call fails or is unsupported.
  */
-const readExplorerTokens = async(api: string, action: string, address: string): Promise<ExplorerToken[]> =>
-{
-    const query = `module=account&action=${ action }&address=${ encodeURIComponent(address) }&page=1&offset=100&sort=desc`;
+const readExplorerTokens = async (api: string, action: string, address: string): Promise<ExplorerToken[]> => {
+    const query = `module=account&action=${action}&address=${encodeURIComponent(address)}&page=1&offset=100&sort=desc`;
 
-    try
-    {
+    try {
         // Same client as the history reader, for the same reason: this is an explorer, and one of them
         // cannot be reached from the webview at all — see [request.ts](request.ts).
-        const response = await httpRequest(`${ api }${ api.includes('?') ? '&' : '?' }${ query }`);
+        const response = await httpRequest(`${api}${api.includes('?') ? '&' : '?'}${query}`);
 
-        if (!response.ok)
-        {
+        if (!response.ok) {
             return [];
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const parsed = await response.json() as { result?: unknown };
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        const parsed = (await response.json()) as { result?: unknown };
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        return Array.isArray(parsed.result) ? parsed.result as ExplorerToken[] : [];
-    }
-    catch
-    {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        return Array.isArray(parsed.result) ? (parsed.result as ExplorerToken[]) : [];
+    } catch {
         return [];
     }
 };
@@ -387,25 +355,20 @@ const readExplorerTokens = async(api: string, action: string, address: string): 
  * @returns {Promise<TokenBalance[]>} Balances in the same order as `tokens`.
  * @throws {Error} When every contract read failed, which is the network rather than the contracts.
  */
-export const readTokenBalances = async(address: string, tokens: Token[]): Promise<TokenBalance[]> =>
-{
+export const readTokenBalances = async (address: string, tokens: Token[]): Promise<TokenBalance[]> => {
     const provider = getProvider();
 
     let failures = 0;
 
-    const reads = tokens.map(async(token): Promise<TokenBalance> =>
-    {
-        try
-        {
+    const reads = tokens.map(async (token): Promise<TokenBalance> => {
+        try {
             const contract = new Contract(token.address, erc20Abi, provider);
 
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const value = await contract.balanceOf(getAddress(address)) as bigint;
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const value = (await contract.balanceOf(getAddress(address))) as bigint;
 
             return { token, value, formatted: formatUnits(value, token.decimals) };
-        }
-        catch
-        {
+        } catch {
             failures += 1;
 
             return { token, value: 0n, formatted: '0' };
@@ -414,8 +377,7 @@ export const readTokenBalances = async(address: string, tokens: Token[]): Promis
 
     const balances = await Promise.all(reads);
 
-    if (tokens.length > 0 && failures === tokens.length)
-    {
+    if (tokens.length > 0 && failures === tokens.length) {
         throw new Error('no token balance could be read');
     }
 
@@ -443,8 +405,7 @@ export const readTokenBalances = async(address: string, tokens: Token[]): Promis
  * @param {string[]} hidden Lowercase contract addresses the user removed on this chain, also skipped.
  * @returns {Promise<Token[]>} Held tokens worth adding, in the order the explorer named them.
  */
-export const discoverTokens = async(address: string, network: Network, known: Token[], hidden: string[] = []): Promise<Token[]> =>
-{
+export const discoverTokens = async (address: string, network: Network, known: Token[], hidden: string[] = []): Promise<Token[]> => {
     const api = getExplorerApi(network);
 
     const rows = api.length === 0 ? [] : await readExplorerTokens(api, 'tokenlist', address);
@@ -453,36 +414,31 @@ export const discoverTokens = async(address: string, network: Network, known: To
 
     // Tracked and dismissed contracts are both "do not offer this", so they share one set — which also
     // covers the blind `knownTokens` path below, not just the explorer rows.
-    const skip = new Set([ ...known.map((item) => item.address.toLowerCase()), ...hidden.map((item) => item.toLowerCase()) ]);
+    const skip = new Set([...known.map((item) => item.address.toLowerCase()), ...hidden.map((item) => item.toLowerCase())]);
 
     // An explorer that named nothing is either absent, refusing, or looking at an account it has never
     // seen, and none of those mean the account holds nothing. The blind list covers that gap; where the
     // explorer did answer it already names everything this would, so it is not asked for twice.
     const candidates: Token[] = listed.length > 0 ? [] : (knownTokens[network.chainId] ?? []).filter((item) => !skip.has(item.address.toLowerCase()));
 
-    for (const item of candidates)
-    {
+    for (const item of candidates) {
         skip.add(item.address.toLowerCase());
     }
 
-    for (const row of listed)
-    {
-        if (typeof row.contractAddress !== 'string' || !isAddress(row.contractAddress))
-        {
+    for (const row of listed) {
+        if (typeof row.contractAddress !== 'string' || !isAddress(row.contractAddress)) {
             continue;
         }
 
         // Blockscout labels NFTs in the same list, and neither a balance nor a decimals count means
         // the same thing for those.
-        if (typeof row.type === 'string' && row.type.length > 0 && row.type.toUpperCase() !== 'ERC-20')
-        {
+        if (typeof row.type === 'string' && row.type.length > 0 && row.type.toUpperCase() !== 'ERC-20') {
             continue;
         }
 
         const address20 = getAddress(row.contractAddress);
 
-        if (skip.has(address20.toLowerCase()))
-        {
+        if (skip.has(address20.toLowerCase())) {
             continue;
         }
 
@@ -490,8 +446,7 @@ export const discoverTokens = async(address: string, network: Network, known: To
         // after the last of a token has gone. Skipping those here spends the cap below on contracts
         // that might still hold something, rather than on rows already known to be empty. `tokentx`
         // reports no balance at all, so its rows fall through to the on-chain check.
-        if (typeof row.balance === 'string' && (/^\d+$/u).test(row.balance) && BigInt(row.balance) === 0n)
-        {
+        if (typeof row.balance === 'string' && /^\d+$/u.test(row.balance) && BigInt(row.balance) === 0n) {
             continue;
         }
 
@@ -499,8 +454,7 @@ export const discoverTokens = async(address: string, network: Network, known: To
         const name = readText(row.name, row.tokenName);
         const decimals = Number(row.decimals ?? row.tokenDecimal);
 
-        if (symbol.length === 0 || !Number.isInteger(decimals) || decimals < 0 || decimals > 36)
-        {
+        if (symbol.length === 0 || !Number.isInteger(decimals) || decimals < 0 || decimals > 36) {
             continue;
         }
 
@@ -508,14 +462,12 @@ export const discoverTokens = async(address: string, network: Network, known: To
 
         candidates.push({ address: address20, symbol, name: name.length > 0 ? name : symbol, decimals, coinId: getCoinId(network.chainId, address20) });
 
-        if (candidates.length >= discoverLimit)
-        {
+        if (candidates.length >= discoverLimit) {
             break;
         }
     }
 
-    if (candidates.length === 0)
-    {
+    if (candidates.length === 0) {
         return [];
     }
 

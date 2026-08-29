@@ -9,16 +9,11 @@ import { platform } from '@tauri-apps/plugin-os';
  * `platform()` throws when the app is served outside a Tauri window (plain browser preview), in which case the hook reports `false`.
  * @returns {boolean} True when the host platform is Windows.
  */
-export const useIsWindows = (): boolean =>
-{
-    const [ isWindows ] = useState(() =>
-    {
-        try
-        {
+export const useIsWindows = (): boolean => {
+    const [isWindows] = useState(() => {
+        try {
             return platform() === 'windows';
-        }
-        catch
-        {
+        } catch {
             return false;
         }
     });

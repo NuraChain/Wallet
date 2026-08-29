@@ -7,8 +7,7 @@ import { cacheLog, clearUnder, prune, readRaw, writeRaw } from './cache.store';
  * keeps `core` from importing a type back out of the layer that consumes it. `hook/history` re-exports
  * it, so every existing import site is unchanged.
  */
-export interface Transaction
-{
+export interface Transaction {
     id: string;
     hash: string;
     from: string;
@@ -32,8 +31,7 @@ export interface Transaction
  * still rendered rather than blanked, because a stale list beats an empty screen — the network result
  * replaces it when it lands.
  */
-const cacheConfig =
-{
+const cacheConfig = {
     /** How long a fetched list is served without revalidating. */
     history: 2 * 60 * 1000,
 
@@ -60,8 +58,7 @@ const prefix = 'tx-cache/v1/';
  * refuses the request produces no rows *and* a reason, and restoring the rows without the reason would
  * turn "unreadable" back into "no transactions" on the next launch.
  */
-interface HistoryEntry
-{
+interface HistoryEntry {
     items: Transaction[];
     notice: string;
     written: number;
@@ -69,8 +66,7 @@ interface HistoryEntry
 }
 
 /** What a read found, and whether the caller still needs to go to the network. */
-interface HistoryHit
-{
+interface HistoryHit {
     entry: HistoryEntry;
     fresh: boolean;
 }
@@ -89,7 +85,11 @@ interface HistoryHit
  * @param {string[]} tokens The tracked token contract addresses.
  * @returns {string} A stable key.
  */
-export const historyKey = (address: string, chainId: number, api: string, tokens: string[]) => `${ chainId }|${ address.toLowerCase() }|${ api }|${ [ ...tokens ].map((item) => item.toLowerCase()).sort().join(',') }`;
+export const historyKey = (address: string, chainId: number, api: string, tokens: string[]) =>
+    `${chainId}|${address.toLowerCase()}|${api}|${[...tokens]
+        .map((item) => item.toLowerCase())
+        .sort()
+        .join(',')}`;
 
 /**
  * identity - The stable identity of one transaction row, for deduplication.
@@ -103,7 +103,7 @@ export const historyKey = (address: string, chainId: number, api: string, tokens
  * @param {Transaction} item The row.
  * @returns {string} Its identity.
  */
-const identity = (item: Transaction) => `${ item.hash }|${ item.symbol }|${ item.from.toLowerCase() }|${ item.to.toLowerCase() }|${ item.value }`;
+const identity = (item: Transaction) => `${item.hash}|${item.symbol}|${item.from.toLowerCase()}|${item.to.toLowerCase()}|${item.value}`;
 
 /**
  * mergeTransactions - Folds a newer read into what was already held.
@@ -116,21 +116,18 @@ const identity = (item: Transaction) => `${ item.hash }|${ item.symbol }|${ item
  * @param {Transaction[]} found What the network just returned.
  * @returns {Transaction[]} One ordered, deduplicated list.
  */
-const mergeTransactions = (held: Transaction[], found: Transaction[]) =>
-{
+const mergeTransactions = (held: Transaction[], found: Transaction[]) => {
     const byIdentity = new Map<string, Transaction>();
 
-    for (const item of held)
-    {
+    for (const item of held) {
         byIdentity.set(identity(item), item);
     }
 
-    for (const item of found)
-    {
+    for (const item of found) {
         byIdentity.set(identity(item), item);
     }
 
-    return [ ...byIdentity.values() ].sort((left, right) => right.timestamp - left.timestamp);
+    return [...byIdentity.values()].sort((left, right) => right.timestamp - left.timestamp);
 };
 
 /**
@@ -138,27 +135,21 @@ const mergeTransactions = (held: Transaction[], found: Transaction[]) =>
  * @param {string | undefined} raw The serialized entry.
  * @returns {HistoryEntry | undefined} The entry, or `undefined`.
  */
-const parse = (raw: string | undefined) =>
-{
-    if (raw === undefined)
-    {
+const parse = (raw: string | undefined) => {
+    if (raw === undefined) {
         return undefined;
     }
 
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const entry = JSON.parse(raw) as HistoryEntry;
 
-        if (!Array.isArray(entry.items) || typeof entry.written !== 'number')
-        {
+        if (!Array.isArray(entry.items) || typeof entry.written !== 'number') {
             return undefined;
         }
 
         return entry;
-    }
-    catch
-    {
+    } catch {
         return undefined;
     }
 };
@@ -171,12 +162,10 @@ const parse = (raw: string | undefined) =>
  * @param {string} key The key from `historyKey`.
  * @returns {HistoryHit | undefined} What is held and whether it is fresh, or `undefined`.
  */
-export const readHistory = (key: string): HistoryHit | undefined =>
-{
+export const readHistory = (key: string): HistoryHit | undefined => {
     const entry = parse(readRaw('local', prefix + key));
 
-    if (entry === undefined)
-    {
+    if (entry === undefined) {
         cacheLog('miss', key);
 
         return undefined;
@@ -184,7 +173,7 @@ export const readHistory = (key: string): HistoryHit | undefined =>
 
     const age = Date.now() - entry.written;
 
-    cacheLog(age > cacheConfig.stale ? 'expired' : 'hit', key, `${ entry.items.length } rows`);
+    cacheLog(age > cacheConfig.stale ? 'expired' : 'hit', key, `${entry.items.length} rows`);
 
     return { entry, fresh: age <= cacheConfig.history };
 };
@@ -200,11 +189,10 @@ export const readHistory = (key: string): HistoryHit | undefined =>
  * @param {string} notice Why there were none, when the explorer said so.
  * @returns {Transaction[]} The merged list now held, which is what the caller should render.
  */
-export const writeHistory = (key: string, items: Transaction[], notice: string) =>
-{
+export const writeHistory = (key: string, items: Transaction[], notice: string) => {
     const held = parse(readRaw('local', prefix + key));
 
-    const merged = held === undefined ? [ ...items ].sort((left, right) => right.timestamp - left.timestamp) : mergeTransactions(held.items, items);
+    const merged = held === undefined ? [...items].sort((left, right) => right.timestamp - left.timestamp) : mergeTransactions(held.items, items);
 
     const entry: HistoryEntry = { items: merged, notice, written: Date.now(), used: Date.now() };
 
@@ -212,7 +200,7 @@ export const writeHistory = (key: string, items: Transaction[], notice: string) 
 
     prune('local', prefix, cacheConfig.entries, (raw) => parse(raw)?.used ?? 0);
 
-    cacheLog('write', key, `${ merged.length } rows`);
+    cacheLog('write', key, `${merged.length} rows`);
 
     return merged;
 };
@@ -224,12 +212,10 @@ export const writeHistory = (key: string, items: Transaction[], notice: string) 
  * into the write would make an entry that is only ever read look like the coldest thing there.
  * @param {string} key The key from `historyKey`.
  */
-export const touchHistory = (key: string) =>
-{
+export const touchHistory = (key: string) => {
     const entry = parse(readRaw('local', prefix + key));
 
-    if (entry !== undefined)
-    {
+    if (entry !== undefined) {
         writeRaw('local', prefix + key, JSON.stringify({ ...entry, used: Date.now() }));
     }
 };
@@ -243,7 +229,6 @@ export const touchHistory = (key: string) =>
  * point none of it belongs to the wallet that is now open.
  * @param {(key: string) => boolean} [match] Which keys to drop; omit to drop all of them.
  */
-export const invalidateHistory = (match?: (key: string) => boolean) =>
-{
+export const invalidateHistory = (match?: (key: string) => boolean) => {
     clearUnder('local', prefix, match);
 };

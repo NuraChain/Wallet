@@ -13,9 +13,9 @@ import './assets/style.css';
 /**
  * Prevent browser-default shortcuts and context menu actions that conflict with the desktop app experience.
  */
-document.addEventListener('keydown', (event) =>
-{
-    if (event.key === 'F3' ||
+document.addEventListener('keydown', (event) => {
+    if (
+        event.key === 'F3' ||
         event.key === 'F5' ||
         event.key === 'F7' ||
         event.key === 'F12' ||
@@ -25,14 +25,13 @@ document.addEventListener('keydown', (event) =>
         (event.ctrlKey && (event.key === 'r' || event.key === 'R')) ||
         (event.ctrlKey && (event.key === 'f' || event.key === 'F')) ||
         (event.ctrlKey && event.shiftKey && (event.key === 'p' || event.key === 'P')) ||
-        (event.ctrlKey && event.shiftKey && (event.key === 'i' || event.key === 'I')))
-    {
+        (event.ctrlKey && event.shiftKey && (event.key === 'i' || event.key === 'I'))
+    ) {
         event.preventDefault();
     }
 });
 
-document.addEventListener('contextmenu', (event) =>
-{
+document.addEventListener('contextmenu', (event) => {
     event.preventDefault();
 });
 
@@ -52,15 +51,12 @@ document.addEventListener('contextmenu', (event) =>
  * decision and the render happen together instead of the shell mounting empty and being told after.
  * @returns {Promise<void>} Resolves once every preference has been applied or given up on.
  */
-const startup = async() =>
-{
-    const results = await Promise.allSettled([ initTheme(), initLanguage(), initNetwork() ]);
+const startup = async () => {
+    const results = await Promise.allSettled([initTheme(), initLanguage(), initNetwork()]);
 
-    for (const result of results)
-    {
-        if (result.status === 'rejected')
-        {
-            // eslint-disable-next-line no-console
+    for (const result of results) {
+        if (result.status === 'rejected') {
+            // oxlint-disable-next-line no-console
             console.error('[startup]', result.reason);
         }
     }
@@ -68,8 +64,7 @@ const startup = async() =>
 
 const rootElement = document.querySelector('#root');
 
-if (rootElement)
-{
+if (rootElement) {
     await startup();
 
     // Wrapped rather than rendered bare: the router has its own per-route error element, which keeps
@@ -77,9 +72,7 @@ if (rootElement)
     // the shell — failing. That is what this is still here for.
     const application = (
         <ErrorBoundary>
-
-            <RouterProvider router={ router } />
-
+            <RouterProvider router={router} />
         </ErrorBoundary>
     );
 

@@ -45,25 +45,28 @@ let providerCache: { id: string; revision: number; provider: AbstractProvider } 
  * others are the ones tried when it stalls.
  * @returns {AbstractProvider} Provider bound to the active network.
  */
-export const getProvider = () =>
-{
+export const getProvider = () => {
     const network = getNetwork();
     const revision = getNetworkRevision();
 
     // The revision is half the key, not a nicety: adding a custom network replaces the entry under the
     // same id, so an id-only match would keep returning a provider aimed at the endpoint it replaced.
-    if (providerCache?.id === network.id && providerCache.revision === revision)
-    {
+    if (providerCache?.id === network.id && providerCache.revision === revision) {
         return providerCache.provider;
     }
 
-    const endpoints = [ network.rpcUrl, ...network.rpcBackups ?? [] ].map((url) => url.trim()).filter((url) => url.length > 0);
+    const endpoints = [network.rpcUrl, ...(network.rpcBackups ?? [])].map((url) => url.trim()).filter((url) => url.length > 0);
 
     const single = (url: string) => new JsonRpcProvider(url, network.chainId, { staticNetwork: true });
 
-    const provider: AbstractProvider = endpoints.length > 1 ?
-        new FallbackProvider(endpoints.map((url, index) => ({ provider: single(url), priority: index + 1, weight: 1, stallTimeout: 1500 })), network.chainId, { quorum: 1 }) :
-        single(endpoints[0] ?? network.rpcUrl);
+    const provider: AbstractProvider =
+        endpoints.length > 1
+            ? new FallbackProvider(
+                  endpoints.map((url, index) => ({ provider: single(url), priority: index + 1, weight: 1, stallTimeout: 1500 })),
+                  network.chainId,
+                  { quorum: 1 }
+              )
+            : single(endpoints[0] ?? network.rpcUrl);
 
     providerCache = { id: network.id, revision, provider };
 

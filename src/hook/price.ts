@@ -21,45 +21,38 @@ import type { TokenBalance } from '../core/token';
  * @param {TokenBalance[]} tokens Token balances to price.
  * @returns {{ prices: PriceMap; total: number; loading: boolean; at: number }} Prices, the summed USD value, whether the lookup is still running, and how current the figure is.
  */
-export const usePrices = (network: Network, nativeFormatted: string, tokens: TokenBalance[]) =>
-{
-    const [ held, setHeld ] = useState<{ prices: PriceMap; at: number }>({ prices: {}, at: 0 });
-    const [ loading, setLoading ] = useState(true);
+export const usePrices = (network: Network, nativeFormatted: string, tokens: TokenBalance[]) => {
+    const [held, setHeld] = useState<{ prices: PriceMap; at: number }>({ prices: {}, at: 0 });
+    const [loading, setLoading] = useState(true);
 
     const online = useOnline();
 
     const nativeId = getNativeCoinId(network.chainId);
-    const ids = useMemo(() => [ nativeId, ...tokens.map((item) => getTokenCoinId(network.chainId, item.token.address, item.token.coinId)) ].filter((id) => id.length > 0), [ nativeId, network.chainId, tokens ]);
+    const ids = useMemo(
+        () => [nativeId, ...tokens.map((item) => getTokenCoinId(network.chainId, item.token.address, item.token.coinId))].filter((id) => id.length > 0),
+        [nativeId, network.chainId, tokens]
+    );
 
     const key = ids.join(',');
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         let active = true;
 
-        const run = async() =>
-        {
+        const run = async () => {
             setLoading(true);
 
-            try
-            {
+            try {
                 const result = await readPrices(key.split(',').filter((id) => id.length > 0));
 
-                if (active)
-                {
+                if (active) {
                     setHeld(result);
                 }
-            }
-            catch
-            {
+            } catch {
                 // `readPrices` resolves on every path, so this only covers something unforeseen inside
                 // it. Held prices are kept rather than cleared: the last known valuation is still the
                 // best one available, and blanking it would be the failure showing up as money.
-            }
-            finally
-            {
-                if (active)
-                {
+            } finally {
+                if (active) {
                     setLoading(false);
                 }
             }
@@ -67,27 +60,24 @@ export const usePrices = (network: Network, nativeFormatted: string, tokens: Tok
 
         void run();
 
-        return () =>
-        {
+        return () => {
             active = false;
         };
         // `online` is a dependency rather than a condition: a link that comes back is exactly when the
         // held prices are worth replacing, and this is the cheapest place to notice.
-    }, [ key, online ]);
+    }, [key, online]);
 
-    const total = useMemo(() =>
-    {
+    const total = useMemo(() => {
         const nativePrice = held.prices[nativeId] ?? 0;
 
         let sum = Number(nativeFormatted) * nativePrice;
 
-        for (const item of tokens)
-        {
+        for (const item of tokens) {
             sum += Number(item.formatted) * (held.prices[getTokenCoinId(network.chainId, item.token.address, item.token.coinId)] ?? 0);
         }
 
         return Number.isFinite(sum) ? sum : 0;
-    }, [ held, nativeId, network.chainId, nativeFormatted, tokens ]);
+    }, [held, nativeId, network.chainId, nativeFormatted, tokens]);
 
     return { prices: held.prices, total, loading, at: held.at };
 };

@@ -5,8 +5,7 @@ import { ethers } from 'ethers';
  *
  * When `token` is omitted the transfer is of the network's native coin; otherwise it is an ERC20 `transfer` on the given contract.
  */
-export interface SendParams
-{
+export interface SendParams {
     to: string;
     amount: string;
     token?: { address: string; decimals: number };
@@ -15,7 +14,7 @@ export interface SendParams
 /**
  * Minimal ERC20 write surface used for outgoing transfers.
  */
-const transferAbi = [ 'function transfer(address to, uint256 amount) returns (bool)' ];
+const transferAbi = ['function transfer(address to, uint256 amount) returns (bool)'];
 
 /**
  * Broadcast a signed transfer from an already-connected signer.
@@ -25,10 +24,8 @@ const transferAbi = [ 'function transfer(address to, uint256 amount) returns (bo
  * @param {SendParams} params Recipient, amount, and optional token.
  * @returns {Promise<string>} The broadcast transaction hash.
  */
-const broadcast = async(signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParams) =>
-{
-    if (params.token === undefined)
-    {
+const broadcast = async (signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParams) => {
+    if (params.token === undefined) {
         const transaction = await signer.sendTransaction({ to: params.to, value: ethers.parseEther(params.amount) });
 
         return transaction.hash;
@@ -36,8 +33,8 @@ const broadcast = async(signer: ethers.Wallet | ethers.HDNodeWallet, params: Sen
 
     const contract = new ethers.Contract(params.token.address, transferAbi, signer);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const transaction = await contract.transfer(params.to, ethers.parseUnits(params.amount, params.token.decimals)) as ethers.TransactionResponse;
+    // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const transaction = (await contract.transfer(params.to, ethers.parseUnits(params.amount, params.token.decimals))) as ethers.TransactionResponse;
 
     return transaction.hash;
 };
@@ -46,27 +43,22 @@ const broadcast = async(signer: ethers.Wallet | ethers.HDNodeWallet, params: Sen
  * PrivateKeyWalletManager - Wrapper for wallets imported via raw private key.
  * Exposes the same public API surface as WalletManager.
  */
-export class PrivateKeyWalletManager
-{
+export class PrivateKeyWalletManager {
     private readonly WalletSigner: ethers.Wallet;
 
-    public constructor(privateKey: string)
-    {
+    public constructor(privateKey: string) {
         this.WalletSigner = new ethers.Wallet(privateKey);
     }
 
-    public retrieve()
-    {
+    public retrieve() {
         return { Public: this.WalletSigner.address, Private: this.WalletSigner.privateKey };
     }
 
-    public async sign(message: string | Uint8Array)
-    {
+    public async sign(message: string | Uint8Array) {
         return this.WalletSigner.signMessage(message);
     }
 
-    public verify(message: string, signature: string)
-    {
+    public verify(message: string, signature: string) {
         return ethers.verifyMessage(message, signature) === this.WalletSigner.address;
     }
 
@@ -76,19 +68,16 @@ export class PrivateKeyWalletManager
      * @param {SendParams} params - Recipient, amount, and optional token
      * @returns {Promise<string>} The broadcast transaction hash
      */
-    public async send(provider: ethers.Provider, params: SendParams)
-    {
+    public async send(provider: ethers.Provider, params: SendParams) {
         return broadcast(this.WalletSigner.connect(provider), params);
     }
 
-    public toString()
-    {
+    public toString() {
         return this.WalletSigner.address;
     }
 }
 
-class WalletManager
-{
+class WalletManager {
     private readonly WalletAddress: string;
     private readonly WalletDerive: ethers.HDNodeWallet;
 
@@ -97,13 +86,12 @@ class WalletManager
      * @param {string} mnemonic - The BIP39 mnemonic phrase
      * @param {number} index - The wallet derivation index path
      */
-    public constructor(mnemonic: string, index: number)
-    {
+    public constructor(mnemonic: string, index: number) {
         const normalized = mnemonic.normalize('NFKD');
 
         const wallet = ethers.HDNodeWallet.fromPhrase(normalized, '', `m/44'/60'/0'`);
 
-        this.WalletDerive = wallet.derivePath(`0/${ index }`);
+        this.WalletDerive = wallet.derivePath(`0/${index}`);
         this.WalletAddress = this.WalletDerive.address;
     }
 
@@ -111,8 +99,7 @@ class WalletManager
      * retrieve - Returns the public and private keys of the derived wallet
      * @returns {Object} Object containing Public and Private key strings
      */
-    public retrieve()
-    {
+    public retrieve() {
         return { Public: this.WalletDerive.address, Private: this.WalletDerive.privateKey };
     }
 
@@ -121,8 +108,7 @@ class WalletManager
      * @param {string | Uint8Array} message - The message to sign
      * @returns {Promise<string>} The signature string
      */
-    public async sign(message: string | Uint8Array)
-    {
+    public async sign(message: string | Uint8Array) {
         return this.WalletDerive.signMessage(message);
     }
 
@@ -132,8 +118,7 @@ class WalletManager
      * @param {string} signature - The signature to verify
      * @returns {boolean} True if signature is valid for this wallet, false otherwise
      */
-    public verify(message: string, signature: string)
-    {
+    public verify(message: string, signature: string) {
         return ethers.verifyMessage(message, signature) === this.WalletAddress;
     }
 
@@ -143,8 +128,7 @@ class WalletManager
      * @param {SendParams} params - Recipient, amount, and optional token
      * @returns {Promise<string>} The broadcast transaction hash
      */
-    public async send(provider: ethers.Provider, params: SendParams)
-    {
+    public async send(provider: ethers.Provider, params: SendParams) {
         return broadcast(this.WalletDerive.connect(provider), params);
     }
 
@@ -152,8 +136,7 @@ class WalletManager
      * toString - Returns the wallet address as a string
      * @returns {string} The wallet address
      */
-    public toString()
-    {
+    public toString() {
         return this.WalletAddress;
     }
 
@@ -161,8 +144,7 @@ class WalletManager
      * Generate - Generates a new random BIP39 mnemonic phrase
      * @returns {string} A new mnemonic phrase
      */
-    public static Generate()
-    {
+    public static Generate() {
         const wallet = ethers.Wallet.createRandom();
 
         return wallet.mnemonic?.phrase;
@@ -173,8 +155,7 @@ class WalletManager
      * @param {string} mnemonic - The mnemonic phrase to validate
      * @returns {boolean} True if the mnemonic is valid, false otherwise
      */
-    public static Validate(mnemonic: string)
-    {
+    public static Validate(mnemonic: string) {
         return ethers.Mnemonic.isValidMnemonic(mnemonic);
     }
 
@@ -184,8 +165,7 @@ class WalletManager
      * @param {string} signature - The signature
      * @returns {string} The recovered wallet address
      */
-    public static Verify(message: string, signature: string)
-    {
+    public static Verify(message: string, signature: string) {
         return ethers.verifyMessage(message, signature);
     }
 
@@ -194,9 +174,8 @@ class WalletManager
      * @param {string} privateKey - The raw 64-char hex private key (with or without 0x prefix)
      * @returns {PrivateKeyWalletManager} A wallet wrapper that exposes the same public API as WalletManager
      */
-    public static FromPrivateKey(privateKey: string)
-    {
-        const hex = privateKey.startsWith('0x') ? privateKey : `0x${ privateKey }`;
+    public static FromPrivateKey(privateKey: string) {
+        const hex = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
 
         return new PrivateKeyWalletManager(hex);
     }
@@ -211,16 +190,12 @@ class WalletManager
      * @param {string} privateKey - The candidate key, with or without the 0x prefix
      * @returns {boolean} True when a signer can be built from it
      */
-    public static ValidatePrivateKey(privateKey: string)
-    {
-        try
-        {
+    public static ValidatePrivateKey(privateKey: string) {
+        try {
             WalletManager.FromPrivateKey(privateKey);
 
             return true;
-        }
-        catch
-        {
+        } catch {
             return false;
         }
     }

@@ -12,12 +12,13 @@ import { siteOrigin, type DappEnvelope, type DappReply } from './dapp';
  * decision about whether to send it at all is made about a site. Nothing here is taken from a page:
  * every entry is written from an envelope, and the origin in an envelope was stamped natively.
  */
-export interface DappPage { label: string; origin: string }
+export interface DappPage {
+    label: string;
+    origin: string;
+}
 
-declare global
-{
-    interface Window
-    {
+declare global {
+    interface Window {
         /**
          * How the Android bridge hands a page's call to the wallet.
          *
@@ -41,7 +42,7 @@ const pages = new Map<string, string>();
  * getDappPages - Every page the provider has answered, newest state per view.
  * @returns {DappPage[]} One entry per live view that has spoken to the wallet.
  */
-export const getDappPages = (): DappPage[] => [ ...pages ].map(([ label, origin ]) => ({ label, origin }));
+export const getDappPages = (): DappPage[] => [...pages].map(([label, origin]) => ({ label, origin }));
 
 /**
  * forgetDappPage - Drops a view, when its tab is closed.
@@ -53,8 +54,7 @@ export const getDappPages = (): DappPage[] => [ ...pages ].map(([ label, origin 
  * @param {string} label The view label to forget.
  * @returns {void}
  */
-export const forgetDappPage = (label: string) =>
-{
+export const forgetDappPage = (label: string) => {
     pages.delete(label);
 };
 
@@ -62,8 +62,7 @@ export const forgetDappPage = (label: string) =>
  * forgetDappPages - Drops every view.
  * @returns {void}
  */
-export const forgetDappPages = () =>
-{
+export const forgetDappPages = () => {
     pages.clear();
 };
 
@@ -94,19 +93,21 @@ type DappResponder = (reply: DappReply) => void;
  * @param {string} label The view the call came from.
  * @returns {DappResponder} Delivers an answer to that view.
  */
-const androidResponder = (label: string): DappResponder => (reply) =>
-{
-    getNativeBrowser()?.dappReply?.(label, JSON.stringify(reply));
-};
+const androidResponder =
+    (label: string): DappResponder =>
+    (reply) => {
+        getNativeBrowser()?.dappReply?.(label, JSON.stringify(reply));
+    };
 
 /**
  * @param {number} ticket The ticket Rust is holding the page's request open under.
  * @returns {DappResponder} Resolves that request.
  */
-const desktopResponder = (ticket: number): DappResponder => (reply) =>
-{
-    void invoke('dapp_respond', { ticket, payload: JSON.stringify(reply) }).catch(() => undefined);
-};
+const desktopResponder =
+    (ticket: number): DappResponder =>
+    (reply) => {
+        void invoke('dapp_respond', { ticket, payload: JSON.stringify(reply) }).catch(() => undefined);
+    };
 
 /**
  * emitDappEvent - Pushes provider state into one page.
@@ -119,12 +120,10 @@ const desktopResponder = (ticket: number): DappResponder => (reply) =>
  * @param {unknown} payload The event argument, in the shape that event carries.
  * @returns {void}
  */
-export const emitDappEvent = (label: string, event: string, payload: unknown) =>
-{
+export const emitDappEvent = (label: string, event: string, payload: unknown) => {
     const body = JSON.stringify({ event, payload });
 
-    if (onAndroid())
-    {
+    if (onAndroid()) {
         getNativeBrowser()?.dappEmit?.(label, body);
 
         return;
@@ -152,23 +151,20 @@ let stopBridge: (() => void) | undefined;
  * @param {string} origin The origin the native side stamped on it.
  * @returns {DappEnvelope | undefined} The envelope, or `undefined` when it is not usable.
  */
-const readEnvelope = (raw: unknown, label: string, origin: string): DappEnvelope | undefined =>
-{
-    if (typeof raw !== 'object' || raw === null || !('id' in raw) || !('method' in raw))
-    {
+const readEnvelope = (raw: unknown, label: string, origin: string): DappEnvelope | undefined => {
+    if (typeof raw !== 'object' || raw === null || !('id' in raw) || !('method' in raw)) {
         return undefined;
     }
 
     const { id, method } = raw;
 
-    if (typeof id !== 'string' || id.length === 0 || typeof method !== 'string' || method.length === 0)
-    {
+    if (typeof id !== 'string' || id.length === 0 || typeof method !== 'string' || method.length === 0) {
         return undefined;
     }
 
     const params = 'params' in raw ? raw.params : [];
 
-    const list = Array.isArray(params) ? params : [ params ];
+    const list = Array.isArray(params) ? params : [params];
 
     // Reduced to an origin here even though both native sides already send one. It is idempotent —
     // the origin of an origin is itself — and it is the single guarantee that a grant is looked up
@@ -191,12 +187,10 @@ const readEnvelope = (raw: unknown, label: string, origin: string): DappEnvelope
  * @param {(envelope: DappEnvelope) => Promise<DappReply>} handler Answers one call.
  * @returns {() => void} Stops listening.
  */
-export const startDappBridge = (handler: (envelope: DappEnvelope) => Promise<DappReply>) =>
-{
+export const startDappBridge = (handler: (envelope: DappEnvelope) => Promise<DappReply>) => {
     stopBridge?.();
 
-    const accept = (envelope: DappEnvelope, respond: DappResponder) =>
-    {
+    const accept = (envelope: DappEnvelope, respond: DappResponder) => {
         pages.set(envelope.label, envelope.origin);
 
         void handler(envelope).then(
@@ -205,37 +199,29 @@ export const startDappBridge = (handler: (envelope: DappEnvelope) => Promise<Dap
             // The router is written not to reject, so this is the belt to its braces: a handler that
             // threw anyway would otherwise leave the page's promise pending for good, and a dApp
             // waiting on a request that never settles simply stops working with no error to show.
-            (cause: unknown) =>
-            {
+            (cause: unknown) => {
                 respond({ id: envelope.id, error: { code: -32603, message: cause instanceof Error ? cause.message : String(cause) } });
             }
         );
     };
 
-    if (onAndroid())
-    {
-        window.__nuraDappRequest = (incoming: string) =>
-        {
+    if (onAndroid()) {
+        window.__nuraDappRequest = (incoming: string) => {
             let parsed: unknown;
 
-            try
-            {
+            try {
                 parsed = JSON.parse(incoming);
-            }
-            catch
-            {
+            } catch {
                 return;
             }
 
-            if (typeof parsed !== 'object' || parsed === null || !('label' in parsed) || !('origin' in parsed) || !('payload' in parsed))
-            {
+            if (typeof parsed !== 'object' || parsed === null || !('label' in parsed) || !('origin' in parsed) || !('payload' in parsed)) {
                 return;
             }
 
             const { label, origin, payload } = parsed;
 
-            if (typeof label !== 'string' || typeof origin !== 'string' || typeof payload !== 'string')
-            {
+            if (typeof label !== 'string' || typeof origin !== 'string' || typeof payload !== 'string') {
                 return;
             }
 
@@ -243,25 +229,20 @@ export const startDappBridge = (handler: (envelope: DappEnvelope) => Promise<Dap
             // to send is described in one language and checked in the same place on both platforms.
             let call: unknown;
 
-            try
-            {
+            try {
                 call = JSON.parse(payload);
-            }
-            catch
-            {
+            } catch {
                 return;
             }
 
             const envelope = readEnvelope(call, label, origin);
 
-            if (envelope !== undefined)
-            {
+            if (envelope !== undefined) {
                 accept(envelope, androidResponder(label));
             }
         };
 
-        stopBridge = () =>
-        {
+        stopBridge = () => {
             window.__nuraDappRequest = undefined;
 
             stopBridge = undefined;
@@ -276,20 +257,16 @@ export const startDappBridge = (handler: (envelope: DappEnvelope) => Promise<Dap
     let dropped = false;
     let unlisten: (() => void) | undefined;
 
-    void listen<{ ticket: number; label: string; origin: string; payload: string }>('nura://dapp-request', (event) =>
-    {
+    void listen<{ ticket: number; label: string; origin: string; payload: string }>('nura://dapp-request', (event) => {
         const { ticket, label, origin, payload } = event.payload;
 
         const respond = desktopResponder(ticket);
 
         let call: unknown;
 
-        try
-        {
+        try {
             call = JSON.parse(payload);
-        }
-        catch
-        {
+        } catch {
             // Rust is holding the page's request open on this ticket, so even a payload that cannot
             // be read has to be answered — dropping it would hang the page until the timeout.
             respond({ id: '', error: { code: -32700, message: 'The request was not valid JSON' } });
@@ -299,28 +276,27 @@ export const startDappBridge = (handler: (envelope: DappEnvelope) => Promise<Dap
 
         const envelope = readEnvelope(call, label, origin);
 
-        if (envelope === undefined)
-        {
+        if (envelope === undefined) {
             respond({ id: '', error: { code: -32600, message: 'The request was not a valid provider call' } });
 
             return;
         }
 
         accept(envelope, respond);
-    }).then((stop) =>
-    {
-        if (dropped)
-        {
-            stop();
+    }).then(
+        (stop) => {
+            if (dropped) {
+                stop();
 
-            return;
-        }
+                return;
+            }
 
-        unlisten = stop;
-    }, () => undefined);
+            unlisten = stop;
+        },
+        () => undefined
+    );
 
-    stopBridge = () =>
-    {
+    stopBridge = () => {
         dropped = true;
 
         unlisten?.();

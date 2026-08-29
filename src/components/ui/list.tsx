@@ -19,15 +19,14 @@ import { surfacePanel } from './panel';
  * @param {ReactNode} props.children The rows.
  * @returns {JSX.Element} The grouped list.
  */
-export default function ListCard({ className = '', children, ...rest }: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
-{
+export default function ListCard({
+    className = '',
+    children,
+    ...rest
+}: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
     return (
-        <div
-            className={ cn(surfacePanel, 'overflow-hidden rounded-surface list-divide', className) }
-            { ...rest }>
-
-            { children }
-
+        <div className={cn(surfacePanel, 'overflow-hidden rounded-surface list-divide', className)} {...rest}>
+            {children}
         </div>
     );
 }

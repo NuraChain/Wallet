@@ -24,54 +24,48 @@ import { Vertical } from './stack';
  * @param {ReactNode} props.children The sheet content.
  * @returns {JSX.Element} The sheet.
  */
-export function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode })
-{
+export function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode }) {
     const { panelRef, titleId } = useDialog(onClose);
 
     return (
         <>
-            { /* Full-viewport and animated, so never filtered — see the note on the scrim in modal.tsx. */ }
+            {/* Full-viewport and animated, so never filtered — see the note on the scrim in modal.tsx. */}
             <motion.div
-                initial={ { opacity: 0 } }
-                animate={ { opacity: 1 } }
-                exit={ { opacity: 0 } }
-                className={ `absolute size-full cursor-pointer bg-scrim ${ layer.dialog }` }
-                onClick={ onClose } />
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className={`absolute size-full cursor-pointer bg-scrim ${layer.dialog}`}
+                onClick={onClose}
+            />
 
-            { /*
-              * The sheet shares the modal's layer rather than sitting one below it. They are the same
-              * kind of surface and only one is ever open, so putting them on different layers only
-              * created the possibility of them disagreeing about which covers the chrome.
-              */ }
+            {/*
+             * The sheet shares the modal's layer rather than sitting one below it. They are the same
+             * kind of surface and only one is ever open, so putting them on different layers only
+             * created the possibility of them disagreeing about which covers the chrome.
+             */}
             <motion.div
-                ref={ panelRef }
+                ref={panelRef}
                 role='dialog'
                 aria-modal
-                aria-labelledby={ titleId }
-                tabIndex={ -1 }
-                initial={ { y: '-100%' } }
-                animate={ { y: '0%' } }
-                exit={ { y: '-100%' } }
-                transition={ { type: 'tween' } }
-                className={ cn(surfacePanel, layer.dialog, 'absolute inset-x-0 top-0 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 shadow-float outline-none', inset.sheetTop, 'pb-4 sm:mx-auto sm:px-6 sm:pb-6') }>
-
-                <Button
-                    variant='muted'
-                    size='iconLarge'
-                    aria-label={ T('App.Close') }
-                    onClick={ onClose }
-                    className='mt-4 shrink-0'>
-
-                    <IoClose size={ 24 } />
-
+                aria-labelledby={titleId}
+                tabIndex={-1}
+                initial={{ y: '-100%' }}
+                animate={{ y: '0%' }}
+                exit={{ y: '-100%' }}
+                transition={{ type: 'tween' }}
+                className={cn(
+                    surfacePanel,
+                    layer.dialog,
+                    'absolute inset-x-0 top-0 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 shadow-float outline-none',
+                    inset.sheetTop,
+                    'pb-4 sm:mx-auto sm:px-6 sm:pb-6'
+                )}
+            >
+                <Button variant='muted' size='iconLarge' aria-label={T('App.Close')} onClick={onClose} className='mt-4 shrink-0'>
+                    <IoClose size={24} />
                 </Button>
 
-                <DialogTitleContext value={ titleId }>
-
-                    { children }
-
-                </DialogTitleContext>
-
+                <DialogTitleContext value={titleId}>{children}</DialogTitleContext>
             </motion.div>
         </>
     );
@@ -84,24 +78,14 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
  * @param {string} props.subtitle The muted line under it.
  * @returns {JSX.Element} The header block.
  */
-export function SheetHeader({ title, subtitle }: { title: string; subtitle: string })
-{
+export function SheetHeader({ title, subtitle }: { title: string; subtitle: string }) {
     const titleId = useDialogTitleId();
 
     return (
         <Vertical>
+            <Text as='h2' id={titleId} variant='title' className='text-center sm:text-large' text={title} />
 
-            <Text
-                as='h2'
-                id={ titleId }
-                variant='title'
-                className='text-center sm:text-large'
-                text={ title } />
-
-            <Text
-                className='text-center sm:text-small'
-                text={ subtitle } />
-
+            <Text className='text-center sm:text-small' text={subtitle} />
         </Vertical>
     );
 }

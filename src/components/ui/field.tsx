@@ -24,7 +24,8 @@ import { Horizontal, Vertical } from './stack';
  * `ease-initial` pins the easing the replaced CSS used, which Tailwind's `transition-*` would
  * otherwise override with its own curve.
  */
-export const fieldSurface = 'border border-input-normal bg-input-bg outline-2 outline-offset-2 outline-double outline-transparent transition-[background-color,border-color] duration-(--duration-fast) ease-initial focus-visible:outline-focus-ring';
+export const fieldSurface =
+    'border border-input-normal bg-input-bg outline-2 outline-offset-2 outline-double outline-transparent transition-[background-color,border-color] duration-(--duration-fast) ease-initial focus-visible:outline-focus-ring';
 
 /**
  * What a field wears once it is holding an invalid value.
@@ -42,8 +43,7 @@ const fieldInvalid = 'border-input-error';
  * @param {(string | false | undefined)[]} ids The candidate ids.
  * @returns {string | undefined} The space-separated list, or `undefined`.
  */
-const describedBy = (ids: (string | false | undefined)[]) =>
-{
+const describedBy = (ids: (string | false | undefined)[]) => {
     const present = ids.filter((id): id is string => typeof id === 'string' && id.length > 0);
 
     return present.length > 0 ? present.join(' ') : undefined;
@@ -63,44 +63,24 @@ const describedBy = (ids: (string | false | undefined)[]) =>
  * @param {ReactNode} props.children The control itself.
  * @returns {JSX.Element} The field.
  */
-function FieldShell({ label, error, errorId, children }: { label: string; error: string; errorId: string; children: ReactNode })
-{
+function FieldShell({ label, error, errorId, children }: { label: string; error: string; errorId: string; children: ReactNode }) {
     const body = (
         <>
-            { children }
+            {children}
 
-            {
-                error.length > 0 &&
-                (
-                    <Text
-                        id={ errorId }
-                        variant='caption'
-                        role='alert'
-                        className='text-txt-error'
-                        text={ error } />
-                )
-            }
+            {error.length > 0 && <Text id={errorId} variant='caption' role='alert' className='text-txt-error' text={error} />}
         </>
     );
 
-    if (label.length === 0)
-    {
-        return (
-            <Vertical className='gap-2'>
-
-                { body }
-
-            </Vertical>
-        );
+    if (label.length === 0) {
+        return <Vertical className='gap-2'>{body}</Vertical>;
     }
 
     return (
         <label className='flex flex-col gap-2'>
+            <Text text={label} />
 
-            <Text text={ label } />
-
-            { body }
-
+            {body}
         </label>
     );
 }
@@ -134,31 +114,63 @@ function FieldShell({ label, error, errorId, children }: { label: string; error:
  * @param {string} [props.className] Extra input classes; conflicting utilities override the defaults.
  * @returns {JSX.Element} The field.
  */
-export function TextField({ label = '', error = '', onValue, onEnter, size = 'regular', leading, trailing, className = '', 'aria-describedby': describedById, ...rest }: { label?: string; error?: string; onValue: (value: string) => void; onEnter?: () => void; size?: 'regular' | 'compact'; leading?: ReactNode; trailing?: ReactNode; className?: string } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'size'>)
-{
-    const errorId = `${ useId() }-error`;
+export function TextField({
+    label = '',
+    error = '',
+    onValue,
+    onEnter,
+    size = 'regular',
+    leading,
+    trailing,
+    className = '',
+    'aria-describedby': describedById,
+    ...rest
+}: {
+    label?: string;
+    error?: string;
+    onValue: (value: string) => void;
+    onEnter?: () => void;
+    size?: 'regular' | 'compact';
+    leading?: ReactNode;
+    trailing?: ReactNode;
+    className?: string;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'size'>) {
+    const errorId = `${useId()}-error`;
 
     const invalid = error.length > 0;
 
     return (
-        <FieldShell label={ label } error={ error } errorId={ errorId }>
-
+        <FieldShell label={label} error={error} errorId={errorId}>
             <Horizontal className='relative items-center'>
-
-                { leading }
+                {leading}
 
                 <input
-                    aria-invalid={ invalid || undefined }
-                    aria-describedby={ describedBy([ invalid && errorId, describedById ]) }
-                    onChange={ (event) => { onValue(event.target.value); } }
-                    onKeyDown={ onEnter === undefined ? undefined : (event) => { if (event.key === 'Enter') { onEnter(); } } }
-                    className={ cn(fieldSurface, 'w-full rounded-surface px-3 text-small', size === 'regular' ? 'h-11' : 'h-9', invalid && fieldInvalid, className) }
-                    { ...rest } />
+                    aria-invalid={invalid || undefined}
+                    aria-describedby={describedBy([invalid && errorId, describedById])}
+                    onChange={(event) => {
+                        onValue(event.target.value);
+                    }}
+                    onKeyDown={
+                        onEnter === undefined
+                            ? undefined
+                            : (event) => {
+                                  if (event.key === 'Enter') {
+                                      onEnter();
+                                  }
+                              }
+                    }
+                    className={cn(
+                        fieldSurface,
+                        'w-full rounded-surface px-3 text-small',
+                        size === 'regular' ? 'h-11' : 'h-9',
+                        invalid && fieldInvalid,
+                        className
+                    )}
+                    {...rest}
+                />
 
-                { trailing }
-
+                {trailing}
             </Horizontal>
-
         </FieldShell>
     );
 }
@@ -189,62 +201,88 @@ export function TextField({ label = '', error = '', onValue, onEnter, size = 're
  * @param {string} [props.className] Extra input classes (e.g. a different radius).
  * @returns {JSX.Element} The field.
  */
-export function PasswordField({ label, value, error = '', onValue, onEnter, size = 'regular', lockSize = 0, className = '', 'aria-describedby': describedById, ...rest }: { label: string; value: string; error?: string; onValue: (value: string) => void; onEnter?: () => void; size?: 'regular' | 'compact'; lockSize?: number; className?: string } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'value' | 'size' | 'type'>)
-{
-    const [ show, setShow ] = useState(false);
+export function PasswordField({
+    label,
+    value,
+    error = '',
+    onValue,
+    onEnter,
+    size = 'regular',
+    lockSize = 0,
+    className = '',
+    'aria-describedby': describedById,
+    ...rest
+}: {
+    label: string;
+    value: string;
+    error?: string;
+    onValue: (value: string) => void;
+    onEnter?: () => void;
+    size?: 'regular' | 'compact';
+    lockSize?: number;
+    className?: string;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'value' | 'size' | 'type'>) {
+    const [show, setShow] = useState(false);
 
-    const errorId = `${ useId() }-error`;
+    const errorId = `${useId()}-error`;
 
     const regular = size === 'regular';
     const defaultLock = regular ? 20 : 18;
     const invalid = error.length > 0;
 
     return (
-        <FieldShell label={ label } error={ error } errorId={ errorId }>
-
+        <FieldShell label={label} error={error} errorId={errorId}>
             <Horizontal className='relative items-center'>
-
-                { /*
-                  * Logical, not physical: the lock leads the field and the reveal control trails it, and
-                  * in Persian that is the right-hand and left-hand edge respectively. Pinned to `left`
-                  * and `right` they stayed put while the text they belong to flipped, which put the lock
-                  * at the end of the field and the eye at its start. The padding is symmetric, so this
-                  * was never an overlap — only both controls on the wrong side.
-                  */ }
-                <FiLock
-                    size={ lockSize > 0 ? lockSize : defaultLock }
-                    className={ cn('absolute text-txt-muted', regular ? 'inset-s-4' : 'inset-s-3') } />
+                {/*
+                 * Logical, not physical: the lock leads the field and the reveal control trails it, and
+                 * in Persian that is the right-hand and left-hand edge respectively. Pinned to `left`
+                 * and `right` they stayed put while the text they belong to flipped, which put the lock
+                 * at the end of the field and the eye at its start. The padding is symmetric, so this
+                 * was never an overlap — only both controls on the wrong side.
+                 */}
+                <FiLock size={lockSize > 0 ? lockSize : defaultLock} className={cn('absolute text-txt-muted', regular ? 'inset-s-4' : 'inset-s-3')} />
 
                 <input
-                    value={ value }
-                    placeholder={ label }
-                    type={ show ? 'text' : 'password' }
-                    aria-invalid={ invalid || undefined }
-                    aria-describedby={ describedBy([ invalid && errorId, describedById ]) }
-                    onChange={ (event) => { onValue(event.target.value); } }
-                    onKeyDown={ onEnter === undefined ? undefined : (event) => { if (event.key === 'Enter') { onEnter(); } } }
-                    className={ cn(fieldSurface, 'w-full rounded-surface text-small', regular ? 'h-11 px-12' : 'h-11 px-10', invalid && fieldInvalid, className) }
-                    { ...rest } />
+                    value={value}
+                    placeholder={label}
+                    type={show ? 'text' : 'password'}
+                    aria-invalid={invalid || undefined}
+                    aria-describedby={describedBy([invalid && errorId, describedById])}
+                    onChange={(event) => {
+                        onValue(event.target.value);
+                    }}
+                    onKeyDown={
+                        onEnter === undefined
+                            ? undefined
+                            : (event) => {
+                                  if (event.key === 'Enter') {
+                                      onEnter();
+                                  }
+                              }
+                    }
+                    className={cn(fieldSurface, 'w-full rounded-surface text-small', regular ? 'h-11 px-12' : 'h-11 px-10', invalid && fieldInvalid, className)}
+                    {...rest}
+                />
 
-                { /*
-                  * Named, because it is an icon-only control whose glyph is the only thing that says
-                  * what it does — and the glyph is what changes when it is pressed.
-                  */ }
+                {/*
+                 * Named, because it is an icon-only control whose glyph is the only thing that says
+                 * what it does — and the glyph is what changes when it is pressed.
+                 */}
                 <button
                     type='button'
-                    aria-label={ T(show ? 'App.Field.HidePassword' : 'App.Field.ShowPassword') }
-                    aria-pressed={ show }
-                    onClick={ () => { setShow((current) => !current); } }
-                    className={ cn('tap-44 absolute cursor-pointer rounded-control text-txt-muted outline-2 outline-offset-2 outline-transparent outline-double hover:text-txt-normal focus-visible:outline-focus-ring', regular ? 'inset-e-4' : 'inset-e-3') }>
-
-                    {
-                        show ? <FiEyeOff size={ 18 } /> : <FiEye size={ 18 } />
-                    }
-
+                    aria-label={T(show ? 'App.Field.HidePassword' : 'App.Field.ShowPassword')}
+                    aria-pressed={show}
+                    onClick={() => {
+                        setShow((current) => !current);
+                    }}
+                    className={cn(
+                        'tap-44 absolute cursor-pointer rounded-control text-txt-muted outline-2 outline-offset-2 outline-transparent outline-double hover:text-txt-normal focus-visible:outline-focus-ring',
+                        regular ? 'inset-e-4' : 'inset-e-3'
+                    )}
+                >
+                    {show ? <FiEyeOff size={18} /> : <FiEye size={18} />}
                 </button>
-
             </Horizontal>
-
         </FieldShell>
     );
 }
@@ -263,22 +301,32 @@ export function PasswordField({ label, value, error = '', onValue, onEnter, size
  * @param {string} [props.className] Extra classes; conflicting utilities override the defaults.
  * @returns {JSX.Element} The field.
  */
-export function TextArea({ label = '', error = '', onValue, className = '', 'aria-describedby': describedById, ...rest }: { label?: string; error?: string; onValue: (value: string) => void; className?: string } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'className' | 'onChange'>)
-{
-    const errorId = `${ useId() }-error`;
+export function TextArea({
+    label = '',
+    error = '',
+    onValue,
+    className = '',
+    'aria-describedby': describedById,
+    ...rest
+}: { label?: string; error?: string; onValue: (value: string) => void; className?: string } & Omit<
+    TextareaHTMLAttributes<HTMLTextAreaElement>,
+    'className' | 'onChange'
+>) {
+    const errorId = `${useId()}-error`;
 
     const invalid = error.length > 0;
 
     return (
-        <FieldShell label={ label } error={ error } errorId={ errorId }>
-
+        <FieldShell label={label} error={error} errorId={errorId}>
             <textarea
-                aria-invalid={ invalid || undefined }
-                aria-describedby={ describedBy([ invalid && errorId, describedById ]) }
-                onChange={ (event) => { onValue(event.target.value); } }
-                className={ cn(fieldSurface, 'w-full resize-none rounded-surface p-3 text-small', invalid && fieldInvalid, className) }
-                { ...rest } />
-
+                aria-invalid={invalid || undefined}
+                aria-describedby={describedBy([invalid && errorId, describedById])}
+                onChange={(event) => {
+                    onValue(event.target.value);
+                }}
+                className={cn(fieldSurface, 'w-full resize-none rounded-surface p-3 text-small', invalid && fieldInvalid, className)}
+                {...rest}
+            />
         </FieldShell>
     );
 }
@@ -300,30 +348,29 @@ export function TextArea({ label = '', error = '', onValue, className = '', 'ari
  * @param {string} [props.className] Extra box classes; conflicting utilities override the defaults.
  * @returns {JSX.Element} The field.
  */
-export function ReadonlyField({ label = '', value, className = '' }: { label?: string; value: string; className?: string })
-{
+export function ReadonlyField({ label = '', value, className = '' }: { label?: string; value: string; className?: string }) {
     const box = (
         <div
             dir='ltr'
-            className={ cn(fieldSurface, 'flex min-h-11 items-center rounded-surface px-3 py-2 font-mono text-tiny break-all text-txt-muted select-text!', className) }>
-
-            { value }
-
+            className={cn(
+                fieldSurface,
+                'flex min-h-11 items-center rounded-surface px-3 py-2 font-mono text-tiny break-all text-txt-muted select-text!',
+                className
+            )}
+        >
+            {value}
         </div>
     );
 
-    if (label.length === 0)
-    {
+    if (label.length === 0) {
         return box;
     }
 
     return (
         <Vertical className='gap-2'>
+            <Text text={label} />
 
-            <Text text={ label } />
-
-            { box }
-
+            {box}
         </Vertical>
     );
 }

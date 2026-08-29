@@ -17,8 +17,7 @@ import { cn } from '../../utility/cn';
  * passed an alignment back in through `className` — one of them re-deriving `error` exactly. The
  * alignment is what varied, so alignment is what call sites pass.
  */
-const variantMap =
-{
+const variantMap = {
     error: 'bg-txt-error/10 text-txt-error text-center',
     warning: 'bg-txt-error/10 text-txt-error flex items-start gap-2 text-start',
     success: 'bg-txt-success/10 text-txt-success flex items-start gap-2 text-start'
@@ -31,8 +30,7 @@ const variantMap =
  * a wide sheet and the dialog metrics read as cramped — both intro screens were overriding the size
  * to `text-small` identically, which is a variant asking to exist.
  */
-const sizeMap =
-{
+const sizeMap = {
     compact: 'text-tiny rounded-control px-3 py-2',
     comfortable: 'text-small rounded-surface px-4 py-3'
 } as const;
@@ -63,12 +61,20 @@ const sizeMap =
  * @param {ReactNode} [props.children] Composed content, for the cases `text` cannot express.
  * @returns {JSX.Element | undefined} The alert, or nothing when there is no message.
  */
-export default function Alert({ variant = 'error', size = 'compact', text, className = '', children, ...rest }: { variant?: keyof typeof variantMap; size?: keyof typeof sizeMap; text?: string; className?: string; children?: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
-{
+export default function Alert({
+    variant = 'error',
+    size = 'compact',
+    text,
+    className = '',
+    children,
+    ...rest
+}: { variant?: keyof typeof variantMap; size?: keyof typeof sizeMap; text?: string; className?: string; children?: ReactNode } & Omit<
+    HTMLAttributes<HTMLDivElement>,
+    'className' | 'children'
+>) {
     const content = text ?? children;
 
-    if (content === undefined || content === '')
-    {
+    if (content === undefined || content === '') {
         return undefined;
     }
 
@@ -76,31 +82,16 @@ export default function Alert({ variant = 'error', size = 'compact', text, class
 
     return (
         <div
-            role={ success ? 'status' : 'alert' }
-            aria-live={ success ? 'polite' : 'assertive' }
-            className={ cn(variantMap[variant], sizeMap[size], className) }
-            { ...rest }>
+            role={success ? 'status' : 'alert'}
+            aria-live={success ? 'polite' : 'assertive'}
+            className={cn(variantMap[variant], sizeMap[size], className)}
+            {...rest}
+        >
+            {variant === 'warning' && <FiAlertTriangle size={16} className='mt-0.5 shrink-0' />}
 
-            {
-                variant === 'warning' && <FiAlertTriangle size={ 16 } className='mt-0.5 shrink-0' />
-            }
+            {success && <FiCheckCircle size={16} className='mt-0.5 shrink-0' />}
 
-            {
-                success && <FiCheckCircle size={ 16 } className='mt-0.5 shrink-0' />
-            }
-
-            {
-                variant === 'error' ?
-                    content :
-                    (
-                        <span>
-
-                            { content }
-
-                        </span>
-                    )
-            }
-
+            {variant === 'error' ? content : <span>{content}</span>}
         </div>
     );
 }

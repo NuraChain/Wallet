@@ -40,4 +40,4 @@ import { fetch as nativeFetch } from '@tauri-apps/plugin-http';
  * @param {RequestInit} [init] Standard fetch options, passed through unchanged.
  * @returns {Promise<Response>} The response, from the native client.
  */
-export const httpRequest = async(url: string, init?: RequestInit): Promise<Response> => nativeFetch(url, init);
+export const httpRequest = async (url: string, init?: RequestInit): Promise<Response> => nativeFetch(url, init);

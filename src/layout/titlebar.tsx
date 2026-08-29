@@ -33,8 +33,7 @@ const mobileSize = { width: 360, height: 640 };
  * the app name on the right. The attribute is inherited, so only an explicit one stops it here.
  * @returns {JSX.Element} The title bar element.
  */
-export default function TitleBar()
-{
+export default function TitleBar() {
     const isWindows = useIsWindows();
 
     // Subscribed rather than read: the bar sits beside the page layout, not inside it, so the
@@ -42,12 +41,11 @@ export default function TitleBar()
     // value itself is unused — what is wanted is the render it causes, which re-runs `T()` below.
     useLanguage();
 
-    const [ wide, setWide ] = useState(false);
+    const [wide, setWide] = useState(false);
 
-    const onMinimize = useCallback(() =>
-    {
+    const onMinimize = useCallback(() => {
         void getCurrentWindow().minimize();
-    }, [ ]);
+    }, []);
 
     /**
      * onToggleSize - Swaps the window between filling the desktop and the phone-shaped frame.
@@ -60,16 +58,14 @@ export default function TitleBar()
      * `screen.availWidth/Height` is the desktop minus the taskbar, in the same CSS pixels
      * `LogicalSize` takes, so the wide state lands where a maximized window would.
      */
-    const onToggleSize = useCallback(() =>
-    {
-        const run = async() =>
-        {
+    const onToggleSize = useCallback(() => {
+        const run = async () => {
             const current = getCurrentWindow();
             const next = !wide;
 
-            await current.setSize(next ?
-                new LogicalSize(window.screen.availWidth, window.screen.availHeight) :
-                new LogicalSize(mobileSize.width, mobileSize.height));
+            await current.setSize(
+                next ? new LogicalSize(window.screen.availWidth, window.screen.availHeight) : new LogicalSize(mobileSize.width, mobileSize.height)
+            );
 
             await current.center();
 
@@ -77,15 +73,13 @@ export default function TitleBar()
         };
 
         void run();
-    }, [ wide ]);
+    }, [wide]);
 
-    const onClose = useCallback(() =>
-    {
+    const onClose = useCallback(() => {
         void getCurrentWindow().hide();
-    }, [ ]);
+    }, []);
 
-    if (!isWindows)
-    {
+    if (!isWindows) {
         return undefined;
     }
 
@@ -102,53 +96,39 @@ export default function TitleBar()
      * carried no accessible name at all, while `App.Window.Minimize`, `.Maximize` and `.Close` sat
      * translated in all ten bundles, referenced by nothing.
      */
-    const controlMap =
-    [
-        { key: 'minimize', label: T('App.Window.Minimize'), icon: <VscChromeMinimize size={ 16 } />, action: onMinimize },
-        { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <FiSmartphone size={ 16 } /> : <FiMonitor size={ 16 } />, action: onToggleSize },
-        { key: 'close', label: T('App.Window.Close'), icon: <VscChromeClose size={ 16 } />, action: onClose }
+    const controlMap = [
+        { key: 'minimize', label: T('App.Window.Minimize'), icon: <VscChromeMinimize size={16} />, action: onMinimize },
+        { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <FiSmartphone size={16} /> : <FiMonitor size={16} />, action: onToggleSize },
+        { key: 'close', label: T('App.Window.Close'), icon: <VscChromeClose size={16} />, action: onClose }
     ];
 
     return (
         <div
             dir='ltr'
             data-tauri-drag-region
-            onDoubleClick={ onToggleSize }
-            className={ `absolute inset-x-0 ${ layer.chrome } flex h-8 cursor-pointer items-center justify-between` }>
-
+            onDoubleClick={onToggleSize}
+            className={`absolute inset-x-0 ${layer.chrome} flex h-8 cursor-pointer items-center justify-between`}
+        >
             <Horizontal className='items-center gap-2 px-2'>
+                {/* Decorative: the name beside it is what the bar says, and an unnamed image
+                     would only be announced as "image" ahead of it. */}
+                <img src={Logo} alt='' className='size-4' />
 
-                { /* Decorative: the name beside it is what the bar says, and an unnamed image
-                     would only be announced as "image" ahead of it. */ }
-                <img
-                    src={ Logo }
-                    alt=''
-                    className='size-4' />
-
-                <Text
-                    variant='captionStrong'
-                    text={ T('App.Name') } />
-
+                <Text variant='captionStrong' text={T('App.Name')} />
             </Horizontal>
 
             <Horizontal className='h-full'>
-
-                {
-                    controlMap.map((item) => (
-                        <Button
-                            key={ item.key }
-                            aria-label={ item.label }
-                            onClick={ item.action }
-                            className='flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal transition-colors duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active'>
-
-                            { item.icon }
-
-                        </Button>
-                    ))
-                }
-
+                {controlMap.map((item) => (
+                    <Button
+                        key={item.key}
+                        aria-label={item.label}
+                        onClick={item.action}
+                        className='flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal transition-colors duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active'
+                    >
+                        {item.icon}
+                    </Button>
+                ))}
             </Horizontal>
-
         </div>
     );
 }

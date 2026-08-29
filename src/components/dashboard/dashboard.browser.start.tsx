@@ -42,34 +42,39 @@ import { Horizontal, Vertical } from '../ui/stack';
  * @param {(url: string) => void} props.onPick What the tile does when it is tapped.
  * @returns {JSX.Element} The tile.
  */
-function BrowserShortcut({ url, name, symbol, title, ltr = false, primary = false, className = '', onPick }: { url: string; name: string; symbol?: string; title?: string; ltr?: boolean; primary?: boolean; className?: string; onPick: (url: string) => void })
-{
+function BrowserShortcut({
+    url,
+    name,
+    symbol,
+    title,
+    ltr = false,
+    primary = false,
+    className = '',
+    onPick
+}: {
+    url: string;
+    name: string;
+    symbol?: string;
+    title?: string;
+    ltr?: boolean;
+    primary?: boolean;
+    className?: string;
+    onPick: (url: string) => void;
+}) {
     return (
         <Button
-            title={ title }
+            title={title}
             variant='muted'
-            onClick={ () => { onPick(url); } }
-            className={ cn('h-12 gap-2.5 rounded-surface px-2.5 text-start', className) }>
+            onClick={() => {
+                onPick(url);
+            }}
+            className={cn('h-12 gap-2.5 rounded-surface px-2.5 text-start', className)}
+        >
+            <TokenIcon kind='unknown' src={getSiteIcon(url)} symbol={symbol ?? name} primary={primary} className='size-8 text-tiny' />
 
-            <TokenIcon
-                kind='unknown'
-                src={ getSiteIcon(url) }
-                symbol={ symbol ?? name }
-                primary={ primary }
-                className='size-8 text-tiny' />
-
-            <Text
-                variant='body'
-                className='flex-1 truncate'>
-
-                <span dir={ ltr ? 'ltr' : undefined }>
-
-                    { name }
-
-                </span>
-
+            <Text variant='body' className='flex-1 truncate'>
+                <span dir={ltr ? 'ltr' : undefined}>{name}</span>
             </Text>
-
         </Button>
     );
 }
@@ -104,163 +109,144 @@ function BrowserShortcut({ url, name, symbol, title, ltr = false, primary = fals
  * @param {(id: string) => void} props.onFavoriteRemove Drops a favourite.
  * @returns {JSX.Element} The start screen.
  */
-export default function DashboardBrowserStart({ explorer, favorites, visits, notice, onOpen, onFavoriteSave, onFavoriteRemove }: { explorer?: { name: string; url: string }; favorites: BrowserFavorite[]; visits: BrowserVisit[]; notice: string; onOpen: (url: string) => void; onFavoriteSave: (item: BrowserFavorite) => void; onFavoriteRemove: (id: string) => void })
-{
-    const [ editing, setEditing ] = useState(false);
+export default function DashboardBrowserStart({
+    explorer,
+    favorites,
+    visits,
+    notice,
+    onOpen,
+    onFavoriteSave,
+    onFavoriteRemove
+}: {
+    explorer?: { name: string; url: string };
+    favorites: BrowserFavorite[];
+    visits: BrowserVisit[];
+    notice: string;
+    onOpen: (url: string) => void;
+    onFavoriteSave: (item: BrowserFavorite) => void;
+    onFavoriteRemove: (id: string) => void;
+}) {
+    const [editing, setEditing] = useState(false);
 
     // Which favourite the dialog is open on: an item to edit one, `true` to add, `false` for closed.
     // One piece of state rather than an open flag beside a selection, so the two cannot disagree about
     // whether the dialog is showing an entry that is no longer there.
-    const [ editor, setEditor ] = useState<BrowserFavorite | boolean>(false);
+    const [editor, setEditor] = useState<BrowserFavorite | boolean>(false);
 
     return (
         <Vertical className='size-full gap-3 overflow-y-auto p-4'>
-
-            <SectionHeader title={ T('Dashboard.Browser.Favorite') }>
-
+            <SectionHeader title={T('Dashboard.Browser.Favorite')}>
                 <Button
                     variant='muted'
                     size='small'
-                    onClick={ () => { setEditing(!editing); } }
-                    leftIcon={ editing ? <FiCheck size={ 14 } /> : <FiEdit3 size={ 14 } /> }
-                    text={ editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage') } />
-
+                    onClick={() => {
+                        setEditing(!editing);
+                    }}
+                    leftIcon={editing ? <FiCheck size={14} /> : <FiEdit3 size={14} />}
+                    text={editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage')}
+                />
             </SectionHeader>
 
-            {
-                favorites.length === 0 && explorer === undefined && !editing ?
-                    <StatusBlock panel text={ T('Dashboard.Browser.FavoriteEmpty') } /> :
-                    (
-                        <div className={ cn(editing ? 'flex flex-col gap-2' : 'grid grid-cols-2 gap-2') }>
+            {favorites.length === 0 && explorer === undefined && !editing ? (
+                <StatusBlock panel text={T('Dashboard.Browser.FavoriteEmpty')} />
+            ) : (
+                <div className={cn(editing ? 'flex flex-col gap-2' : 'grid grid-cols-2 gap-2')}>
+                    {explorer !== undefined && !editing && <BrowserShortcut primary url={explorer.url} name={explorer.name} onPick={onOpen} />}
 
-                            {
-                                explorer !== undefined && !editing &&
-                                (
-                                    <BrowserShortcut
-                                        primary
-                                        url={ explorer.url }
-                                        name={ explorer.name }
-                                        onPick={ onOpen } />
-                                )
-                            }
+                    {favorites.map((item) =>
+                        editing ? (
+                            <Horizontal key={item.id} className='items-center gap-2'>
+                                <BrowserShortcut
+                                    primary
+                                    url={item.url}
+                                    name={item.name}
+                                    title={item.url}
+                                    className='min-w-0 flex-1'
+                                    onPick={() => {
+                                        setEditor(item);
+                                    }}
+                                />
 
-                            {
-                                favorites.map((item) => (
-                                    editing ?
-                                        (
-                                            <Horizontal
-                                                key={ item.id }
-                                                className='items-center gap-2'>
+                                <Button
+                                    variant='danger'
+                                    size='icon'
+                                    onClick={() => {
+                                        onFavoriteRemove(item.id);
+                                    }}
+                                    aria-label={T('Dashboard.Browser.FavoriteRemove')}
+                                    className='shrink-0'
+                                >
+                                    <FiTrash2 size={16} />
+                                </Button>
+                            </Horizontal>
+                        ) : (
+                            <BrowserShortcut primary key={item.id} url={item.url} name={item.name} title={item.url} onPick={onOpen} />
+                        )
+                    )}
 
-                                                <BrowserShortcut
-                                                    primary
-                                                    url={ item.url }
-                                                    name={ item.name }
-                                                    title={ item.url }
-                                                    className='min-w-0 flex-1'
-                                                    onPick={ () => { setEditor(item); } } />
+                    {editing && (
+                        <Button
+                            variant='normal'
+                            size='action'
+                            onClick={() => {
+                                setEditor(true);
+                            }}
+                            leftIcon={<FiPlus size={16} />}
+                            text={T('Dashboard.Browser.FavoriteAdd')}
+                        />
+                    )}
+                </div>
+            )}
 
-                                                <Button
-                                                    variant='danger'
-                                                    size='icon'
-                                                    onClick={ () => { onFavoriteRemove(item.id); } }
-                                                    aria-label={ T('Dashboard.Browser.FavoriteRemove') }
-                                                    className='shrink-0'>
+            <SectionHeader title={T('Dashboard.Browser.Recent')} />
 
-                                                    <FiTrash2 size={ 16 } />
+            {visits.length === 0 ? (
+                <StatusBlock panel text={T('Dashboard.Browser.RecentEmpty')} />
+            ) : (
+                <div className='grid grid-cols-2 gap-2'>
+                    {
+                        /*
+                         * The host alone names the row, which is what makes two of these fit on
+                         * a line. The full address used to sit under it and cannot survive half
+                         * a row — it truncated to an ellipsis and took the host's width with
+                         * it, so it moved to the tooltip.
+                         */
+                        visits.map((item) => (
+                            <BrowserShortcut
+                                ltr
+                                key={item.url}
+                                url={item.url}
+                                name={getSiteHost(item.url)}
+                                symbol={getSiteHost(item.url).toUpperCase()}
+                                title={item.url}
+                                onPick={onOpen}
+                            />
+                        ))
+                    }
+                </div>
+            )}
 
-                                                </Button>
+            {notice.length > 0 && (
+                <Vertical className='mt-auto gap-1'>
+                    <Text variant='caption' text={T('Dashboard.Browser.Hint')} />
 
-                                            </Horizontal>
-                                        ) :
-                                        (
-                                            <BrowserShortcut
-                                                primary
-                                                key={ item.id }
-                                                url={ item.url }
-                                                name={ item.name }
-                                                title={ item.url }
-                                                onPick={ onOpen } />
-                                        )
-                                ))
-                            }
+                    <Alert dir='ltr' className='px-2 py-1 text-start font-mono' text={notice} />
+                </Vertical>
+            )}
 
-                            {
-                                editing &&
-                                (
-                                    <Button
-                                        variant='normal'
-                                        size='action'
-                                        onClick={ () => { setEditor(true); } }
-                                        leftIcon={ <FiPlus size={ 16 } /> }
-                                        text={ T('Dashboard.Browser.FavoriteAdd') } />
-                                )
-                            }
-
-                        </div>
-                    )
-            }
-
-            <SectionHeader title={ T('Dashboard.Browser.Recent') } />
-
-            {
-                visits.length === 0 ?
-                    <StatusBlock panel text={ T('Dashboard.Browser.RecentEmpty') } /> :
-                    (
-                        <div className='grid grid-cols-2 gap-2'>
-
-                            {
-                                /*
-                                 * The host alone names the row, which is what makes two of these fit on
-                                 * a line. The full address used to sit under it and cannot survive half
-                                 * a row — it truncated to an ellipsis and took the host's width with
-                                 * it, so it moved to the tooltip.
-                                 */
-                                visits.map((item) => (
-                                    <BrowserShortcut
-                                        ltr
-                                        key={ item.url }
-                                        url={ item.url }
-                                        name={ getSiteHost(item.url) }
-                                        symbol={ getSiteHost(item.url).toUpperCase() }
-                                        title={ item.url }
-                                        onPick={ onOpen } />
-                                ))
-                            }
-
-                        </div>
-                    )
-            }
-
-            {
-                notice.length > 0 &&
-                (
-                    <Vertical className='mt-auto gap-1'>
-
-                        <Text
-                            variant='caption'
-                            text={ T('Dashboard.Browser.Hint') } />
-
-                        <Alert
-                            dir='ltr'
-                            className='px-2 py-1 text-start font-mono'
-                            text={ notice } />
-
-                    </Vertical>
-                )
-            }
-
-            {
-                editor !== false &&
-                (
-                    <SiteForm
-                        item={ editor === true ? undefined : editor }
-                        title={ editor === true ? T('Dashboard.Browser.FavoriteAdd') : T('Dashboard.Browser.FavoriteEdit') }
-                        onSave={ (item) => { onFavoriteSave(item); setEditor(false); } }
-                        onClose={ () => { setEditor(false); } } />
-                )
-            }
-
+            {editor !== false && (
+                <SiteForm
+                    item={editor === true ? undefined : editor}
+                    title={editor === true ? T('Dashboard.Browser.FavoriteAdd') : T('Dashboard.Browser.FavoriteEdit')}
+                    onSave={(item) => {
+                        onFavoriteSave(item);
+                        setEditor(false);
+                    }}
+                    onClose={() => {
+                        setEditor(false);
+                    }}
+                />
+            )}
         </Vertical>
     );
 }

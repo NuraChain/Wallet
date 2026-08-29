@@ -8,7 +8,15 @@ import { imageCache } from './image';
  * `id` names the tab the update belongs to. It is absent from an APK that predates tabs, which only
  * ever had one page to report on — the listener attributes those to whichever tab is in front.
  */
-export interface BrowserState { id?: string; url: string; title: string; canBack: boolean; canForward: boolean; loading: boolean; progress: number }
+export interface BrowserState {
+    id?: string;
+    url: string;
+    title: string;
+    canBack: boolean;
+    canForward: boolean;
+    loading: boolean;
+    progress: number;
+}
 
 /**
  * Which layout the browser asks sites for. Sniffing is done on the user agent, so this is the one
@@ -19,7 +27,10 @@ export type BrowserView = 'mobile' | 'desktop';
 /**
  * One entry in the visited list: where it went and when it was last opened.
  */
-export interface BrowserVisit { url: string; time: number }
+export interface BrowserVisit {
+    url: string;
+    time: number;
+}
 
 /**
  * One open tab.
@@ -33,7 +44,14 @@ export interface BrowserVisit { url: string; time: number }
  * address because the page underneath is kept alive and returned to — going home used to clear the
  * stack, which discarded the view and made the trip one-way.
  */
-export interface BrowserTab { id: number; entries: string[]; index: number; draft: string; reload: number; home: boolean }
+export interface BrowserTab {
+    id: number;
+    entries: string[];
+    index: number;
+    draft: string;
+    reload: number;
+    home: boolean;
+}
 
 /**
  * atBrowserStart - Whether a tab is showing the start screen rather than a page.
@@ -54,7 +72,7 @@ export const atBrowserStart = (tab: BrowserTab) => tab.home || tab.index < 0;
  * @param {number} id The tab id.
  * @returns {string} The label for that tab's view.
  */
-export const frameLabel = (id: number) => `nura-browser-${ id }`;
+export const frameLabel = (id: number) => `nura-browser-${id}`;
 
 /**
  * A shortcut the user keeps.
@@ -63,7 +81,11 @@ export const frameLabel = (id: number) => `nura-browser-${ id }`;
  * be the one being changed, and a list keyed on the thing being edited loses track of the row halfway
  * through the edit.
  */
-export interface BrowserFavorite { id: string; name: string; url: string }
+export interface BrowserFavorite {
+    id: string;
+    name: string;
+    url: string;
+}
 
 /**
  * The favourites a wallet starts with, in the order they are shown.
@@ -81,8 +103,7 @@ export interface BrowserFavorite { id: string; name: string; url: string }
  * address to store. It follows the chain and the account, and the start screen puts it at the head of
  * the same grid.
  */
-const defaultFavorites: BrowserFavorite[] =
-[
+const defaultFavorites: BrowserFavorite[] = [
     { id: 'telegram', name: 'Telegram', url: 'https://t.me/nurachain' },
     { id: 'google', name: 'Google', url: 'https://google.com' },
     { id: 'github', name: 'GitHub', url: 'https://github.com/NuraChain' },
@@ -103,14 +124,10 @@ const historyLimit = 40;
  * @param {string} url An absolute URL.
  * @returns {string} The host, or the input when it is not parseable.
  */
-export const getSiteHost = (url: string) =>
-{
-    try
-    {
+export const getSiteHost = (url: string) => {
+    try {
         return new URL(url).host.replace(/^www\./u, '');
-    }
-    catch
-    {
+    } catch {
         return url;
     }
 };
@@ -128,14 +145,10 @@ export const getSiteHost = (url: string) =>
  * @param {string} url An absolute URL.
  * @returns {string} The icon URL, or an empty string when the address will not parse.
  */
-export const getSiteIcon = (url: string) =>
-{
-    try
-    {
+export const getSiteIcon = (url: string) => {
+    try {
         return new URL('/favicon.ico', url).href;
-    }
-    catch
-    {
+    } catch {
         return '';
     }
 };
@@ -147,8 +160,7 @@ export const getSiteIcon = (url: string) =>
  * 360px column is the thing the default user agent already had to work around.
  * @returns {Promise<BrowserView>} The stored view, or `mobile`.
  */
-export const getBrowserView = async(): Promise<BrowserView> =>
-{
+export const getBrowserView = async (): Promise<BrowserView> => {
     const stored = await getValue('Browser.View');
 
     return stored === 'desktop' ? 'desktop' : 'mobile';
@@ -159,7 +171,7 @@ export const getBrowserView = async(): Promise<BrowserView> =>
  * @param {BrowserView} view The view to store.
  * @returns {Promise<void>} Resolves once written.
  */
-export const setBrowserView = async(view: BrowserView) => setValue('Browser.View', view);
+export const setBrowserView = async (view: BrowserView) => setValue('Browser.View', view);
 
 /**
  * getBrowserHistory - The sites opened from this tab, newest first.
@@ -168,29 +180,23 @@ export const setBrowserView = async(view: BrowserView) => setValue('Browser.View
  * thrown, since a shortcut list is not worth failing a page load over.
  * @returns {Promise<BrowserVisit[]>} The stored visits, or an empty list.
  */
-export const getBrowserHistory = async(): Promise<BrowserVisit[]> =>
-{
+export const getBrowserHistory = async (): Promise<BrowserVisit[]> => {
     const stored = await getValue('Browser.History');
 
-    if (stored === undefined)
-    {
+    if (stored === undefined) {
         return [];
     }
 
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const parsed = JSON.parse(stored) as BrowserVisit[];
 
-        if (!Array.isArray(parsed))
-        {
+        if (!Array.isArray(parsed)) {
             return [];
         }
 
         return parsed.filter((item) => typeof item?.url === 'string' && item.url.length > 0 && typeof item.time === 'number');
-    }
-    catch
-    {
+    } catch {
         return [];
     }
 };
@@ -204,11 +210,10 @@ export const getBrowserHistory = async(): Promise<BrowserVisit[]> =>
  * @param {string} url The page that was opened.
  * @returns {Promise<BrowserVisit[]>} The list as it now stands, newest first.
  */
-export const addBrowserVisit = async(url: string): Promise<BrowserVisit[]> =>
-{
+export const addBrowserVisit = async (url: string): Promise<BrowserVisit[]> => {
     const current = await getBrowserHistory();
 
-    const next = [ { url, time: Date.now() }, ...current.filter((item) => item.url !== url) ].slice(0, historyLimit);
+    const next = [{ url, time: Date.now() }, ...current.filter((item) => item.url !== url)].slice(0, historyLimit);
 
     await setValue('Browser.History', JSON.stringify(next));
 
@@ -228,8 +233,7 @@ export const addBrowserVisit = async(url: string): Promise<BrowserVisit[]> =>
  * kind site icons are stored under, so the wallet's token and network logos are not touched.
  * @returns {Promise<void>} Resolves once the key and the icons taken from it are gone.
  */
-export const clearBrowserHistory = async() =>
-{
+export const clearBrowserHistory = async () => {
     await removeValue('Browser.History');
 
     await imageCache.clearKind('unknown');
@@ -246,29 +250,23 @@ export const clearBrowserHistory = async() =>
  * reader — a shortcut grid is not worth failing the start screen over.
  * @returns {Promise<BrowserFavorite[]>} The stored favourites, or the seeded ones.
  */
-export const getBrowserFavorites = async(): Promise<BrowserFavorite[]> =>
-{
+export const getBrowserFavorites = async (): Promise<BrowserFavorite[]> => {
     const stored = await getValue('Browser.Favorites');
 
-    if (stored === undefined)
-    {
+    if (stored === undefined) {
         return defaultFavorites;
     }
 
-    try
-    {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    try {
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const parsed = JSON.parse(stored) as BrowserFavorite[];
 
-        if (!Array.isArray(parsed))
-        {
+        if (!Array.isArray(parsed)) {
             return [];
         }
 
         return parsed.filter((item) => typeof item?.id === 'string' && typeof item.name === 'string' && typeof item.url === 'string' && item.url.length > 0);
-    }
-    catch
-    {
+    } catch {
         return [];
     }
 };
@@ -278,7 +276,7 @@ export const getBrowserFavorites = async(): Promise<BrowserFavorite[]> =>
  * @param {BrowserFavorite[]} list The list to store, in display order.
  * @returns {Promise<void>} Resolves once written.
  */
-export const setBrowserFavorites = async(list: BrowserFavorite[]) => setValue('Browser.Favorites', JSON.stringify(list));
+export const setBrowserFavorites = async (list: BrowserFavorite[]) => setValue('Browser.Favorites', JSON.stringify(list));
 
 /**
  * The Kotlin side of the native browser, injected as `__nuraBrowser` on the app's own webview only.
@@ -379,10 +377,8 @@ export interface NativeTab {
     hides: boolean;
 }
 
-declare global
-{
-    interface Window
-    {
+declare global {
+    interface Window {
         __nuraBrowser?: BrowserBridge;
         __nuraBrowserState?: (state: BrowserState) => void;
     }
@@ -416,12 +412,10 @@ export const nativeHoldsTabs = () => window.__nuraBrowser?.openTab !== undefined
  * @param {string} id Identifies the tab; the frame's webview label is used, so it is unique per tab.
  * @returns {NativeTab | undefined} The facade, or `undefined` off Android.
  */
-export const getNativeTab = (id: string): NativeTab | undefined =>
-{
+export const getNativeTab = (id: string): NativeTab | undefined => {
     const bridge = window.__nuraBrowser;
 
-    if (bridge === undefined)
-    {
+    if (bridge === undefined) {
         return undefined;
     }
 
@@ -437,16 +431,37 @@ export const getNativeTab = (id: string): NativeTab | undefined =>
     // `bridge.open(...)` out in full.
     const { openTab, boundsTab, closeTab, visibleTab, reloadTab, backTab, forwardTab } = bridge;
 
-    if (openTab !== undefined && boundsTab !== undefined && closeTab !== undefined && visibleTab !== undefined && reloadTab !== undefined && backTab !== undefined && forwardTab !== undefined)
-    {
+    if (
+        openTab !== undefined &&
+        boundsTab !== undefined &&
+        closeTab !== undefined &&
+        visibleTab !== undefined &&
+        reloadTab !== undefined &&
+        backTab !== undefined &&
+        forwardTab !== undefined
+    ) {
         return {
-            open: (url, visible, x, y, width, height) => { openTab.call(bridge, id, url, visible, x, y, width, height); },
-            setBounds: (x, y, width, height) => { boundsTab.call(bridge, id, x, y, width, height); },
-            close: () => { closeTab.call(bridge, id); },
-            setVisible: (visible) => { visibleTab.call(bridge, id, visible); },
-            reload: () => { reloadTab.call(bridge, id); },
-            back: () => { backTab.call(bridge, id); },
-            forward: () => { forwardTab.call(bridge, id); },
+            open: (url, visible, x, y, width, height) => {
+                openTab.call(bridge, id, url, visible, x, y, width, height);
+            },
+            setBounds: (x, y, width, height) => {
+                boundsTab.call(bridge, id, x, y, width, height);
+            },
+            close: () => {
+                closeTab.call(bridge, id);
+            },
+            setVisible: (visible) => {
+                visibleTab.call(bridge, id, visible);
+            },
+            reload: () => {
+                reloadTab.call(bridge, id);
+            },
+            back: () => {
+                backTab.call(bridge, id);
+            },
+            forward: () => {
+                forwardTab.call(bridge, id);
+            },
             hides: true
         };
     }
@@ -456,13 +471,27 @@ export const getNativeTab = (id: string): NativeTab | undefined =>
     // Without tab support only the frontmost tab is ever given a view, so it is always the visible one
     // and the flag has nothing to say here.
     return {
-        open: (url, visible, x, y, width, height) => { bridge.open(url, x, y, width, height); },
-        setBounds: (x, y, width, height) => { bridge.setBounds(x, y, width, height); },
-        close: () => { bridge.close(); },
-        setVisible: (visible) => { setVisible?.call(bridge, visible); },
-        reload: () => { bridge.reload(); },
-        back: () => { bridge.back(); },
-        forward: () => { bridge.forward(); },
+        open: (url, visible, x, y, width, height) => {
+            bridge.open(url, x, y, width, height);
+        },
+        setBounds: (x, y, width, height) => {
+            bridge.setBounds(x, y, width, height);
+        },
+        close: () => {
+            bridge.close();
+        },
+        setVisible: (visible) => {
+            setVisible?.call(bridge, visible);
+        },
+        reload: () => {
+            bridge.reload();
+        },
+        back: () => {
+            bridge.back();
+        },
+        forward: () => {
+            bridge.forward();
+        },
         hides: setVisible !== undefined
     };
 };
@@ -475,14 +504,11 @@ export const getNativeTab = (id: string): NativeTab | undefined =>
  * @param {(state: BrowserState) => void} listener Receives every navigation update.
  * @returns {() => void} Removes the listener.
  */
-export const onNativeBrowserState = (listener: (state: BrowserState) => void) =>
-{
+export const onNativeBrowserState = (listener: (state: BrowserState) => void) => {
     window.__nuraBrowserState = listener;
 
-    return () =>
-    {
-        if (window.__nuraBrowserState === listener)
-        {
+    return () => {
+        if (window.__nuraBrowserState === listener) {
             window.__nuraBrowserState = undefined;
         }
     };

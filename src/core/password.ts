@@ -32,7 +32,7 @@ const hashLength = 32;
  * @param {string} password The plaintext password.
  * @returns {Promise<string>} The hex-encoded hash.
  */
-export const passwordHash = async(password: string) => argon2id({ password, salt, memorySize, iterations, parallelism, hashLength, outputType: 'hex' });
+export const passwordHash = async (password: string) => argon2id({ password, salt, memorySize, iterations, parallelism, hashLength, outputType: 'hex' });
 
 /**
  * passwordVerify - Checks a password against a stored hash.
@@ -43,19 +43,16 @@ export const passwordHash = async(password: string) => argon2id({ password, salt
  * @param {string} expectedHash The hash previously produced by `passwordHash`.
  * @returns {Promise<boolean>} Whether the password matches.
  */
-export const passwordVerify = async(password: string, expectedHash: string) =>
-{
+export const passwordVerify = async (password: string, expectedHash: string) => {
     const actual = await passwordHash(password);
 
-    if (actual.length !== expectedHash.length)
-    {
+    if (actual.length !== expectedHash.length) {
         return false;
     }
 
     let difference = 0;
 
-    for (let index = 0; index < actual.length; index++)
-    {
+    for (let index = 0; index < actual.length; index++) {
         difference |= actual.charCodeAt(index) ^ expectedHash.charCodeAt(index);
     }
 
@@ -72,16 +69,14 @@ export const passwordVerify = async(password: string, expectedHash: string) =>
  * @param {string} password The plaintext password to check.
  * @returns {Promise<'ok' | 'invalid' | 'missing'>} The outcome.
  */
-export const passwordCheck = async(password: string): Promise<'ok' | 'invalid' | 'missing'> =>
-{
+export const passwordCheck = async (password: string): Promise<'ok' | 'invalid' | 'missing'> => {
     const stored = await getValue('Wallet.Password');
 
-    if (stored === undefined)
-    {
+    if (stored === undefined) {
         return 'missing';
     }
 
-    return await passwordVerify(password, stored) ? 'ok' : 'invalid';
+    return (await passwordVerify(password, stored)) ? 'ok' : 'invalid';
 };
 
 /**
@@ -100,15 +95,12 @@ const passwordMax = 32;
  * @param {string} confirm The confirmation field.
  * @returns {'mismatch' | 'length' | undefined} The first rule broken, or `undefined` when it passes.
  */
-export const passwordIssue = (password: string, confirm: string) =>
-{
-    if (password !== confirm)
-    {
+export const passwordIssue = (password: string, confirm: string) => {
+    if (password !== confirm) {
         return 'mismatch';
     }
 
-    if (password.length < passwordMin || password.length > passwordMax)
-    {
+    if (password.length < passwordMin || password.length > passwordMax) {
         return 'length';
     }
 

@@ -16,8 +16,7 @@ export type VaultKind = 'mnemonic' | 'privateKey';
  * so every surface that needs a signer can build one without knowing which sort of wallet it is
  * looking at, and the few that genuinely differ can ask.
  */
-export interface Vault
-{
+export interface Vault {
     kind: VaultKind;
     /** The BIP39 phrase, or the private key as it was entered. */
     secret: string;
@@ -45,8 +44,7 @@ const privateKeyShape = /^(?:0x)?[0-9a-fA-F]{64}$/u;
  * @param {string} secret The decrypted secret out of storage, or straight off the import form.
  * @returns {Vault} The secret paired with the kind it turned out to be.
  */
-export const readVault = (secret: string): Vault =>
-{
+export const readVault = (secret: string): Vault => {
     const trimmed = secret.trim();
 
     return { kind: privateKeyShape.test(trimmed) ? 'privateKey' : 'mnemonic', secret: trimmed };
@@ -62,9 +60,8 @@ export const readVault = (secret: string): Vault =>
  * @param {number} index The derivation index to open.
  * @returns {WalletManager | ReturnType<typeof WalletManager.FromPrivateKey>} A wallet manager for that account.
  */
-export const vaultManager = (vault: Vault, index: number) => (vault.kind === 'privateKey' ?
-    WalletManager.FromPrivateKey(vault.secret) :
-    new WalletManager(vault.secret, index));
+export const vaultManager = (vault: Vault, index: number) =>
+    vault.kind === 'privateKey' ? WalletManager.FromPrivateKey(vault.secret) : new WalletManager(vault.secret, index);
 
 /**
  * vaultAddress - The public address of one account of this wallet.

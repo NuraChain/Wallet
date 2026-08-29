@@ -29,28 +29,25 @@ import { readTokenBalances, type Token, type TokenBalance } from '../core/token'
  * @param {Network} network Active network.
  * @returns {{ value: bigint; formatted: string; loading: boolean; error: boolean; at: number; refresh: () => void }} Native balance state.
  */
-export const useBalance = (address: string, network: Network) =>
-{
-    const [ held, setHeld ] = useState({ key: '', value: 0n, at: 0 });
-    const [ loading, setLoading ] = useState(true);
-    const [ error, setError ] = useState(false);
-    const [ nonce, setNonce ] = useState(0);
+export const useBalance = (address: string, network: Network) => {
+    const [held, setHeld] = useState({ key: '', value: 0n, at: 0 });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [nonce, setNonce] = useState(0);
 
     const online = useOnline();
 
-    const key = `${ address }@${ network.id }`;
+    const key = `${address}@${network.id}`;
 
     const fresh = held.key === key;
 
     const lastNonce = useRef(nonce);
 
-    const refresh = useCallback(() =>
-    {
+    const refresh = useCallback(() => {
         setNonce((current) => current + 1);
     }, []);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         let active = true;
 
         // Stale-while-revalidate, matching the token rows below this figure so the two arrive together
@@ -60,15 +57,15 @@ export const useBalance = (address: string, network: Network) =>
 
         lastNonce.current = nonce;
 
-        if (hit !== undefined)
-        {
+        if (hit !== undefined) {
             setHeld({ key, value: hit.value, at: hit.written });
             setLoading(false);
             setError(false);
 
-            if (hit.fresh && !forced)
-            {
-                return () => { active = false; };
+            if (hit.fresh && !forced) {
+                return () => {
+                    active = false;
+                };
             }
         }
 
@@ -79,60 +76,48 @@ export const useBalance = (address: string, network: Network) =>
          * run; this is the launch that starts offline, where the only thing left is what the previous
          * run saw.
          */
-        const unreachable = () =>
-        {
+        const unreachable = () => {
             setError(true);
             setLoading(false);
 
-            if (hit !== undefined)
-            {
+            if (hit !== undefined) {
                 return;
             }
 
             const last = readLastNative(key);
 
-            if (last !== undefined)
-            {
-                setHeld({ key, value: last.value, at: last.written });
-            }
-            else
-            {
+            if (last === undefined) {
                 // Nothing was ever read for this account. `at` stays zero, which is what tells the tab
                 // to show no balance at all rather than a zero it cannot stand behind.
                 setHeld({ key, value: 0n, at: 0 });
+            } else {
+                setHeld({ key, value: last.value, at: last.written });
             }
         };
 
-        const run = async() =>
-        {
+        const run = async () => {
             setLoading(hit === undefined);
             setError(false);
 
             // Skipped rather than attempted: the provider would spend its timeouts arriving at an
             // answer already known, and the fallback below is the same one it would reach anyway.
-            if (!isOnline())
-            {
+            if (!isOnline()) {
                 unreachable();
 
                 return;
             }
 
-            try
-            {
+            try {
                 const balance = await getProvider().getBalance(address);
 
-                if (active)
-                {
+                if (active) {
                     writeNative(key, balance);
 
                     setHeld({ key, value: balance, at: Date.now() });
                     setLoading(false);
                 }
-            }
-            catch
-            {
-                if (active)
-                {
+            } catch {
+                if (active) {
                     unreachable();
                 }
             }
@@ -140,13 +125,12 @@ export const useBalance = (address: string, network: Network) =>
 
         void run();
 
-        return () =>
-        {
+        return () => {
             active = false;
         };
         // `online` is a dependency so that a link coming back re-reads on its own, rather than leaving
         // the user looking at a stale figure until they think to pull down.
-    }, [ key, nonce, online ]);
+    }, [key, nonce, online]);
 
     const value = fresh ? held.value : 0n;
 
@@ -171,16 +155,15 @@ export const useBalance = (address: string, network: Network) =>
  * @param {Token[]} list Tokens the user added on this network.
  * @returns {{ tokens: TokenBalance[]; loading: boolean; error: boolean; at: number; refresh: () => void }} Token balance state.
  */
-export const useTokens = (address: string, network: Network, list: Token[]) =>
-{
-    const [ held, setHeld ] = useState<{ key: string; tokens: TokenBalance[]; at: number }>({ key: '', tokens: [], at: 0 });
-    const [ loading, setLoading ] = useState(true);
-    const [ error, setError ] = useState(false);
-    const [ nonce, setNonce ] = useState(0);
+export const useTokens = (address: string, network: Network, list: Token[]) => {
+    const [held, setHeld] = useState<{ key: string; tokens: TokenBalance[]; at: number }>({ key: '', tokens: [], at: 0 });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [nonce, setNonce] = useState(0);
 
     const online = useOnline();
 
-    const key = `${ address }@${ network.id }`;
+    const key = `${address}@${network.id}`;
 
     const listKey = list.map((item) => item.address).join(',');
 
@@ -193,13 +176,11 @@ export const useTokens = (address: string, network: Network, list: Token[]) =>
 
     const lastNonce = useRef(nonce);
 
-    const refresh = useCallback(() =>
-    {
+    const refresh = useCallback(() => {
         setNonce((current) => current + 1);
     }, []);
 
-    useEffect(() =>
-    {
+    useEffect(() => {
         let active = true;
 
         // Stale-while-revalidate. Held balances are shown at once and the chain is re-read behind them,
@@ -211,26 +192,24 @@ export const useTokens = (address: string, network: Network, list: Token[]) =>
 
         lastNonce.current = nonce;
 
-        if (hit !== undefined)
-        {
+        if (hit !== undefined) {
             setHeld({ key, tokens: hit.tokens, at: hit.written });
             setLoading(false);
             setError(false);
 
-            if (hit.fresh && !forced)
-            {
-                return () => { active = false; };
+            if (hit.fresh && !forced) {
+                return () => {
+                    active = false;
+                };
             }
         }
 
         /** unreachable - What to show when the contracts could not be read. */
-        const unreachable = () =>
-        {
+        const unreachable = () => {
             setError(true);
             setLoading(false);
 
-            if (hit !== undefined)
-            {
+            if (hit !== undefined) {
                 return;
             }
 
@@ -239,34 +218,27 @@ export const useTokens = (address: string, network: Network, list: Token[]) =>
             setHeld({ key, tokens: last?.tokens ?? [], at: last?.written ?? 0 });
         };
 
-        const run = async() =>
-        {
+        const run = async () => {
             setLoading(hit === undefined);
             setError(false);
 
-            if (!isOnline())
-            {
+            if (!isOnline()) {
                 unreachable();
 
                 return;
             }
 
-            try
-            {
+            try {
                 const result = await readTokenBalances(address, list);
 
-                if (active)
-                {
+                if (active) {
                     writeBalances(cacheKey, result);
 
                     setHeld({ key, tokens: result, at: Date.now() });
                     setLoading(false);
                 }
-            }
-            catch
-            {
-                if (active)
-                {
+            } catch {
+                if (active) {
                     unreachable();
                 }
             }
@@ -274,11 +246,10 @@ export const useTokens = (address: string, network: Network, list: Token[]) =>
 
         void run();
 
-        return () =>
-        {
+        return () => {
             active = false;
         };
-    }, [ key, listKey, nonce, cacheKey, online ]);
+    }, [key, listKey, nonce, cacheKey, online]);
 
     return { tokens: fresh ? held.tokens : [], loading: loading || !fresh, error, at: fresh ? held.at : 0, refresh };
 };

@@ -15,8 +15,7 @@ import { Horizontal } from '../ui/stack';
  * A pair rather than a toggle: a switch labelled "desktop" has to be read to know what it does now,
  * while two controls show which one is on and what the other one is at the same time.
  */
-const viewMap: { view: BrowserView; label: string; icon: typeof FiMonitor }[] =
-[
+const viewMap: { view: BrowserView; label: string; icon: typeof FiMonitor }[] = [
     { view: 'mobile', label: 'Dashboard.Browser.ViewMobile', icon: FiSmartphone },
     { view: 'desktop', label: 'Dashboard.Browser.ViewDesktop', icon: FiMonitor }
 ];
@@ -29,19 +28,16 @@ const viewMap: { view: BrowserView; label: string; icon: typeof FiMonitor }[] =
  * @param {number} bytes The size in bytes.
  * @returns {string} A short human-readable size.
  */
-const readableSize = (bytes: number) =>
-{
-    if (bytes < 1024)
-    {
-        return `${ bytes } B`;
+const readableSize = (bytes: number) => {
+    if (bytes < 1024) {
+        return `${bytes} B`;
     }
 
-    if (bytes < 1024 * 1024)
-    {
-        return `${ Math.round(bytes / 1024) } KB`;
+    if (bytes < 1024 * 1024) {
+        return `${Math.round(bytes / 1024)} KB`;
     }
 
-    return `${ (bytes / (1024 * 1024)).toFixed(1) } MB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
 /**
@@ -65,141 +61,122 @@ const readableSize = (bytes: number) =>
  * @param {() => void} props.onClose Closes the dialog.
  * @returns {JSX.Element} The browser settings dialog.
  */
-export default function DashboardBrowserSettings({ view, visits, icons, blocked, iconBytes, connections, onView, onClear, onClearCache, onDisconnect, onClose }: { view: BrowserView; visits: number; icons: number; blocked: number; iconBytes: number; connections: number; onView: (view: BrowserView) => void; onClear: () => void; onClearCache: () => void; onDisconnect: () => void; onClose: () => void })
-{
+export default function DashboardBrowserSettings({
+    view,
+    visits,
+    icons,
+    blocked,
+    iconBytes,
+    connections,
+    onView,
+    onClear,
+    onClearCache,
+    onDisconnect,
+    onClose
+}: {
+    view: BrowserView;
+    visits: number;
+    icons: number;
+    blocked: number;
+    iconBytes: number;
+    connections: number;
+    onView: (view: BrowserView) => void;
+    onClear: () => void;
+    onClearCache: () => void;
+    onDisconnect: () => void;
+    onClose: () => void;
+}) {
     return (
-        <Modal
-            scroll
-            onClose={ onClose }>
+        <Modal scroll onClose={onClose}>
+            <ModalHeader title={T('Dashboard.Browser.Settings')} onClose={onClose} />
 
-            <ModalHeader
-                title={ T('Dashboard.Browser.Settings') }
-                onClose={ onClose } />
-
-            <SectionHeader title={ T('Dashboard.Browser.View') } />
+            <SectionHeader title={T('Dashboard.Browser.View')} />
 
             <Horizontal className='gap-2 *:flex-1'>
+                {viewMap.map((item) => (
+                    <Button
+                        key={item.view}
+                        variant={item.view === view ? 'primary' : 'muted'}
+                        size='action'
+                        disabled={item.view === view}
+                        onClick={() => {
+                            onView(item.view);
+                        }}
+                        className='disabled:cursor-default!'
+                    >
+                        <item.icon size={16} className='shrink-0' />
 
-                {
-                    viewMap.map((item) => (
-                        <Button
-                            key={ item.view }
-                            variant={ item.view === view ? 'primary' : 'muted' }
-                            size='action'
-                            disabled={ item.view === view }
-                            onClick={ () => { onView(item.view); } }
-                            className='disabled:cursor-default!'>
-
-                            <item.icon size={ 16 } className='shrink-0' />
-
-                            { T(item.label) }
-
-                        </Button>
-                    ))
-                }
-
+                        {T(item.label)}
+                    </Button>
+                ))}
             </Horizontal>
 
-            <Text text={ T('Dashboard.Browser.ViewNote') } />
+            <Text text={T('Dashboard.Browser.ViewNote')} />
 
-            <SectionHeader title={ T('Dashboard.Browser.Connected') } />
+            <SectionHeader title={T('Dashboard.Browser.Connected')} />
 
-            { /*
-              * The only way back out of a connection, which is why it is here at all: a grant is given
-              * to a site from inside that site's own page, and EIP-2255 leaves withdrawing it to the
-              * wallet. Without this the user could connect and never disconnect.
-              *
-              * Disconnecting does not reload anything. A page that is holding an account is told it no
-              * longer has one through `accountsChanged`, which is what every dApp already listens for.
-              */ }
-            <Text
-                variant='body'
-                text={ T('Dashboard.Browser.ConnectedCount', String(connections)) } />
+            {/*
+             * The only way back out of a connection, which is why it is here at all: a grant is given
+             * to a site from inside that site's own page, and EIP-2255 leaves withdrawing it to the
+             * wallet. Without this the user could connect and never disconnect.
+             *
+             * Disconnecting does not reload anything. A page that is holding an account is told it no
+             * longer has one through `accountsChanged`, which is what every dApp already listens for.
+             */}
+            <Text variant='body' text={T('Dashboard.Browser.ConnectedCount', String(connections))} />
 
-            <Text text={ T('Dashboard.Browser.ConnectedNote') } />
+            <Text text={T('Dashboard.Browser.ConnectedNote')} />
 
             <Horizontal className='gap-2 *:flex-1'>
+                <Button dim variant='danger' size='action' disabled={connections === 0} onClick={onDisconnect}>
+                    <FiTrash2 size={16} className='shrink-0' />
 
-                <Button
-                    dim
-                    variant='danger'
-                    size='action'
-                    disabled={ connections === 0 }
-                    onClick={ onDisconnect }>
-
-                    <FiTrash2 size={ 16 } className='shrink-0' />
-
-                    { T('Dashboard.Browser.ConnectedClear') }
-
+                    {T('Dashboard.Browser.ConnectedClear')}
                 </Button>
-
             </Horizontal>
 
-            <SectionHeader title={ T('Dashboard.Browser.History') } />
+            <SectionHeader title={T('Dashboard.Browser.History')} />
 
-            { /*
-              * The count is the whole state of the list, and it is what says whether clearing would
-              * do anything — so the button is disabled at zero rather than clearing nothing.
-              */ }
-            <Text
-                variant='body'
-                text={ T('Dashboard.Browser.HistoryCount', String(visits)) } />
+            {/*
+             * The count is the whole state of the list, and it is what says whether clearing would
+             * do anything — so the button is disabled at zero rather than clearing nothing.
+             */}
+            <Text variant='body' text={T('Dashboard.Browser.HistoryCount', String(visits))} />
 
             <Horizontal className='gap-2 *:flex-1'>
+                <Button dim variant='danger' size='action' disabled={visits === 0} onClick={onClear}>
+                    <FiTrash2 size={16} className='shrink-0' />
 
-                <Button
-                    dim
-                    variant='danger'
-                    size='action'
-                    disabled={ visits === 0 }
-                    onClick={ onClear }>
-
-                    <FiTrash2 size={ 16 } className='shrink-0' />
-
-                    { T('Dashboard.Browser.Clear') }
-
+                    {T('Dashboard.Browser.Clear')}
                 </Button>
-
             </Horizontal>
 
-            <SectionHeader title={ T('Dashboard.Browser.Cache') } />
+            <SectionHeader title={T('Dashboard.Browser.Cache')} />
 
-            { /*
-              * Unlike the visited list above, the count here is not the whole state. What the cache
-              * holds is only half of it: a favicon the origin policy refused was never stored, so on
-              * this screen the thing most worth clearing is precisely the thing this line cannot show.
-              * That is why `blocked` sits beside the count in deciding whether the button does
-              * anything, and why it is disabled only when there is neither — "0 icons, 0 B" next to a
-              * live button means refusals, which is the honest reading and not a stuck control.
-              */ }
-            <Text
-                variant='body'
-                text={ T('Dashboard.Browser.CacheSize', String(icons), readableSize(iconBytes)) } />
+            {/*
+             * Unlike the visited list above, the count here is not the whole state. What the cache
+             * holds is only half of it: a favicon the origin policy refused was never stored, so on
+             * this screen the thing most worth clearing is precisely the thing this line cannot show.
+             * That is why `blocked` sits beside the count in deciding whether the button does
+             * anything, and why it is disabled only when there is neither — "0 icons, 0 B" next to a
+             * live button means refusals, which is the honest reading and not a stuck control.
+             */}
+            <Text variant='body' text={T('Dashboard.Browser.CacheSize', String(icons), readableSize(iconBytes))} />
 
-            { /*
-              * Said plainly because the button does less than its name suggests everywhere else: this
-              * clears the icons the wallet fetched for these tiles, not the page cache the browser view
-              * keeps for the sites themselves, which no web API can reach into.
-              */ }
-            <Text text={ T('Dashboard.Browser.CacheNote') } />
+            {/*
+             * Said plainly because the button does less than its name suggests everywhere else: this
+             * clears the icons the wallet fetched for these tiles, not the page cache the browser view
+             * keeps for the sites themselves, which no web API can reach into.
+             */}
+            <Text text={T('Dashboard.Browser.CacheNote')} />
 
             <Horizontal className='gap-2 *:flex-1'>
+                <Button dim variant='danger' size='action' disabled={icons === 0 && blocked === 0} onClick={onClearCache}>
+                    <FiTrash2 size={16} className='shrink-0' />
 
-                <Button
-                    dim
-                    variant='danger'
-                    size='action'
-                    disabled={ icons === 0 && blocked === 0 }
-                    onClick={ onClearCache }>
-
-                    <FiTrash2 size={ 16 } className='shrink-0' />
-
-                    { T('Dashboard.Browser.CacheClear') }
-
+                    {T('Dashboard.Browser.CacheClear')}
                 </Button>
-
             </Horizontal>
-
         </Modal>
     );
 }

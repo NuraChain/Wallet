@@ -23,19 +23,16 @@ import { Vertical } from '../ui/stack';
  * @param {() => void} props.onClose Closes the modal.
  * @returns {JSX.Element} The redeem modal.
  */
-export default function DashboardRedeem({ address, onClose }: { address: string; onClose: () => void })
-{
-    const [ code, setCode ] = useState('');
-    const [ error, setError ] = useState('');
-    const [ done, setDone ] = useState('');
-    const [ isLoading, setIsLoading ] = useState(false);
+export default function DashboardRedeem({ address, onClose }: { address: string; onClose: () => void }) {
+    const [code, setCode] = useState('');
+    const [error, setError] = useState('');
+    const [done, setDone] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const onSubmit = async() =>
-    {
+    const onSubmit = async () => {
         setError('');
 
-        if (!isRedeemCode(code))
-        {
+        if (!isRedeemCode(code)) {
             setError(T('Dashboard.Redeem.ErrorCode'));
 
             return;
@@ -43,107 +40,85 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
 
         setIsLoading(true);
 
-        try
-        {
+        try {
             const result = await redeemCode(address, code);
 
-            if (result.ok)
-            {
+            if (result.ok) {
                 setDone(result.message.length > 0 ? result.message : T('Dashboard.Redeem.Success'));
 
                 return;
             }
 
             setError(result.message.length > 0 ? result.message : T('Dashboard.Redeem.ErrorFailed'));
-        }
-        finally
-        {
+        } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <Modal
-            scroll
-            onClose={ onClose }>
-
+        <Modal scroll onClose={onClose}>
             <ModalHeader
-                title={ T('Dashboard.Redeem.Title') }
+                title={T('Dashboard.Redeem.Title')}
                 titleClass='truncate'
-                onClose={ onClose }
+                onClose={onClose}
                 leading={
-                    (
-                        <IconBox tone='primary'>
+                    <IconBox tone='primary'>
+                        <FiGift size={16} />
+                    </IconBox>
+                }
+            />
 
-                            <FiGift size={ 16 } />
+            {done.length > 0 ? (
+                <Vertical className='items-center gap-2 py-4'>
+                    <FiCheckCircle size={36} className='text-btn-primary' />
 
-                        </IconBox>
-                    )
-                } />
+                    <Text variant='body' className='text-center' text={done} />
 
-            {
-                done.length > 0 ?
-                    (
-                        <Vertical className='items-center gap-2 py-4'>
+                    <Button variant='normal' size='action' fullWidth onClick={onClose} className='mt-2' text={T('Dashboard.Redeem.Close')} />
+                </Vertical>
+            ) : (
+                <>
+                    <Alert text={error} />
 
-                            <FiCheckCircle size={ 36 } className='text-btn-primary' />
+                    <ReadonlyField label={T('Dashboard.Redeem.Address')} value={address} />
 
-                            <Text
-                                variant='body'
-                                className='text-center'
-                                text={ done } />
+                    <TextField
+                        label={T('Dashboard.Redeem.Code')}
+                        value={code}
+                        onValue={setCode}
+                        onEnter={() => {
+                            void onSubmit();
+                        }}
+                        dir={code.length > 0 ? 'ltr' : undefined}
+                        autoCapitalize='none'
+                        spellCheck={false}
+                        placeholder={T('Dashboard.Redeem.CodeHint')}
+                        className='text-center font-mono text-tiny'
+                    />
 
-                            <Button
-                                variant='normal'
-                                size='action'
-                                fullWidth
-                                onClick={ onClose }
-                                className='mt-2'
-                                text={ T('Dashboard.Redeem.Close') } />
-
-                        </Vertical>
-                    ) :
-                    (
-                        <>
-                            <Alert text={ error } />
-
-                            <ReadonlyField
-                                label={ T('Dashboard.Redeem.Address') }
-                                value={ address } />
-
-                            <TextField
-                                label={ T('Dashboard.Redeem.Code') }
-                                value={ code }
-                                onValue={ setCode }
-                                onEnter={ () => { void onSubmit(); } }
-                                dir={ code.length > 0 ? 'ltr' : undefined }
-                                autoCapitalize='none'
-                                spellCheck={ false }
-                                placeholder={ T('Dashboard.Redeem.CodeHint') }
-                                className='text-center font-mono text-tiny' />
-
-                            { /*
-                              * The spinner replaces the label rather than joining it, matching the
-                              * unlock and recovery-phrase screens. The button fills the dialog's
-                              * width either way, so nothing moves when the label steps out.
-                              *
-                              * The label it replaced becomes the accessible name for as long as it
-                              * is gone, so a screen reader still hears what the button is doing.
-                              */ }
-                            <Button
-                                dim
-                                variant='primary'
-                                size='action'
-                                disabled={ isLoading }
-                                loading={ isLoading }
-                                onClick={ () => { void onSubmit(); } }
-                                aria-label={ isLoading ? T('Dashboard.Redeem.Pending') : undefined }
-                                className='mt-1'
-                                text={ isLoading ? '' : T('Dashboard.Redeem.Submit') } />
-                        </>
-                    )
-            }
-
+                    {/*
+                     * The spinner replaces the label rather than joining it, matching the
+                     * unlock and recovery-phrase screens. The button fills the dialog's
+                     * width either way, so nothing moves when the label steps out.
+                     *
+                     * The label it replaced becomes the accessible name for as long as it
+                     * is gone, so a screen reader still hears what the button is doing.
+                     */}
+                    <Button
+                        dim
+                        variant='primary'
+                        size='action'
+                        disabled={isLoading}
+                        loading={isLoading}
+                        onClick={() => {
+                            void onSubmit();
+                        }}
+                        aria-label={isLoading ? T('Dashboard.Redeem.Pending') : undefined}
+                        className='mt-1'
+                        text={isLoading ? '' : T('Dashboard.Redeem.Submit')}
+                    />
+                </>
+            )}
         </Modal>
     );
 }
