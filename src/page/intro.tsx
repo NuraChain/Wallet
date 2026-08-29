@@ -127,7 +127,7 @@ export default function IntroPage() {
                         {slideMap.map((slide) => (
                             <SwiperSlide key={slide.header}>
                                 <Vertical className='h-full cursor-pointer items-center justify-center gap-2 px-2 pb-10'>
-                                    <slide.art className='h-32 max-h-[40%] w-auto max-w-full sm:h-44 md:h-56' />
+                                    <slide.art className='h-44 max-h-[52%] w-auto max-w-full sm:h-60 md:h-72' />
 
                                     <Text as='h1' variant='title' className='text-center sm:text-large'>
                                         {T(slide.header)}
