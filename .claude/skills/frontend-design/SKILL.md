@@ -28,7 +28,7 @@ nothing else competes with it.
 
 ## Colour is information
 
-**One accent hue does all the brand work** — emerald 168: primary actions, focus, selection,
+**One accent hue does all the brand work** — azure 242: primary actions, focus, selection,
 and the credit side of a transaction. Error red is the only other hue in the product.
 Nothing else is allowed one. Colour that changes meaning per screen is noise, and a wallet
 has to stay calm.

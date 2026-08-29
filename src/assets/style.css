@@ -134,7 +134,7 @@
  * ink rather than as glass and steel; cards lift, never recess, for the same reason as before — a
  * carved surface vanishes in light and cannot carry one meaning across the switch.
  *
- * The accent is a single emerald (`hue 168`) doing all of the brand work: primary actions, focus,
+ * The accent is a single azure (`hue 242`) doing all of the brand work: primary actions, focus,
  * selection, and the credit side of a transaction. One hue everywhere is what keeps a wallet calm —
  * colour is information here, and information that changes meaning per screen is noise. Error stays
  * its own red family; nothing else in the interface is allowed a hue of its own.
@@ -175,7 +175,7 @@
 
     --shadow-color: oklch(25% 0.02 85 / 0.14);
 
-    --focus-ring: oklch(45% 0.11 168);
+    --focus-ring: oklch(45% 0.107 242.4);
 
     --btn-muted: oklch(96% 0.005 85);
     --btn-muted-hover: oklch(93.5% 0.006 85);
@@ -191,10 +191,10 @@
      * Hover goes darker in the light theme and lighter in the dark one, and both directions keep the
      * reversed label above 4.5:1 — which is what sets the resting value, not the other way round.
      */
-    --btn-primary: oklch(44% 0.105 168);
-    --btn-primary-hover: oklch(40% 0.105 168);
-    --btn-primary-active: oklch(36.5% 0.1 168);
-    --btn-primary-border: oklch(40% 0.105 168);
+    --btn-primary: oklch(44% 0.104 242.4);
+    --btn-primary-hover: oklch(40% 0.095 242.4);
+    --btn-primary-active: oklch(36.5% 0.088 242.4);
+    --btn-primary-border: oklch(40% 0.095 242.4);
 
     /* Backs the lettered asset disc, so it carries reversed text and clears 4.5:1 like a fill. */
     --btn-secondary: oklch(40% 0.015 85);
@@ -217,7 +217,7 @@
      * Success is the accent's own family at text weight: a received amount reads in the colour the
      * product acts with, not in a second green negotiated separately.
      */
-    --txt-success: oklch(44% 0.105 168);
+    --txt-success: oklch(44% 0.104 242.4);
 }
 
 [data-theme='dark'] {
@@ -243,7 +243,7 @@
 
     --shadow-color: oklch(0% 0 0 / 0.45);
 
-    --focus-ring: oklch(78% 0.11 168);
+    --focus-ring: oklch(78% 0.12 242.4);
 
     --btn-muted: oklch(26% 0.006 250);
     --btn-muted-hover: oklch(30% 0.007 250);
@@ -260,10 +260,10 @@
      * entirely by the reversed label: wherever a step lands is whatever still leaves white text above
      * 4.5:1, which is why hover climbs less than it used to.
      */
-    --btn-primary: oklch(48% 0.105 168);
-    --btn-primary-hover: oklch(51% 0.1 168);
-    --btn-primary-active: oklch(44% 0.105 168);
-    --btn-primary-border: oklch(58% 0.09 168);
+    --btn-primary: oklch(48% 0.114 242.4);
+    --btn-primary-hover: oklch(51% 0.12 242.4);
+    --btn-primary-active: oklch(44% 0.104 242.4);
+    --btn-primary-border: oklch(58% 0.135 242.4);
 
     --btn-secondary: oklch(46% 0.01 250);
 
@@ -280,7 +280,7 @@
     --txt-normal: oklch(96% 0.005 250);
     --txt-reverse: oklch(98.5% 0 0);
     --txt-error: oklch(72% 0.18 27);
-    --txt-success: oklch(76% 0.1 168);
+    --txt-success: oklch(76% 0.132 242.4);
 }
 
 /*
