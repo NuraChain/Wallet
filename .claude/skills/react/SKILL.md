@@ -1,13 +1,13 @@
 ---
 name: react
-description: Use when writing, reviewing, or refactoring any React/TypeScript in this repo — components, hooks, state, effects, routing, or anything under src/. Covers React 19 idioms, the module-singleton + useSyncExternalStore state convention, react-router memory routing with loaders, the file/naming layout, and the maximal ESLint config that will otherwise fail the build.
+description: Use when writing, reviewing, or refactoring any React/TypeScript in this repo — components, hooks, state, effects, routing, or anything under src/. Covers React 19 idioms, the module-singleton + useSyncExternalStore state convention, react-router memory routing with loaders, the file/naming layout, and the oxlint rule set and oxfmt formatting the repo is held to.
 ---
 
 # React in this repo
 
 React 19.2 + TypeScript 6 + Vite 8, rendered into a Tauri WebView. No test runner, no
-state library, no CSS-in-JS. `npm run build` runs `tsc`, then `npm run check`, then Vite —
-a type error or a failing check is a failed build.
+state library, no CSS-in-JS. `npm run build` runs `tsc`, then Vite — a type error is a
+failed build. Lint and format are separate commands, not build steps.
 
 ## Where code goes
 
@@ -120,33 +120,47 @@ is genuinely right:
 - `use(Context)` replaces `useContext`.
 - A context renders as `<Ctx value={...}>` — no `.Provider`.
 
-## Lint — read this before writing
+## Lint and format — read this before writing
 
-`eslint.config.ts` enables `js.configs.all`, `stylistic.configs.all`, `typescript.configs.all`
-and `better-tailwindcss/recommended-error`. Effectively *every* rule is on, with a short
-opt-out list. Consequences that bite:
+Two tools, and they do not overlap. **oxlint** (`.oxlintrc.json`) judges the code; **oxfmt**
+(`.oxfmtrc.json`) owns every whitespace decision. Do not argue with the formatter in review
+— run it.
 
-- **Allman braces**, 4-space indent, semicolons, single quotes, `jsx-quotes: prefer-single`.
-- **`{ spaced }` JSX curlies** — `{ value }`, `className={ cn(...) }`.
-- **No trailing commas**, anywhere.
-- **`@typescript-eslint/naming-convention`**: variables camelCase, functions PascalCase,
-  types PascalCase. The two legitimate escapes are a component arriving through a prop
-  (`as: Tag` in `text.tsx`) and a context object (`DialogTitleContext`), both of which JSX
-  forces to be capitalised — each carries an `eslint-disable-next-line` with a comment
-  saying why. Do not add a third without the same justification.
-- **`strict-boolean-expressions`** is on: write `value !== undefined`, `list.length > 0`,
-  `part.length === 0` — never a bare `!value` on a union.
-- **`no-floating-promises`** warns; prefix fire-and-forget calls with `void`.
-- **`no-console`** warns; the two deliberate uses carry a disable comment.
+oxlint runs the `correctness`, `suspicious`, `pedantic`, `perf` and `style` categories over
+the `typescript`, `unicorn`, `oxc`, `react` and `import` plugins, with an explicit opt-out
+list at the bottom of the config. `restriction` is deliberately off: it bans `async`/`await`,
+optional chaining and relative parent imports, none of which this tree is giving up.
 
-Run `npm run lint` (or `npm run lint:fix`) before you consider a change done. When a rule
-surprises you, match the shape of the nearest existing file rather than fighting it.
+Formatting, all of it oxfmt's, none of it negotiable:
+
+- **Same-line braces**, 4-space indent, semicolons, single quotes in TS *and* JSX.
+- **No spaces inside brackets** — `['a', 'b']`, `{value}`, `className={cn(...)}`.
+- **No trailing commas**, anywhere. **160-column** print width.
+- Tailwind class literals are sorted by oxfmt, in `class`/`className` and inside `cn()`.
+
+What the linter still holds you to:
+
+- **`no-console`** warns; the deliberate uses carry a disable comment.
+- **`no-await-in-loop`** is on; a sequential await carries a disable comment saying why the
+  loop cannot be parallel.
+- **`react-hooks/exhaustive-deps`** and **`react/set-state-in-effect`** warn rather than
+  error. They are real signal on new code — do not add to the existing backlog.
+
+What it no longer checks, and you now carry yourself:
+
+- **Naming**: variables camelCase, functions PascalCase, types PascalCase. oxlint has no
+  `naming-convention` rule, so this is convention only. Match the nearest file.
+- **Boolean strictness**: still write `value !== undefined`, `list.length > 0`,
+  `part.length === 0` — never a bare `!value` on a union. Nothing enforces it now.
+- **Floating promises**: still prefix fire-and-forget calls with `void`.
+
+Run `npm run lint` and `npm run format` before you consider a change done.
 
 ## Do not
 
 - Add a dependency. Check `package.json` first; this tree is deliberately small and `cn`
   exists because `clsx` + `tailwind-merge` were removed.
-- Introduce a test file — there is no runner. Verification is `npm run build`, whose
-  `check` step runs `script/cn.check.ts` and `script/contrast.js`.
+- Introduce a test file — there is no runner. Verification is `npm run build`, plus
+  `npm run lint` and `npm run format:check`.
 - Reach for `useMemo`/`useCallback` reflexively. They appear here only where a real
   identity problem exists.

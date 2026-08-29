@@ -1,18 +1,20 @@
 ---
 name: tailwindcss
-description: Use whenever you write, change, or review a Tailwind class, or touch src/assets/style.css. Covers the Tailwind v4 CSS-first theme and its exact token names, the custom cn() merge and how it groups utilities, the custom utilities, RTL-safe logical properties, and the two build gates (no-unknown-classes, contrast) that reject anything off-token.
+description: Use whenever you write, change, or review a Tailwind class, or touch src/assets/style.css. Covers the Tailwind v4 CSS-first theme and its exact token names, the custom cn() merge and how it groups utilities, the custom utilities, RTL-safe logical properties, and the fact that nothing machine-checks an off-token class any more.
 ---
 
 # Tailwind in this repo
 
 Tailwind v4 through `@tailwindcss/vite`. **There is no `tailwind.config.js`** — the theme is
-CSS-first and lives entirely in `src/assets/style.css`, which is also the `entryPoint` the
-lint plugin reads.
+CSS-first and lives entirely in `src/assets/style.css`, which is also the `stylesheet` oxfmt
+reads to sort class literals.
 
 ## The one hard rule
 
-`better-tailwindcss/no-unknown-classes` is set to **error**. A class that is not in the
-theme is a build failure, not a value that quietly works. That means:
+**Every colour, radius, duration and size must be a token in `style.css`.** This was
+`better-tailwindcss/no-unknown-classes` at error level, and a class outside the theme was a
+build failure. oxlint has no equivalent, so the rule is now yours to keep — an off-token
+class will render and ship. That means:
 
 - **No stock palette.** `bg-gray-100`, `text-slate-500`, `border-zinc-200` do not exist here.
 - **No stock radius or shadow steps.** No `rounded-lg`, no `shadow-md`.
@@ -83,19 +85,22 @@ resolution. Things worth knowing before you touch it:
   `cn('flex flex-col')` must keep both.
 - Variants are part of the key, so `hover:opacity-50` never displaces `opacity-100`.
 
-**If you change `cn`, add a case to `script/cn.check.ts`.** It runs in `npm run check`,
-which runs in `npm run build`. Cases assert which classes *survive*, not the output string,
-because lint rewrites class literals into canonical order.
+**If you change `cn`, exercise it by hand before committing.** The assertion file that
+guarded the merge is gone, and what it protected is still the easiest thing here to get
+catastrophically wrong: `text-`, `border-`, `outline-` and `ring-` each spell more than one
+CSS property, and mis-grouping one is silent — every bordered surface renders at
+`border-width: 0` and the focus ring goes invisible. Both shipped once. Check which classes
+*survive* a merge, not the output string, because oxfmt sorts class literals into canonical
+order.
 
 ## Adding a token
 
 1. Declare the variable in **both** `[data-theme]` blocks — a token that exists in one
    theme is a bug that only shows in the theme nobody had open.
 2. Map it in `@theme inline` (`--color-x: var(--x);`) so a utility is generated.
-3. Run `npm run check`. `script/contrast.js` parses the stylesheet itself and asserts body
-   text ≥ 4.5:1 on every surface, reversed labels ≥ 4.5:1 on every fill *including its hover
-   and active steps*, control boundaries and the focus ring ≥ 3:1. It exits non-zero listing
-   every failing pair.
+3. Measure contrast by hand — nothing does it for you now. Body text ≥ 4.5:1 on every
+   surface, reversed labels ≥ 4.5:1 on every fill *including its hover and active steps*,
+   control boundaries and the focus ring ≥ 3:1.
 4. Colours are authored in `oklch()`. The parser reads `oklch(L% C H)` — keep that form.
 
 ## Writing classes

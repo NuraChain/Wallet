@@ -33,10 +33,11 @@ and the credit side of a transaction. Error red is the only other hue in the pro
 Nothing else is allowed one. Colour that changes meaning per screen is noise, and a wallet
 has to stay calm.
 
-**Contrast is checked by script, not by eye.** Body text ≥ 4.5:1 on every surface it can
-land on; a reversed label ≥ 4.5:1 on every fill *including hover and active*; control
-boundaries and the focus ring ≥ 3:1. `npm run check` parses the stylesheet and fails the
-build. The ceiling on a fill's hover step is set by the label it still has to carry.
+**Contrast is a hard number, and nothing checks it for you any more.** Body text ≥ 4.5:1 on
+every surface it can land on; a reversed label ≥ 4.5:1 on every fill *including hover and
+active*; control boundaries and the focus ring ≥ 3:1. The script that used to fail the build
+on a bad pair is gone, so a token you add or retune has to be measured by hand before it
+lands. The ceiling on a fill's hover step is set by the label it still has to carry.
 
 **Two line weights, and the distinction binds.** `line` is decorative — a card hairline, a
 separator — and is free to be quiet, because the surface fill underneath already identifies
@@ -102,8 +103,9 @@ A change is not done until it holds in all four:
 ## Review checklist
 
 - [ ] Composed from primitives — no hand-written card, flex div, z-index, or type pairing
-- [ ] Every colour, radius, duration and size is a token (`no-unknown-classes` proves it)
-- [ ] `npm run check` passes — contrast and `cn` gates
+- [ ] Every colour, radius, duration and size is a token — read `style.css` and confirm;
+      no lint rule catches an off-token class now
+- [ ] Contrast measured by hand for any token added or retuned
 - [ ] Both themes, both directions, both platforms
 - [ ] Keyboard: reachable, visible focus, Escape where a surface can be dismissed
 - [ ] Touch targets ≥ 44px
@@ -111,7 +113,7 @@ A change is not done until it holds in all four:
 - [ ] Nothing moves on hover or press; state is in the fill
 - [ ] Long values (a 42-char address, a 6-figure balance, a German or Persian label) don't
       break the row — truncate, wrap, or use the mono register deliberately
-- [ ] `npm run lint` clean
+- [ ] `npm run lint` clean, `npm run format` run
 
 ## When a rule has to bend
 

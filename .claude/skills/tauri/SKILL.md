@@ -20,8 +20,7 @@ npm run android-aab    # bundle
 ```
 
 `beforeDevCommand` / `beforeBuildCommand` in `tauri.conf.json` chain to `npm run dev` /
-`npm run build`, so a frontend type error or a failing `npm run check` stops the Tauri
-build too. Dev URL is `http://localhost:1420`.
+`npm run build`, so a frontend type error stops the Tauri build too. Dev URL is `http://localhost:1420`.
 
 ## Configuration is split per platform
 
