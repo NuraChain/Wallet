@@ -205,17 +205,6 @@ export default function DashboardWallet({
 
     return (
         <Vertical className='mt-2 gap-4'>
-            {/*
-             * A 32px band at the top that the tab scrolls behind rather than through.
-             *
-             * The tab's own top padding already clears the frameless title bar, but padding does not
-             * paint: anything scrolled up travelled through that strip and came out behind the window
-             * controls. This holds it, and is bled back out to the panel edges because the tab pads its
-             * sides — a masked middle with two open margins is worse than no mask at all. Below the
-             * chrome layer deliberately, so the title bar's own controls stay on top of it.
-             */}
-            <div aria-hidden className='sticky top-0 z-10 -mx-4 h-8 shrink-0 bg-base-1 sm:-mx-6' />
-
             <Horizontal className='items-center gap-2'>
                 <Button variant='chip' onClick={onAccounts} className={chipClass}>
                     {/* The badge the account switcher set, or the generic person until one is chosen. */}

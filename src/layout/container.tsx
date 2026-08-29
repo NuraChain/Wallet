@@ -11,7 +11,8 @@ import { useIsWindows } from '../hook/platform';
  */
 export const inset = {
     sheetTop: 'pt-[env(safe-area-inset-top)]',
-    modalFrame: 'pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]'
+    modalFrame: 'pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]',
+    tabTop: { windows: 'pt-8', device: 'pt-[calc(0.375rem+env(safe-area-inset-top))]' }
 } as const;
 
 /**
@@ -34,11 +35,12 @@ export const layer = {
 
 /**
  * Top padding per page variant: what clears the custom title bar on a frameless Windows window, and
- * what clears the status bar (plus a breath of space where the content starts with controls) under
- * Android's transparent system bars.
+ * what clears the status bar under Android's transparent system bars.
+ *
+ * `tab` is absent on purpose. It is the one variant that lives inside a scroll area, so its clearance
+ * belongs on the frame around that scroller — `ScrollFrame` below, off `inset.tabTop`.
  */
 const topMap = {
-    tab: { windows: 'pt-8', device: 'pt-[calc(0.375rem+env(safe-area-inset-top))]' },
     browser: { windows: 'pt-8', device: 'pt-[env(safe-area-inset-top)]' },
     intro: { windows: 'pt-10', device: 'pt-[env(safe-area-inset-top)]' }
 } as const;
@@ -75,9 +77,32 @@ export default function PageContainer({
 }: { variant: 'tab' | 'browser' | 'intro'; className?: string; children: ReactNode } & HTMLAttributes<HTMLDivElement>) {
     const isWindows = useIsWindows();
 
+    const top = variant === 'tab' ? '' : topMap[variant][isWindows ? 'windows' : 'device'];
+
     return (
-        <div className={cn(bodyMap[variant], isWindows ? topMap[variant].windows : topMap[variant].device, className)} {...rest}>
+        <div className={cn(bodyMap[variant], top, className)} {...rest}>
             {children}
         </div>
     );
+}
+
+/**
+ * ScrollFrame - The frame a scrolling tab's scroll area sits in, and the tab's top clearance.
+ *
+ * The clearance cannot live inside the scroller, which is the whole reason this exists. Padding
+ * scrolls with what it pads: held in `PageContainer` it cleared the title bar at rest and then did
+ * nothing, so the tab's content travelled up through the bar's band and came out behind the window
+ * controls. On the frame it shortens the viewport instead — the strip stops being somewhere content
+ * is drawn and then covered, and becomes somewhere content cannot go.
+ *
+ * The platform fork stays in this file for the same reason every other one does: a surface picks a
+ * frame, it does not copy a formula.
+ * @param {object} props Component props.
+ * @param {ReactNode} props.children The scroll area.
+ * @returns {JSX.Element} The frame.
+ */
+export function ScrollFrame({ children }: { children: ReactNode }) {
+    const isWindows = useIsWindows();
+
+    return <div className={cn('size-full', inset.tabTop[isWindows ? 'windows' : 'device'])}>{children}</div>;
 }

@@ -6,7 +6,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { HiOutlineGlobeAlt, HiOutlineSquares2X2, HiOutlineWallet } from 'react-icons/hi2';
 
 import ScrollArea from '../layout/scroll';
-import PageContainer from '../layout/container';
+import PageContainer, { ScrollFrame } from '../layout/container';
 import DashboardApps from '../components/dashboard/dashboard.apps';
 import DashboardNav from '../components/dashboard/dashboard.nav';
 import DashboardWallet from '../components/dashboard/dashboard.wallet';
@@ -725,59 +725,61 @@ function DashboardView({ vault }: { vault: Vault }) {
                                         </Suspense>
                                     </PageContainer>
                                 ) : (
-                                    <ScrollArea className='size-full' onRefresh={onRefresh} onScrollChange={onPanelScroll(index)}>
-                                        <PageContainer
-                                            variant='tab'
-                                            role='tabpanel'
-                                            id={`dashboard-panel-${item.key}`}
-                                            aria-hidden={index === active ? undefined : true}
-                                            inert={index === active ? undefined : true}
-                                            aria-labelledby={`dashboard-tab-${item.key}`}
-                                        >
-                                            {item.key === 'Wallet' && (
-                                                <DashboardWallet
-                                                    address={address}
-                                                    name={name}
-                                                    emoji={emoji}
-                                                    network={network}
-                                                    native={reads}
-                                                    tokens={tokens.tokens}
-                                                    total={prices.total}
-                                                    totalLoading={prices.loading}
-                                                    totalAt={prices.at}
-                                                    prices={prices.prices}
-                                                    history={history}
-                                                    onSend={() => {
-                                                        setModal('send');
-                                                    }}
-                                                    onReceive={() => {
-                                                        setModal('receive');
-                                                    }}
-                                                    onRedeem={() => {
-                                                        setModal('redeem');
-                                                    }}
-                                                    onNetwork={() => {
-                                                        setModal('network');
-                                                    }}
-                                                    onAccounts={() => {
-                                                        setModal('accounts');
-                                                    }}
-                                                    onTokens={() => {
-                                                        setModal('tokens');
-                                                    }}
-                                                    onSettings={() => {
-                                                        setModal('settings');
-                                                    }}
-                                                    onTransaction={onTransaction}
-                                                    onOverview={() => {
-                                                        setModal('history');
-                                                    }}
-                                                />
-                                            )}
+                                    <ScrollFrame>
+                                        <ScrollArea className='size-full' onRefresh={onRefresh} onScrollChange={onPanelScroll(index)}>
+                                            <PageContainer
+                                                variant='tab'
+                                                role='tabpanel'
+                                                id={`dashboard-panel-${item.key}`}
+                                                aria-hidden={index === active ? undefined : true}
+                                                inert={index === active ? undefined : true}
+                                                aria-labelledby={`dashboard-tab-${item.key}`}
+                                            >
+                                                {item.key === 'Wallet' && (
+                                                    <DashboardWallet
+                                                        address={address}
+                                                        name={name}
+                                                        emoji={emoji}
+                                                        network={network}
+                                                        native={reads}
+                                                        tokens={tokens.tokens}
+                                                        total={prices.total}
+                                                        totalLoading={prices.loading}
+                                                        totalAt={prices.at}
+                                                        prices={prices.prices}
+                                                        history={history}
+                                                        onSend={() => {
+                                                            setModal('send');
+                                                        }}
+                                                        onReceive={() => {
+                                                            setModal('receive');
+                                                        }}
+                                                        onRedeem={() => {
+                                                            setModal('redeem');
+                                                        }}
+                                                        onNetwork={() => {
+                                                            setModal('network');
+                                                        }}
+                                                        onAccounts={() => {
+                                                            setModal('accounts');
+                                                        }}
+                                                        onTokens={() => {
+                                                            setModal('tokens');
+                                                        }}
+                                                        onSettings={() => {
+                                                            setModal('settings');
+                                                        }}
+                                                        onTransaction={onTransaction}
+                                                        onOverview={() => {
+                                                            setModal('history');
+                                                        }}
+                                                    />
+                                                )}
 
-                                            {item.key === 'Apps' && <DashboardApps active={index === active} onOpen={onBrowse} />}
-                                        </PageContainer>
-                                    </ScrollArea>
+                                                {item.key === 'Apps' && <DashboardApps active={index === active} onOpen={onBrowse} />}
+                                            </PageContainer>
+                                        </ScrollArea>
+                                    </ScrollFrame>
                                 )
                             }
                         </div>
