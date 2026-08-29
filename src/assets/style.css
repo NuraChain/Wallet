@@ -447,6 +447,20 @@ input[type="password"]::-webkit-textfield-decoration-container {
 }
 
 /*
+ * Separates the rows of a grouped list with hairlines instead of letting each row carry its own
+ * card. The selector form is what makes this a utility rather than a class: the container owns the
+ * rhythm, so its children stay plain rows that know nothing about the surface around them.
+ *
+ * The divider is a block-edge border, which is direction-neutral — a horizontal rule has no handedness,
+ * so there is nothing for a right-to-left language to mirror.
+ */
+@utility list-divide {
+    & > * + * {
+        border-block-start: 1px solid var(--line);
+    }
+}
+
+/*
  * Everything below styles something no component owns — the document, the mount node, and Swiper's
  * own pagination markup — so none of it can be expressed as a utility on a React element.
  */
