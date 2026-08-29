@@ -175,7 +175,7 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
                         {methodList.map((item) => (
                             <Button
                                 key={item.kind}
-                                variant={method === item.kind ? 'primary' : 'muted'}
+                                variant={method === item.kind ? 'primary' : 'normal'}
                                 onClick={() => {
                                     onMethod(item.kind);
                                 }}
