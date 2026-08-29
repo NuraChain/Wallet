@@ -10,6 +10,7 @@ import Text from '../ui/text';
 import StatusBlock from '../ui/state';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
+import ListCard from '../ui/list';
 import { TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
@@ -141,32 +142,42 @@ export default function DashboardTokens({ network, tokens, prices, onAdd, onRemo
                     (
                         <>
                             {
-                                tokens.map((item) => (
-                                    <TokenRow
-                                        hover
-                                        kind='token'
-                                        key={ item.token.address }
-                                        src={ getTokenLogo(network.chainId, item.token.address) }
-                                        symbol={ item.token.symbol }
-                                        subtitle={ item.token.name }>
+                                tokens.length > 0 &&
+                                (
+                                    <ListCard>
 
-                                        <AssetAmount
-                                            amount={ trimAmount(item.formatted) }
-                                            value={ rowValue(item) } />
+                                        {
+                                            tokens.map((item) => (
+                                                <TokenRow
+                                                    grouped
+                                                    hover
+                                                    kind='token'
+                                                    key={ item.token.address }
+                                                    src={ getTokenLogo(network.chainId, item.token.address) }
+                                                    symbol={ item.token.symbol }
+                                                    subtitle={ item.token.name }>
 
-                                        <Button
-                                            variant='danger'
-                                            size='icon'
-                                            onClick={ () => { onRemove(item.token.address); } }
-                                            aria-label={ T('Dashboard.Tokens.Remove') }
-                                            className='shrink-0'>
+                                                    <AssetAmount
+                                                        amount={ trimAmount(item.formatted) }
+                                                        value={ rowValue(item) } />
 
-                                            <FiTrash2 size={ 16 } />
+                                                    <Button
+                                                        variant='danger'
+                                                        size='icon'
+                                                        onClick={ () => { onRemove(item.token.address); } }
+                                                        aria-label={ T('Dashboard.Tokens.Remove') }
+                                                        className='shrink-0'>
 
-                                        </Button>
+                                                        <FiTrash2 size={ 16 } />
 
-                                    </TokenRow>
-                                ))
+                                                    </Button>
+
+                                                </TokenRow>
+                                            ))
+                                        }
+
+                                    </ListCard>
+                                )
                             }
 
                             {

@@ -7,6 +7,7 @@ import TransactionRow from './dashboard.transaction';
 
 import Button from '../ui/button';
 import StatusBlock from '../ui/state';
+import ListCard from '../ui/list';
 import { TextField } from '../ui/field';
 import { Modal, ModalHeader } from '../ui/modal';
 
@@ -186,13 +187,22 @@ export default function DashboardHistory({ items, loading, notice, canOpen, onOp
                 className='scroll-hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto'>
 
                 {
-                    visible.map((item) => (
-                        <TransactionRow
-                            key={ item.id }
-                            item={ item }
-                            canOpen={ canOpen }
-                            onOpen={ onOpen } />
-                    ))
+                    visible.length > 0 &&
+                    (
+                        <ListCard>
+
+                            {
+                                visible.map((item) => (
+                                    <TransactionRow
+                                        key={ item.id }
+                                        item={ item }
+                                        canOpen={ canOpen }
+                                        onOpen={ onOpen } />
+                                ))
+                            }
+
+                        </ListCard>
+                    )
                 }
 
                 {

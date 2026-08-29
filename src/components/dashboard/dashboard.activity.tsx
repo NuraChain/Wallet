@@ -6,6 +6,7 @@ import TransactionRow from './dashboard.transaction';
 
 import Button from '../ui/button';
 import StatusBlock from '../ui/state';
+import ListCard from '../ui/list';
 import SectionHeader from '../ui/section';
 
 import { T } from '../../utility/language';
@@ -65,13 +66,22 @@ export default function DashboardActivity({ items, loading, notice, canOpen, onO
             </SectionHeader>
 
             {
-                items.slice(0, preview).map((item) => (
-                    <TransactionRow
-                        key={ item.id }
-                        item={ item }
-                        canOpen={ canOpen }
-                        onOpen={ onOpen } />
-                ))
+                items.length > 0 &&
+                (
+                    <ListCard>
+
+                        {
+                            items.slice(0, preview).map((item) => (
+                                <TransactionRow
+                                    key={ item.id }
+                                    item={ item }
+                                    canOpen={ canOpen }
+                                    onOpen={ onOpen } />
+                            ))
+                        }
+
+                    </ListCard>
+                )
             }
 
             {

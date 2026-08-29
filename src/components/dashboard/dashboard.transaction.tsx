@@ -8,7 +8,6 @@ import IconBox from '../ui/iconbox';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
-import { surfacePanel } from '../ui/panel';
 import { formatDate, shortAddress, trimAmount } from '../../utility/format';
 import { Vertical } from '../ui/stack';
 
@@ -19,13 +18,16 @@ import { Vertical } from '../ui/stack';
  * The wallet tab's activity preview and the full history overview rendered this identical row with
  * two separate copies; both now come from here, so the two lists cannot drift apart.
  *
+ * The row is bare rather than self-carded: both lists group their rows on one shared surface, so
+ * this draws only its content and lets the container carry the material and the dividers.
+ *
  * The row is a button that opens the transaction on the network's explorer, and is disabled — not
  * hidden — when the network has no explorer to open. It brightens under the pointer only while it can
  * actually be opened, so a row on a network with no explorer stays visibly inert.
  *
- * The amount carries the direction as colour: a debit in the error red, a credit in its green
- * counterpart. The sign is already there, but on a list of near-identical rows the colour is what the
- * eye picks up before it reads anything.
+ * The amount carries the direction as colour: a debit in the error red, a credit in the accent's own
+ * success family. The sign is already there, but on a list of near-identical rows the colour is what
+ * the eye picks up before it reads anything.
  * @param {object} props Component props.
  * @param {Transaction} props.item The transaction to render.
  * @param {boolean} props.canOpen Whether the network has an explorer to open the row on.
@@ -47,7 +49,7 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
         <Button
             disabled={ !canOpen }
             onClick={ () => { onOpen(item.hash); } }
-            className={ cn(surfacePanel, 'flex shrink-0 items-center gap-3 rounded-surface p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-normal-hover') }>
+            className={ cn('flex shrink-0 items-center gap-3 p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-muted-hover') }>
 
             <IconBox tone='muted' className='size-9'>
 
