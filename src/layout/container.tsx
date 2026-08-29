@@ -5,13 +5,12 @@ import { useIsWindows } from '../hook/platform';
 
 /**
  * Safe-area formulas that live outside `PageContainer` — surfaces that pad against the device insets
- * without being a page: the navigation bar's resting offset and the full-screen modal frame.
+ * without being a page: the full-screen modal frame and the top sheet.
  *
  * These are plain class strings (not computed) so Tailwind's scanner picks them up at build time.
  */
 export const inset =
 {
-    navBottom: 'bottom-[calc(1rem+env(safe-area-inset-bottom))]',
     sheetTop: 'pt-[env(safe-area-inset-top)]',
     modalFrame: 'pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]'
 } as const;
@@ -49,12 +48,13 @@ const topMap =
 
 /**
  * Everything below the top edge, per variant. `tab` is a dashboard content panel: centred, width
- * capped, and padded at the bottom by exactly the nav bar's height plus the device inset. `browser`
- * is the full-bleed surface a web page owns. `intro` is the intro page's own frame.
+ * capped, and padded at the bottom by the navigation bar's height (56px items plus its 6px inset)
+ * with a breath of space on top of it. `browser` is the full-bleed surface a web page owns. `intro`
+ * is the intro page's own frame.
  */
 const bodyMap =
 {
-    tab: 'mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] sm:px-6',
+    tab: 'mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-[calc(5rem+env(safe-area-inset-bottom))] sm:px-6',
     browser: 'flex size-full flex-col',
     intro: 'bg-base-1 flex size-full flex-col px-4 pb-4 sm:px-6 sm:pb-6'
 } as const;
