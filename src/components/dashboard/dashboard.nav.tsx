@@ -9,18 +9,16 @@ import { T } from '../../utility/language';
 import { Vertical } from '../ui/stack';
 
 /**
- * DashboardNav - The grounded bottom navigation bar.
+ * DashboardNav - The floating bottom navigation bar.
  *
- * Full width and seated on the bottom edge rather than floating: one hairline across the app's foot,
- * three equal targets, and an accent indicator on whichever is live. A floating pill read as a toy
- * next to the rest of this interface — it broke the frame's edges on wide windows and asked its own
- * corners to carry the identity. Grounded, the bar is furniture: predictable to find, impossible to
- * mistake for content, and the same width as everything else it serves.
+ * A stadium pill inset 16px from the left, right and bottom edges, lifted off the page on the one
+ * shadow this interface allows anything that genuinely floats. Three equal targets, a hairline all
+ * the way round rather than only across the top, and an accent indicator on whichever is live.
  *
- * The active marker is a short accent rule seated on the bar's top edge, directly over the border it
- * interrupts, paired with the accent colour on the item itself. Colour never carries selection alone;
- * the rule does not move between tabs so there is no glide to follow — where you are is stated, not
- * performed.
+ * The active marker is a short accent rule on the bar's top edge, paired with the accent colour on
+ * the item itself. Colour never carries selection alone; the rule does not move between tabs so there
+ * is no glide to follow — where you are is stated, not performed. It is clipped by the pill's own
+ * radius, which is what `overflow-hidden` is doing here.
  *
  * The bar still tucks away when the active panel scrolls (`hidden`), which is the one piece of its
  * old behaviour worth keeping: it exists to be reachable, not to be watched.
@@ -48,12 +46,13 @@ export default function DashboardNav({
             animate={{ y: hidden ? '150%' : '0%', opacity: hidden ? 0 : 1 }}
             transition={{ type: 'tween', duration: 0.25 }}
 
-            // `pb` holds the device inset — on a phone this is the home-indicator zone, and the bar
-            // owes it clearance, not the page behind it. `pointer-events-none` while hidden so a
-            // thumb landing where the bar was cannot press a control that is on its way out.
+            // The bottom offset carries the device inset as well as the 16px float — on a phone that
+            // inset is the home-indicator zone, and the bar owes it clearance, not the page behind
+            // it. `pointer-events-none` while hidden so a thumb landing where the bar was cannot
+            // press a control that is on its way out.
             className={cn(
-                'absolute inset-x-0 bottom-0 z-20 grid auto-cols-fr grid-flow-col border-t border-line bg-base-2',
-                'pb-[calc(0.375rem+env(safe-area-inset-bottom))]',
+                'absolute inset-x-4 z-20 grid auto-cols-fr grid-flow-col overflow-hidden rounded-full border border-line bg-base-2 shadow-float',
+                'bottom-[calc(1rem+env(safe-area-inset-bottom))]',
                 hidden && 'pointer-events-none'
             )}
         >
@@ -74,9 +73,10 @@ export default function DashboardNav({
                     >
                         {isActive && (
                             <span
-                                // Seated on the bar's top edge: the item begins exactly at
-                                // the border line, so the rule lands on it and reads as part
-                                // of the bar rather than as a decoration inside the tab.
+                                // On the bar's top edge rather than under the label, so it
+                                // reads as part of the bar rather than as a decoration inside
+                                // the tab. The outer two tabs sit well clear of the pill's
+                                // curve, so a 32px rule lands on flat edge in all three.
                                 aria-hidden
                                 className='absolute top-0 h-0.5 w-8 rounded-full bg-btn-primary'
                             />
