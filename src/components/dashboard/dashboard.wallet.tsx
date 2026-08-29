@@ -3,6 +3,7 @@ import type { Network } from '../../core/network';
 import type { TokenBalance } from '../../core/token';
 import type { Transaction } from '../../hook/history';
 
+import { Fragment } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { IoChevronDown } from 'react-icons/io5';
 import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
@@ -14,8 +15,9 @@ import DashboardActivity from './dashboard.activity';
 import DashboardOffline from './dashboard.offline';
 
 import Text from '../ui/text';
-import Button, { fillNormal, fillPrimary } from '../ui/button';
+import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
+import ListCard from '../ui/list';
 import SectionHeader from '../ui/section';
 
 import { cn } from '../../utility/cn';
@@ -129,14 +131,16 @@ export default function DashboardWallet({ address, name, emoji, network, native,
     };
 
     /**
-     * The three transfer controls. Same stacked shape, same dimensions; only the glyph, the fill and
-     * the destination differ, so the row is data rather than three copies of one button.
+     * The transfer bar's three segments. One connected control rather than three floating tiles:
+     * sending, receiving and redeeming are the three halves of one job — moving value — and a single
+     * bar says so. Send carries the accent because it is the action with consequences; the other two
+     * stay neutral and equal.
      */
-    const actionMap: { key: string; icon: IconType; fill: string; onClick: () => void }[] =
+    const actionMap: { key: string; icon: IconType; primary: boolean; onClick: () => void }[] =
     [
-        { key: 'Dashboard.Send.Title', icon: FiArrowUpRight, fill: fillPrimary, onClick: onSend },
-        { key: 'Dashboard.Receive.Title', icon: FiArrowDownLeft, fill: fillNormal, onClick: onReceive },
-        { key: 'Dashboard.Redeem.Title', icon: FiGift, fill: fillNormal, onClick: onRedeem }
+        { key: 'Dashboard.Send.Title', icon: FiArrowUpRight, primary: true, onClick: onSend },
+        { key: 'Dashboard.Receive.Title', icon: FiArrowDownLeft, primary: false, onClick: onReceive },
+        { key: 'Dashboard.Redeem.Title', icon: FiGift, primary: false, onClick: onRedeem }
     ];
 
     /**
@@ -228,7 +232,13 @@ export default function DashboardWallet({ address, name, emoji, network, native,
 
             <DashboardOffline error={ native.error } at={ native.at } />
 
-            <Vertical className='items-center gap-2 py-2'>
+            { /*
+              * Left-aligned, not centred. The figure is the tab's headline and the address under it
+              * is its caption; centring both floated them in the column and pushed every row below
+              * into a different rhythm. Aligned to the content edge, the tab reads top-down like
+              * everything else on it.
+              */ }
+            <Vertical className='items-start gap-1.5 py-2 ps-1'>
 
                 { /*
                   * `break-all` is the overflow answer for the one figure that cannot be truncated and
@@ -238,8 +248,8 @@ export default function DashboardWallet({ address, name, emoji, network, native,
                   */ }
                 <Text
                     dir='ltr'
-                    variant='title'
-                    className='text-display break-all'
+                    variant='display'
+                    className='break-all'
                     text={ headline() } />
 
                 { /*
@@ -310,24 +320,50 @@ export default function DashboardWallet({ address, name, emoji, network, native,
 
             </Vertical>
 
-            <Horizontal className='justify-center gap-3'>
+            { /*
+              * The transfer bar. One surface, three equal segments, hairline seams; `overflow-hidden`
+              * is what makes the segments' own hover fills respect the group's radius. Send carries
+              * the accent fill and its reversed label — the one segment with consequences — while the
+              * neutral halves answer hover in the shared muted step.
+              */ }
+            <Horizontal className='overflow-hidden rounded-surface border border-line bg-base-2'>
 
                 {
-                    actionMap.map((item) => (
-                        <Button
-                            key={ item.key }
-                            onClick={ item.onClick }
-                            className='flex cursor-pointer flex-col items-center gap-1'>
+                    actionMap.map((item, index) => (
+                        <Fragment key={ item.key }>
 
-                            <Horizontal className={ `${ item.fill } size-14 items-center justify-center rounded-dialog` }>
+                            {
+                                index > 0 &&
+                                (
+                                    <span
 
-                                <item.icon size={ 22 } />
+                                        // A seam, not a divider between cards: the bar is one control.
+                                        aria-hidden
+                                        className='w-px shrink-0 bg-line' />
+                                )
+                            }
 
-                            </Horizontal>
+                            <Button
+                                onClick={ item.onClick }
+                                className={
+                                    cn(
+                                        'flex h-14 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 transition-colors duration-(--duration-fast)',
+                                        item.primary ?
+                                            'bg-btn-primary text-txt-reverse hover:bg-btn-primary-hover active:bg-btn-primary-active' :
+                                            'text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active'
+                                    )
+                                }>
 
-                            <Text text={ T(item.key) } />
+                                <item.icon size={ 18 } className='shrink-0' />
 
-                        </Button>
+                                <Text
+                                    variant='inherit'
+                                    className='truncate text-small font-medium'
+                                    text={ T(item.key) } />
+
+                            </Button>
+
+                        </Fragment>
                     ))
                 }
 
@@ -346,42 +382,51 @@ export default function DashboardWallet({ address, name, emoji, network, native,
 
                 </SectionHeader>
 
-                <TokenRow
-                    panel
-                    primary
-                    kind='network'
-                    src={ getNativeLogo(network.chainId) }
-                    symbol={ network.symbol }
-                    subtitle={ network.coin ?? network.name }>
+                { /*
+                  * One surface around the holdings rather than a card per row: the list is a column
+                  * to scan, and hairlines between rows hold it together without the stack-of-boxes
+                  * weight a panel per holding carried.
+                  */ }
+                <ListCard>
 
-                    { /*
-                      * The coin's own row follows the same rule as the headline: an amount that was
-                      * never read is a dash, not a zero. Its USD line is left out with it, since
-                      * pricing a balance nobody knows would be twice the invention.
-                      */ }
-                    <AssetAmount
-                        amount={ nativeAmount() }
-                        value={ native.loading || native.at === 0 ? undefined : rowValue(getNativeCoinId(network.chainId), native.formatted) } />
+                    <TokenRow
+                        grouped
+                        primary
+                        kind='network'
+                        src={ getNativeLogo(network.chainId) }
+                        symbol={ network.symbol }
+                        subtitle={ network.coin ?? network.name }>
 
-                </TokenRow>
+                        { /*
+                          * The coin's own row follows the same rule as the headline: an amount that was
+                          * never read is a dash, not a zero. Its USD line is left out with it, since
+                          * pricing a balance nobody knows would be twice the invention.
+                          */ }
+                        <AssetAmount
+                            amount={ nativeAmount() }
+                            value={ native.loading || native.at === 0 ? undefined : rowValue(getNativeCoinId(network.chainId), native.formatted) } />
 
-                {
-                    tokens.map((item) => (
-                        <TokenRow
-                            key={ item.token.address }
-                            panel
-                            kind='token'
-                            src={ getTokenLogo(network.chainId, item.token.address) }
-                            symbol={ item.token.symbol }
-                            subtitle={ item.token.name }>
+                    </TokenRow>
 
-                            <AssetAmount
-                                amount={ trimAmount(item.formatted) }
-                                value={ rowValue(getTokenCoinId(network.chainId, item.token.address, item.token.coinId), item.formatted) } />
+                    {
+                        tokens.map((item) => (
+                            <TokenRow
+                                grouped
+                                key={ item.token.address }
+                                kind='token'
+                                src={ getTokenLogo(network.chainId, item.token.address) }
+                                symbol={ item.token.symbol }
+                                subtitle={ item.token.name }>
 
-                        </TokenRow>
-                    ))
-                }
+                                <AssetAmount
+                                    amount={ trimAmount(item.formatted) }
+                                    value={ rowValue(getTokenCoinId(network.chainId, item.token.address, item.token.coinId), item.formatted) } />
+
+                            </TokenRow>
+                        ))
+                    }
+
+                </ListCard>
 
             </Vertical>
 

@@ -53,7 +53,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 animate={ { y: '0%' } }
                 exit={ { y: '-100%' } }
                 transition={ { type: 'tween' } }
-                className={ cn(surfacePanel, layer.dialog, 'absolute inset-x-0 top-0 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 outline-none', inset.sheetTop, 'pb-4 sm:mx-auto sm:px-6 sm:pb-6') }>
+                className={ cn(surfacePanel, layer.dialog, 'absolute inset-x-0 top-0 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 shadow-float outline-none', inset.sheetTop, 'pb-4 sm:mx-auto sm:px-6 sm:pb-6') }>
 
                 <Button
                     variant='muted'

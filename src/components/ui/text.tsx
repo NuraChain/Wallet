@@ -26,7 +26,7 @@ const variantMap =
     inherit: 'text-tiny',
     body: 'text-small text-txt-normal',
     bodyMuted: 'text-small text-txt-muted',
-    title: 'text-medium font-bold text-txt-normal',
+    title: 'text-medium font-semibold text-txt-normal',
     heading: 'text-large font-semibold text-txt-normal',
     display: 'text-display font-bold text-txt-normal'
 } as const;

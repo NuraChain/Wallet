@@ -10,7 +10,6 @@ import StatusBlock from '../ui/state';
 import TokenIcon from '../token.icon';
 import SectionHeader from '../ui/section';
 
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { loadConnections, siteOrigin } from '../../core/dapp';
 import { getSiteHost, getSiteIcon } from '../../core/browser';
@@ -18,22 +17,7 @@ import { getApps, setApps, type DappEntry } from '../../core/apps';
 import { Horizontal, Vertical } from '../ui/stack';
 
 /**
- * The lift under an app's icon.
- *
- * Every other logo in the wallet lies flat on its surface. These sit slightly proud of theirs, which
- * is the honest claim about what they are: other people's sites resting on your wallet, put there by
- * you and liftable off again. It is one soft shadow at the same colour the glass casts, so nothing new
- * enters the palette to say it.
- *
- * A recess was tried first and cut. Pressing the icon *into* the glass reads beautifully in the dark
- * theme and disappears entirely in the light one, where every available surface token is lighter than
- * the card it would sit on — and a detail that needs a token the system does not have is a detail the
- * system was not asking for.
- */
-const iconLift = 'shadow-raise';
-
-/**
- * AppIcon - An app's own icon, lifted off the card.
+ * AppIcon - An app's own icon, flat on the tile like every other logo in the app.
  * @param {object} props Component props.
  * @param {DappEntry} props.item The app.
  * @param {string} props.className Sizing and corner for the icon.
@@ -47,7 +31,7 @@ function AppIcon({ item, className }: { item: DappEntry; className: string })
             kind='unknown'
             src={ getSiteIcon(item.url) }
             symbol={ item.name }
-            className={ cn(iconLift, className) } />
+            className={ className } />
     );
 }
 
@@ -384,17 +368,16 @@ export default function DashboardApps({ active, onOpen }: { active: boolean; onO
 
                             {
                                 /*
-                                 * The `normal` fill rather than `muted`. These tiles are the whole of
-                                 * what this tab has to say, and `muted` is 20% white — over the light
-                                 * theme's pale aurora it left them as ghosts of cards. `normal` is the
-                                 * same translucent glass the wallet tab gives its holdings rows, which
-                                 * is the right weight for content that is the point of the screen
-                                 * rather than a control sitting beside it.
+                                 * The `chip` material — the card tone over a hairline — rather than a
+                                 * fill of its own invention. These tiles are the whole of what this tab
+                                 * has to say, so they wear the same surface as the holdings list and
+                                 * the activity group one tab over: one idea of what content looks like
+                                 * across the whole app.
                                  */
                                 apps.map((item) => (
                                     <Button
                                         key={ item.id }
-                                        variant='normal'
+                                        variant='chip'
                                         title={ tileTitle(item) }
                                         onClick={ () => { onOpen(item.url); } }
                                         className='h-30 flex-col items-start justify-start gap-3 rounded-surface p-3 text-start'>

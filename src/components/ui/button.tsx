@@ -11,52 +11,51 @@ import { cn } from '../../utility/cn';
  * so the ring answers the keyboard and stays out of the way of the mouse — pinning a transparent
  * outline at rest suppresses the user agent's own `:focus-visible` ring, so the old `focus:` spelling
  * meant a styled button flashed a ring on every click while `bare` showed nothing at all on Tab. And
- * it is one colour rather than five: the per-variant `--btn-*-outline` tokens said the same thing in
- * five places, and a ring that changes colour by variant is a ring the eye has to re-learn.
+ * it is one colour rather than five: a ring that changes colour by variant is a ring the eye has to
+ * re-learn.
  *
  * The transparent resting outline stays. Focusing then only changes a colour, so nothing reflows.
  */
 const focusRing = 'outline-2 outline-offset-2 outline-double outline-transparent focus-visible:outline-focus-ring';
 
 /**
- * What every button fill shares: the pointer, the focus ring, the lift on hover and the press that
- * settles back into the surface.
+ * What every button fill shares: the pointer, the focus ring, and state changes that answer in the
+ * fill itself.
  *
- * Only the properties that actually change are transitioned; a blanket `transition-all` would drag
- * `box-shadow` into every hover. `box-shadow` is deliberately *not* in the list — no button state
- * changes it, so transitioning it was paying for a paint-heavy property that never fired.
- *
- * `ease-initial` is equally deliberate: Tailwind's `transition-*` utilities apply their own easing
- * curve, while the CSS this replaces never set one and so used the initial `ease`.
+ * This generation of the interface does not move its buttons. The lift on hover and the press-scale
+ * are gone — a control that jumps off the page reads as decoration, and on a dense list of controls
+ * the whole surface twitched whenever the pointer crossed it. State now lives where the eye already
+ * is: the background steps between rest, hover and active. Only the properties that actually change
+ * are transitioned; a blanket `transition-all` would drag layout properties into every hover, and
+ * nothing here changes size or position.
  */
-const fillBase = `cursor-pointer ${ focusRing } shadow-raise transition-[background-color,border-color,transform] duration-(--duration-fast) ease-initial hover:-translate-y-px active:translate-y-0 active:scale-[0.99]`;
-
-const fillMuted = `${ fillBase } border border-btn-muted-border bg-btn-muted text-txt-muted hover:bg-btn-muted-hover active:bg-btn-muted-active`;
+const fillBase = `cursor-pointer ${ focusRing } transition-[background-color,border-color,color] duration-(--duration-fast) ease-initial`;
 
 /**
- * The neutral raised fill.
- *
- * Exported alongside `fillPrimary` for the wallet tab's transfer tiles, where the fill is worn by a
- * plain square inside the button rather than by the button itself.
+ * The quiet workhorse: a soft neutral step over the page, no border, no elevation.
  */
-export const fillNormal = `${ fillBase } border border-btn-normal-border bg-btn-normal text-txt-normal hover:bg-btn-normal-hover active:bg-btn-normal-active`;
+const fillMuted = `${ fillBase } bg-btn-muted text-txt-muted hover:bg-btn-muted-hover hover:text-txt-normal active:bg-btn-muted-active`;
 
-export const fillPrimary = `${ fillBase } border border-btn-primary-border bg-btn-primary text-txt-reverse hover:bg-btn-primary-hover active:bg-btn-primary-active`;
+/**
+ * The raised neutral fill.
+ */
+const fillNormal = `${ fillBase } bg-btn-normal text-txt-normal hover:bg-btn-normal-hover active:bg-btn-normal-active`;
+
+const fillPrimary = `${ fillBase } bg-btn-primary text-txt-reverse hover:bg-btn-primary-hover active:bg-btn-primary-active`;
 
 /**
  * The filled destructive fill, for an action that ends the session.
  */
-const fillDanger = `${ fillBase } border border-btn-danger-border bg-btn-danger text-txt-reverse hover:bg-btn-danger-hover active:bg-btn-danger-active`;
+const fillDanger = `${ fillBase } bg-btn-danger text-txt-reverse hover:bg-btn-danger-hover active:bg-btn-danger-active`;
 
 /**
- * The quiet control capsule.
+ * The quiet control chip.
  *
- * Where the fills above announce themselves with a fill, a shadow and a lift on hover, this stays
- * quiet: a hairline on a soft surface, no elevation, and a press that scales down into the page
- * rather than jumping off it. Used for the dashboard's account / network / settings row, where three
- * controls sit side by side and none of them is the action the user came for.
+ * A hairline over the card tone, no elevation, and a press that settles into the surface. Used for
+ * the dashboard's account / network / settings row, where three controls sit side by side and none
+ * of them is the action the user came for.
  */
-const fillChip = `cursor-pointer ${ focusRing } border border-line bg-base-3 text-txt-normal transition-[background-color,transform,opacity] duration-(--duration-base) ease-initial hover:bg-btn-normal-hover active:scale-95 active:bg-btn-normal-active`;
+const fillChip = `cursor-pointer ${ focusRing } border border-line bg-base-2 text-txt-normal transition-[background-color,border-color] duration-(--duration-base) ease-initial hover:bg-btn-muted-hover active:bg-btn-normal-active`;
 
 /**
  * The fills a button can wear.
@@ -66,11 +65,9 @@ const fillChip = `cursor-pointer ${ focusRing } border border-line bg-base-3 tex
  * filled red one, for an action that ends the session.
  *
  * `bare` is not empty: it is the focus ring and nothing else. Controls with their own complete look
- * (nav tabs, window controls, inline icon toggles) route through here for the `type='button'` default
- * without inheriting a fill, and they still have to be findable from the keyboard.
- *
- * The `secondary` fill that used to sit here had no call sites in the app, and it was the only reader
- * of six `--btn-secondary-*` declarations across the two theme blocks. It and they are gone.
+ * (nav tabs, window controls, transfer-bar segments, inline icon toggles) route through here for the
+ * `type='button'` default without inheriting a fill, and they still have to be findable from the
+ * keyboard.
  */
 const variantMap =
 {

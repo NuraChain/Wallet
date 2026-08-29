@@ -81,7 +81,7 @@ export function Modal({ onClose, frame = 'center', scroll = false, scale = 0.9, 
                     initial={ { opacity: 0, scale } }
                     animate={ { opacity: 1, scale: 1 } }
                     exit={ { opacity: 0, scale } }
-                    className={ cn(surfacePanel, 'flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-dialog p-4 outline-none', scroll && 'max-h-[80dvh] overflow-y-auto', panelClass) }>
+                    className={ cn(surfacePanel, 'flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-dialog p-5 shadow-float outline-none', scroll && 'max-h-[80dvh] overflow-y-auto', panelClass) }>
 
                     <DialogTitleContext value={ titleId }>
 
@@ -187,7 +187,7 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
  * The gap matches the panel's own, so rows sit the same distance apart whether they are inside this
  * region or not.
  *
- * The padding is 8px on every side, and the negative margin of the same size pays for it out of the
+ * The padding is 12px on every side, and the negative margin of the same size pays for it out of the
  * panel's own padding rather than out of the content, so the rows keep the width they have in a
  * dialog that does not scroll. It buys two things: the scrollbar stops sitting against the last
  * character, and a focused row can draw its outline. A scroll container clips at its padding box, and
@@ -201,7 +201,7 @@ export function ModalHeader({ title, subtitle = '', leading, close = 'icon', clo
 export function ModalBody({ className = '', children }: { className?: string; children: ReactNode })
 {
     return (
-        <div className={ cn('-m-2 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-2 *:shrink-0', className) }>
+        <div className={ cn('-m-3 flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain p-3 *:shrink-0', className) }>
 
             { children }
 
