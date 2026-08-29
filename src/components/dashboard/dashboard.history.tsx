@@ -13,7 +13,7 @@ import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
 import { useOnline } from '../../hook/connection';
-import { Horizontal } from '../ui/stack';
+import { Horizontal, Vertical } from '../ui/stack';
 
 /**
  * The direction filters offered above the list.
@@ -147,54 +147,64 @@ export default function DashboardHistory({
     }, [shown, results.length]);
 
     return (
-        <Modal frame='screen' scale={0.96} onClose={onClose} panelClass='size-full'>
-            <ModalHeader
-                title={T('Dashboard.Activity.Title')}
-                subtitle={T('Dashboard.Activity.Count', String(results.length))}
-                groupClass='flex-1'
-                close='chip'
-                closeLabel={T('Dashboard.Activity.Close')}
-                onClose={onClose}
-            />
+        <Modal frame='screen' scale={0.96} onClose={onClose} panelClass='size-full p-0'>
+            {/*
+             * The panel's own padding is gone and lives on this group instead, so that the list below
+             * can run the full width of the dialog. A transaction row is a full-bleed band here, not a
+             * card inset from an edge — at this length the inset was reading as a margin the list had
+             * to fight rather than as breathing room.
+             */}
+            <Vertical className='gap-3 px-5 pt-5'>
+                <ModalHeader
+                    title={T('Dashboard.Activity.Title')}
+                    subtitle={T('Dashboard.Activity.Count', String(results.length))}
+                    groupClass='flex-1'
+                    close='chip'
+                    closeLabel={T('Dashboard.Activity.Close')}
+                    onClose={onClose}
+                />
 
-            <TextField
-                value={query}
-                spellCheck={false}
-                autoComplete='off'
-                aria-label={T('Dashboard.Activity.Search')}
-                placeholder={T('Dashboard.Activity.Search')}
-                onValue={setQuery}
-                className='h-10 ps-9 pe-3'
-                leading={<FiSearch size={16} className='pointer-events-none absolute inset-s-3 text-txt-muted' />}
-            />
+                <TextField
+                    value={query}
+                    spellCheck={false}
+                    autoComplete='off'
+                    aria-label={T('Dashboard.Activity.Search')}
+                    placeholder={T('Dashboard.Activity.Search')}
+                    onValue={setQuery}
+                    className='h-10 ps-9 pe-3'
+                    leading={<FiSearch size={16} className='pointer-events-none absolute inset-s-3 text-txt-muted' />}
+                />
 
-            <Horizontal className='gap-2'>
-                {filters.map((item) => (
-                    <Button
-                        key={item}
-                        variant={filter === item ? 'primary' : 'chip'}
-                        onClick={() => {
-                            setFilter(item);
-                        }}
-                        aria-pressed={filter === item}
-                        className='h-8 flex-1 rounded-control text-tiny transition-colors duration-(--duration-base)'
-                        text={T(`Dashboard.Activity.Filter${item}`)}
-                    />
-                ))}
-            </Horizontal>
+                <Horizontal className='gap-2'>
+                    {filters.map((item) => (
+                        <Button
+                            key={item}
+                            variant={filter === item ? 'primary' : 'chip'}
+                            onClick={() => {
+                                setFilter(item);
+                            }}
+                            aria-pressed={filter === item}
+                            className='h-8 flex-1 rounded-control text-tiny transition-colors duration-(--duration-base)'
+                            text={T(`Dashboard.Activity.Filter${item}`)}
+                        />
+                    ))}
+                </Horizontal>
+            </Vertical>
 
-            <div ref={listRef} className='scroll-hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto'>
+            <div ref={listRef} className='scroll-hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-5'>
                 {visible.length > 0 && (
-                    <ListCard>
+                    // Square and open at the sides: the card's own border and radius would draw a box
+                    // around something that no longer has an edge to sit inside.
+                    <ListCard className='rounded-none border-x-0'>
                         {visible.map((item) => (
                             <TransactionRow key={item.id} item={item} canOpen={canOpen} onOpen={onOpen} />
                         ))}
                     </ListCard>
                 )}
 
-                {loading && items.length === 0 && <StatusBlock state='loading' text={T('Dashboard.Activity.Loading')} />}
+                {loading && items.length === 0 && <StatusBlock state='loading' className='px-5' text={T('Dashboard.Activity.Loading')} />}
 
-                {!loading && results.length === 0 && <StatusBlock text={emptyText()} />}
+                {!loading && results.length === 0 && <StatusBlock className='px-5' text={emptyText()} />}
 
                 {/*
                  * Nothing to look at: it exists to be scrolled into view. `shrink-0` so the flex column
