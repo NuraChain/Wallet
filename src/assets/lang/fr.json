@@ -101,8 +101,7 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Portefeuille",
-            "Browser": "Navigateur",
-            "Apps": "Applis"
+            "Browser": "Navigateur"
         },
         "Offline": {
             "Title": "Aucune connexion internet",
@@ -297,17 +296,6 @@
             "AssetAddress": "Contrat",
             "Reject": "Refuser",
             "Approve": "Approuver"
-        },
-        "Apps": {
-            "Title": "Applis",
-            "Manage": "Modifier",
-            "Done": "Terminé",
-            "Add": "Ajouter une app",
-            "Edit": "Modifier l’app",
-            "Remove": "Supprimer l’app",
-            "Empty": "Ajoutez une app pour l’ouvrir directement depuis votre portefeuille.",
-            "Reorder": "Faites glisser une app pour la déplacer.",
-            "Connected": "Connectée"
         },
         "Settings": {
             "Title": "Paramètres",

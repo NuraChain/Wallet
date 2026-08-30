@@ -101,8 +101,7 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Carteira",
-            "Browser": "Navegador",
-            "Apps": "Apps"
+            "Browser": "Navegador"
         },
         "Offline": {
             "Title": "Sem conexão com a internet",
@@ -297,17 +296,6 @@
             "AssetAddress": "Contrato",
             "Reject": "Recusar",
             "Approve": "Aprovar"
-        },
-        "Apps": {
-            "Title": "Apps",
-            "Manage": "Editar",
-            "Done": "Concluído",
-            "Add": "Adicionar app",
-            "Edit": "Editar app",
-            "Remove": "Remover app",
-            "Empty": "Adicione um app para abri-lo direto da sua carteira.",
-            "Reorder": "Arraste um app para mudar a ordem.",
-            "Connected": "Conectado"
         },
         "Settings": {
             "Title": "Configurações",

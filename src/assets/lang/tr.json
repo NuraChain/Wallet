@@ -101,8 +101,7 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Cüzdan",
-            "Browser": "Tarayıcı",
-            "Apps": "Uygulamalar"
+            "Browser": "Tarayıcı"
         },
         "Offline": {
             "Title": "İnternet bağlantısı yok",
@@ -297,17 +296,6 @@
             "AssetAddress": "Sözleşme",
             "Reject": "Reddet",
             "Approve": "Onayla"
-        },
-        "Apps": {
-            "Title": "Uygulamalar",
-            "Manage": "Düzenle",
-            "Done": "Tamam",
-            "Add": "Uygulama ekle",
-            "Edit": "Uygulamayı düzenle",
-            "Remove": "Uygulamayı kaldır",
-            "Empty": "Bir uygulama ekleyin ve doğrudan cüzdanınızdan açın.",
-            "Reorder": "Sırasını değiştirmek için uygulamayı sürükleyin.",
-            "Connected": "Bağlı"
         },
         "Settings": {
             "Title": "Ayarlar",

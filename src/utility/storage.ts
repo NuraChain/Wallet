@@ -13,7 +13,6 @@ type StorageKey =
     | 'App.Theme'
     | 'App.Network'
     | 'App.Networks'
-    | 'App.Apps'
     | 'Wallet.Mnemonic'
     | 'Wallet.Password'
     | 'Wallet.Name'

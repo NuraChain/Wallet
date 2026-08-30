@@ -3,11 +3,10 @@ import type { IconType } from 'react-icons';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { HiOutlineGlobeAlt, HiOutlineSquares2X2, HiOutlineWallet } from 'react-icons/hi2';
+import { HiOutlineGlobeAlt, HiOutlineWallet } from 'react-icons/hi2';
 
 import ScrollArea from '../layout/scroll';
 import PageContainer, { ScrollFrame } from '../layout/container';
-import DashboardApps from '../components/dashboard/dashboard.apps';
 import DashboardNav from '../components/dashboard/dashboard.nav';
 import DashboardWallet from '../components/dashboard/dashboard.wallet';
 
@@ -58,8 +57,7 @@ type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | '
 
 const navMap: { key: string; icon: IconType }[] = [
     { key: 'Wallet', icon: HiOutlineWallet },
-    { key: 'Browser', icon: HiOutlineGlobeAlt },
-    { key: 'Apps', icon: HiOutlineSquares2X2 }
+    { key: 'Browser', icon: HiOutlineGlobeAlt }
 ];
 
 function DashboardView({ vault }: { vault: Vault }) {
@@ -563,8 +561,6 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                     }}
                                                 />
                                             )}
-
-                                            {item.key === 'Apps' && <DashboardApps active={index === active} onOpen={onBrowse} />}
                                         </PageContainer>
                                     </ScrollArea>
                                 </ScrollFrame>

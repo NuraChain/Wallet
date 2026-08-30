@@ -101,8 +101,7 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "钱包",
-            "Browser": "浏览器",
-            "Apps": "应用"
+            "Browser": "浏览器"
         },
         "Offline": {
             "Title": "无网络连接",
@@ -297,17 +296,6 @@
             "AssetAddress": "合约",
             "Reject": "拒绝",
             "Approve": "批准"
-        },
-        "Apps": {
-            "Title": "应用",
-            "Manage": "编辑",
-            "Done": "完成",
-            "Add": "添加应用",
-            "Edit": "编辑应用",
-            "Remove": "移除应用",
-            "Empty": "添加应用，直接从钱包中打开。",
-            "Reorder": "拖动应用即可调整顺序。",
-            "Connected": "已连接"
         },
         "Settings": {
             "Title": "设置",
