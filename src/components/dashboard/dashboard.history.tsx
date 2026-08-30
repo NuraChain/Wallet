@@ -147,20 +147,22 @@ export default function DashboardHistory({
             </Vertical>
 
             <Vertical className='relative min-h-0 flex-1'>
-                <Vertical ref={listRef} className='min-h-0 flex-1 gap-2 overflow-y-auto pb-5'>
-                    {visible.length > 0 && (
-                        <ListCard className='rounded-none border-x-0'>
-                            {visible.map((item) => (
-                                <TransactionRow key={item.id} item={item} canOpen={canOpen} onOpen={onOpen} />
-                            ))}
-                        </ListCard>
-                    )}
+                <Vertical ref={listRef} className='flex-1 overflow-auto pb-4'>
+                    <Vertical className='gap-2'>
+                        {visible.length > 0 && (
+                            <ListCard className='h-full rounded-none'>
+                                {visible.map((item) => (
+                                    <TransactionRow key={item.id} item={item} canOpen={canOpen} onOpen={onOpen} />
+                                ))}
+                            </ListCard>
+                        )}
 
-                    {loading && items.length === 0 && <StatusBlock state='loading' className='px-5' text={T('Dashboard.Activity.Loading')} />}
+                        {loading && items.length === 0 && <StatusBlock state='loading' className='px-5' text={T('Dashboard.Activity.Loading')} />}
 
-                    {!loading && results.length === 0 && <StatusBlock className='px-5' text={emptyText()} />}
+                        {!loading && results.length === 0 && <StatusBlock className='px-5' text={emptyText()} />}
 
-                    {shown < results.length && <div ref={endRef} aria-hidden='true' className='h-4 shrink-0' />}
+                        {shown < results.length && <div ref={endRef} aria-hidden='true' className='h-4 shrink-0' />}
+                    </Vertical>
                 </Vertical>
 
                 <ScrollBar viewportRef={listRef} />
