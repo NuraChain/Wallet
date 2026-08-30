@@ -145,7 +145,7 @@ export default function DashboardHistory({
                 </Horizontal>
             </Vertical>
 
-            <Vertical ref={listRef} className='min-h-0 flex-1 [scrollbar-width:none] gap-2 overflow-y-auto pb-5 [&::-webkit-scrollbar]:hidden'>
+            <Vertical ref={listRef} className='min-h-0 flex-1 gap-2 overflow-y-auto pb-5'>
                 {visible.length > 0 && (
                     <ListCard className='rounded-none border-x-0'>
                         {visible.map((item) => (

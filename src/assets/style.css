@@ -225,6 +225,7 @@
 }
 
 * {
+    scrollbar-width: none;
     user-select: none;
     -webkit-user-drag: none;
     -webkit-user-select: none;
@@ -286,31 +287,9 @@ input[type='password']::-webkit-textfield-decoration-container {
 }
 
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-    background: transparent;
-}
-
-::-webkit-scrollbar-track,
-::-webkit-scrollbar-corner {
-    background: transparent;
-}
-
-::-webkit-scrollbar-button {
+    width: 0;
+    height: 0;
     display: none;
-}
-
-::-webkit-scrollbar-thumb {
-    cursor: pointer;
-    border-radius: 9999px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-    background-color: var(--scrollbar-thumb);
-    transition: background-color var(--duration-surface);
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: var(--scrollbar-thumb-hover);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -444,11 +444,7 @@ export default function ScrollArea({
                 </div>
             </div>
 
-            <div
-                ref={viewportRef}
-                onScroll={onScroll}
-                className='size-full [scrollbar-width:none] overflow-y-auto overscroll-contain [&::-webkit-scrollbar]:hidden'
-            >
+            <div ref={viewportRef} onScroll={onScroll} className='size-full overflow-y-auto overscroll-contain'>
                 {children}
             </div>
 
