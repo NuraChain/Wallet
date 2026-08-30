@@ -14,6 +14,7 @@ import { Vertical } from '../ui/stack';
 export default function TransactionRow({ item, canOpen, onOpen }: { item: Transaction; canOpen: boolean; onOpen: (hash: string) => void }) {
     return (
         <Button
+            fullWidth
             disabled={!canOpen}
             onClick={() => {
                 onOpen(item.hash);
