@@ -404,6 +404,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                             nativeFormatted={native.formatted}
                             tokens={tokens.tokens}
                             onSent={onSent}
+                            onExplorer={onTransaction}
                             onClose={closeModal}
                         />
                     )}

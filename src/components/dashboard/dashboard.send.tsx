@@ -3,7 +3,7 @@ import type { TokenBalance } from '../../core/token';
 import { useMemo, useState } from 'react';
 import { isAddress, parseUnits } from 'ethers';
 import { IoChevronDown } from 'react-icons/io5';
-import { FiArrowLeft, FiCheckCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiCheckCircle, FiCopy, FiExternalLink, FiShare2 } from 'react-icons/fi';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
@@ -22,6 +22,7 @@ import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { vaultManager, type Vault } from '../../core/vault';
 import { useOnline } from '../../hook/connection';
+import { useClipboard } from '../../hook/clipboard';
 import { getProvider } from '../../core/network.provider';
 import type { Network } from '../../core/network';
 import { getNativeLogo, getTokenLogo } from '../../core/price';
@@ -49,6 +50,7 @@ export default function DashboardSend({
     nativeFormatted,
     tokens,
     onSent,
+    onExplorer,
     onClose
 }: {
     vault: Vault;
@@ -58,6 +60,7 @@ export default function DashboardSend({
     nativeFormatted: string;
     tokens: TokenBalance[];
     onSent: () => void;
+    onExplorer: (hash: string) => void;
     onClose: () => void;
 }) {
     const assets = useMemo<Asset[]>(
@@ -95,6 +98,22 @@ export default function DashboardSend({
     const [picking, setPicking] = useState(false);
 
     const online = useOnline();
+
+    const clipboard = useClipboard();
+
+    const explorerLink = network.explorerUrl.length > 0 ? `${network.explorerUrl.replace(/\/+$/u, '')}/tx/${hash}` : '';
+
+    const onShare = () => {
+        const target = explorerLink.length > 0 ? explorerLink : hash;
+
+        if (typeof navigator.share !== 'function') {
+            void clipboard.copy(target);
+
+            return;
+        }
+
+        void navigator.share({ title: T('Dashboard.Send.Title'), text: hash, url: explorerLink }).catch(() => undefined);
+    };
 
     const asset = assets.find((item) => item.key === chosen) ?? assets[0];
 
@@ -332,6 +351,38 @@ export default function DashboardSend({
                     <Text variant='body' text={T('Dashboard.Send.Success')} />
 
                     <Text dir='ltr' className='w-full rounded-surface bg-base-3 p-2 text-center font-mono break-all select-text!' text={hash} />
+
+                    <Horizontal className='w-full gap-2 *:flex-1'>
+                        <Button
+                            variant='muted'
+                            size='action'
+                            onClick={() => {
+                                void clipboard.copy(hash);
+                            }}
+                            leftIcon={<FiCopy size={16} />}
+                            text={T('Dashboard.Send.Copy')}
+                        />
+
+                        <Button variant='muted' size='action' onClick={onShare} leftIcon={<FiShare2 size={16} />} text={T('Dashboard.Send.Share')} />
+                    </Horizontal>
+
+                    {explorerLink.length > 0 && (
+                        <Button
+                            variant='normal'
+                            size='action'
+                            fullWidth
+                            onClick={() => {
+                                onExplorer(hash);
+                            }}
+                            leftIcon={<FiExternalLink size={16} />}
+                            text={T('Dashboard.Send.Explorer')}
+                        />
+                    )}
+
+                    <Alert
+                        variant={clipboard.state === 'failed' ? 'error' : 'success'}
+                        text={clipboard.state === 'idle' ? '' : T(clipboard.state === 'failed' ? 'Dashboard.Send.CopyFailed' : 'Dashboard.Send.Copied')}
+                    />
 
                     <Button variant='primary' size='action' fullWidth onClick={onClose} text={T('Dashboard.Send.Done')} />
                 </Vertical>
