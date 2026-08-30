@@ -101,7 +101,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "المحفظة",
-            "Browser": "المتصفح"
+            "Browser": "المتصفح",
+            "Settings": "الإعدادات"
         },
         "Offline": {
             "Title": "لا يوجد اتصال بالإنترنت",

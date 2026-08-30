@@ -101,7 +101,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "वॉलेट",
-            "Browser": "ब्राउज़र"
+            "Browser": "ब्राउज़र",
+            "Settings": "सेटिंग्स"
         },
         "Offline": {
             "Title": "इंटरनेट कनेक्शन नहीं है",

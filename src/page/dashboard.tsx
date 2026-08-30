@@ -55,11 +55,12 @@ const DashboardPhrase = lazy(async () => import('../components/dashboard/dashboa
 const DashboardSettings = lazy(async () => import('../components/dashboard/dashboard.settings'));
 /* oxlint-enable @typescript-eslint/naming-convention */
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'settings' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem';
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem';
 
 const navMap: { key: string; icon: IconType }[] = [
     { key: 'Wallet', icon: HiOutlineWallet },
-    { key: 'Browser', icon: HiOutlineGlobeAlt }
+    { key: 'Browser', icon: HiOutlineGlobeAlt },
+    { key: 'Settings', icon: HiOutlineCog6Tooth }
 ];
 
 function DashboardView({ vault }: { vault: Vault }) {
@@ -94,9 +95,6 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const closeModal = useCallback(() => {
         setModal('none');
-    }, []);
-    const backToSettings = useCallback(() => {
-        setModal('settings');
     }, []);
 
     const current = accounts.find((item) => item.index === account);
@@ -368,8 +366,9 @@ function DashboardView({ vault }: { vault: Vault }) {
             key: 'Settings',
             label: T('Dashboard.Settings.Title'),
             icon: HiOutlineCog6Tooth,
+            active: navMap[active].key === 'Settings',
             onClick: () => {
-                setModal('settings');
+                goTab(2);
             }
         }
     ];
@@ -495,34 +494,13 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                     {modal === 'network' && <DashboardNetwork key='network' network={network} onChange={onNetworkChange} onClose={closeModal} />}
 
-                    {modal === 'language' && <IntroLanguage key='language' onClose={backToSettings} />}
+                    {modal === 'language' && <IntroLanguage key='language' onClose={closeModal} />}
 
                     {modal === 'redeem' && <DashboardRedeem key='redeem' address={address} onClose={closeModal} />}
 
-                    {modal === 'phrase' && <DashboardPhrase key='phrase' kind={vault.kind} onClose={backToSettings} />}
+                    {modal === 'phrase' && <DashboardPhrase key='phrase' kind={vault.kind} onClose={closeModal} />}
 
-                    {modal === 'logout' && <DashboardLogout key='logout' kind={vault.kind} onClose={backToSettings} />}
-
-                    {modal === 'settings' && (
-                        <DashboardSettings
-                            key='settings'
-                            kind={vault.kind}
-                            onLanguage={() => {
-                                setModal('language');
-                            }}
-                            onLock={() => {
-                                lockSession();
-                                void navigate('/unlock', { replace: true });
-                            }}
-                            onPhrase={() => {
-                                setModal('phrase');
-                            }}
-                            onLogout={() => {
-                                setModal('logout');
-                            }}
-                            onClose={closeModal}
-                        />
-                    )}
+                    {modal === 'logout' && <DashboardLogout key='logout' kind={vault.kind} onClose={closeModal} />}
 
                     {prompt !== undefined && <DashboardRequest key={prompt.id} prompt={prompt} address={address} network={network.name} />}
                 </AnimatePresence>
@@ -581,6 +559,27 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                 inert={index === active ? undefined : true}
                                                 aria-labelledby={`dashboard-tab-${item.key}`}
                                             >
+                                                {item.key === 'Settings' && (
+                                                    <Suspense fallback={null}>
+                                                        <DashboardSettings
+                                                            kind={vault.kind}
+                                                            onLanguage={() => {
+                                                                setModal('language');
+                                                            }}
+                                                            onLock={() => {
+                                                                lockSession();
+                                                                void navigate('/unlock', { replace: true });
+                                                            }}
+                                                            onPhrase={() => {
+                                                                setModal('phrase');
+                                                            }}
+                                                            onLogout={() => {
+                                                                setModal('logout');
+                                                            }}
+                                                        />
+                                                    </Suspense>
+                                                )}
+
                                                 {item.key === 'Wallet' && (
                                                     <DashboardWallet
                                                         address={address}
@@ -613,7 +612,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                             setModal('tokens');
                                                         }}
                                                         onSettings={() => {
-                                                            setModal('settings');
+                                                            goTab(2);
                                                         }}
                                                         onTransaction={onTransaction}
                                                         onOverview={() => {

@@ -101,7 +101,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Portefeuille",
-            "Browser": "Navigateur"
+            "Browser": "Navigateur",
+            "Settings": "Réglages"
         },
         "Offline": {
             "Title": "Aucune connexion internet",

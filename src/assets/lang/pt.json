@@ -101,7 +101,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Carteira",
-            "Browser": "Navegador"
+            "Browser": "Navegador",
+            "Settings": "Ajustes"
         },
         "Offline": {
             "Title": "Sem conexão com a internet",

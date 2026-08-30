@@ -101,7 +101,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Кошелёк",
-            "Browser": "Браузер"
+            "Browser": "Браузер",
+            "Settings": "Настройки"
         },
         "Offline": {
             "Title": "Нет подключения к интернету",
