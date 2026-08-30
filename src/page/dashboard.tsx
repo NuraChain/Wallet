@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiArrowDownLeft, FiArrowUpRight, FiLogOut } from 'react-icons/fi';
-import { HiOutlineCog6Tooth, HiOutlineGlobeAlt, HiOutlineWallet } from 'react-icons/hi2';
+import { HiOutlineCog6Tooth, HiOutlineGlobeAlt, HiOutlineLockClosed, HiOutlineWallet } from 'react-icons/hi2';
 
 import ScrollArea from '../layout/scroll';
 import PageContainer, { ScrollFrame } from '../layout/container';
@@ -509,14 +509,25 @@ function DashboardView({ vault }: { vault: Vault }) {
             <div dir={getDirection()} className='flex size-full overflow-hidden'>
                 <DashboardSidebar
                     items={sidebarMap}
-                    footer={{
-                        key: 'Logout',
-                        label: T('Dashboard.Logout.Title'),
-                        icon: FiLogOut,
-                        onClick: () => {
-                            setModal('logout');
+                    footer={[
+                        {
+                            key: 'Lock',
+                            label: T('Dashboard.Lock'),
+                            icon: HiOutlineLockClosed,
+                            onClick: () => {
+                                lockSession();
+                                void navigate('/unlock', { replace: true });
+                            }
+                        },
+                        {
+                            key: 'Logout',
+                            label: T('Dashboard.Logout.Title'),
+                            icon: FiLogOut,
+                            onClick: () => {
+                                setModal('logout');
+                            }
                         }
-                    }}
+                    ]}
                 />
 
                 <div className='min-w-0 flex-1 overflow-hidden'>

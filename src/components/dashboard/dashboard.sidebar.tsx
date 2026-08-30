@@ -19,7 +19,7 @@ export interface SidebarItem {
     onClick: () => void;
 }
 
-export default function DashboardSidebar({ items, footer }: { items: SidebarItem[]; footer: SidebarItem }) {
+export default function DashboardSidebar({ items, footer }: { items: SidebarItem[]; footer: SidebarItem[] }) {
     const isWindows = useIsWindows();
 
     return (
@@ -42,7 +42,9 @@ export default function DashboardSidebar({ items, footer }: { items: SidebarItem
 
             <div className='flex-1' />
 
-            <MenuRow label={footer.label} leading={<footer.icon size={18} className='shrink-0' />} onClick={footer.onClick} />
+            {footer.map((item) => (
+                <MenuRow key={item.key} label={item.label} leading={<item.icon size={18} className='shrink-0' />} onClick={item.onClick} />
+            ))}
         </Vertical>
     );
 }
