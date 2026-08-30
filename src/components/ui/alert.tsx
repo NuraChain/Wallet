@@ -6,7 +6,7 @@ import { cn } from '../../utility/cn';
 
 const variantMap = {
     error: 'bg-txt-error/10 text-txt-error text-center',
-    warning: 'bg-txt-error/10 text-txt-error flex items-start gap-2 text-start',
+    warning: 'bg-txt-warning/10 text-txt-warning flex items-start gap-2 text-start',
     success: 'bg-txt-success/10 text-txt-success flex items-start gap-2 text-start'
 } as const;
 
