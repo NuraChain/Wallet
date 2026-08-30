@@ -13,41 +13,17 @@ import { useIsWindows } from '../hook/platform';
 import { useLanguage } from '../hook/language';
 import { Horizontal } from '../components/ui/stack';
 
-/**
- * RouteFallback - What fills the content area while a route's chunk is still arriving.
- *
- * Deliberately only the content area: the shell around it is already on screen, so this is the
- * localized loading state rather than a whole-window spinner. On a warm start the chunk is usually
- * resolved within a frame or two and this never paints at all.
- * @returns {JSX.Element} A centered spinner.
- */
 export function RouteFallback() {
     return (
-        <div className='flex size-full items-center justify-center bg-base-1'>
+        <Horizontal className='size-full items-center justify-center bg-base-1'>
             <Spinner />
-        </div>
+        </Horizontal>
     );
 }
 
-/**
- * RootLayout - The application shell, mounted once for the life of the process.
- *
- * Everything that must not be rebuilt by navigation lives here: the frameless-window title bar and the
- * tray registration. Only `Outlet` changes when the route does, which is the whole point of having a
- * layout route — the previous page bus swapped the entire tree on every navigation, so the title bar
- * was torn down and rebuilt on the way from unlock to dashboard.
- *
- * The tray is registered from an effect here rather than at module scope so a refusal from the plugin
- * costs the tray and not the window.
- * @returns {JSX.Element} The shell.
- */
 export default function RootLayout() {
     const isWindows = useIsWindows();
 
-    // Subscribed for the same reason `TitleBar` subscribes, and it is the same bug: the tray labels
-    // below come from `T()` inside an effect, so without a re-render on language change the tray kept
-    // whatever language the process launched in for the rest of its life. The sibling in this shell
-    // had already found and solved this; the tray had not.
     const language = useLanguage();
 
     useEffect(() => {
@@ -84,8 +60,6 @@ export default function RootLayout() {
             }
         };
 
-        // The tray is a nicety and its plugin can refuse — a rejection here used to be an unhandled
-        // one, which is a crash report the user never sees and a window that opened anyway.
         void windowsTray().catch((cause: unknown) => {
             // oxlint-disable-next-line no-console
             console.error('[tray]', cause);

@@ -15,39 +15,12 @@ import { T } from '../../utility/language';
 import { useOnline } from '../../hook/connection';
 import { Horizontal, Vertical } from '../ui/stack';
 
-/**
- * The direction filters offered above the list.
- */
 const filters = ['All', 'Sent', 'Received'] as const;
 
-/**
- * How many rows are on screen to begin with, and how many more each time the end is reached.
- *
- * The transactions are all in memory already — the explorer hands over a page of fifty at once — so
- * this is about what is rendered rather than what is fetched. Fifty glass panels, each with its own
- * backdrop blur, is a lot of compositing for a list where the answer is almost always in the first few.
- */
 const step = 5;
 
 type Filter = (typeof filters)[number];
 
-/**
- * DashboardHistory - The complete transaction history, with search and filtering.
- *
- * The wallet tab only has room for the last handful of transactions, so this is where the full list
- * lives. Search matches a transaction's hash, either party's address, and the asset symbol at once,
- * because a user hunting a transfer usually remembers only one of the three.
- *
- * Rows share the activity list's behaviour: opening one hands the explorer link to the in-app browser.
- * @param {object} props Component props.
- * @param {Transaction[]} props.items Every transaction fetched for the account.
- * @param {boolean} props.loading Whether the history is still being fetched.
- * @param {string} props.notice Why the explorer returned nothing, when it said so itself.
- * @param {boolean} props.canOpen Whether the network has an explorer to open rows on.
- * @param {(hash: string) => void} props.onOpen Opens one transaction on the explorer.
- * @param {() => void} props.onClose Closes the page.
- * @returns {JSX.Element} The full history page.
- */
 export default function DashboardHistory({
     items,
     loading,
@@ -94,13 +67,6 @@ export default function DashboardHistory({
 
     const visible = results.slice(0, shown);
 
-    /**
-     * emptyText - Why there is nothing to show, ranked the same way the activity glance ranks it.
-     *
-     * A search that matched nothing is the user's own doing and outranks everything; after that, no
-     * link means the list was never fetched, which is not the account being empty.
-     * @returns {string} The line to render in place of the list.
-     */
     const emptyText = () => {
         if (items.length > 0) {
             return T('Dashboard.Activity.NoMatch');
@@ -113,16 +79,10 @@ export default function DashboardHistory({
         return T(notice.length > 0 ? 'Dashboard.Activity.Unavailable' : 'Dashboard.Activity.Empty');
     };
 
-    // Back to the first few whenever the list itself changes. Searching after having scrolled deep into
-    // the previous result set would otherwise open on forty rows of the new one.
     useEffect(() => {
         setShown(step);
     }, [query, filter]);
 
-    // Reveals the next few when the end of the list reaches the bottom of its own scroller — `root` is
-    // the scrolling panel, not the window, which is what the list actually moves inside. The sentinel
-    // only exists while something is still held back, so there is nothing to observe once the whole
-    // list is out; re-running on `shown` is what re-attaches it after each reveal.
     useEffect(() => {
         const sentinel = endRef.current;
 
@@ -148,12 +108,6 @@ export default function DashboardHistory({
 
     return (
         <Modal frame='screen' scale={0.96} onClose={onClose} panelClass='size-full p-0'>
-            {/*
-             * The panel's own padding is gone and lives on this group instead, so that the list below
-             * can run the full width of the dialog. A transaction row is a full-bleed band here, not a
-             * card inset from an edge — at this length the inset was reading as a margin the list had
-             * to fight rather than as breathing room.
-             */}
             <Vertical className='gap-3 px-5 pt-5'>
                 <ModalHeader
                     title={T('Dashboard.Activity.Title')}
@@ -191,10 +145,8 @@ export default function DashboardHistory({
                 </Horizontal>
             </Vertical>
 
-            <div ref={listRef} className='scroll-hidden flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-5'>
+            <Vertical ref={listRef} className='scroll-hidden min-h-0 flex-1 gap-2 overflow-y-auto pb-5'>
                 {visible.length > 0 && (
-                    // Square and open at the sides: the card's own border and radius would draw a box
-                    // around something that no longer has an edge to sit inside.
                     <ListCard className='rounded-none border-x-0'>
                         {visible.map((item) => (
                             <TransactionRow key={item.id} item={item} canOpen={canOpen} onOpen={onOpen} />
@@ -206,13 +158,8 @@ export default function DashboardHistory({
 
                 {!loading && results.length === 0 && <StatusBlock className='px-5' text={emptyText()} />}
 
-                {/*
-                 * Nothing to look at: it exists to be scrolled into view. `shrink-0` so the flex column
-                 * cannot collapse it to nothing, which would leave it permanently at the edge of the
-                 * scroller and firing.
-                 */}
                 {shown < results.length && <div ref={endRef} aria-hidden='true' className='h-4 shrink-0' />}
-            </div>
+            </Vertical>
         </Modal>
     );
 }
