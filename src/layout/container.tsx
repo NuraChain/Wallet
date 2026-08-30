@@ -8,7 +8,7 @@ export const inset = {
     modalFrame: 'pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]',
     tabTop: { windows: 'pt-8', device: 'pt-[calc(0.375rem+env(safe-area-inset-top))]' },
 
-    tabBottom: 'pb-[calc(4.5rem+env(safe-area-inset-bottom))]'
+    tabBottom: 'pb-[calc(5.5rem+env(safe-area-inset-bottom))]'
 } as const;
 
 export const layer = {
@@ -23,7 +23,7 @@ const topMap = {
 } as const;
 
 const bodyMap = {
-    tab: 'mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-4 sm:px-6',
+    tab: `mx-auto flex min-h-full w-full max-w-lg flex-col px-4 sm:px-6 ${inset.tabBottom}`,
     browser: 'flex size-full flex-col',
     intro: 'bg-base-1 flex size-full flex-col px-4 pb-4 sm:px-6 sm:pb-6'
 } as const;
@@ -48,5 +48,5 @@ export default function PageContainer({
 export function ScrollFrame({ children }: { children: ReactNode }) {
     const isWindows = useIsWindows();
 
-    return <div className={cn('size-full', inset.tabTop[isWindows ? 'windows' : 'device'], inset.tabBottom)}>{children}</div>;
+    return <div className={cn('size-full', inset.tabTop[isWindows ? 'windows' : 'device'])}>{children}</div>;
 }
