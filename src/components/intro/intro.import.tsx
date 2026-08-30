@@ -142,7 +142,7 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
                         label={method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message')}
                         dir={method === 'privateKey' ? 'ltr' : undefined}
                         onValue={setSecret}
-                        className={cn('min-h-28 sm:min-h-36', method === 'privateKey' && 'font-mono break-all')}
+                        className={cn('min-h-28 sm:min-h-36', method === 'privateKey' && 'break-all')}
                         placeholder={method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message')}
                     />
 

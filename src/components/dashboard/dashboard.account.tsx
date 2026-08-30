@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FiCheck, FiEdit2, FiPlus } from 'react-icons/fi';
+import { FiCheck, FiEdit2, FiPlus, FiTrash2 } from 'react-icons/fi';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
@@ -50,6 +50,7 @@ export default function DashboardAccount({
     active,
     onSelect,
     onUpdate,
+    onRemove,
     onClose
 }: {
     vault: Vault;
@@ -57,6 +58,7 @@ export default function DashboardAccount({
     active: number;
     onSelect: (index: number) => void;
     onUpdate: (index: number, patch: Partial<Account>) => void;
+    onRemove: (index: number) => void;
     onClose: () => void;
 }) {
     const derivable = vaultDerivable(vault);
@@ -279,6 +281,20 @@ export default function DashboardAccount({
                                     >
                                         <FiEdit2 size={14} />
                                     </Button>
+
+                                    {item.index >= accountFirst && (
+                                        <Button
+                                            variant='danger'
+                                            size='icon'
+                                            aria-label={T('Dashboard.Accounts.Remove')}
+                                            onClick={() => {
+                                                onRemove(item.index);
+                                            }}
+                                            className='shrink-0'
+                                        >
+                                            <FiTrash2 size={14} />
+                                        </Button>
+                                    )}
                                 </Horizontal>
                             );
                         })}

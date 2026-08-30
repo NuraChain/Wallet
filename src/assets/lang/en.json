@@ -115,6 +115,7 @@
             "Title": "Accounts",
             "Subtitle": "Switch between accounts of this wallet",
             "Rename": "Rename account",
+            "Remove": "Remove account",
             "Save": "Save",
             "Add": "Add account",
             "Index": "Derivation index",

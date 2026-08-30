@@ -36,7 +36,7 @@ import {
     type TokenMap
 } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
-import { defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
+import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
 
 /* oxlint-disable @typescript-eslint/naming-convention */
 const DashboardSend = lazy(async () => import('../components/dashboard/dashboard.send'));
@@ -329,6 +329,24 @@ function DashboardView({ vault }: { vault: Vault }) {
         void saveAccounts(next);
     };
 
+    const onRemoveAccount = (index: number) => {
+        const next = accounts.filter((item) => item.index !== index);
+
+        if (index < accountFirst || next.length === 0) {
+            return;
+        }
+
+        setAccounts(next);
+
+        void saveAccounts(next);
+
+        if (account === index) {
+            setAccount(next[0].index);
+
+            void saveActiveAccount(next[0].index);
+        }
+    };
+
     const onPanelScroll = (index: number) => (top: number, delta: number, bottom: number) => {
         if (index !== active) {
             return;
@@ -400,6 +418,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                             active={account}
                             onSelect={onSelectAccount}
                             onUpdate={onUpdateAccount}
+                            onRemove={onRemoveAccount}
                             onClose={closeModal}
                         />
                     )}
