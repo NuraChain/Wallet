@@ -127,7 +127,7 @@ export default function DashboardTokens({
                                     hover
                                     kind='token'
                                     key={item.token.address}
-                                    src={getTokenLogo(network.chainId, item.token.address)}
+                                    src={getTokenLogo(network.chainId, item.token.address, item.token.symbol)}
                                     symbol={item.token.symbol}
                                     subtitle={item.token.name}
                                 >

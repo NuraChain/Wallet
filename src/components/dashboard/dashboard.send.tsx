@@ -78,7 +78,7 @@ export default function DashboardSend({
                 key: item.token.address,
                 symbol: item.token.symbol,
                 name: item.token.name,
-                logo: getTokenLogo(network.chainId, item.token.address),
+                logo: getTokenLogo(network.chainId, item.token.address, item.token.symbol),
                 decimals: item.token.decimals,
                 value: item.value,
                 formatted: item.formatted,

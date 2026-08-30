@@ -283,7 +283,7 @@ export default function DashboardWallet({
                                     grouped
                                     key={item.token.address}
                                     kind='token'
-                                    src={getTokenLogo(network.chainId, item.token.address)}
+                                    src={getTokenLogo(network.chainId, item.token.address, item.token.symbol)}
                                     symbol={item.token.symbol}
                                     subtitle={item.token.name}
                                 >

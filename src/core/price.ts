@@ -69,7 +69,11 @@ export const getNativeLogo = (chainId: number) => {
     return folder === undefined ? '' : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${folder}/info/logo.png`;
 };
 
-export const getTokenLogo = (chainId: number, address: string) => {
+export const getTokenLogo = (chainId: number, address: string, symbol = '') => {
+    if (chainId === nuraChainId && symbol.toUpperCase() === wrappedSymbol) {
+        return getNativeLogo(chainId);
+    }
+
     const named = tokenLogos[chainId]?.[address.toLowerCase()];
 
     if (named !== undefined) {
