@@ -135,6 +135,7 @@
         "Wallet": {
             "TotalBalance": "Toplam bakiye",
             "TotalAssets": "Toplam varlıklar",
+            "TotalNft": "Toplam NFT",
             "Nft": "NFT'ler",
             "Activity": "İşlemler",
             "NftEmpty": "Gösterilecek NFT yok"

@@ -166,14 +166,14 @@ export default function DashboardWallet({
                     <IoChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
 
-                <Button variant='chip' size='iconChip' onClick={onSettings} aria-label={T('Dashboard.Settings.Title')} className='shrink-0'>
+                <Button variant='chip' size='iconChip' onClick={onSettings} aria-label={T('Dashboard.Settings.Title')} className='shrink-0 lg:hidden'>
                     <HiOutlineCog6Tooth size={17} />
                 </Button>
             </Horizontal>
 
             <DashboardOffline error={native.error} at={native.at} />
 
-            <div className='lg:grid lg:grid-cols-3 lg:gap-3'>
+            <div className='lg:grid lg:grid-cols-4 lg:gap-3'>
                 <Vertical className='items-center gap-1.5 py-2 lg:items-start lg:justify-center lg:rounded-surface lg:border lg:border-line lg:bg-base-2 lg:p-4 lg:py-4'>
                     <Text className='hidden lg:block' text={T('Dashboard.Wallet.TotalBalance')} />
 
@@ -225,6 +225,12 @@ export default function DashboardWallet({
                     <Text text={T('Dashboard.Wallet.TotalAssets')} />
 
                     <Text variant='heading' dir='ltr' className='font-mono' text={String(tokens.length + 1)} />
+                </Vertical>
+
+                <Vertical className='hidden gap-1 rounded-surface border border-line bg-base-2 p-4 lg:flex lg:justify-center'>
+                    <Text text={T('Dashboard.Wallet.TotalNft')} />
+
+                    <Text variant='heading' dir='ltr' className='font-mono' text='0' />
                 </Vertical>
 
                 <Vertical className='hidden gap-1 rounded-surface border border-line bg-base-2 p-4 lg:flex lg:justify-center'>

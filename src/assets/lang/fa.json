@@ -135,6 +135,7 @@
         "Wallet": {
             "TotalBalance": "موجودی کل",
             "TotalAssets": "کل دارایی‌ها",
+            "TotalNft": "کل NFT‌ها",
             "Nft": "NFT‌ها",
             "Activity": "تراکنش‌ها",
             "NftEmpty": "هنوز NFT‌ای برای نمایش نیست"

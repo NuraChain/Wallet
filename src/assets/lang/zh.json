@@ -135,6 +135,7 @@
         "Wallet": {
             "TotalBalance": "总余额",
             "TotalAssets": "总资产",
+            "TotalNft": "NFT 总数",
             "Nft": "NFT",
             "Activity": "交易",
             "NftEmpty": "暂无可显示的 NFT"

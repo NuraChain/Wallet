@@ -135,6 +135,7 @@
         "Wallet": {
             "TotalBalance": "Общий баланс",
             "TotalAssets": "Всего активов",
+            "TotalNft": "Всего NFT",
             "Nft": "NFT",
             "Activity": "Транзакции",
             "NftEmpty": "Пока нет NFT для показа"

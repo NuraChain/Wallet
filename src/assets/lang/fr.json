@@ -135,6 +135,7 @@
         "Wallet": {
             "TotalBalance": "Solde total",
             "TotalAssets": "Actifs totaux",
+            "TotalNft": "NFT au total",
             "Nft": "NFT",
             "Activity": "Transactions",
             "NftEmpty": "Aucun NFT à afficher pour l'instant"

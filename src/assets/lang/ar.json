@@ -135,6 +135,7 @@
         "Wallet": {
             "TotalBalance": "إجمالي الرصيد",
             "TotalAssets": "إجمالي الأصول",
+            "TotalNft": "إجمالي NFT",
             "Nft": "NFT",
             "Activity": "المعاملات",
             "NftEmpty": "لا توجد NFT لعرضها بعد"

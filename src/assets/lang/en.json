@@ -135,6 +135,7 @@
         "Wallet": {
             "TotalBalance": "Total Balance",
             "TotalAssets": "Total Assets",
+            "TotalNft": "Total NFTs",
             "Nft": "NFTs",
             "Activity": "Transactions",
             "NftEmpty": "No NFTs to show yet"

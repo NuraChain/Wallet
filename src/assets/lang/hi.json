@@ -135,6 +135,7 @@
         "Wallet": {
             "TotalBalance": "कुल शेष",
             "TotalAssets": "कुल संपत्तियां",
+            "TotalNft": "कुल NFT",
             "Nft": "NFT",
             "Activity": "लेनदेन",
             "NftEmpty": "दिखाने के लिए अभी कोई NFT नहीं"

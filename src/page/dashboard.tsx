@@ -3,8 +3,8 @@ import type { IconType } from 'react-icons';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FiArrowDownLeft, FiArrowUpRight, FiGift, FiLogOut } from 'react-icons/fi';
-import { HiOutlineCog6Tooth, HiOutlineGlobeAlt, HiOutlineListBullet, HiOutlineWallet } from 'react-icons/hi2';
+import { FiArrowDownLeft, FiArrowUpRight, FiLogOut } from 'react-icons/fi';
+import { HiOutlineCog6Tooth, HiOutlineGlobeAlt, HiOutlineWallet } from 'react-icons/hi2';
 
 import ScrollArea from '../layout/scroll';
 import PageContainer, { ScrollFrame } from '../layout/container';
@@ -362,22 +362,6 @@ function DashboardView({ vault }: { vault: Vault }) {
             icon: FiArrowDownLeft,
             onClick: () => {
                 setModal('receive');
-            }
-        },
-        {
-            key: 'Redeem',
-            label: T('Dashboard.Redeem.Title'),
-            icon: FiGift,
-            onClick: () => {
-                setModal('redeem');
-            }
-        },
-        {
-            key: 'History',
-            label: T('Dashboard.Activity.Overview'),
-            icon: HiOutlineListBullet,
-            onClick: () => {
-                setModal('history');
             }
         },
         {
