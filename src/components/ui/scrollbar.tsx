@@ -46,18 +46,28 @@ export default function ScrollBar({ viewportRef, className = '' }: { viewportRef
             measure();
         });
 
-        measure();
+        const watch = () => {
+            observer.disconnect();
+            observer.observe(element);
 
-        observer.observe(element);
+            for (const child of element.children) {
+                observer.observe(child);
+            }
 
-        for (const child of element.children) {
-            observer.observe(child);
-        }
+            measure();
+        };
+
+        const mutations = new MutationObserver(watch);
+
+        watch();
+
+        mutations.observe(element, { childList: true });
 
         element.addEventListener('scroll', measure, { passive: true });
 
         return () => {
             observer.disconnect();
+            mutations.disconnect();
 
             element.removeEventListener('scroll', measure);
         };
