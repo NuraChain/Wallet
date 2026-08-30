@@ -9,9 +9,6 @@ import androidx.activity.enableEdgeToEdge
 
 class MainActivity : TauriActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
-    // The no-argument `enableEdgeToEdge()` puts an opaque light scrim behind the navigation bar, which
-    // reads as a white strip under the web content. Both bars are forced fully transparent instead so
-    // the page background shows through; `auto` still picks the icon tint from the system dark mode.
     enableEdgeToEdge(
       statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
       navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT)
@@ -20,12 +17,6 @@ class MainActivity : TauriActivity() {
     super.onCreate(savedInstanceState)
   }
 
-  // Attached to the app's own webview only. The browser tab's page webviews are separate instances
-  // and never get either of these, so a visited site cannot drive the browser or reach the exporter.
-  //
-  // A page webview does get one interface of its own, and exactly one: the wallet provider, attached
-  // per page inside `BrowserBridge.build`. It has a single method, it cannot state its own origin,
-  // and it decides nothing — see the note on `BrowserBridge.Provider`.
   @SuppressLint("JavascriptInterface")
   override fun onWebViewCreate(webView: WebView) {
     webView.addJavascriptInterface(BrowserBridge(this, webView), "__nuraBrowser")
@@ -35,9 +26,6 @@ class MainActivity : TauriActivity() {
   override fun onAttachedToWindow() {
     super.onAttachedToWindow()
 
-    // A window that never states a preference is left on the panel's base 60Hz mode by the display
-    // manager, so a 120Hz screen renders the app at half rate. Ask for the fastest mode the panel
-    // reports; the system still overrides this under thermal or battery-saver pressure.
     val fastest = window.decorView.display
       ?.supportedModes
       ?.maxByOrNull { it.refreshRate }

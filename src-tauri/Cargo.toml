@@ -11,47 +11,20 @@ crate-type = [ "staticlib", "cdylib", "rlib" ]
 tauri-build = { version = "2", features = [ ] }
 
 [dependencies]
-# `unstable` is what gates Tauri's multiwebview API. Without it `new Webview(...)` always fails and the
-# browser falls back to an iframe — which explorers and most dApps refuse with `frame-ancestors`.
 tauri = { version = "2", features = [ "tray-icon", "unstable" ] }
 
 tauri-plugin-store = "2"
 tauri-plugin-os = "2"
 
-# How this app reads every API it talks to. The request is made by Rust, where there is no origin and
-# no preflight, so none of that data depends on someone else's CORS header.
-#
-# Nura's explorer is why it was pulled in: it sends `Access-Control-Allow-Origin` twice, and a repeated
-# header fails the CORS check exactly as hard as a missing one, so the wallet could not read its own
-# chain's history from the webview at all. Everything else followed, including the explorers behind
-# custom networks — addresses the user types, which no build-time host list can name.
-#
-# The `http:default` scope is `http://*` and `https://*` in all three capability blocks. That is a
-# deliberate trade and worth knowing before touching it: any code running in the frontend now has an
-# origin-free, cookie-free client to every address on the internet. `main-capability` sets no `remote`
-# block, so pages in the browser tab are still excluded from it — the separate `browser-capability`
-# that serves them grants one command, `dapp_request`, and no HTTP scope at all.
 tauri-plugin-http = "2"
 
 serde = { version = "1", features = [ "derive" ] }
 serde_json = "1"
 
-# Single-instance has no mobile implementation, so it is scoped to the desktop targets — pulling it
-# into the Android build would fail to compile.
-#
-# The filesystem plugin is desktop-only for a different reason: Android saves the recovery phrase
-# through MediaStore (see ExportBridge.kt), which no webview can reach, so the plugin would be dead
-# weight there and one more thing granted to a build that does not use it.
 [target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))'.dependencies]
 tauri-plugin-single-instance = "2"
 tauri-plugin-fs = "2"
 
-# Held for the in-app provider in `src/dapp.rs`, and for nothing else. A page's request is answered
-# by the wallet rather than by Rust, so the command that carries it has to park until the answer
-# arrives — `oneshot` is that park, and `time` is the bound on how long it lasts when no answer is
-# ever coming. Already in the tree underneath Tauri, which is why this pins nothing new.
-#
-# Desktop only, like the module it serves: Android's browser is Kotlin's and never reaches Tauri IPC.
 tokio = { version = "1", features = [ "sync", "time" ] }
 
 [profile.release]
