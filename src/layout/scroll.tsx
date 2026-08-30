@@ -1,7 +1,8 @@
 import { FiLoader } from 'react-icons/fi';
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode, type UIEvent } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type UIEvent } from 'react';
 
 import Spinner from '../components/ui/spinner';
+import ScrollBar from '../components/ui/scrollbar';
 
 type Phase = 'idle' | 'pulling' | 'refreshing' | 'releasing';
 
@@ -42,11 +43,9 @@ export default function ScrollArea({
     onRefresh?: () => Promise<void> | void;
 }) {
     const lastRef = useRef(0);
-    const barRef = useRef<HTMLDivElement>(null);
     const glyphRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const indicatorRef = useRef<HTMLDivElement>(null);
-    const dragRef = useRef<{ origin: number; top: number } | undefined>(undefined);
 
     const rawRef = useRef(0);
     const pullRef = useRef(0);
@@ -61,60 +60,9 @@ export default function ScrollArea({
 
     const lastWheelRef = useRef(0);
 
-    const [dragging, setDragging] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
-    const [thumb, setThumb] = useState({ size: 0, visible: false });
 
     refreshRef.current = onRefresh;
-
-    const measure = useCallback(() => {
-        const element = viewportRef.current;
-
-        if (element === null) {
-            return;
-        }
-
-        const scrollable = element.scrollHeight - element.clientHeight;
-
-        if (scrollable <= 0) {
-            setThumb((current) => (current.visible ? { size: 0, visible: false } : current));
-
-            return;
-        }
-
-        const size = Math.max((element.clientHeight / element.scrollHeight) * element.clientHeight, 32);
-
-        setThumb((current) => (current.visible && current.size === size ? current : { size, visible: true }));
-
-        if (barRef.current !== null) {
-            barRef.current.style.transform = `translateY(${(element.scrollTop / scrollable) * (element.clientHeight - size)}px)`;
-        }
-    }, []);
-
-    useEffect(() => {
-        const element = viewportRef.current;
-        const observer = new ResizeObserver(() => {
-            measure();
-        });
-
-        if (element !== null) {
-            measure();
-
-            observer.observe(element);
-
-            for (const child of element.children) {
-                observer.observe(child);
-            }
-        }
-
-        return () => {
-            observer.disconnect();
-        };
-    }, [measure]);
-
-    useEffect(() => {
-        measure();
-    }, [measure, thumb.visible]);
 
     useEffect(() => {
         const element = viewportRef.current;
@@ -387,50 +335,7 @@ export default function ScrollArea({
 
         lastRef.current = top;
 
-        measure();
-
         onScrollChange?.(top, delta, Math.max(element.scrollHeight - element.clientHeight - top, 0));
-    };
-
-    const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-        const element = viewportRef.current;
-
-        if (element === null) {
-            return;
-        }
-
-        dragRef.current = { origin: event.clientY, top: element.scrollTop };
-
-        event.currentTarget.setPointerCapture(event.pointerId);
-
-        setDragging(true);
-    };
-
-    const onPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-        const drag = dragRef.current;
-        const element = viewportRef.current;
-
-        if (drag === undefined || element === null) {
-            return;
-        }
-
-        const track = element.clientHeight - thumb.size;
-
-        if (track <= 0) {
-            return;
-        }
-
-        element.scrollTop = drag.top + ((event.clientY - drag.origin) / track) * (element.scrollHeight - element.clientHeight);
-    };
-
-    const onPointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
-        dragRef.current = undefined;
-
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-            event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-
-        setDragging(false);
     };
 
     return (
@@ -448,17 +353,7 @@ export default function ScrollArea({
                 {children}
             </div>
 
-            {thumb.visible && (
-                <div
-                    ref={barRef}
-                    onPointerUp={onPointerUp}
-                    onPointerDown={onPointerDown}
-                    onPointerMove={onPointerMove}
-                    onPointerCancel={onPointerUp}
-                    style={{ height: `${thumb.size}px` }}
-                    className={`absolute inset-e-1 top-0 z-10 w-1.5 cursor-pointer rounded-full bg-scrollbar transition-colors duration-(--duration-base) ${dragging ? 'bg-scrollbar-hover' : 'hover:bg-scrollbar-hover'}`}
-                />
-            )}
+            <ScrollBar viewportRef={viewportRef} />
         </div>
     );
 }
