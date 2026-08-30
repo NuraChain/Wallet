@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 
 import { motion } from 'motion/react';
 import { IoClose } from 'react-icons/io5';
@@ -10,6 +10,7 @@ import { T } from '../../utility/language';
 
 import { cn } from '../../utility/cn';
 import { DialogTitleContext, useDialog, useDialogTitleId } from './dialog';
+import ScrollBar from './scrollbar';
 import { surfacePanel } from './panel';
 import { Horizontal, Vertical } from './stack';
 import { inset, layer } from '../../layout/container';
@@ -125,7 +126,17 @@ export function ModalHeader({
 }
 
 export function ModalBody({ className = '', children }: { className?: string; children: ReactNode }) {
-    return <Vertical className={cn('-m-3 min-h-0 flex-1 gap-3 overflow-y-auto overscroll-contain p-3 *:shrink-0', className)}>{children}</Vertical>;
+    const viewportRef = useRef<HTMLDivElement>(null);
+
+    return (
+        <Vertical className='relative -m-3 min-h-0 flex-1'>
+            <Vertical ref={viewportRef} className={cn('min-h-0 flex-1 gap-3 overflow-y-auto overscroll-contain p-3 *:shrink-0', className)}>
+                {children}
+            </Vertical>
+
+            <ScrollBar viewportRef={viewportRef} className='inset-e-2' />
+        </Vertical>
+    );
 }
 
 export function ModalActions({ className = '', children }: { className?: string; children: ReactNode }) {

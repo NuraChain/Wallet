@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FiGlobe } from 'react-icons/fi';
 
 import Text from '../ui/text';
@@ -6,6 +6,7 @@ import Alert from '../ui/alert';
 import Panel from '../ui/panel';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
+import ScrollBar from '../ui/scrollbar';
 import { Horizontal, Vertical } from '../ui/stack';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 
@@ -33,6 +34,8 @@ const noteMap: Record<DappPrompt['kind'], string> = {
 
 export default function DashboardRequest({ prompt, address, network }: { prompt: DappPrompt; address: string; network: string }) {
     const [isLoading, setIsLoading] = useState(false);
+
+    const payloadRef = useRef<HTMLDivElement>(null);
 
     const onAnswer = (approved: boolean) => {
         if (isLoading) {
@@ -138,9 +141,13 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
                     <Vertical className='gap-1'>
                         <Text text={T('Dashboard.Request.Message')} />
 
-                        <Panel className='max-h-48 overflow-y-auto overscroll-contain'>
-                            <Text variant='captionStrong' dir='ltr' className='font-mono wrap-break-word whitespace-pre-wrap' text={payload} />
-                        </Panel>
+                        <Vertical className='relative'>
+                            <Panel ref={payloadRef} className='max-h-48 overflow-y-auto overscroll-contain'>
+                                <Text variant='captionStrong' dir='ltr' className='font-mono wrap-break-word whitespace-pre-wrap' text={payload} />
+                            </Panel>
+
+                            <ScrollBar viewportRef={payloadRef} className='inset-e-2 top-2' />
+                        </Vertical>
                     </Vertical>
                 )}
             </ModalBody>
