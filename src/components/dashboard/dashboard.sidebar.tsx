@@ -3,6 +3,7 @@ import type { IconType } from 'react-icons';
 import Logo from '../../assets/image/logo.png';
 
 import Text from '../ui/text';
+import Button from '../ui/button';
 import MenuRow from '../ui/menu';
 
 import { cn } from '../../utility/cn';
@@ -20,7 +21,7 @@ export interface SidebarItem {
     onClick: () => void;
 }
 
-export default function DashboardSidebar({ items, footer }: { items: SidebarItem[]; footer: SidebarItem[] }) {
+export default function DashboardSidebar({ items, actions, footer }: { items: SidebarItem[]; actions: SidebarItem[]; footer: SidebarItem[] }) {
     const isWindows = useIsWindows();
 
     return (
@@ -42,6 +43,21 @@ export default function DashboardSidebar({ items, footer }: { items: SidebarItem
             ))}
 
             <div className='flex-1' />
+
+            <Horizontal className='gap-2 pb-1'>
+                {actions.map((item) => (
+                    <Button
+                        key={item.key}
+                        variant='normal'
+                        size='action'
+                        onClick={item.onClick}
+                        leftIcon={<item.icon size={16} className='shrink-0' />}
+                        className='min-w-0 flex-1'
+                    >
+                        <span className='truncate'>{item.label}</span>
+                    </Button>
+                ))}
+            </Horizontal>
 
             {footer.map((item) => (
                 <MenuRow

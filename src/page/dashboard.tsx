@@ -347,22 +347,6 @@ function DashboardView({ vault }: { vault: Vault }) {
             }
         },
         {
-            key: 'Send',
-            label: T('Dashboard.Send.Title'),
-            icon: FiArrowUpRight,
-            onClick: () => {
-                setModal('send');
-            }
-        },
-        {
-            key: 'Receive',
-            label: T('Dashboard.Receive.Title'),
-            icon: FiArrowDownLeft,
-            onClick: () => {
-                setModal('receive');
-            }
-        },
-        {
             key: 'Settings',
             label: T('Dashboard.Settings.Title'),
             icon: HiOutlineCog6Tooth,
@@ -509,6 +493,24 @@ function DashboardView({ vault }: { vault: Vault }) {
             <div dir={getDirection()} className='flex size-full overflow-hidden'>
                 <DashboardSidebar
                     items={sidebarMap}
+                    actions={[
+                        {
+                            key: 'Send',
+                            label: T('Dashboard.Send.Title'),
+                            icon: FiArrowUpRight,
+                            onClick: () => {
+                                setModal('send');
+                            }
+                        },
+                        {
+                            key: 'Receive',
+                            label: T('Dashboard.Receive.Title'),
+                            icon: FiArrowDownLeft,
+                            onClick: () => {
+                                setModal('receive');
+                            }
+                        }
+                    ]}
                     footer={[
                         {
                             key: 'Lock',
