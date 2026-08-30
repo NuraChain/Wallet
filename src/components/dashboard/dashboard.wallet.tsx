@@ -140,7 +140,7 @@ export default function DashboardWallet({
     };
 
     return (
-        <Vertical className='mt-2 gap-4'>
+        <Vertical className='mt-2 min-h-0 flex-1 gap-4'>
             <Horizontal className='items-center gap-2'>
                 <Button variant='chip' onClick={onAccounts} className={chipClass}>
                     <IconBox tone='badge' className={cn('size-7', emoji.length > 0 && 'text-small')}>
@@ -231,7 +231,7 @@ export default function DashboardWallet({
                 ))}
             </Horizontal>
 
-            <Vertical className='gap-3'>
+            <Vertical className='min-h-0 flex-1 gap-3'>
                 <Horizontal role='tablist' className='items-center border-b border-line'>
                     {tabMap.map((item) => (
                         <Button
@@ -261,7 +261,7 @@ export default function DashboardWallet({
                     )}
                 </Horizontal>
 
-                <div role='tabpanel' id={`wallet-panel-${tab}`} aria-labelledby={`wallet-tab-${tab}`}>
+                <Vertical className='min-h-0 flex-1' role='tabpanel' id={`wallet-panel-${tab}`} aria-labelledby={`wallet-tab-${tab}`}>
                     {tab === 'token' && (
                         <ListCard>
                             <TokenRow
@@ -296,7 +296,7 @@ export default function DashboardWallet({
                         </ListCard>
                     )}
 
-                    {tab === 'nft' && <StatusBlock panel text={T('Dashboard.Wallet.NftEmpty')} />}
+                    {tab === 'nft' && <StatusBlock panel className='min-h-full justify-center' text={T('Dashboard.Wallet.NftEmpty')} />}
 
                     {tab === 'activity' && (
                         <DashboardActivity
@@ -307,7 +307,7 @@ export default function DashboardWallet({
                             onOpen={onTransaction}
                         />
                     )}
-                </div>
+                </Vertical>
             </Vertical>
         </Vertical>
     );
