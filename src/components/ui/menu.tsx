@@ -12,6 +12,7 @@ export default function MenuRow({
     label,
     trailing,
     selected = false,
+    variant = 'muted',
     className = '',
     onClick
 }: {
@@ -19,19 +20,20 @@ export default function MenuRow({
     label: string;
     trailing?: ReactNode;
     selected?: boolean;
+    variant?: 'muted' | 'primary';
     className?: string;
     onClick: () => void;
 }) {
     return (
         <Button
-            variant='muted'
+            variant={variant}
             aria-current={selected || undefined}
             onClick={onClick}
             className={cn('h-12 gap-3 rounded-surface px-3', selected && `${selectedTint} cursor-default`, className)}
         >
             {leading}
 
-            <Text variant='body' className='min-w-0 flex-1 truncate text-start' text={label} />
+            <Text variant='body' className={cn('min-w-0 flex-1 truncate text-start', variant === 'primary' && 'text-txt-on-primary')} text={label} />
 
             {trailing}
         </Button>

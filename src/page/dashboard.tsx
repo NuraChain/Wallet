@@ -514,6 +514,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                             key: 'Lock',
                             label: T('Dashboard.Lock'),
                             icon: HiOutlineLockClosed,
+                            primary: true,
                             onClick: () => {
                                 lockSession();
                                 void navigate('/unlock', { replace: true });

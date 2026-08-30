@@ -16,6 +16,7 @@ export interface SidebarItem {
     label: string;
     icon: IconType;
     active?: boolean;
+    primary?: boolean;
     onClick: () => void;
 }
 
@@ -43,7 +44,13 @@ export default function DashboardSidebar({ items, footer }: { items: SidebarItem
             <div className='flex-1' />
 
             {footer.map((item) => (
-                <MenuRow key={item.key} label={item.label} leading={<item.icon size={18} className='shrink-0' />} onClick={item.onClick} />
+                <MenuRow
+                    key={item.key}
+                    variant={item.primary === true ? 'primary' : 'muted'}
+                    label={item.label}
+                    leading={<item.icon size={18} className='shrink-0' />}
+                    onClick={item.onClick}
+                />
             ))}
         </Vertical>
     );
