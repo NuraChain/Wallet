@@ -50,24 +50,28 @@ export function Modal({
                     layer.dialog
                 )}
             >
-                <motion.div
-                    ref={panelRef}
-                    role='dialog'
-                    aria-modal
-                    aria-labelledby={titleId}
-                    tabIndex={-1}
-                    initial={{ opacity: 0, scale }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale }}
-                    className={cn(
-                        surfacePanel,
-                        'flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',
-                        scroll && 'max-h-[80dvh] overflow-y-auto',
-                        panelClass
-                    )}
-                >
-                    <DialogTitleContext value={titleId}>{children}</DialogTitleContext>
-                </motion.div>
+                <div className='relative flex max-h-full'>
+                    <motion.div
+                        ref={panelRef}
+                        role='dialog'
+                        aria-modal
+                        aria-labelledby={titleId}
+                        tabIndex={-1}
+                        initial={{ opacity: 0, scale }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale }}
+                        className={cn(
+                            surfacePanel,
+                            'flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',
+                            scroll && 'max-h-[80dvh] overflow-y-auto',
+                            panelClass
+                        )}
+                    >
+                        <DialogTitleContext value={titleId}>{children}</DialogTitleContext>
+                    </motion.div>
+
+                    {scroll && <ScrollBar viewportRef={panelRef} className='inset-e-2 top-2' />}
+                </div>
             </div>
         </>
     );

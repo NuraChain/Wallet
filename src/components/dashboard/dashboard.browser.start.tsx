@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FiCheck, FiEdit3, FiPlus, FiTrash2 } from 'react-icons/fi';
 
 import Text from '../ui/text';
@@ -8,6 +8,7 @@ import StatusBlock from '../ui/state';
 import TokenIcon from '../token.icon';
 import SectionHeader from '../ui/section';
 import SiteForm from '../site.form';
+import ScrollBar from '../ui/scrollbar';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
@@ -66,102 +67,108 @@ export default function DashboardBrowserStart({
     onFavoriteSave: (item: BrowserFavorite) => void;
     onFavoriteRemove: (id: string) => void;
 }) {
+    const viewportRef = useRef<HTMLDivElement>(null);
+
     const [editing, setEditing] = useState(false);
 
     const [editor, setEditor] = useState<BrowserFavorite | boolean>(false);
 
     return (
-        <Vertical className='size-full gap-3 overflow-y-auto p-4'>
-            <SectionHeader title={T('Dashboard.Browser.Favorite')}>
-                <Button
-                    variant='muted'
-                    size='small'
-                    onClick={() => {
-                        setEditing(!editing);
-                    }}
-                    leftIcon={editing ? <FiCheck size={14} /> : <FiEdit3 size={14} />}
-                    text={editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage')}
-                />
-            </SectionHeader>
+        <Vertical className='relative size-full'>
+            <Vertical ref={viewportRef} className='size-full gap-3 overflow-y-auto p-4'>
+                <SectionHeader title={T('Dashboard.Browser.Favorite')}>
+                    <Button
+                        variant='muted'
+                        size='small'
+                        onClick={() => {
+                            setEditing(!editing);
+                        }}
+                        leftIcon={editing ? <FiCheck size={14} /> : <FiEdit3 size={14} />}
+                        text={editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage')}
+                    />
+                </SectionHeader>
 
-            {favorites.length === 0 && explorer === undefined && !editing ? (
-                <StatusBlock panel text={T('Dashboard.Browser.FavoriteEmpty')} />
-            ) : (
-                <div className={cn(editing ? 'flex flex-col gap-2' : 'grid grid-cols-2 gap-2')}>
-                    {explorer !== undefined && !editing && <BrowserShortcut primary url={explorer.url} name={explorer.name} onPick={onOpen} />}
+                {favorites.length === 0 && explorer === undefined && !editing ? (
+                    <StatusBlock panel text={T('Dashboard.Browser.FavoriteEmpty')} />
+                ) : (
+                    <div className={cn(editing ? 'flex flex-col gap-2' : 'grid grid-cols-2 gap-2')}>
+                        {explorer !== undefined && !editing && <BrowserShortcut primary url={explorer.url} name={explorer.name} onPick={onOpen} />}
 
-                    {favorites.map((item) =>
-                        editing ? (
-                            <Horizontal key={item.id} className='items-center gap-2'>
-                                <BrowserShortcut
-                                    primary
-                                    url={item.url}
-                                    name={item.name}
-                                    title={item.url}
-                                    className='min-w-0 flex-1'
-                                    onPick={() => {
-                                        setEditor(item);
-                                    }}
-                                />
+                        {favorites.map((item) =>
+                            editing ? (
+                                <Horizontal key={item.id} className='items-center gap-2'>
+                                    <BrowserShortcut
+                                        primary
+                                        url={item.url}
+                                        name={item.name}
+                                        title={item.url}
+                                        className='min-w-0 flex-1'
+                                        onPick={() => {
+                                            setEditor(item);
+                                        }}
+                                    />
 
-                                <Button
-                                    variant='danger'
-                                    size='icon'
-                                    onClick={() => {
-                                        onFavoriteRemove(item.id);
-                                    }}
-                                    aria-label={T('Dashboard.Browser.FavoriteRemove')}
-                                    className='shrink-0'
-                                >
-                                    <FiTrash2 size={16} />
-                                </Button>
-                            </Horizontal>
-                        ) : (
-                            <BrowserShortcut primary key={item.id} url={item.url} name={item.name} title={item.url} onPick={onOpen} />
-                        )
-                    )}
+                                    <Button
+                                        variant='danger'
+                                        size='icon'
+                                        onClick={() => {
+                                            onFavoriteRemove(item.id);
+                                        }}
+                                        aria-label={T('Dashboard.Browser.FavoriteRemove')}
+                                        className='shrink-0'
+                                    >
+                                        <FiTrash2 size={16} />
+                                    </Button>
+                                </Horizontal>
+                            ) : (
+                                <BrowserShortcut primary key={item.id} url={item.url} name={item.name} title={item.url} onPick={onOpen} />
+                            )
+                        )}
 
-                    {editing && (
-                        <Button
-                            variant='normal'
-                            size='action'
-                            onClick={() => {
-                                setEditor(true);
-                            }}
-                            leftIcon={<FiPlus size={16} />}
-                            text={T('Dashboard.Browser.FavoriteAdd')}
-                        />
-                    )}
-                </div>
-            )}
+                        {editing && (
+                            <Button
+                                variant='normal'
+                                size='action'
+                                onClick={() => {
+                                    setEditor(true);
+                                }}
+                                leftIcon={<FiPlus size={16} />}
+                                text={T('Dashboard.Browser.FavoriteAdd')}
+                            />
+                        )}
+                    </div>
+                )}
 
-            <SectionHeader title={T('Dashboard.Browser.Recent')} />
+                <SectionHeader title={T('Dashboard.Browser.Recent')} />
 
-            {visits.length === 0 ? (
-                <StatusBlock panel text={T('Dashboard.Browser.RecentEmpty')} />
-            ) : (
-                <div className='grid grid-cols-2 gap-2'>
-                    {visits.map((item) => (
-                        <BrowserShortcut
-                            ltr
-                            key={item.url}
-                            url={item.url}
-                            name={getSiteHost(item.url)}
-                            symbol={getSiteHost(item.url).toUpperCase()}
-                            title={item.url}
-                            onPick={onOpen}
-                        />
-                    ))}
-                </div>
-            )}
+                {visits.length === 0 ? (
+                    <StatusBlock panel text={T('Dashboard.Browser.RecentEmpty')} />
+                ) : (
+                    <div className='grid grid-cols-2 gap-2'>
+                        {visits.map((item) => (
+                            <BrowserShortcut
+                                ltr
+                                key={item.url}
+                                url={item.url}
+                                name={getSiteHost(item.url)}
+                                symbol={getSiteHost(item.url).toUpperCase()}
+                                title={item.url}
+                                onPick={onOpen}
+                            />
+                        ))}
+                    </div>
+                )}
 
-            {notice.length > 0 && (
-                <Vertical className='mt-auto gap-1'>
-                    <Text variant='caption' text={T('Dashboard.Browser.Hint')} />
+                {notice.length > 0 && (
+                    <Vertical className='mt-auto gap-1'>
+                        <Text variant='caption' text={T('Dashboard.Browser.Hint')} />
 
-                    <Alert dir='ltr' className='px-2 py-1 text-start font-mono' text={notice} />
-                </Vertical>
-            )}
+                        <Alert dir='ltr' className='px-2 py-1 text-start font-mono' text={notice} />
+                    </Vertical>
+                )}
+            </Vertical>
+
+            <ScrollBar viewportRef={viewportRef} />
 
             {editor !== false && (
                 <SiteForm

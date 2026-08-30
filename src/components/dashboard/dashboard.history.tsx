@@ -8,6 +8,7 @@ import TransactionRow from './dashboard.transaction';
 import Button from '../ui/button';
 import StatusBlock from '../ui/state';
 import ListCard from '../ui/list';
+import ScrollBar from '../ui/scrollbar';
 import { TextField } from '../ui/field';
 import { Modal, ModalHeader } from '../ui/modal';
 
@@ -145,20 +146,24 @@ export default function DashboardHistory({
                 </Horizontal>
             </Vertical>
 
-            <Vertical ref={listRef} className='min-h-0 flex-1 gap-2 overflow-y-auto pb-5'>
-                {visible.length > 0 && (
-                    <ListCard className='rounded-none border-x-0'>
-                        {visible.map((item) => (
-                            <TransactionRow key={item.id} item={item} canOpen={canOpen} onOpen={onOpen} />
-                        ))}
-                    </ListCard>
-                )}
+            <Vertical className='relative min-h-0 flex-1'>
+                <Vertical ref={listRef} className='min-h-0 flex-1 gap-2 overflow-y-auto pb-5'>
+                    {visible.length > 0 && (
+                        <ListCard className='rounded-none border-x-0'>
+                            {visible.map((item) => (
+                                <TransactionRow key={item.id} item={item} canOpen={canOpen} onOpen={onOpen} />
+                            ))}
+                        </ListCard>
+                    )}
 
-                {loading && items.length === 0 && <StatusBlock state='loading' className='px-5' text={T('Dashboard.Activity.Loading')} />}
+                    {loading && items.length === 0 && <StatusBlock state='loading' className='px-5' text={T('Dashboard.Activity.Loading')} />}
 
-                {!loading && results.length === 0 && <StatusBlock className='px-5' text={emptyText()} />}
+                    {!loading && results.length === 0 && <StatusBlock className='px-5' text={emptyText()} />}
 
-                {shown < results.length && <div ref={endRef} aria-hidden='true' className='h-4 shrink-0' />}
+                    {shown < results.length && <div ref={endRef} aria-hidden='true' className='h-4 shrink-0' />}
+                </Vertical>
+
+                <ScrollBar viewportRef={listRef} />
             </Vertical>
         </Modal>
     );
