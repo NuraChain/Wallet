@@ -9,7 +9,7 @@ import { T } from '../../utility/language';
 import { useOnline } from '../../hook/connection';
 import { Vertical } from '../ui/stack';
 
-const preview = 5;
+const preview = 10;
 
 export default function DashboardActivity({
     items,
