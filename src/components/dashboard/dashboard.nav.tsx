@@ -43,10 +43,8 @@ export default function DashboardNav({
                         onClick={() => {
                             onSelect(index);
                         }}
-                        className='group relative flex h-14 min-w-24 shrink cursor-pointer items-center justify-center px-6 transition-colors duration-(--duration-fast)'
+                        className='group flex h-14 min-w-24 shrink cursor-pointer items-center justify-center px-6 transition-colors duration-(--duration-fast)'
                     >
-                        {isActive && <span aria-hidden className='absolute top-0 h-0.5 w-8 rounded-full bg-txt-accent' />}
-
                         <Vertical
                             className={cn(
                                 'items-center gap-1 transition-colors duration-(--duration-fast)',
