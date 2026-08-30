@@ -1,7 +1,5 @@
-// oxlint-disable-next-line @typescript-eslint/naming-convention
 declare const __APP_VERSION__: string;
 
-// oxlint-disable-next-line @typescript-eslint/naming-convention
 declare const __APP_ICON__: string;
 
 interface ImportMetaEnv {
