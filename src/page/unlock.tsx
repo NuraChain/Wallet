@@ -41,7 +41,6 @@ export default function UnlockPage() {
         try {
             const outcome = await passwordCheck(password);
 
-            // No stored hash means there is no wallet on this device, so there is nothing to unlock.
             if (outcome === 'missing') {
                 await navigate('/intro', { replace: true });
 
@@ -62,33 +61,16 @@ export default function UnlockPage() {
                 return;
             }
 
-            // The key is stored under the same name whichever sort it is, so what it turns out to be
-            // is read off the material itself rather than from a marker beside it.
-            //
-            // The vault goes into the session rather than into the navigation: route state is written
-            // to `history.state`, and a decrypted mnemonic does not belong there. `replace` so the
-            // unlock screen is not left behind as somewhere "back" could return to.
             unlockSession(readVault(secret));
 
             await navigate('/dashboard', { replace: true });
         } catch {
-            // Decryption throws on a bad key or a corrupted payload. Without this the rejection went
-            // nowhere and the button simply re-enabled, which reads as the app ignoring the tap.
             setError(T('Unlock.ErrorMissing'));
         } finally {
             setIsLoading(false);
         }
     };
 
-    /*
-     * `PageContainer` rather than a hand-rolled frame. This was the one top-level surface that did
-     * not use it, so it cleared neither the frameless Windows title bar nor the Android status bar —
-     * the card could sit under the window chrome — and it had missed the wider padding every other
-     * page picks up at `sm`.
-     *
-     * The entrance fade moves onto the card, which is what the user is waiting for; fading the frame
-     * as well faded a background against itself.
-     */
     return (
         <PageContainer variant='intro' className='items-center justify-center'>
             <motion.div
@@ -99,9 +81,6 @@ export default function UnlockPage() {
             >
                 <Horizontal className='items-center justify-between gap-2'>
                     <div>
-                        {/* A real top-level heading: this is one of the screens that is the whole
-                             page rather than a panel within one, and the route error screens above
-                             it already carry the document's outline the same way. */}
                         <Text as='h1' variant='heading' text={T('Unlock.Title')} />
 
                         <Text text={T('Unlock.Subtitle')} />
@@ -144,17 +123,6 @@ export default function UnlockPage() {
                     }}
                 />
 
-                {/*
-                 * The spinner replaces the label rather than joining it. Unlocking takes a moment —
-                 * Argon2id is meant to — and the spinner alone says "working" without a second word
-                 * appearing where the first one was.
-                 *
-                 * `min-w` holds the resting width so the button does not shrink around the spinner
-                 * and snap back, and it is wide enough for either language's label.
-                 *
-                 * The label the spinner replaced becomes the accessible name for as long as it is
-                 * gone, so a screen reader still hears what the button is doing.
-                 */}
                 <Button
                     dim
                     variant='primary'

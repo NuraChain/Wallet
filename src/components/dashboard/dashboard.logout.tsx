@@ -15,25 +15,8 @@ import { removeValues } from '../../utility/storage';
 import { invalidateHistory } from '../../core/history.cache';
 import { invalidateTokenCache } from '../../core/token.cache';
 
-/**
- * Everything the wallet leaves on the device. Logging out means all of it goes.
- */
 const clearList = ['Wallet.Mnemonic', 'Wallet.Password', 'Wallet.Name', 'Wallet.Accounts', 'Wallet.Active'] as const;
 
-/**
- * DashboardLogout - Password-gated wallet removal.
- *
- * Logging out wipes the encrypted secret from the device, so the password is verified against the
- * stored Argon2 hash first — the same check the unlock screen runs — and only then is storage cleared.
- *
- * `kind` is only here for the warning: what the user needs in order to come back is the phrase or the
- * key they imported, and naming the wrong one is the difference between a recoverable wallet and a
- * lost one.
- * @param {object} props Component props.
- * @param {VaultKind} props.kind Which sort of secret this wallet holds.
- * @param {() => void} props.onClose Closes the modal.
- * @returns {JSX.Element} The logout modal.
- */
 export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; onClose: () => void }) {
     const navigate = useNavigate();
 
@@ -55,7 +38,6 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
         try {
             const outcome = await passwordCheck(password);
 
-            // Nothing stored means there is nothing left to log out of, so the wallet is already gone.
             if (outcome === 'missing') {
                 lockSession();
 
@@ -72,14 +54,9 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
 
             await removeValues(...clearList);
 
-            // The cached transaction lists go with them. They are keyed by account address and sit
-            // outside the wallet store, so clearing that store alone would leave one wallet's history
-            // readable after the wallet itself is gone.
             invalidateHistory();
             invalidateTokenCache();
 
-            // The decrypted secret goes with the stored one. Dropping it also closes the dashboard
-            // route's guard, so the entry left behind in history cannot be walked back into.
             lockSession();
 
             await navigate('/intro', { replace: true });
@@ -106,15 +83,6 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
                 }}
             />
 
-            {/*
-             * Cancel carries the emphasis and the destructive button is the quiet one: this
-             * dialog exists to slow the user down, so the prominent control should be the way
-             * back out rather than the one that wipes the wallet.
-             *
-             * The busy state is the app's standard one — spinner ahead of the label, control
-             * disabled — rather than a label swap, which left this the only working form in the
-             * app whose wait looked like nothing happening.
-             */}
             <ModalActions>
                 <Button variant='primary' size='action' onClick={onClose} text={T('Dashboard.Logout.Cancel')} />
 

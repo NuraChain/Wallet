@@ -1,16 +1,3 @@
-/**
- * What the injected script needs to know about the wallet before it can answer anything.
- *
- * All four `info` fields are EIP-6963's, and all four are checked by dApps: `rdns` has to be a valid
- * RFC-1034 domain name in reverse notation, `icon` has to be an RFC-2397 data URI, and `name` is what
- * the user picks the wallet out of a list by. `uuid` is the one field not here — the spec wants it
- * fresh per provider session, so the script mints it rather than being handed one that would repeat
- * across every page a tab visits.
- *
- * `chainId` is the chain the wallet is on at the moment the page is injected, in the hex form
- * EIP-695 requires. It exists so the legacy `ethereum.chainId` property has an answer before the
- * first round-trip has happened; everything that goes through `request` reads the live value instead.
- */
 export interface DappIdentity {
     name: string;
     rdns: string;
@@ -18,19 +5,6 @@ export interface DappIdentity {
     chainId: string;
 }
 
-/**
- * How Nura names itself to a dApp, and the one place to change it.
- *
- * `rdns` is the field a dApp may reject the wallet over: EIP-6963 requires a valid RFC-1034 domain
- * name written in reverse, and it is also what a dApp keeps when it remembers which wallet the user
- * chose — so it has to be stable across releases and unique to this wallet. It is the reverse of
- * `wallet.nurachain.net`, the domain this project already identifies itself by: the Android package
- * name is that string, and the chain's own RPC and explorer live on `nurachain.net`.
- *
- * `name` is what the user actually picks from a list, so it is the product name and not the package.
- * @param {number} chainId The chain the wallet is on as the page is injected.
- * @returns {DappIdentity} The identity to announce.
- */
 export const dappIdentity = (chainId: number): DappIdentity => ({
     name: 'Nura Wallet',
     rdns: 'net.nurachain.wallet',
@@ -38,29 +12,6 @@ export const dappIdentity = (chainId: number): DappIdentity => ({
     chainId: `0x${chainId.toString(16)}`
 });
 
-/**
- * The script every page in the browser is given, before any of its own scripts run.
- *
- * This is the whole of Nura's presence inside a dApp: an EIP-1193 provider, the EIP-6963 announcement
- * that lets the page discover it without fighting over `window.ethereum`, and the transport that
- * carries a call back to the wallet. It is authored here, in one place, and handed to whichever native
- * side is doing the injecting — Rust passes it to `initialization_script`, Kotlin to
- * `WebViewCompat.addDocumentStartJavaScript` — so there is exactly one copy of this behaviour and
- * neither platform can drift from the other.
- *
- * It is written in ES5-flavoured JavaScript on purpose. It runs in whatever engine the page got, it is
- * never touched by the bundler, and it must not contain a backtick or a `${` sequence, since it is
- * built inside a template literal here.
- *
- * The two globals it installs, `__nuraWalletReply` and `__nuraWalletEvent`, are reachable by the page.
- * That is not a way in: a page calling them can only answer its own pending request or fake an event
- * to itself, and every decision that matters — which origin is asking, whether that origin is
- * connected, whether the user approved — is made in the wallet against an origin the page never gets
- * to state. The transport in the other direction is the one that carries authority, and it is the
- * native side that stamps it.
- * @param {DappIdentity} identity What to announce the wallet as, and the chain it is currently on.
- * @returns {string} The script text, ready to be injected at document start.
- */
 export const dappScript = (identity: DappIdentity) => `
 (function ()
 {
@@ -77,14 +28,11 @@ export const dappScript = (identity: DappIdentity) => `
     var accounts = [];
     var connected = false;
 
-    /* A UUIDv4 for this provider session. crypto.randomUUID is missing on an insecure origin, which a
-       plain http:// dApp is, so the bytes are drawn by hand there — getRandomValues is available in
-       both contexts, unlike randomUUID. */
     var newId = function ()
     {
         if (window.crypto && typeof window.crypto.randomUUID === 'function')
         {
-            try { return window.crypto.randomUUID(); } catch (ignored) { /* fall through */ }
+            try { return window.crypto.randomUUID(); } catch (ignored) {  }
         }
 
         var bytes = new Uint8Array(16);
@@ -104,8 +52,6 @@ export const dappScript = (identity: DappIdentity) => `
         return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
     };
 
-    /* EIP-1193 wants a rejection carrying the numeric code, not a bare Error, and every dApp library
-       reads .code to tell "the user closed the dialog" (4001) from a genuine failure. */
     var providerError = function (code, message, data)
     {
         var error = new Error(message);
@@ -126,13 +72,11 @@ export const dappScript = (identity: DappIdentity) => `
 
         if (bucket === undefined) { return; }
 
-        /* Copied before iterating, because a listener is allowed to remove itself while it runs and a
-           once() handler always does. */
         var copy = bucket.slice();
 
         for (var i = 0; i < copy.length; i += 1)
         {
-            try { copy[i](payload); } catch (ignored) { /* a page throwing is the page's problem */ }
+            try { copy[i](payload); } catch (ignored) {  }
         }
     };
 
@@ -161,9 +105,6 @@ export const dappScript = (identity: DappIdentity) => `
         return provider;
     };
 
-    /* Where a reply lands, whichever platform delivered it: Kotlin calls this global directly through
-       evaluateJavascript, and the desktop transport feeds the value its invoke resolved with into the
-       same door so there is one code path for both. */
     var deliver = function (raw)
     {
         var reply;
@@ -189,9 +130,6 @@ export const dappScript = (identity: DappIdentity) => `
         slot.resolve(reply.result === undefined ? null : reply.result);
     };
 
-    /* State the wallet pushes without being asked. It is applied to the cached properties before the
-       event goes out, so a handler reading ethereum.chainId sees the value the event is announcing
-       rather than the one it replaces. */
     var receive = function (raw)
     {
         var notice;
@@ -245,10 +183,6 @@ export const dappScript = (identity: DappIdentity) => `
         emit(notice.event, notice.payload);
     };
 
-    /* The one way out of the page. Android hands the payload to a per-tab JavascriptInterface and the
-       reply comes back through deliver(); desktop invokes a single Tauri command whose resolved value
-       is that same reply. Anything else means the script is running somewhere it was not injected by
-       the wallet, and the honest answer there is that there is no provider to talk to. */
     var transport = function (body, id)
     {
         var android = window.__nuraEthereum;
@@ -313,8 +247,6 @@ export const dappScript = (identity: DappIdentity) => `
         });
     };
 
-    /* The three the wallet can answer without leaving the page, kept for the pre-1193 send() form
-       below, which is synchronous and has nowhere to put a promise. */
     var cached = function (method)
     {
         if (method === 'eth_accounts') { return accounts; }
@@ -333,7 +265,6 @@ export const dappScript = (identity: DappIdentity) => `
         networkVersion: String(parseInt(chainId, 16)),
         selectedAddress: null,
 
-        /* EIP-1193. Everything else on this object is a shim that ends up here. */
         request: function (args)
         {
             if (args === null || typeof args !== 'object' || Array.isArray(args))
@@ -358,7 +289,6 @@ export const dappScript = (identity: DappIdentity) => `
             return send(args.method, params);
         },
 
-        /* Pre-1193, and still what a surprising number of deployed dApps reach for first. */
         enable: function ()
         {
             return send('eth_requestAccounts', []);
@@ -376,9 +306,6 @@ export const dappScript = (identity: DappIdentity) => `
                 return provider.sendAsync(first, second);
             }
 
-            /* The synchronous shape web3 0.x used. There is no way to make a round-trip answer it, so
-               it is answered from the cached state or refused outright rather than returning a
-               plausible-looking empty result the caller would treat as fact. */
             if (first !== null && typeof first === 'object')
             {
                 var value = cached(first.method);
@@ -398,8 +325,6 @@ export const dappScript = (identity: DappIdentity) => `
                 throw providerError(-32600, 'Expected a callback');
             }
 
-            /* Batches are answered one call at a time and reassembled in order, since the wallet
-               speaks in single requests and the ordering is what the caller indexes by. */
             if (Array.isArray(payload))
             {
                 Promise.all(payload.map(function (item)
@@ -467,9 +392,6 @@ export const dappScript = (identity: DappIdentity) => `
     window.__nuraWalletReply = deliver;
     window.__nuraWalletEvent = receive;
 
-    /* EIP-6963. The detail is frozen because the spec says so and because the reason it says so is
-       real: a dApp holds this object for the life of the page, and anything able to swap the provider
-       out from under it after the user has picked a wallet is able to redirect every later request. */
     var announce = function ()
     {
         var detail = Object.freeze({
@@ -480,17 +402,10 @@ export const dappScript = (identity: DappIdentity) => `
         window.dispatchEvent(new CustomEvent('eip6963:announceProvider', { detail: detail }));
     };
 
-    /* Both halves are required. A dApp that was already listening hears the announcement below; one
-       that starts listening later asks, and this is what answers it. The listener stays for the life
-       of the page, since a dApp is allowed to ask again at any point. */
     window.addEventListener('eip6963:requestProvider', announce);
 
     announce();
 
-    /* Legacy discovery, which EIP-6963 exists to replace but does not remove. Defined only when the
-       slot is free and left configurable, so a second wallet injected after this one can still take
-       it — fighting over the property is the exact behaviour 6963 was written to end, and a dApp that
-       supports 6963 never reads it anyway. */
     if (window.ethereum === undefined)
     {
         try
@@ -505,10 +420,6 @@ export const dappScript = (identity: DappIdentity) => `
 
     window.dispatchEvent(new Event('ethereum#initialized'));
 
-    /* The provider announces itself as connected once the page can hear it. EIP-1193 has connect
-       meaning "the provider can serve requests on this chain", which is true from injection: the
-       wallet is open and the chain is known. It is deferred by a tick so a listener attached in the
-       page's first script still catches it. */
     setTimeout(function ()
     {
         connected = true;

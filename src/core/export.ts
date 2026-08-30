@@ -1,11 +1,5 @@
 import { BaseDirectory, mkdir, writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
 
-/**
- * The Kotlin side of the recovery-phrase export, injected on the app's own webview only.
- *
- * Both calls return an empty string on success, or a short reason on failure — `unsupported` when the
- * device predates scoped storage, otherwise whatever the platform reported.
- */
 interface AndroidBridge {
     saveImage: (base64Png: string, name: string) => string;
     saveText: (text: string, name: string) => string;
@@ -17,40 +11,15 @@ declare global {
     }
 }
 
-/**
- * Writes the recovery phrase out to shared storage.
- *
- * Async because the desktop path goes through Tauri's IPC; Android answers synchronously and is
- * wrapped to match. Both resolve to an empty string on success or a short reason on failure, so the
- * caller reports the outcome the same way on either platform.
- */
 export interface Exporter {
     saveImage: (base64Png: string, name: string) => Promise<string>;
     saveText: (text: string, name: string) => Promise<string>;
 }
 
-/**
- * Folder the picture lands in, under the platform's own Pictures directory. Matches the Android
- * bridge, so the "saved to Pictures/Nura Wallet" notice is true on both.
- */
 const pictureFolder = 'Nura Wallet';
 
-/**
- * reason - Turns a thrown value into the short string the UI reports.
- * @param {unknown} cause Whatever was thrown.
- * @returns {string} A message, or `failed` when there is nothing useful to show.
- */
 const reason = (cause: unknown) => (cause instanceof Error && cause.message.length > 0 ? cause.message : 'failed');
 
-/**
- * The desktop export, over Tauri's filesystem plugin.
- *
- * Deliberately writes to the same two places Android does rather than opening a save dialog, so the
- * screen behaves identically on both — the phrase is a backup the user is told to move somewhere
- * offline and delete, and making them choose a folder invites leaving it wherever the dialog opened.
- *
- * The capability grants writes to those two directories only; nothing else on disk is reachable.
- */
 const desktopExporter: Exporter = {
     saveImage: async (base64Png: string, name: string) => {
         try {
@@ -78,13 +47,6 @@ const desktopExporter: Exporter = {
     }
 };
 
-/**
- * getExporter - The export implementation for whichever platform this build is running on.
- *
- * Android keeps its own bridge because writing to the gallery needs MediaStore, which no webview can
- * reach. Everywhere else the filesystem plugin does the same job, so there is always one of the two.
- * @returns {Exporter} The exporter for this platform.
- */
 export const getExporter = (): Exporter => {
     const bridge = window.__nuraExport;
 
@@ -98,16 +60,6 @@ export const getExporter = (): Exporter => {
     };
 };
 
-/**
- * phraseToPng - Draws the recovery phrase as a PNG and returns it base64-encoded.
- *
- * The image is composed here rather than captured off the screen, so the result holds the words and
- * the warning and nothing else that happened to be on display.
- * @param {string[]} words The ordered mnemonic words.
- * @param {string} title Heading for the card.
- * @param {string} warning Cautionary line printed under the words.
- * @returns {string} Base64 PNG data, without the data-URL prefix.
- */
 export const phraseToPng = (words: string[], title: string, warning: string) => {
     const columns = 3;
     const rows = Math.ceil(words.length / columns);

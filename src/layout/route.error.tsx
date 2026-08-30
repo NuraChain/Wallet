@@ -5,15 +5,6 @@ import FailureScreen from '../components/ui/failure';
 
 import { line } from './boundary';
 
-/**
- * describe - Turns whatever the router caught into one line worth showing.
- *
- * A route can fail in three shapes: a thrown `Response` (what `redirect` and `throw new Response`
- * produce), a real `Error`, or something else entirely. Only the middle one carries a message, so the
- * other two get named rather than rendered as `[object Object]`.
- * @param {unknown} error Whatever the router caught.
- * @returns {string} A single descriptive line.
- */
 const describe = (error: unknown) => {
     if (isRouteErrorResponse(error)) {
         return `${error.status} ${error.statusText}`;
@@ -26,16 +17,6 @@ const describe = (error: unknown) => {
     return 'unknown error';
 };
 
-/**
- * RouteError - The failure screen for one route, with the shell still standing around it.
- *
- * This is the difference the router buys over the old page bus. [boundary.tsx](boundary.tsx) is still
- * there and still catches anything the shell itself throws, but it can only offer a reload, because by
- * the time it runs the whole tree is gone. A route-level error leaves `RootLayout` mounted, so the
- * title bar stays, the window still looks like the app, and "go back" is a real option rather than a
- * restart.
- * @returns {JSX.Element} The route failure screen.
- */
 export default function RouteError() {
     const error = useRouteError();
     const navigate = useNavigate();
@@ -67,14 +48,6 @@ export default function RouteError() {
     );
 }
 
-/**
- * NotFound - The route that catches a path nothing else claimed.
- *
- * Unreachable by normal use — navigation is all in-process and there is no address bar to mistype
- * into — so this is a backstop for a bad `navigate()` call rather than a screen anyone should meet.
- * It says so plainly instead of showing a web-style 404.
- * @returns {JSX.Element} The not-found screen.
- */
 export function NotFound() {
     const navigate = useNavigate();
 

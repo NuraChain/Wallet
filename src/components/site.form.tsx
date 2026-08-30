@@ -8,47 +8,12 @@ import { Modal, ModalActions, ModalHeader } from './ui/modal';
 import { T } from '../utility/language';
 import { getSiteHost } from '../core/browser';
 
-/**
- * A named address, which is the whole of what this form edits.
- *
- * Structural on purpose: a browser favourite and a dApp on the apps tab are each exactly this, and
- * neither has to import the other's type to be edited here.
- */
-/**
- * What this dialog edits.
- *
- * `BrowserFavorite` and `DappEntry` are the same three fields, and the doc here used to say so as
- * though the three were wired together — they never were, and this stayed local. It is deliberately
- * not the shared type: the two domain shapes live in `core`, and a component reaching down to define
- * what `core` holds would invert the direction the rest of the app imports in.
- */
 interface SiteEntry {
     id: string;
     name: string;
     url: string;
 }
 
-/**
- * SiteForm - The dialog behind adding a named address and behind editing one.
- *
- * One dialog for adding and editing, because they differ only in what the fields start as and what the
- * title says — and one dialog for the browser's favourites and the apps tab, because a shortcut and a
- * dApp are the same two fields with a different heading over them. The heading comes in as a string so
- * each list keeps its own words for what it holds.
- *
- * An `item` is the entry being edited and its id is carried through untouched, so the row keeps its
- * place in the list while its address changes underneath it.
- *
- * The address is the only required field. A name left blank is filled in with the host, which is what
- * the tile would have been called anyway — asking someone to type "github.com" next to
- * `https://github.com` is asking for nothing.
- * @param {object} props Component props.
- * @param {string} props.title The dialog heading, already localized by the caller.
- * @param {SiteEntry} [props.item] The entry being edited; absent when one is being added.
- * @param {(item: SiteEntry) => void} props.onSave Stores the result.
- * @param {() => void} props.onClose Closes the dialog.
- * @returns {JSX.Element} The dialog.
- */
 export default function SiteForm({
     title,
     item,
@@ -73,8 +38,6 @@ export default function SiteForm({
             return;
         }
 
-        // A bare host is what someone types, and it is not a URL until it has a scheme. `https` rather
-        // than `http`, matching what the address bar does with the same input.
         const full = /^[a-z][a-z0-9+.-]*:\/\//iu.test(typed) ? typed : `https://${typed}`;
 
         try {
@@ -87,8 +50,6 @@ export default function SiteForm({
 
         const label = name.trim();
 
-        // A random id rather than a counted one: a counter would have to be stored too, and a list that
-        // has had entries removed cannot recover it from what is left.
         onSave({ id: item?.id ?? crypto.randomUUID(), name: label.length > 0 ? label : getSiteHost(full), url: full });
     };
 

@@ -42,13 +42,6 @@ import {
 } from '../../core/browser';
 import { Horizontal, Vertical } from '../ui/stack';
 
-/**
- * Turn whatever was typed in the address bar into a loadable URL.
- *
- * A bare host gets `https://` prepended; anything that does not look like a host is treated as a search query.
- * @param {string} value Raw address-bar input.
- * @returns {string} An absolute URL, or an empty string for empty input.
- */
 const toUrl = (value: string) => {
     const trimmed = value.trim();
 
@@ -67,33 +60,6 @@ const toUrl = (value: string) => {
     return `https://duckduckgo.com/?q=${encodeURIComponent(trimmed)}`;
 };
 
-/**
- * DashboardBrowser - In-app web browser for dApps and explorers.
- *
- * The page itself is painted by `WebFrame`, which owns the child webview and its iframe fallback.
- * What lives here is the chrome around it: the toolbar, the start screen, and a navigation stack kept
- * in this component rather than the webview's own, since the child-webview API exposes no `navigate`
- * and every step is a fresh view.
- *
- * Tabs are held here, one navigation stack each, and every one of them keeps its own view alive: the
- * frame belonging to the tab in front is the only one shown, the rest are hidden where they stand. So
- * picking a tab is instant and nothing is reloaded, which is the whole point of having tabs at all.
- *
- * Two lists make up the start screen. The suggested sites are fixed and come from `core/browser`; the
- * visited ones are every site opened from this wallet, persisted across restarts. Both are shortcuts,
- * shared by all tabs, and neither is the per-tab back stack the toolbar arrows walk.
- *
- * This tab runs edge to edge and the dashboard's nav bar stays down while it is open, so the toolbar
- * is also the only way out — hence the exit button sitting ahead of the navigation controls.
- * @param {object} props Component props.
- * @param {string} props.address The account address, used for the explorer shortcut.
- * @param {Network} props.network The active network.
- * @param {boolean} props.enabled Whether this tab is the visible one and no modal is open.
- * @param {string} props.request A URL another tab asked this one to open.
- * @param {number} props.ticket Bumped by the caller for every request, so the same URL can be opened twice.
- * @param {() => void} props.onExit Leaves the browser for the wallet tab.
- * @returns {JSX.Element} The browser tab.
- */
 export default function DashboardBrowser({
     address,
     network,
@@ -118,61 +84,34 @@ export default function DashboardBrowser({
     const [active, setActive] = useState(1);
     const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 1, entries: [], index: -1, draft: '', reload: 0, home: false }]);
 
-    // A counter and not state: an id has to be unique against every tab that has ever existed, and two
-    // clicks landing in one commit would read the same value out of a render. Ids are never recycled
-    // because one names a child webview — handing a new tab a label a closing tab still answers to
-    // would let the teardown of the old one land on the new one's view.
     const mintRef = useRef(2);
 
-    // Keyed by tab rather than held flat, because every tab has a page of its own to report on. Maps
-    // and not objects for the sake of one line: closing a tab has to forget its entry, and a numeric
-    // key survives a `Map` unchanged where an object would turn it into a string.
     const [live, setLive] = useState<Map<number, BrowserState>>(new Map());
     const [notice, setNotice] = useState<Map<number, string>>(new Map());
 
-    // Closing the last tab leaves a fresh one behind, so there is always a tab in front to read from.
     const tab = tabs.find((item) => item.id === active) ?? tabs[0];
 
     const current = tab.index < 0 ? '' : tab.entries[tab.index];
 
-    // The start screen and the tab strip are one surface: the strip is how a tab is picked, and it
-    // belongs with the shortcuts rather than over a page that is trying to be read.
     const start = atBrowserStart(tab);
 
     const state = live.get(tab.id);
 
     const native = getNativeBrowser() !== undefined;
 
-    // The provider, as every page in this browser will see it. Rebuilt when the chain moves only
-    // because the script carries the chain id it should start on; open pages are not reloaded for it,
-    // since the provider corrects itself through `chainChanged` the moment the switch happens.
     const script = useMemo(() => dappScript(dappIdentity(network.chainId)), [network.chainId]);
 
-    // Android injects from Kotlin, which needs the script handed to it before a page is opened rather
-    // than passed alongside each one — `WebViewCompat.addDocumentStartJavaScript` registers against a
-    // view, not against a navigation. Desktop takes it per view instead, through `WebFrame`.
     useEffect(() => {
         getNativeBrowser()?.setDappScript?.(script);
     }, [script]);
 
-    // The native view keeps its own history, so links followed inside a page are navigable too — the
-    // component's stack only ever sees what was typed or handed over. Off Android there is no such
-    // view and the stack is all there is.
-    // On the start screen the step back is out of it, onto the page it was laid over — so the control
-    // is live there whatever the page's own history says.
     const canBack = tab.home || (native ? state?.canBack === true : tab.index >= 0);
     const canForward = native ? state?.canForward === true : tab.index < tab.entries.length - 1;
 
-    /**
-     * Rewrites one tab and leaves the others alone.
-     */
     const patch = (id: number, change: (item: BrowserTab) => BrowserTab) => {
         setTabs((list) => list.map((item) => (item.id === id ? change(item) : item)));
     };
 
-    // Registered against the current tab list rather than once on mount: the bridge names the tab an
-    // update belongs to and that name has to be resolved to one of these. An APK from before tabs
-    // sends no name and only ever had one page, so its updates belong to whichever tab is in front.
     useEffect(
         () =>
             onNativeBrowserState((update) => {
@@ -184,8 +123,6 @@ export default function DashboardBrowser({
 
                 setLive((map) => new Map(map).set(target, update));
 
-                // A page reached by following links is not on the stack, so its address has to come from the
-                // view that navigated there.
                 if (update.url.length > 0) {
                     patch(target, (item) => ({ ...item, draft: update.url }));
                 }
@@ -193,9 +130,6 @@ export default function DashboardBrowser({
         [tabs, active]
     );
 
-    // Read once on mount rather than at module scope: this is the only surface that needs either
-    // value, and a store read that fails here costs a start screen its shortcuts instead of leaving
-    // the whole app unresolved the way the awaits in `app.tsx` do.
     useEffect(() => {
         const load = async () => {
             setView(await getBrowserView());
@@ -206,10 +140,6 @@ export default function DashboardBrowser({
         void load();
     }, []);
 
-    // Measured when the settings dialog opens rather than held all the time: it is a figure only that
-    // dialog shows, and reading it walks the cache index. Scoped to `unknown`, which is the kind the
-    // browser's own tiles and chips store their icons under — the wallet's token and network logos
-    // share this cache and are deliberately not counted here or cleared below.
     useEffect(() => {
         if (!settings) {
             return;
@@ -217,15 +147,9 @@ export default function DashboardBrowser({
 
         void imageCache.getCacheSize('unknown').then(setIcons);
 
-        // Read rather than loaded: the dashboard reads the stored grants when it mounts, so by the
-        // time this tab exists the list is already in memory and this is only a snapshot of it for
-        // the dialog to count.
         setConnections(getConnections().length);
     }, [settings]);
 
-    // The one shortcut the start screen is handed rather than stores: it points at the active network's
-    // explorer, on this account, so it means something different on each chain — and it is absent
-    // entirely on a network that declares none. Everything else in that grid is a favourite.
     const explorer = network.explorerUrl.length > 0 ? { name: T('Dashboard.Browser.Explorer'), url: `${network.explorerUrl}/address/${address}` } : undefined;
 
     const onOpen = (value: string) => {
@@ -235,15 +159,6 @@ export default function DashboardBrowser({
             return;
         }
 
-        // Opened from the start screen of a tab that already holds a page, this becomes a new tab
-        // rather than a navigation. That screen is only over a live page because Home put it there and
-        // deliberately kept the page alive underneath; loading into the same tab would throw away the
-        // one thing that decision was for, and it is why the strip only ever had one chip in it — every
-        // site opened after the first replaced the site before it, so no second tab was ever created.
-        //
-        // A tab with no page of its own is not in that position: it is the empty tab the `+` just made,
-        // and filling it is exactly what it is for. Navigating from a page that is on screen is an
-        // ordinary navigation and stays in place, the way an address bar is supposed to behave.
         const spawn = tab.home && tab.index >= 0;
 
         const id = spawn ? mintRef.current : active;
@@ -264,14 +179,9 @@ export default function DashboardBrowser({
 
         setNotice((map) => new Map(map).set(id, ''));
 
-        // Recorded here rather than from the webview's own navigation events: this is what the user
-        // asked for, while the events also fire for redirects and for every link followed inside a
-        // page, which would fill the list with places nobody chose to go.
         void addBrowserVisit(url).then(setVisits);
     };
 
-    // A link handed over from another tab (an activity row, say) lands on the history stack exactly as
-    // if it had been typed here, so back still returns to whatever the user was browsing before.
     useEffect(() => {
         if (ticket > 0 && request.length > 0) {
             onOpen(request);
@@ -279,8 +189,6 @@ export default function DashboardBrowser({
     }, [ticket, request]);
 
     const onStep = (offset: number) => {
-        // Leaving the start screen is the step the user took to get here, so it is the one back undoes
-        // before the page's own history is touched.
         if (tab.home && offset < 0) {
             patch(active, (item) => ({ ...item, home: false }));
 
@@ -308,35 +216,16 @@ export default function DashboardBrowser({
         patch(active, (item) => ({ ...item, index: next, draft: item.entries[next], home: false }));
     };
 
-    /**
-     * Shows the start screen over the tab, leaving the page it holds alone.
-     *
-     * This used to clear the stack, which emptied the address and took the view down with it — going
-     * home meant losing the page and reloading it from scratch on the way back. The page now stays
-     * where it is, hidden behind the start screen, and picking the tab in the strip returns to it.
-     */
     const onHome = () => {
         patch(active, (item) => ({ ...item, home: true }));
     };
 
-    /**
-     * Brings a tab to the front, showing whatever page it holds.
-     *
-     * Picking a tab is also the way back out of the start screen, since the strip is only on screen
-     * while that is what the front tab shows. A tab with no page of its own simply stays there.
-     */
     const onPickTab = (id: number) => {
         setActive(id);
 
         patch(id, (item) => ({ ...item, home: false }));
     };
 
-    /**
-     * Opens a tab and brings it to the front, on its start screen.
-     *
-     * Ids are minted rather than reused, since one names a child webview and a recycled id would hand
-     * a new tab the view the closed one left behind.
-     */
     const onAddTab = () => {
         const id = mintRef.current;
 
@@ -347,13 +236,6 @@ export default function DashboardBrowser({
         setActive(id);
     };
 
-    /**
-     * Closes a tab, and with it the view that tab owned — unmounting the frame is what tears it down.
-     *
-     * Closing the one in front falls to its left neighbour, which is where the eye already is. Closing
-     * the last tab leaves an empty one rather than an empty browser: there is no state in which this
-     * page has no tab, so nothing downstream has to describe one.
-     */
     const onCloseTab = (id: number) => {
         const at = tabs.findIndex((item) => item.id === id);
 
@@ -390,9 +272,6 @@ export default function DashboardBrowser({
             return next;
         });
 
-        // The page in that tab is gone, so the provider has nobody to address there any more. Left
-        // behind, the entry would also keep a record of the site that tab was on for the rest of the
-        // session — which is the same record clearing the browser history exists to remove.
         forgetDappPage(frameLabel(id));
     };
 
@@ -402,8 +281,6 @@ export default function DashboardBrowser({
         void setBrowserView(chosen);
     };
 
-    // Cleared and re-measured in one step, so the count the dialog shows is what the cache now holds
-    // rather than what it held when the dialog opened.
     const onClearCache = () => {
         const run = async () => {
             await imageCache.clearKind('unknown');
@@ -414,10 +291,6 @@ export default function DashboardBrowser({
         void run();
     };
 
-    // Re-measured for the same reason the cache clear is, because forgetting the visits now takes the
-    // site icons with them — an icon carries the address it was fetched from, so it is the same record
-    // written twice. Both figures this dialog shows move together or one of them describes a state
-    // that is already gone.
     const onClear = () => {
         const run = async () => {
             setVisits([]);
@@ -430,8 +303,6 @@ export default function DashboardBrowser({
         void run();
     };
 
-    // Every open page holding an account is told it no longer has one on the way through, which is
-    // what lets a dApp put itself back into its signed-out state without the tab being reloaded.
     const onDisconnect = () => {
         const run = async () => {
             await disconnectAllDapps();
@@ -442,9 +313,6 @@ export default function DashboardBrowser({
         void run();
     };
 
-    // Written through the same call that updates the screen, so the list on disk is whatever is being
-    // looked at. An edit replaces the entry holding that id and an addition goes on the end, which is
-    // the one place the two cases differ.
     const onFavorites = (next: BrowserFavorite[]) => {
         setFavorites(next);
 
@@ -461,16 +329,11 @@ export default function DashboardBrowser({
 
     return (
         <Vertical className='relative min-h-0 flex-1'>
-            {/* The toolbar sits at the page tone, so the card surfaces inside the page read above it. */}
             <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
                 <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} className='shrink-0'>
                     <IoClose size={16} />
                 </Button>
 
-                {/*
-                 * Back and forward are mirror images of one glyph, so `rtl:` turns each into the
-                 * other instead of the component picking between two icons at render time.
-                 */}
                 <Button
                     dim
                     variant='chip'
@@ -523,8 +386,6 @@ export default function DashboardBrowser({
                                     }}
                                     className='absolute inset-e-1 cursor-pointer text-txt-muted hover:text-txt-normal'
                                 >
-                                    {/* Spinning the reload glyph is the in-flight cue; it is the same
-                                     * control either way, so nothing moves when the load ends. */}
                                     <FiRotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
                                 </Button>
                             ) : undefined
@@ -532,13 +393,6 @@ export default function DashboardBrowser({
                     />
                 </div>
 
-                {/*
-                 * One control, two jobs, because on the start screen the first of them has nothing to
-                 * do: home is already what is showing, so the button sat there greyed out taking up
-                 * the width. It turns into the way into the browser's settings there instead, and
-                 * goes back to being home the moment a page is up — which is the only time home means
-                 * anything.
-                 */}
                 <Button
                     variant='chip'
                     size='iconChip'
@@ -558,11 +412,6 @@ export default function DashboardBrowser({
 
             {start && <DashboardBrowserTabs tabs={tabs} active={active} onPick={onPickTab} onClose={onCloseTab} onAdd={onAddTab} />}
 
-            {/*
-             * Real load progress from the WebView, on the toolbar's bottom edge where a browser puts
-             * it. It only unmounts once the bar has actually reached the end, so a finished load
-             * reads as finished rather than the bar vanishing mid-way.
-             */}
             <div className='relative h-0.5 shrink-0 overflow-hidden'>
                 <AnimatePresence>
                     {state !== undefined && state.loading && (
@@ -573,21 +422,10 @@ export default function DashboardBrowser({
                 </AnimatePresence>
             </div>
 
-            {/*
-             * One frame per tab, all stacked on the same rectangle and all measurable, with only the
-             * one in front left visible. `invisible` rather than `hidden` on purpose: a frame with no
-             * box reports no size, and both platforms position their view from that box — a tab
-             * brought forward would have nowhere to paint. What actually keeps a background page off
-             * the screen is the native hide inside `WebFrame`; this only stops the DOM underneath one
-             * frame showing through another.
-             */}
             <div className='relative min-h-0 flex-1'>
                 {tabs.map((item) => {
                     const front = item.id === active;
 
-                    // Not `enabled` for a tab showing its start screen: the view is hidden so the
-                    // shortcuts underneath can be seen, but the address is left in place so the
-                    // page is kept rather than closed.
                     const shown = front && !atBrowserStart(item);
 
                     return (
@@ -621,11 +459,6 @@ export default function DashboardBrowser({
                 })}
             </div>
 
-            {/*
-             * Mounted inside the tab, unlike every other dialog in the app, because this one belongs
-             * to the browser rather than to the wallet. It opens from the start screen only, where no
-             * page is loaded and so no browser view is painted over the layout to cover it.
-             */}
             <AnimatePresence>
                 {settings && (
                     <DashboardBrowserSettings

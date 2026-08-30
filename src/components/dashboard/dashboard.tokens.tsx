@@ -19,21 +19,6 @@ import { getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
 import { formatUsd, trimAmount } from '../../utility/format';
 import { Vertical } from '../ui/stack';
 
-/**
- * DashboardTokens - The token list the wallet tab reads from, plus the form that fills it.
- *
- * The wallet ships with no ERC20s: every row here was added by the user pasting a contract address. The symbol, name and decimals are read off the contract itself, so the only thing to type is the address.
- *
- * Removing a token only stops tracking it — the balance stays on chain and comes back if the same contract is added again.
- * @param {object} props Component props.
- * @param {Network} props.network The active network.
- * @param {TokenBalance[]} props.tokens Tracked tokens with their balances.
- * @param {PriceMap} props.prices USD price per pricing id, so each row can say what its balance is worth.
- * @param {(address: string) => Promise<string>} props.onAdd Adds a contract, resolving to an error message or an empty string on success.
- * @param {(address: string) => void} props.onRemove Stops tracking one contract.
- * @param {() => void} props.onClose Closes the modal.
- * @returns {JSX.Element} The token manager modal.
- */
 export default function DashboardTokens({
     network,
     tokens,
@@ -54,14 +39,6 @@ export default function DashboardTokens({
     const [error, setError] = useState('');
     const [contract, setContract] = useState('');
 
-    /**
-     * rowValue - USD worth of one tracked token, or nothing when it cannot be priced.
-     *
-     * The same rule the wallet tab holds to: a token the price sources have never heard of shows its
-     * balance and no second line, rather than a `$0.00` that reads as a worthless holding.
-     * @param {TokenBalance} item The token and its balance.
-     * @returns {string | undefined} The formatted USD value, or `undefined`.
-     */
     const rowValue = (item: TokenBalance) => {
         const price = prices[getTokenCoinId(network.chainId, item.token.address, item.token.coinId)];
 
@@ -128,10 +105,6 @@ export default function DashboardTokens({
                             text={T('Dashboard.Tokens.Back')}
                         />
 
-                        {/*
-                         * The only busy form in the app that showed nothing but a swapped
-                         * label: no spinner, no fade. `loading` carries both, and disables.
-                         */}
                         <Button
                             dim
                             variant='primary'

@@ -33,9 +33,7 @@ type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
 interface Asset {
     key: string;
     symbol: string;
-    /** The longer name under the symbol — the coin's, or the token contract's. */
     name: string;
-    /** Logo URL, handed to `TokenIcon`, which falls back to the symbol's initial. */
     logo: string;
     decimals: number;
     value: bigint;
@@ -43,23 +41,6 @@ interface Asset {
     token?: { address: string; decimals: number };
 }
 
-/**
- * DashboardSend - Guided transfer flow for the native coin or a curated ERC20 token.
- *
- * The signing/broadcast step is reached only after an explicit review screen showing the recipient, amount, asset, and network. The signer is built from the vault in-memory for the single send and never persisted.
- *
- * Which asset is being sent is the first thing chosen. An account can hold several tokens on one network, and the coin was previously the only thing this screen would ever send — everything below the picker reads from the choice, and a token routes to its contract's `transfer` rather than to a plain value transfer.
- * @param {object} props Component props.
- * @param {Vault} props.vault The unlocked key material used to build the signer.
- * @param {number} props.index The active account's derivation index, so the transfer is signed by the account the user is looking at. Ignored for a private-key vault, which has only the one account.
- * @param {Network} props.network The active network.
- * @param {bigint} props.nativeValue Native balance in wei.
- * @param {string} props.nativeFormatted Native balance as a decimal string.
- * @param {TokenBalance[]} props.tokens Curated token balances.
- * @param {() => void} props.onSent Called after a successful broadcast so the parent can refresh balances.
- * @param {() => void} props.onClose Closes the modal.
- * @returns {JSX.Element} The send modal.
- */
 export default function DashboardSend({
     vault,
     index,
@@ -115,20 +96,8 @@ export default function DashboardSend({
 
     const online = useOnline();
 
-    // Falls back to the coin rather than to nothing: the tracked list can lose a token while this
-    // dialog is open — the holdings refresh behind it — and a send screen with no asset is not a state
-    // worth having.
     const asset = assets.find((item) => item.key === chosen) ?? assets[0];
 
-    /**
-     * Switches which asset is being sent, and clears the amount.
-     *
-     * The amount is deliberately not carried over. Each asset has its own balance and its own decimals,
-     * so the same digits mean a different transfer against a different one — leaving `5` in the box
-     * while the asset under it changes from a stablecoin to the network's coin is the kind of thing
-     * that gets signed before it is read.
-     * @param {string} key The asset to switch to.
-     */
     const onAsset = (key: string) => {
         setChosen(key);
         setPicking(false);
@@ -136,10 +105,6 @@ export default function DashboardSend({
         setError('');
     };
 
-    /**
-     * What the confirmation screen restates before anything is signed. Three label/value rows drawn
-     * the same way, so they are listed rather than written out three times.
-     */
     const reviewMap = [
         { label: T('Dashboard.Send.Amount'), value: `${trimAmount(amount)} ${asset.symbol}`, mono: true },
         { label: T('Dashboard.Send.To'), value: shortAddress(to), mono: true },
@@ -178,9 +143,6 @@ export default function DashboardSend({
     };
 
     const onConfirm = async () => {
-        // Signing is local, broadcasting is not, and a transaction that was never broadcast is a
-        // failure worth naming: the generic "try again" sends the user back to a form that will fail
-        // the same way until the connection returns.
         if (!online) {
             setFailure(T('Dashboard.Send.Offline'));
             setStep('error');
@@ -211,23 +173,8 @@ export default function DashboardSend({
                 <Vertical className='gap-3'>
                     <Alert text={error} />
 
-                    {/*
-                     * Said up front rather than after the review: everything below this line is
-                     * fillable offline and none of it can be sent, so the user should know before
-                     * typing an address rather than at the moment they press confirm.
-                     */}
                     <Alert variant='warning' text={online ? '' : T('Dashboard.Send.Offline')} />
 
-                    {/*
-                     * First, because it decides what everything under it means: the balance the
-                     * Max control offers, the decimals the amount is parsed at, and whether this
-                     * ends up a coin transfer or a call to a contract.
-                     *
-                     * Drawn as the same glass field the recipient is typed into, so the thing that
-                     * opens a list reads as part of the form rather than as another button. The
-                     * list itself is absolute: it lies over what follows instead of pushing the
-                     * dialog taller as it opens.
-                     */}
                     <Vertical className='relative gap-1'>
                         <Text text={T('Dashboard.Send.Asset')} />
 
@@ -300,11 +247,6 @@ export default function DashboardSend({
                     </Vertical>
 
                     <Vertical className='gap-1'>
-                        {/*
-                         * The label rides on the field rather than as a sibling heading, so the
-                         * input is named to assistive technology by the same words that label it
-                         * on screen — the two inputs of this form were announced unnamed.
-                         */}
                         <TextField label={T('Dashboard.Send.Recipient')} value={to} dir='ltr' placeholder='0x…' onValue={setTo} className='font-mono' />
                     </Vertical>
 
@@ -320,11 +262,6 @@ export default function DashboardSend({
                             />
                         </SectionHeader>
 
-                        {/*
-                         * Named rather than labelled: the section header above carries the visible
-                         * words and the Max control sits beside them, so the association is made
-                         * for the reader of the accessibility tree instead of re-laying-out the row.
-                         */}
                         <TextField
                             value={amount}
                             dir='ltr'
@@ -347,11 +284,6 @@ export default function DashboardSend({
                             <Horizontal key={item.label} className='items-center justify-between gap-2'>
                                 <Text text={item.label} />
 
-                                {/*
-                                 * `captionStrong` is the muted caption above at the same size
-                                 * in the normal colour, which is the whole difference between
-                                 * a label and its value here.
-                                 */}
                                 <Text
                                     variant='captionStrong'
                                     dir={item.mono ? 'ltr' : undefined}
@@ -399,8 +331,6 @@ export default function DashboardSend({
 
                     <Text variant='body' text={T('Dashboard.Send.Success')} />
 
-                    {/* `text-tiny text-txt-muted` was this box spelling the caption pairing out by
-                     * hand, so it comes from the variant now and the rest rides in beside it. */}
                     <Text dir='ltr' className='w-full rounded-surface bg-base-3 p-2 text-center font-mono break-all select-text!' text={hash} />
 
                     <Button variant='primary' size='action' fullWidth onClick={onClose} text={T('Dashboard.Send.Done')} />
@@ -409,11 +339,6 @@ export default function DashboardSend({
 
             {step === 'error' && (
                 <Vertical className='items-center gap-3 py-4'>
-                    {/*
-                     * The highest-stakes error in a wallet, and it was the one rendered as bare
-                     * red text — no tint, no radius, no padding, unannounced — in a file that
-                     * already used `Alert` correctly twice a hundred lines above.
-                     */}
                     <Alert size='comfortable' className='w-full' text={failure.length > 0 ? failure : T('Dashboard.Send.Error')} />
 
                     <Button

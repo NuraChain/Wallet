@@ -5,11 +5,6 @@ import { getProvider } from './network.provider';
 import { getExplorerApi, type Network } from './network';
 import { getValue, setValue } from '../utility/storage';
 
-/**
- * An ERC20 token tracked for a given chain.
- *
- * `coinId` is the CoinGecko id used for pricing. Most user-added contracts have none, in which case the token still shows its balance but contributes nothing to the portfolio total.
- */
 export interface Token {
     address: string;
     symbol: string;
@@ -18,39 +13,16 @@ export interface Token {
     coinId: string;
 }
 
-/**
- * A token paired with the connected account's balance.
- */
 export interface TokenBalance {
     token: Token;
     value: bigint;
     formatted: string;
 }
 
-/**
- * Tokens the user added, keyed by chain id. The list is per chain because the same symbol is a different contract on another chain.
- */
 export type TokenMap = Record<number, Token[]>;
 
-/**
- * Contracts the user removed from the list, keyed by chain id and held in lowercase.
- *
- * Removing a token only ever took it out of `TokenMap`, and discovery skips what is *tracked* — so the
- * next sweep found the same contract again, still held, and added it straight back. The user's decision
- * has to outlive the list it was made about, which is what this is: not a cache, and not derivable from
- * anything else on disk, so it sits in the wallet store beside the tracked list rather than in a read cache.
- *
- * It is a record of an intent, not of a state, so it holds addresses rather than tokens — the metadata
- * would be re-read from the chain if the user ever asked for the token back.
- *
- * Keyed by chain only, matching `TokenMap`: the tracked list is already shared across accounts, and a
- * token dismissed on one account is dismissed on the chain.
- */
 export type HiddenMap = Record<number, string[]>;
 
-/**
- * Minimal ERC20 read surface used for balance lookups and contract discovery.
- */
 export const erc20Abi = [
     'function balanceOf(address owner) view returns (uint256)',
     'function decimals() view returns (uint8)',
@@ -58,18 +30,6 @@ export const erc20Abi = [
     'function name() view returns (string)'
 ];
 
-/**
- * The handful of contracts worth checking blind on each chain.
- *
- * Nothing here is shown by default — a wallet holding none of them still lists nothing. They exist
- * because discovery otherwise depends entirely on an explorer, and a chain whose explorer refuses to
- * answer would show no tokens at all however many the account holds. BNB Smart Chain is exactly that
- * case: its API is behind a paid plan, so without this list a balance in USDT there is invisible.
- *
- * `coinId` is the CoinGecko id used for pricing, which is also why this list was here before it named
- * anything else. Metadata is stated rather than read from each contract, so a chain with no explorer
- * costs one `balanceOf` per entry instead of four calls.
- */
 const knownTokens: Record<number, Token[] | undefined> = {
     1: [
         { address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', symbol: 'USDT', name: 'Tether USD', decimals: 6, coinId: 'tether' },
@@ -85,21 +45,9 @@ const knownTokens: Record<number, Token[] | undefined> = {
     ]
 };
 
-/**
- * getCoinId - CoinGecko id for a contract, or an empty string when it is not a known asset.
- * @param {number} chainId Chain the contract lives on.
- * @param {string} address Contract address.
- * @returns {string} The coin id, or an empty string.
- */
 const getCoinId = (chainId: number, address: string) =>
     knownTokens[chainId]?.find((item) => item.address.toLowerCase() === address.toLowerCase())?.coinId ?? '';
 
-/**
- * loadTokens - Reads the per-chain list of user-added tokens.
- *
- * A malformed entry is dropped rather than thrown on, so corrupted storage degrades to "no tokens added" instead of crashing the dashboard.
- * @returns {Promise<TokenMap>} Added tokens per chain id.
- */
 export const loadTokens = async (): Promise<TokenMap> => {
     const stored = await getValue('Wallet.Tokens');
 
@@ -138,22 +86,10 @@ export const loadTokens = async (): Promise<TokenMap> => {
     return tokens;
 };
 
-/**
- * saveTokens - Persists the per-chain list of user-added tokens.
- * @param {TokenMap} tokens Added tokens per chain id.
- * @returns {Promise<void>} Resolves once written.
- */
 export const saveTokens = async (tokens: TokenMap) => {
     await setValue('Wallet.Tokens', JSON.stringify(tokens));
 };
 
-/**
- * loadHiddenTokens - Reads the per-chain list of contracts the user removed.
- *
- * Held lowercase so every comparison downstream is a plain `Set.has`. Anything that is not an address
- * is dropped rather than thrown on: a corrupted entry should cost one suppression, not the dashboard.
- * @returns {Promise<HiddenMap>} Removed contract addresses per chain id.
- */
 export const loadHiddenTokens = async (): Promise<HiddenMap> => {
     const stored = await getValue('Wallet.TokensHidden');
 
@@ -188,25 +124,10 @@ export const loadHiddenTokens = async (): Promise<HiddenMap> => {
     return hidden;
 };
 
-/**
- * saveHiddenTokens - Persists the per-chain list of contracts the user removed.
- * @param {HiddenMap} hidden Removed contract addresses per chain id.
- * @returns {Promise<void>} Resolves once written.
- */
 export const saveHiddenTokens = async (hidden: HiddenMap) => {
     await setValue('Wallet.TokensHidden', JSON.stringify(hidden));
 };
 
-/**
- * hideToken - Records that the user removed a contract, so discovery stops offering it.
- *
- * Pure, and the only place the lowercase-and-deduplicate rule lives, so no call site has to remember
- * which case the stored form is in.
- * @param {HiddenMap} hidden The current map.
- * @param {number} chainId The chain the contract is on.
- * @param {string} address The contract address, in any case.
- * @returns {HiddenMap} A new map including that address.
- */
 export const hideToken = (hidden: HiddenMap, chainId: number, address: string): HiddenMap => {
     const entry = address.toLowerCase();
     const list = hidden[chainId] ?? [];
@@ -214,16 +135,6 @@ export const hideToken = (hidden: HiddenMap, chainId: number, address: string): 
     return list.includes(entry) ? hidden : { ...hidden, [chainId]: [...list, entry] };
 };
 
-/**
- * unhideToken - Forgets that a contract was ever removed.
- *
- * Adding a token by hand is the user asking for it back in as many words, and it has to clear the
- * suppression or the very next sweep would be entitled to drop it again.
- * @param {HiddenMap} hidden The current map.
- * @param {number} chainId The chain the contract is on.
- * @param {string} address The contract address, in any case.
- * @returns {HiddenMap} A new map without that address.
- */
 export const unhideToken = (hidden: HiddenMap, chainId: number, address: string): HiddenMap => {
     const entry = address.toLowerCase();
     const list = hidden[chainId] ?? [];
@@ -231,15 +142,6 @@ export const unhideToken = (hidden: HiddenMap, chainId: number, address: string)
     return list.includes(entry) ? { ...hidden, [chainId]: list.filter((item) => item !== entry) } : hidden;
 };
 
-/**
- * Read a contract's ERC20 metadata straight off the active network.
- *
- * The user only supplies an address, so symbol, name and decimals come from the chain itself. `name` is optional in practice — a contract that does not expose it falls back to its symbol rather than failing the whole add.
- * @param {number} chainId Chain the contract lives on, used to look up a price id.
- * @param {string} address Contract address supplied by the user.
- * @returns {Promise<Token>} The resolved token.
- * @throws {Error} When the address is malformed or the contract is not a readable ERC20.
- */
 export const readToken = async (chainId: number, address: string): Promise<Token> => {
     if (!isAddress(address)) {
         throw new Error('invalid contract address');
@@ -265,12 +167,6 @@ export const readToken = async (chainId: number, address: string): Promise<Token
     return { address: getAddress(address), symbol, name, decimals, coinId: getCoinId(chainId, address) };
 };
 
-/**
- * One row of an explorer's token response.
- *
- * `tokenlist` names the fields one way and `tokentx` another, so both spellings are accepted and the
- * reader takes whichever is present.
- */
 interface ExplorerToken {
     contractAddress?: unknown;
     balance?: unknown;
@@ -283,14 +179,6 @@ interface ExplorerToken {
     type?: unknown;
 }
 
-/**
- * readText - The first of two spellings of a field that is actually a string.
- *
- * `tokenlist` and `tokentx` name the same three fields differently, so every read has a pair to try.
- * @param {unknown} first The `tokenlist` spelling.
- * @param {unknown} second The `tokentx` spelling.
- * @returns {string} The first usable string, or an empty one.
- */
 const readText = (first: unknown, second: unknown) => {
     if (typeof first === 'string' && first.length > 0) {
         return first;
@@ -299,32 +187,12 @@ const readText = (first: unknown, second: unknown) => {
     return typeof second === 'string' ? second : '';
 };
 
-/**
- * How many discovered contracts are checked on chain in one pass.
- *
- * Each one is a `balanceOf` call, so an account that has touched hundreds of tokens would otherwise
- * open hundreds of RPC requests the moment the dashboard loads.
- */
 const discoverLimit = 40;
 
-/**
- * readExplorerTokens - Ask one explorer action for the contracts an account has held.
- *
- * `tokenlist` is the direct question and Blockscout answers it with balances attached. Etherscan-style
- * explorers have no such action, so the fallback is `tokentx` — every ERC20 transfer the account was
- * party to, which names each contract it has ever touched. Neither answer is trusted for the balance
- * itself; that is read from the chain afterwards.
- * @param {string} api The explorer API base.
- * @param {string} action The action to call, `tokenlist` or `tokentx`.
- * @param {string} address The account address.
- * @returns {Promise<ExplorerToken[]>} The rows, or an empty list when the call fails or is unsupported.
- */
 const readExplorerTokens = async (api: string, action: string, address: string): Promise<ExplorerToken[]> => {
     const query = `module=account&action=${action}&address=${encodeURIComponent(address)}&page=1&offset=100&sort=desc`;
 
     try {
-        // Same client as the history reader, for the same reason: this is an explorer, and one of them
-        // cannot be reached from the webview at all — see [request.ts](request.ts).
         const response = await httpRequest(`${api}${api.includes('?') ? '&' : '?'}${query}`);
 
         if (!response.ok) {
@@ -341,20 +209,6 @@ const readExplorerTokens = async (api: string, action: string, address: string):
     }
 };
 
-/**
- * Read the account balances for a list of tokens on the active network.
- *
- * Each token is queried independently; a failing contract call resolves to a zero balance rather than rejecting the whole batch, so one bad RPC response cannot blank the list.
- *
- * **Unless they all fail.** One contract that will not answer is a bad contract, and zero is a fair
- * thing to show for it; every contract failing at once is the chain being unreachable, and showing a
- * screen of zeroes for that is telling the user their tokens are gone. That case rejects instead, so
- * the caller can fall back to the last balances it actually saw.
- * @param {string} address Account address to query.
- * @param {Token[]} tokens Tokens to read.
- * @returns {Promise<TokenBalance[]>} Balances in the same order as `tokens`.
- * @throws {Error} When every contract read failed, which is the network rather than the contracts.
- */
 export const readTokenBalances = async (address: string, tokens: Token[]): Promise<TokenBalance[]> => {
     const provider = getProvider();
 
@@ -384,27 +238,6 @@ export const readTokenBalances = async (address: string, tokens: Token[]): Promi
     return balances;
 };
 
-/**
- * discoverTokens - Tokens the account actually holds on a network but is not tracking yet.
- *
- * Nothing used to appear in the list until the user pasted a contract address, which meant a wallet
- * that plainly held a token showed nothing of it. The explorer is asked which contracts this account
- * has held, and every candidate it names is then verified against the chain — a balance is only
- * believed if `balanceOf` returns one, so a token transferred away does not come back as an empty row.
- *
- * A network with no working explorer discovers nothing and says so by returning an empty list, which
- * is the same outcome as an account that holds nothing. Manual adding is unaffected either way.
- *
- * `hidden` is what keeps a removal from being undone. Skipping only what is *tracked* meant a token the
- * user deleted was, by the next sweep, simply a held contract nobody was tracking — which is precisely
- * what this function exists to add — so it came straight back. A held balance is not a reason to
- * re-add something the user has already said no to; only their adding it by hand is.
- * @param {string} address Account address to inspect.
- * @param {Network} network Active network, which supplies the explorer and the chain id.
- * @param {Token[]} known Tokens already tracked on this chain, which are skipped.
- * @param {string[]} hidden Lowercase contract addresses the user removed on this chain, also skipped.
- * @returns {Promise<Token[]>} Held tokens worth adding, in the order the explorer named them.
- */
 export const discoverTokens = async (address: string, network: Network, known: Token[], hidden: string[] = []): Promise<Token[]> => {
     const api = getExplorerApi(network);
 
@@ -412,13 +245,8 @@ export const discoverTokens = async (address: string, network: Network, known: T
 
     const listed = rows.length > 0 || api.length === 0 ? rows : await readExplorerTokens(api, 'tokentx', address);
 
-    // Tracked and dismissed contracts are both "do not offer this", so they share one set — which also
-    // covers the blind `knownTokens` path below, not just the explorer rows.
     const skip = new Set([...known.map((item) => item.address.toLowerCase()), ...hidden.map((item) => item.toLowerCase())]);
 
-    // An explorer that named nothing is either absent, refusing, or looking at an account it has never
-    // seen, and none of those mean the account holds nothing. The blind list covers that gap; where the
-    // explorer did answer it already names everything this would, so it is not asked for twice.
     const candidates: Token[] = listed.length > 0 ? [] : (knownTokens[network.chainId] ?? []).filter((item) => !skip.has(item.address.toLowerCase()));
 
     for (const item of candidates) {
@@ -430,8 +258,6 @@ export const discoverTokens = async (address: string, network: Network, known: T
             continue;
         }
 
-        // Blockscout labels NFTs in the same list, and neither a balance nor a decimals count means
-        // the same thing for those.
         if (typeof row.type === 'string' && row.type.length > 0 && row.type.toUpperCase() !== 'ERC-20') {
             continue;
         }
@@ -442,10 +268,6 @@ export const discoverTokens = async (address: string, network: Network, known: T
             continue;
         }
 
-        // `tokenlist` reports the balance it knows about, and an account keeps its entry there long
-        // after the last of a token has gone. Skipping those here spends the cap below on contracts
-        // that might still hold something, rather than on rows already known to be empty. `tokentx`
-        // reports no balance at all, so its rows fall through to the on-chain check.
         if (typeof row.balance === 'string' && /^\d+$/u.test(row.balance) && BigInt(row.balance) === 0n) {
             continue;
         }

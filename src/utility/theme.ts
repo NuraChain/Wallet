@@ -4,45 +4,21 @@ type ThemeType = 'light' | 'dark';
 
 let themeCurrent: ThemeType = 'light';
 
-/**
- * Apply a theme to the document.
- *
- * The `data-theme` attribute on `<html>` drives the CSS variable palette in `style.css`.
- * @param {ThemeType} theme Theme name to activate.
- */
 const apply = (theme: ThemeType) => {
     themeCurrent = theme;
 
     document.documentElement.dataset.theme = theme;
 };
 
-/**
- * Activate a theme and persist the selection.
- * @param {ThemeType} theme Theme name to activate.
- * @returns {Promise<void>} Resolves after the preference is saved.
- */
 export const setTheme = async (theme: ThemeType) => {
     apply(theme);
 
     await setValue('App.Theme', theme);
 };
 
-/**
- * Return the active theme name.
- * @returns {ThemeType} Current theme.
- */
 export const getTheme = () => themeCurrent;
 
-/**
- * Load the persisted theme selection and apply it.
- *
- * Missing or unknown stored values fall back to the OS color scheme.
- * @returns {Promise<void>} Resolves after the active theme is initialized.
- */
 export const initTheme = async () => {
-    // Read defensively. Every colour in the app hangs off the `data-theme` attribute this sets, so a
-    // storage read that throws would leave the window painted in unresolved variables — and this runs
-    // before the first render, where a rejection costs the whole app rather than the preference.
     const theme = await getValue('App.Theme').catch(() => undefined);
 
     if (theme === 'light' || theme === 'dark') {

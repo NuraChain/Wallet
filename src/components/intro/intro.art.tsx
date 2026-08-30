@@ -1,15 +1,3 @@
-/**
- * Illustrations for the intro slides.
- *
- * These are inline SVG rather than image files on purpose: the app's palette is swapped wholesale by `[data-theme]`, and an `<img>` cannot read those variables — a flat asset would either wash out on light or disappear on dark. Drawing them inline lets every stroke and fill come from the same semantic tokens as the rest of the UI (`btn-primary`, `txt-normal`, `base-2`), so they follow the theme toggle for free and stay crisp at any size.
- */
-
-/**
- * IntroArtConnect - A globe wrapped in a live network, for the "connect to the world" slide.
- * @param {object} props Component props.
- * @param {string} [props.className] Sizing classes for the drawing.
- * @returns {JSX.Element} The illustration.
- */
 export function IntroArtConnect({ className = '' }: { className?: string }) {
     return (
         <svg fill='none' aria-hidden='true' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg' className={className}>
@@ -44,12 +32,6 @@ export function IntroArtConnect({ className = '' }: { className?: string }) {
     );
 }
 
-/**
- * IntroArtDecentralized - A wallet held by a peer-to-peer mesh, for the "decentralized" slide.
- * @param {object} props Component props.
- * @param {string} [props.className] Sizing classes for the drawing.
- * @returns {JSX.Element} The illustration.
- */
 export function IntroArtDecentralized({ className = '' }: { className?: string }) {
     return (
         <svg fill='none' aria-hidden='true' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg' className={className}>
@@ -88,12 +70,6 @@ export function IntroArtDecentralized({ className = '' }: { className?: string }
     );
 }
 
-/**
- * IntroArtSecure - A locked shield over the wallet, for the "secure and private" slide.
- * @param {object} props Component props.
- * @param {string} [props.className] Sizing classes for the drawing.
- * @returns {JSX.Element} The illustration.
- */
 export function IntroArtSecure({ className = '' }: { className?: string }) {
     return (
         <svg fill='none' aria-hidden='true' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg' className={className}>

@@ -26,88 +26,34 @@ type StorageKey =
     | 'Browser.Favorites'
     | 'Browser.Connections';
 
-/**
- * The store, opened once and eagerly, so it is ready before any importer of this module runs.
- *
- * The app only ever ships inside a Tauri window, so this is the one backend there is — the plugin's own
- * `get`/`set`/`delete`/`save` are what the accessors below call, with nothing wrapped around them.
- *
- * It sits in plaintext next to the app, which is why the mnemonic is encrypted before it reaches here
- * and why nothing else stored is secret.
- */
 const storage = await load('application.bin');
 
-/**
- * deriveKeyArgon2id - Derives a non-extractable AES-GCM 256 key from a passphrase and salt via Argon2id
- *
- * The mnemonic is the actual secret, so its KDF must be at least as strong as the unlock hash in
- * `core/password.ts`. The cost parameters are identical to that hash, but the salt is the per-blob
- * random value generated in `setValueEncrypted` rather than the fixed application-wide one.
- * @param {string} passphrase - The passphrase to derive the key from
- * @param {Uint8Array<ArrayBuffer>} salt - The salt bytes used in derivation
- * @returns {Promise<CryptoKey>} The derived AES-GCM key
- */
 const deriveKeyArgon2id = async (passphrase: string, salt: Uint8Array<ArrayBuffer>) => {
     const bytes = await argon2id({ password: passphrase, salt, memorySize: 65536, iterations: 3, parallelism: 1, hashLength: 32, outputType: 'binary' });
 
     return crypto.subtle.importKey('raw', new Uint8Array(bytes), 'AES-GCM', false, ['encrypt', 'decrypt']);
 };
 
-/**
- * getValue - Retrieves a plaintext value from persistent storage
- * @param {StorageKey} key - The storage key name
- * @returns {Promise<string | undefined>} Stored string or undefined if not set
- */
 export const getValue = async (key: StorageKey) => storage.get<string>(key);
 
-/**
- * setValue - Stores a plaintext value in persistent storage
- * @param {StorageKey} key - The storage key name
- * @param {string} value - The plaintext string value to store
- * @returns {Promise<void>} Resolves after value is saved
- */
 export const setValue = async (key: StorageKey, value: string) => {
     await storage.set(key, value);
 
     await storage.save();
 };
 
-/**
- * removeValue - Deletes a value from persistent storage.
- * @param {StorageKey} key - The storage key name
- * @returns {Promise<void>} Resolves after the key is removed
- */
 export const removeValue = async (key: StorageKey) => {
     await storage.delete(key);
 
     await storage.save();
 };
 
-/**
- * removeValues - Deletes several values and writes the file once.
- *
- * Logging out clears five keys at once. Calling `removeValue` for each meant five separate saves of
- * the same file, and the wallet is half-deleted between any two of them — this leaves one write, so
- * the store either still has the wallet or has none of it.
- * @param {...StorageKey} keys - The storage key names
- * @returns {Promise<void>} Resolves once the file has been written
- */
 export const removeValues = async (...keys: StorageKey[]) => {
     await Promise.all(keys.map(async (key) => storage.delete(key)));
 
     await storage.save();
 };
 
-/**
- * setValueEncrypted - Encrypts a value with a fresh salt/IV and a passphrase-derived AES-GCM key, then stores it.
- *
- * The passphrase itself is never written to storage, only the salt, IV and ciphertext — so the
- * stored blob is useless to anyone without the passphrase, unlike `setValue`.
- * @param {StorageKey} key - The storage key name
- * @param {string} value - The plaintext string value to encrypt and store
- * @param {string} passphrase - The passphrase used to derive the encryption key
- * @returns {Promise<void>} Resolves after the encrypted value is saved
- */
 export const setValueEncrypted = async (key: StorageKey, value: string, passphrase: string) => {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const salt = crypto.getRandomValues(new Uint8Array(16));
@@ -130,15 +76,6 @@ export const setValueEncrypted = async (key: StorageKey, value: string, passphra
     await setValue(key, JSON.stringify(payload));
 };
 
-/**
- * getValueEncrypted - Decrypts a value previously stored with `setValueEncrypted`.
- *
- * AES-GCM's authentication tag doubles as an integrity check, so a wrong passphrase or
- * tampered/corrupted storage both surface as a thrown error rather than garbage output.
- * @param {StorageKey} key - The storage key name
- * @param {string} passphrase - The passphrase used to derive the decryption key
- * @returns {Promise<string | undefined>} Decrypted string, or undefined if nothing is stored
- */
 export const getValueEncrypted = async (key: StorageKey, passphrase: string) => {
     const stored = await getValue(key);
 

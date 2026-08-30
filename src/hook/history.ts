@@ -9,13 +9,8 @@ import { getExplorerApi, type Network } from '../core/network';
 import { historyKey, readHistory, touchHistory, writeHistory, type Transaction } from '../core/history.cache';
 import type { Token } from '../core/token';
 
-// Re-exported because this is where every consumer already imports it from; the definition moved to
-// `core` so the cache is not importing a type back out of the hook that consumes it.
 export type { Transaction };
 
-/**
- * One row of an Etherscan-compatible `txlist` / `tokentx` response. Every field arrives as a string, and the token-only fields are absent on native transfers.
- */
 interface ExplorerRow {
     hash?: unknown;
     from?: unknown;
@@ -26,41 +21,17 @@ interface ExplorerRow {
     tokenDecimal?: unknown;
 }
 
-/**
- * How many transactions of each kind (native and token) to request.
- *
- * The wallet tab only ever shows a handful, but the overview page is searchable, so it is worth pulling a deeper page than the glance needs.
- */
 const pageSize = 50;
 
-/**
- * What one explorer call came back with: the transactions, and why there were none if the explorer said
- * so itself.
- *
- * The two are not the same answer and used to be flattened into one. An explorer that refuses the
- * request — no key, a chain its plan does not cover, a host that has moved — produced an empty list,
- * which the UI then showed as "no transactions": the account looked untouched instead of unreadable.
- */
 interface ExplorerAnswer {
     items: Transaction[];
     notice: string;
 }
 
-/**
- * Read one Etherscan-compatible action and map it into transactions.
- *
- * Blockscout answers `status: '0'` with a "no transactions found" message for an account that has never transacted, which is a normal empty result rather than an error — it still carries `result` as an array, which is how it is told apart from a refusal, where `result` is the explanation itself.
- * @param {string} action The action to call, `txlist` or `tokentx`.
- * @param {string} address The account address.
- * @param {Network} network Active network, which supplies the API base, the native symbol and its decimals.
- * @returns {Promise<ExplorerAnswer>} The mapped transactions, or the reason there are none.
- */
 const readAction = async (action: string, address: string, network: Network): Promise<ExplorerAnswer> => {
     const api = getExplorerApi(network);
     const query = `module=account&action=${action}&address=${encodeURIComponent(address)}&page=1&offset=${pageSize}&sort=desc`;
 
-    // `httpRequest` rather than `fetch`: Nura's explorer is unreadable from the webview, and a history
-    // list is the one screen that cannot fall back to asking the chain directly — see [request.ts](../core/request.ts).
     const response = await httpRequest(`${api}${api.includes('?') ? '&' : '?'}${query}`);
 
     if (!response.ok) {
@@ -71,9 +42,6 @@ const readAction = async (action: string, address: string, network: Network): Pr
     const parsed = (await response.json()) as { result?: unknown; message?: unknown };
 
     if (!Array.isArray(parsed.result)) {
-        // A refusal states its reason where the rows would be, and that sentence is worth more to the
-        // user than a blank list — it is the difference between "nothing happened here" and "this
-        // network's explorer will not answer without a key".
         const reason = typeof parsed.result === 'string' && parsed.result.length > 0 ? parsed.result : '';
 
         const fallback = typeof parsed.message === 'string' && parsed.message.length > 0 ? parsed.message : 'explorer returned no transaction list';
@@ -93,8 +61,6 @@ const readAction = async (action: string, address: string, network: Network): Pr
 
         const isToken = typeof row.tokenSymbol === 'string' && row.tokenSymbol.length > 0;
 
-        // A native row worth nothing is a contract call, not a transfer — and it is usually the very
-        // transaction that carried a token transfer already listed by `tokentx`.
         if (!isToken && row.value === '0') {
             return [];
         }
@@ -120,63 +86,16 @@ const readAction = async (action: string, address: string, network: Network): Pr
     return { items, notice: '' };
 };
 
-/**
- * GoldRush (Covalent) reads the chains an Etherscan-family explorer will not.
- *
- * BNB Smart Chain is the reason this exists. Its data is only sold through a paid Etherscan plan, no
- * Blockscout instance covers it, and the free RPCs cap `eth_getLogs` at between 25 and 5000 blocks —
- * minutes of history, and native transfers cannot be read from logs at all. GoldRush answers chain 56
- * on a free key, so it is asked whenever the explorer comes back with nothing.
- *
- * A fallback and not the first choice: Blockscout serves Nura and Ethereum without a key or a credit,
- * and spending either where the explorer already works would be waste.
- */
-
-/**
- * GoldRush key, supplied by the build environment.
- *
- * It must be rotated at the provider: the previous value was committed to git, so it can no longer be
- * treated as a secret. When unset this is an empty string, and every GoldRush request below then
- * degrades to an empty list.
- */
 const covalentKey = import.meta.env.VITE_COVALENT_KEY ?? '';
 
-/**
- * Root of the API. The chain is addressed by number rather than by GoldRush's own slug, which saves
- * every caller from having to know that chain 56 is spelled `bsc-mainnet` over there.
- */
 const covalentBase = 'https://api.covalenthq.com/v1';
 
-/**
- * How many tracked tokens are asked about.
- *
- * Token movements come one contract per request there, at about a second each, so an account tracking
- * a long list would otherwise spend a slow minute assembling one screen.
- */
 const covalentTokens = 4;
 
-/**
- * What GoldRush answers for a chain it does not index, and where that answer is remembered.
- *
- * Learned rather than listed. The obvious shape here is a constant naming the covered chains, and it
- * is the wrong one: GoldRush indexes most of the EVM space and adds to it continuously, so a list
- * written today switches the fallback off for chains it covers tomorrow — and it would take every
- * network the user adds by hand with it, which is the whole population this fallback exists to serve.
- * Asking once and believing the answer is never out of date. It costs one read's worth of requests per
- * chain to find out — the native and per-token reads go out together, so they all learn it at once —
- * and nothing at all on every read after that.
- *
- * The memory expires, because it has to be wrong in both directions to be honest: a chain that gets
- * indexed later should start working on its own, without anyone clearing anything. A month is long
- * enough that the wasted request is nothing and short enough that nobody waits on a new listing.
- */
 const notImplemented = 501;
 const unsupportedKey = 'history/v1/unsupported/';
 const unsupportedFor = 30 * 24 * 60 * 60 * 1000;
 
-/**
- * One row of a GoldRush response. Snake case because that is what the API sends.
- */
 interface CovalentRow {
     tx_hash?: unknown;
     from_address?: unknown;
@@ -186,9 +105,6 @@ interface CovalentRow {
     transfers?: unknown;
 }
 
-/**
- * One entry of a GoldRush `transfers` array: the movement itself, already decoded.
- */
 interface CovalentTransfer {
     tx_hash?: unknown;
     from_address?: unknown;
@@ -199,20 +115,8 @@ interface CovalentTransfer {
     contract_ticker_symbol?: unknown;
 }
 
-/**
- * covalentGet - Ask GoldRush for one list, and treat every failure as an empty one.
- *
- * The chain is a parameter rather than part of `path` so that a `501` can be attributed to it. That is
- * the one status worth remembering, and it is remembered here because this is the only place it is
- * visible — every caller above sees an empty list and cannot tell "no rows" from "not this chain".
- * @param {number} chainId The chain to ask about.
- * @param {string} path The path under the chain, starting with a slash.
- * @returns {Promise<unknown[]>} The `items` array, or an empty list.
- */
 const covalentGet = async (chainId: number, path: string): Promise<unknown[]> => {
     try {
-        // `httpRequest`, as with the explorer above: the bearer token goes out on a native request,
-        // which no page origin and no preflight is involved in — see [request.ts](../core/request.ts).
         const response = await httpRequest(`${covalentBase}/${chainId}${path}`, { headers: { Authorization: `Bearer ${covalentKey}` } });
 
         if (!response.ok) {
@@ -228,19 +132,12 @@ const covalentGet = async (chainId: number, path: string): Promise<unknown[]> =>
 
         const items: unknown = parsed.data?.items;
 
-        // `Array.isArray` on an `unknown` narrows to `any[]`, which is exactly what must not escape
-        // this function — every caller reads the rows field by field and checks each type as it goes.
         return Array.isArray(items) ? (items as unknown[]) : [];
     } catch {
         return [];
     }
 };
 
-/**
- * covalentSeconds - GoldRush stamps rows with an ISO string; the rest of the app counts seconds.
- * @param {unknown} value The `block_signed_at` field.
- * @returns {number} Unix seconds, or zero when it cannot be read.
- */
 const covalentSeconds = (value: unknown) => {
     if (typeof value !== 'string') {
         return 0;
@@ -251,17 +148,6 @@ const covalentSeconds = (value: unknown) => {
     return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : 0;
 };
 
-/**
- * readCovalentNative - The account's own coin transfers.
- *
- * `no-logs=true` matters more than it looks. With the logs left in, one page of this came back at
- * fourteen megabytes: GoldRush lists every transaction the address appears anywhere inside — spam
- * airdrops included — and attaches every decoded event to each one. Without them the same page is
- * sixty kilobytes, and the rows that are not this account's own coin transfers are dropped here.
- * @param {string} address Account address.
- * @param {Network} network Active network, which supplies the chain id, symbol and decimals.
- * @returns {Promise<Transaction[]>} The coin transfers.
- */
 const readCovalentNative = async (address: string, network: Network): Promise<Transaction[]> => {
     const items = await covalentGet(network.chainId, `/address/${encodeURIComponent(address)}/transactions_v3/?no-logs=true`);
 
@@ -277,8 +163,6 @@ const readCovalentNative = async (address: string, network: Network): Promise<Tr
 
         const to = typeof row.to_address === 'string' ? row.to_address : '';
 
-        // A row worth nothing moved no coin, and a row this account is neither side of is one it only
-        // appears in through a log — the token pass below is what reads those.
         if (row.value === '0' || (row.from_address.toLowerCase() !== owner && to.toLowerCase() !== owner)) {
             return [];
         }
@@ -298,13 +182,6 @@ const readCovalentNative = async (address: string, network: Network): Promise<Tr
     });
 };
 
-/**
- * readCovalentToken - One tracked contract's movements in and out of the account.
- * @param {string} address Account address.
- * @param {Network} network Active network, which supplies the chain id.
- * @param {Token} token The contract to ask about.
- * @returns {Promise<Transaction[]>} That token's transfers.
- */
 const readCovalentToken = async (address: string, network: Network, token: Token): Promise<Transaction[]> => {
     const items = await covalentGet(
         network.chainId,
@@ -355,29 +232,12 @@ const readCovalentToken = async (address: string, network: Network, token: Token
     });
 };
 
-/**
- * supportsChain - Whether GoldRush is worth asking about a chain.
- *
- * Optimistic until proven otherwise: a chain nobody has heard a `501` about is asked, which is what
- * keeps every network the user adds by hand working without anyone maintaining a list. Nura — the
- * default network, whose explorer is the one this falls back from — answers `501` on the first read
- * and is then left alone, which is the round trip per history read this exists to stop paying.
- * @param {number} chainId The chain about to be asked about.
- * @returns {boolean} False only while a recent `501` is on record.
- */
 const supportsChain = (chainId: number) => {
     const marked = Number(readRaw('local', unsupportedKey + String(chainId)) ?? '0');
 
     return !Number.isFinite(marked) || Date.now() - marked > unsupportedFor;
 };
 
-/**
- * readCovalent - Coin and token movements together.
- * @param {string} address Account address.
- * @param {Network} network Active network.
- * @param {Token[]} tokens Tracked tokens, of which the first few are asked about.
- * @returns {Promise<Transaction[]>} Everything found, in no particular order.
- */
 const readCovalent = async (address: string, network: Network, tokens: Token[]): Promise<Transaction[]> => {
     const reads = [readCovalentNative(address, network), ...tokens.slice(0, covalentTokens).map(async (token) => readCovalentToken(address, network, token))];
 
@@ -386,36 +246,13 @@ const readCovalent = async (address: string, network: Network, tokens: Token[]):
     return results.flat();
 };
 
-/**
- * What one full read produced: the rows, newest first, and why there were none if there were none.
- */
 interface HistoryRead {
     sorted: Transaction[];
     reason: string;
 }
 
-/**
- * One read per cache key, however many callers ask for it while it is running.
- *
- * The same shape the image cache uses, for the same reason: the work is keyed, so a second caller
- * arriving mid-flight has nothing to gain from a second request and everything to lose from another
- * round trip against a rate-limited explorer.
- */
 const inflight = new Map<string, Promise<HistoryRead>>();
 
-/**
- * load - Fetches one account's history, coalescing concurrent reads of the same key.
- *
- * The network logic is untouched and still lives in `readAction` and `readCovalent` — this only decides
- * who gets to run it. Every path resolves rather than rejects, so no caller has to tell "failed" from
- * "empty" here; `reason` carries that distinction.
- * @param {string} key The cache key this read belongs to.
- * @param {string} address Account address to query.
- * @param {Network} network Active network.
- * @param {Token[]} tokens Tracked tokens, for the GoldRush fallback.
- * @param {string} api The resolved explorer API base.
- * @returns {Promise<HistoryRead>} The ordered rows and the reason there were none.
- */
 const load = async (key: string, address: string, network: Network, tokens: Token[], api: string): Promise<HistoryRead> => {
     const held = inflight.get(key);
 
@@ -438,15 +275,11 @@ const load = async (key: string, address: string, network: Network, tokens: Toke
 
         const found = answers.flatMap((item) => item.items);
 
-        // Asked only where the explorer came up empty, so the chains it already serves cost no
-        // credits. An account that genuinely has no transactions pays one wasted request for that.
         const merged =
             found.length > 0 || !supportsChain(network.chainId) ? found : await readCovalent(address, network, tokens).catch((): Transaction[] => []);
 
         const sorted = merged.sort((left, right) => right.timestamp - left.timestamp);
 
-        // Only worth saying when there is nothing to show. One call failing while another returned
-        // rows is not something the user needs told about.
         return { sorted, reason: sorted.length > 0 ? '' : (answers.map((item) => item.notice).find((text) => text.length > 0) ?? '') };
     })();
 
@@ -459,23 +292,6 @@ const load = async (key: string, address: string, network: Network, tokens: Toke
     }
 };
 
-/**
- * Read the transaction history for an account on a network.
- *
- * Plain JSON-RPC cannot enumerate past transactions, so history comes from the network's Etherscan-compatible explorer API (Blockscout for the built-in chains, which needs no key). Native transfers and ERC20 transfers are fetched separately and merged newest-first.
- *
- * When the explorer has nothing to give — no API, or one that refuses the chain — GoldRush is asked
- * instead. BNB Smart Chain is why: its explorer data is sold only with a paid Etherscan plan, and that
- * is a limit of the source rather than of the account. The `notice` is what survives both failing, and
- * it is the difference between "this could not be read" and "nothing ever happened here".
- *
- * Tokens come in because GoldRush answers one contract per request, so it has to be told which ones
- * are worth asking about; the explorer path names them all by itself and ignores the argument.
- * @param {string} address Account address to query.
- * @param {Network} network Active network.
- * @param {Token[]} tokens Tracked tokens, used only by the GoldRush fallback.
- * @returns {{ items: Transaction[]; loading: boolean; notice: string }} History state.
- */
 export const useHistory = (address: string, network: Network, tokens: Token[]) => {
     const [items, setItems] = useState<Transaction[]>([]);
     const [notice, setNotice] = useState('');
@@ -484,8 +300,6 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
 
     const online = useOnline();
 
-    // What the nonce was last time the effect ran. A bump means the user asked for this read, which is
-    // the one case a fresh cache entry is not allowed to answer.
     const lastNonce = useRef(nonce);
 
     const refresh = useCallback(() => {
@@ -506,13 +320,6 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
     useEffect(() => {
         let active = true;
 
-        // Stale-while-revalidate. A held answer is rendered on the spot and the network runs behind it,
-        // so switching to an account visited earlier in the session shows its list immediately instead
-        // of blanking to the loading line and back. `loading` is only raised when there is nothing to
-        // show — raising it over a list already on screen is exactly the flicker this is here to avoid.
-        //
-        // A manual refresh (the `nonce` bump behind pull-to-refresh) always goes to the network, since
-        // the point of the gesture is to distrust what is held.
         const hit = readHistory(key);
         const forced = nonce !== lastNonce.current;
 
@@ -535,39 +342,24 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
         const run = async () => {
             setLoading(hit === undefined);
 
-            // Nothing to ask while the link is down. Whatever the cache holds is already on screen and
-            // stays there — a transaction that happened stays happened — and the tab says why it cannot
-            // be refreshed. Storing an empty result here would be the opposite: it would replace a
-            // readable history with the record of a moment there was no wifi.
             if (!isOnline()) {
                 setLoading(false);
 
                 return;
             }
 
-            // Coalesced on the cache key: switching away from an account and straight back while its
-            // read is still running joins the request already in flight instead of starting a second
-            // one. A manual refresh arriving mid-read joins it too, which is the right answer — the
-            // fetch it would have started is the fetch already happening.
             const { sorted, reason } = await load(key, address, network, tokens, api);
 
             if (!active) {
                 return;
             }
 
-            // Nothing back *and* a reason is the explorer refusing or the network being away — not the
-            // account being empty. Rows already held are kept rather than cleared, which is what stops
-            // a dropped connection turning a populated list into an empty one. Nothing is written
-            // either: a failure is not an answer, and storing it would age out the good rows behind it.
             if (sorted.length === 0 && reason.length > 0 && hit !== undefined && hit.entry.items.length > 0) {
                 setLoading(false);
 
                 return;
             }
 
-            // Merged rather than assigned: the explorer answers a fixed window, so a later read that
-            // comes back thinner must not throw away rows the account still has. What comes back is
-            // deduplicated and ordered newest-first by the cache, and that is what renders.
             const stored = writeHistory(key, sorted, reason);
 
             setNotice(reason);
@@ -581,7 +373,6 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
         return () => {
             active = false;
         };
-        // `online` joins the list so the read the link outage skipped happens the moment it returns.
     }, [address, network.id, api, tokenKey, nonce, key, online]);
 
     return { items, loading, notice, refresh };
