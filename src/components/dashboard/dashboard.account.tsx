@@ -17,13 +17,6 @@ import { vaultAddress, vaultDerivable, type Vault } from '../../core/vault';
 import { accountFirst, accountLimit, defaultAccountName, type Account } from '../../utility/account';
 import { Horizontal, Vertical } from '../ui/stack';
 
-/**
- * The badges an account can wear.
- *
- * A fixed palette rather than a free text field: a keyboard's emoji picker is not reachable on every
- * platform this ships to, and one tap beats typing. They are chosen to stay distinguishable at 20px
- * and to avoid anything that renders as a flat box on an older Android WebView.
- */
 const emojiList = [
     '🦊',
     '🐺',
@@ -51,23 +44,6 @@ const emojiList = [
     '🎲'
 ];
 
-/**
- * DashboardAccount - Account switcher: pick which derived account the dashboard is looking at, label them, and add more.
- *
- * Every account is a derivation index on the one mnemonic (`m/44'/60'/0'/0/{index}`), so adding one needs no extra key material — index 0 comes with the wallet and is always present, and any further index the user asks for is derived on the spot.
- *
- * A wallet imported from a private key is the exception: it holds one key, no index yields another, and so it gets the same list with the add form withheld and a line saying why. Renaming and badges still work — those are labels on an account, not new key material.
- *
- * The list shows only accounts that exist. Earlier it rendered every index up to the limit as an empty row waiting to be filled, which made the limit look like a quota and buried the real accounts among placeholders.
- * @param {object} props Component props.
- * @param {Vault} props.vault The unlocked key material, used to resolve each account's address.
- * @param {Account[]} props.accounts The accounts created so far.
- * @param {number} props.active The active derivation index.
- * @param {(index: number) => void} props.onSelect Activates an index, creating the account if it is new.
- * @param {(index: number, patch: Partial<Account>) => void} props.onUpdate Changes an account's label or badge.
- * @param {() => void} props.onClose Closes the modal.
- * @returns {JSX.Element} The account modal.
- */
 export default function DashboardAccount({
     vault,
     accounts,
@@ -102,15 +78,6 @@ export default function DashboardAccount({
         return map;
     }, [vault, accounts]);
 
-    /**
-     * parseIndex - Reads the typed index, or `undefined` when it is not a usable one.
-     *
-     * The range starts at one rather than zero: index 0 is created with the wallet and is always in
-     * the list, so it is the one index that can never be added. Offering it only ever produced the
-     * "already in your list" error.
-     * @param {string} value The raw input.
-     * @returns {number | undefined} The index, or `undefined` when out of range or not an integer.
-     */
     const parseIndex = (value: string) => {
         const trimmed = value.trim();
 
@@ -127,8 +94,6 @@ export default function DashboardAccount({
         return parsed;
     };
 
-    // Deriving the address as the index is typed lets the user confirm which account they are about
-    // to add before it exists, which matters when the index is the only thing identifying it.
     const preview = useMemo(() => {
         const index = parseIndex(draftIndex);
 
@@ -151,14 +116,6 @@ export default function DashboardAccount({
         setEditing(-1);
     };
 
-    /**
-     * onBadge - Applies a chosen badge and closes the picker.
-     *
-     * `undefined` clears it, which drops the field rather than storing a blank, so the account goes
-     * back to showing its derivation index.
-     * @param {number} index The account being changed.
-     * @param {string | undefined} emoji The badge, or `undefined` to clear it.
-     */
     const onBadge = (index: number, emoji: string | undefined) => {
         onUpdate(index, { emoji });
 
@@ -180,8 +137,6 @@ export default function DashboardAccount({
             return;
         }
 
-        // Selecting an index the wallet has never opened is what creates it, so adding and switching
-        // to the new account are the same call.
         onSelect(index);
 
         setAdding(false);
@@ -240,14 +195,6 @@ export default function DashboardAccount({
                                     <Vertical key={item.index} className='gap-2'>
                                         <Text text={T('Dashboard.Accounts.Emoji')} />
 
-                                        {/*
-                                         * Five columns rather than eight: at the panel's
-                                         * narrowest each cell lands at the 44px target the
-                                         * app's own `tap-44` utility is built around. Eight
-                                         * columns put the same glyphs at half that — a grid
-                                         * of mis-taps on exactly the screen where a thumb
-                                         * picks what an account wears.
-                                         */}
                                         <div className='grid grid-cols-5 gap-1'>
                                             {emojiList.map((emoji) => (
                                                 <Button
@@ -291,12 +238,6 @@ export default function DashboardAccount({
                                     key={item.index}
                                     className={`items-center gap-2 rounded-surface border border-transparent p-2 transition-colors duration-(--duration-fast) ${isActive ? selectedTint : 'hover:bg-btn-muted-hover'}`}
                                 >
-                                    {/*
-                                     * The disc is its own control so tapping it opens the
-                                     * badge picker, which means it cannot stay inside the
-                                     * select button — a button inside a button is invalid.
-                                     * The pair is wrapped so both gaps stay what they were.
-                                     */}
                                     <Horizontal className='min-w-0 flex-1 items-center gap-3'>
                                         <Button
                                             onClick={() => {
@@ -306,13 +247,6 @@ export default function DashboardAccount({
                                             aria-label={T('Dashboard.Accounts.Emoji')}
                                             className='shrink-0 cursor-pointer'
                                         >
-                                            {/* An emoji needs the extra step to read at disc size; a bare index does not. */}
-                                            {/*
-                                             * The badge tile does not change with the
-                                             * active account: the row's tint and its tick
-                                             * already say which one that is, and a branded
-                                             * fill under an emoji only fights it.
-                                             */}
                                             <IconBox tone='badge' className={cn('size-9', hasBadge ? 'text-medium' : 'text-small')}>
                                                 {hasBadge ? item.emoji : item.index}
                                             </IconBox>
@@ -327,15 +261,7 @@ export default function DashboardAccount({
                                             <Vertical className='min-w-0 flex-1'>
                                                 <Text variant='body' className='truncate' text={name} />
 
-                                                {/*
-                                                 * `dir` sits on the span, not the block: on
-                                                 * the block it would also flip `text-start`
-                                                 * to the left under Persian, leaving the
-                                                 * address hanging under a right-aligned name.
-                                                 */}
-                                                <Text className='truncate font-mono'>
-                                                    <span dir='ltr'>{shortAddress(addresses[item.index] ?? '')}</span>
-                                                </Text>
+                                                <Text dir='ltr' className='truncate font-mono' text={shortAddress(addresses[item.index] ?? '')} />
                                             </Vertical>
 
                                             {isActive && <FiCheck size={18} className='shrink-0 text-txt-normal' />}
@@ -358,11 +284,6 @@ export default function DashboardAccount({
                         })}
                     </ModalBody>
 
-                    {/*
-                     * A private key is one account and no index derives another, so the add
-                     * form is withheld rather than shown and then refused — and the line that
-                     * replaces it says why, since an absent button explains nothing on its own.
-                     */}
                     {derivable ? (
                         <ModalActions>
                             <Button
