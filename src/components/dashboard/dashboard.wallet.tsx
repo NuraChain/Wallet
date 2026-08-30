@@ -3,7 +3,6 @@ import type { Network } from '../../core/network';
 import type { TokenBalance } from '../../core/token';
 import type { Transaction } from '../../hook/history';
 
-import { Fragment } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { IoChevronDown } from 'react-icons/io5';
 import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
@@ -194,25 +193,22 @@ export default function DashboardWallet({
                 </Button>
             </Vertical>
 
-            <Horizontal className='overflow-hidden rounded-surface border border-line bg-base-2'>
-                {actionMap.map((item, index) => (
-                    <Fragment key={item.key}>
-                        {index > 0 && <span aria-hidden className='w-px shrink-0 bg-line' />}
+            <Horizontal className='gap-2'>
+                {actionMap.map((item) => (
+                    <Button
+                        key={item.key}
+                        onClick={item.onClick}
+                        className={cn(
+                            'flex h-20 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-surface transition-colors duration-(--duration-fast)',
+                            item.primary
+                                ? 'bg-btn-primary text-txt-on-primary hover:bg-btn-primary-hover active:bg-btn-primary-active'
+                                : 'border border-line bg-base-2 text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active'
+                        )}
+                    >
+                        <item.icon size={20} className='shrink-0' />
 
-                        <Button
-                            onClick={item.onClick}
-                            className={cn(
-                                'flex h-14 min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 transition-colors duration-(--duration-fast)',
-                                item.primary
-                                    ? 'bg-btn-primary text-txt-on-primary hover:bg-btn-primary-hover active:bg-btn-primary-active'
-                                    : 'text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active'
-                            )}
-                        >
-                            <item.icon size={18} className='shrink-0' />
-
-                            <Text variant='inherit' className='truncate text-small font-medium' text={T(item.key)} />
-                        </Button>
-                    </Fragment>
+                        <Text variant='inherit' className='truncate font-medium' text={T(item.key)} />
+                    </Button>
                 ))}
             </Horizontal>
 
