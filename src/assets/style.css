@@ -1,26 +1,15 @@
 @import 'tailwindcss';
 
-/*
- * Color tokens are declared `inline` so generated utilities reference the runtime variables below, letting `[data-theme]` swap the entire palette.
- */
 @theme inline {
     --color-base-1: var(--base-1);
     --color-base-2: var(--base-2);
     --color-base-3: var(--base-3);
 
-    /*
-     * Two line weights, because WCAG 1.4.11 only binds on one of them. `line` is decorative — a card
-     * hairline, a separator — and the surface fill underneath it is what actually identifies the card,
-     * so it is free to be quiet. The other one is `--input-normal`, which is the boundary of a control
-     * the user has to find and therefore clears 3:1 against its own fill; it keeps its input-shaped
-     * name because the fields are the only thing that wears it.
-     */
     --color-line: var(--line);
     --color-scrim: var(--scrim);
     --color-scrollbar: var(--scrollbar-thumb);
     --color-scrollbar-hover: var(--scrollbar-thumb-hover);
 
-    /* One ring for the whole app, replacing the five per-variant outline colours. */
     --color-focus-ring: var(--focus-ring);
 
     --color-badge: var(--badge);
@@ -42,10 +31,6 @@
     --color-btn-primary-active: var(--btn-primary-active);
     --color-btn-primary-border: var(--btn-primary-border);
 
-    /*
-     * Only the flat fill survives: it backs the lettered asset disc. The `secondary` button variant
-     * that owned the hover, active and outline steps had no call sites at all.
-     */
     --color-btn-secondary: var(--btn-secondary);
 
     --color-btn-danger: var(--btn-danger);
@@ -60,6 +45,8 @@
     --color-txt-muted: var(--txt-muted);
     --color-txt-normal: var(--txt-normal);
     --color-txt-reverse: var(--txt-reverse);
+    --color-txt-accent: var(--txt-accent);
+    --color-txt-on-primary: var(--txt-on-primary);
     --color-txt-error: var(--txt-error);
     --color-txt-success: var(--txt-success);
 
@@ -68,42 +55,17 @@
     --text-medium: 16px;
     --text-large: 18px;
 
-    /*
-     * The display step, for the one figure on the wallet tab that has to read as the headline. It is
-     * the only size in the app that pins its own line height and tracking, because at this scale the
-     * inherited leading leaves the number floating in its row and the default fit makes a long figure
-     * wider than it needs to be.
-     */
     --text-display: 32px;
     --text-display--line-height: 40px;
     --text-display--letter-spacing: -0.02em;
 
-    /*
-     * Radius. Three steps and the pill. This generation of the interface is cut a notch sharper than
-     * the last — `control` 6px for small squares, chips and favicons, `surface` 10px for cards, rows,
-     * fields and action buttons, `dialog` 14px for what floats — because tighter corners read as
-     * instrument rather than toy, and the difference is legible precisely because nothing else on the
-     * screen competes with it. `rounded-full` stays a bare utility, because a pill is not a step on
-     * this ramp — it is the absence of one.
-     */
     --radius-control: 0.375rem;
     --radius-surface: 0.625rem;
     --radius-dialog: 0.875rem;
 
-    /*
-     * Elevation. Two geometries, not three: the interface separates surfaces with fill steps and
-     * hairlines, so the only shadow left is the one under something that genuinely floats above the
-     * page — a dialog or a sheet. `--shadow-rest` and `--shadow-raise` are gone along with the cards
-     * that wore them; `--shadow-color` remains the theme-swapped ink they were both derived from.
-     */
     --shadow-float: 0 12px 32px var(--shadow-color);
 }
 
-/*
- * Timings. Tailwind has no `duration` theme namespace, so these are plain custom properties reached
- * through the `duration-(--name)` shorthand rather than generated utilities. They do not vary by
- * theme, so they sit on `:root` rather than in the palette blocks below.
- */
 :root {
     --duration-fast: 150ms;
     --duration-base: 200ms;
@@ -124,33 +86,11 @@
         U+1EEAB-1EEBB, U+1EEF0-1EEF1;
 }
 
-/*
- * The surfaces are opaque, and they separate by three cheap things — a lightness step, a hairline,
- * and (for what floats) one shadow — never by translucency or blur. That is why these are flat
- * `oklch()` values rather than alpha: an alpha surface has no colour of its own.
- *
- * This palette is a deliberate break from the previous blue-grey one. The neutrals carry a faint
- * warm cast (`hue 85`) in light and sit nearly neutral in dark, so the interface reads as paper and
- * ink rather than as glass and steel; cards lift, never recess, for the same reason as before — a
- * carved surface vanishes in light and cannot carry one meaning across the switch.
- *
- * The accent is a single azure (`hue 242`) doing all of the brand work: primary actions, focus,
- * selection, and the credit side of a transaction. One hue everywhere is what keeps a wallet calm —
- * colour is information here, and information that changes meaning per screen is noise. Error stays
- * its own red family; nothing else in the interface is allowed a hue of its own.
- *
- * Every text-on-surface pair below clears 4.5:1 and every control boundary clears 3:1, checked by
- * script rather than by eye.
- */
 [data-theme='light'] {
     color-scheme: light;
 
     --base-bg: oklch(97.5% 0.005 85);
 
-    /*
-     * The page, the card, and the quiet fill between them. `base-1` restates the page tone so a
-     * full-bleed surface can name what it is instead of relying on the body showing through.
-     */
     --base-1: oklch(97.5% 0.005 85);
     --base-2: oklch(100% 0 0);
     --base-3: oklch(98.5% 0.005 85);
@@ -158,15 +98,8 @@
     --scrollbar-thumb: oklch(45% 0.01 85 / 0.2);
     --scrollbar-thumb-hover: oklch(45% 0.01 85 / 0.4);
 
-    /* What every dialog and sheet dims the page with. One value so the two surfaces cannot drift. */
     --scrim: oklch(0% 0 0 / 0.45);
 
-    /*
-     * The account badge: a pale tile that does not follow the theme, because an emoji is a
-     * full-colour glyph and only reads against a light neutral. Same reasoning as the QR tile, which
-     * is likewise fixed. The foreground is pinned dark for the same reason, and the hairline stops
-     * the tile dissolving into a light panel.
-     */
     --badge: oklch(100% 0 0);
     --badge-border: oklch(0% 0 0 / 0.08);
     --badge-text: oklch(22% 0.01 85);
@@ -175,7 +108,7 @@
 
     --shadow-color: oklch(25% 0.02 85 / 0.14);
 
-    --focus-ring: oklch(45% 0.107 242.4);
+    --focus-ring: oklch(55% 0.13 242);
 
     --btn-muted: oklch(96% 0.005 85);
     --btn-muted-hover: oklch(93.5% 0.006 85);
@@ -187,19 +120,13 @@
     --btn-normal-active: oklch(94% 0.006 85);
     --btn-normal-border: oklch(90.5% 0.007 85);
 
-    /*
-     * Hover goes darker in the light theme and lighter in the dark one, and both directions keep the
-     * reversed label above 4.5:1 — which is what sets the resting value, not the other way round.
-     */
-    --btn-primary: oklch(44% 0.104 242.4);
-    --btn-primary-hover: oklch(40% 0.095 242.4);
-    --btn-primary-active: oklch(36.5% 0.088 242.4);
-    --btn-primary-border: oklch(40% 0.095 242.4);
+    --btn-primary: oklch(70.7% 0.168 242);
+    --btn-primary-hover: oklch(65% 0.154 242);
+    --btn-primary-active: oklch(60% 0.142 242);
+    --btn-primary-border: oklch(62% 0.147 242);
 
-    /* Backs the lettered asset disc, so it carries reversed text and clears 4.5:1 like a fill. */
     --btn-secondary: oklch(40% 0.015 85);
 
-    /* Same hue as `--txt-error`, built out into a fill the way primary is. */
     --btn-danger: oklch(50% 0.19 27);
     --btn-danger-hover: oklch(45% 0.19 27);
     --btn-danger-active: oklch(41% 0.18 27);
@@ -212,12 +139,13 @@
     --txt-muted: oklch(46% 0.014 85);
     --txt-normal: oklch(24% 0.012 85);
     --txt-reverse: oklch(98.5% 0 0);
+
+    --txt-accent: oklch(50% 0.118 242);
+    --txt-on-primary: oklch(20% 0.04 242);
+
     --txt-error: oklch(52% 0.2 27);
-    /*
-     * Success is the accent's own family at text weight: a received amount reads in the colour the
-     * product acts with, not in a second green negotiated separately.
-     */
-    --txt-success: oklch(44% 0.104 242.4);
+
+    --txt-success: var(--txt-accent);
 }
 
 [data-theme='dark'] {
@@ -234,7 +162,6 @@
 
     --scrim: oklch(0% 0 0 / 0.65);
 
-    /* Deliberately the same as the light theme — see the note there. */
     --badge: oklch(100% 0 0);
     --badge-border: oklch(0% 0 0 / 0.08);
     --badge-text: oklch(22% 0.01 85);
@@ -243,7 +170,7 @@
 
     --shadow-color: oklch(0% 0 0 / 0.45);
 
-    --focus-ring: oklch(78% 0.12 242.4);
+    --focus-ring: oklch(78% 0.122 242);
 
     --btn-muted: oklch(26% 0.006 250);
     --btn-muted-hover: oklch(30% 0.007 250);
@@ -255,15 +182,10 @@
     --btn-normal-active: oklch(28.5% 0.006 250);
     --btn-normal-border: oklch(35% 0.008 250);
 
-    /*
-     * Green is perceptually lighter than the blue it replaces, so the ceiling on these values is set
-     * entirely by the reversed label: wherever a step lands is whatever still leaves white text above
-     * 4.5:1, which is why hover climbs less than it used to.
-     */
-    --btn-primary: oklch(48% 0.114 242.4);
-    --btn-primary-hover: oklch(51% 0.12 242.4);
-    --btn-primary-active: oklch(44% 0.104 242.4);
-    --btn-primary-border: oklch(58% 0.135 242.4);
+    --btn-primary: oklch(70.7% 0.168 242);
+    --btn-primary-hover: oklch(75% 0.141 242);
+    --btn-primary-active: oklch(65% 0.154 242);
+    --btn-primary-border: oklch(78% 0.122 242);
 
     --btn-secondary: oklch(46% 0.01 250);
 
@@ -279,110 +201,44 @@
     --txt-muted: oklch(73% 0.01 250);
     --txt-normal: oklch(96% 0.005 250);
     --txt-reverse: oklch(98.5% 0 0);
+
+    --txt-accent: oklch(76% 0.135 242);
+    --txt-on-primary: oklch(20% 0.04 242);
+
     --txt-error: oklch(72% 0.18 27);
-    --txt-success: oklch(76% 0.132 242.4);
-}
-
-/*
- * Grows a control's hit area to the 44px platform minimum without changing a pixel of what is drawn.
- *
- * The icon buttons in this app are 32-40px squares, which is the right visual weight in a dense list
- * and the wrong target on a touch screen. Scaling them up instead would push the toolbars and the
- * row actions apart everywhere. The pseudo-element is centred on the control and takes no part in
- * layout, so the only thing that changes is what a thumb can land on.
- *
- * Adjacent controls sharing a row do not steal each other's glyphs: at the app's `gap-2`, two 32px
- * buttons are 40px apart, so the two expanded areas meet in the middle of the gap rather than over
- * either button's visible face.
- */
-@utility tap-44 {
-    position: relative;
-
-    &::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 44px;
-        height: 44px;
-        transform: translate(-50%, -50%);
-    }
-}
-
-/*
- * One global answer to `prefers-reduced-motion`, rather than a gate on each of the twenty-odd
- * animated surfaces.
- *
- * Duration is collapsed instead of `animation: none`, because several of these animations *end* in
- * the state the interface needs — a dialog's entrance settles at `opacity: 1`, the nav bar's hide
- * settles off-screen — and cancelling them outright would strand those surfaces in their opening
- * frame. `0.01ms` runs them to completion within a frame, which reads as an instant cut.
- *
- * The `!important` is load-bearing: this has to beat inline styles, which is how `motion` writes
- * every animation it drives.
- */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        scroll-behavior: auto !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
+    --txt-success: var(--txt-accent);
 }
 
 * {
     user-select: none;
     -webkit-user-drag: none;
     -webkit-user-select: none;
-
-    /*
-     * Android's WebView paints its own grey flash over whatever was tapped. Every control here
-     * already answers a press with a state of its own — a fill step, a scale — so the native
-     * overlay is noise on top of feedback the interface provides anyway, and on the dense rows
-     * of the holdings and history lists it read as a rendering fault.
-     */
     -webkit-tap-highlight-color: transparent;
 }
 
-/*
- * The reset above has to stop at anything editable. Blink — the WebView2 and Android WebView
- * engine — quietly exempts form controls from an inherited `user-select: none`, but WebKitGTK,
- * which is the Linux webview, honours it literally and makes the field uneditable: the .deb
- * build shipped inputs that could not be typed into at all, while Windows and Android were fine.
- * Selection is what typing is built on, so this has to be `text` rather than `auto`.
- */
+html,
+body {
+    background: var(--base-bg);
+}
+
+html:lang(fa) body,
+html:lang(ar) body {
+    font-family: 'Vazirmatn', sans-serif;
+}
+
+#root {
+    width: 100vw;
+    height: 100dvh;
+    overflow: hidden;
+    position: relative;
+    background: var(--base-bg);
+}
+
 input,
 textarea,
 [contenteditable] {
     user-select: text;
     -webkit-user-select: text;
-}
-
-/*
- * The body face is the one Tailwind's preflight already puts on `<html>` — `ui-sans-serif` and the
- * platform faces behind it — so every language reads in its own OS voice: Segoe UI on Windows,
- * SF on macOS, Roboto on Android. An earlier revision pinned English to the generic `monospace`,
- * which set the app's default language in Courier New on Windows while the other nine bundles sat
- * on the sans stack — ten launch languages, several ideas of what the product's typeface is. The
- * mono voice survives where it was always deliberate: addresses, hashes and amounts carry an
- * explicit `font-mono`, which is the machine register and nothing else.
- */
-
-/*
- * Arabic gets the same face as Persian. The `@font-face` above already declares a `unicode-range`
- * covering the Arabic block in full, so the file was being downloaded and then never asked for by
- * the one other right-to-left language the app ships — `ar` fell through to the generic sans, which
- * on Windows means Arabic rendered in a fallback with no Arabic design at all.
- *
- * The remaining seven languages are deliberately left on the stack default: Latin and Cyrillic are
- * well served by it, and Chinese and Hindi need faces this app does not bundle. Adding a CJK or
- * Devanagari webfont is a download decision, not a styling one.
- */
-html:lang(fa) body,
-html:lang(ar) body {
-    font-family: 'Vazirmatn', sans-serif;
 }
 
 input[type='password']::-ms-reveal,
@@ -393,6 +249,24 @@ input[type='password']::-ms-clear {
 input[type='password']::-webkit-credentials-auto-fill-button,
 input[type='password']::-webkit-textfield-decoration-container {
     display: none !important;
+}
+
+.swiper-pagination {
+    display: flex;
+    margin-bottom: 16px;
+    justify-content: center;
+}
+
+.swiper-pagination-bullet {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-xs);
+    transition: transform var(--duration-surface);
+    background: var(--color-btn-primary);
+}
+
+.swiper-pagination-bullet-active {
+    transform: scaleX(1.25) scaleY(1.25);
 }
 
 ::-webkit-scrollbar {
@@ -410,12 +284,6 @@ input[type='password']::-webkit-textfield-decoration-container {
     display: none;
 }
 
-/*
- * Chromium has historically ignored `cursor` on the scrollbar pseudo-elements and painted the plain
- * arrow regardless, so the pointer here may do nothing in the WebView the app runs in. It costs one
- * declaration, states the intent, and starts working the day the engine honours it. `ScrollArea`'s
- * overlay thumb is a real element and does get the pointer today.
- */
 ::-webkit-scrollbar-thumb {
     cursor: pointer;
     border-radius: 9999px;
@@ -429,14 +297,6 @@ input[type='password']::-webkit-textfield-decoration-container {
     background-color: var(--scrollbar-thumb-hover);
 }
 
-/*
- * Opt out of the native scrollbar entirely. Used by `ScrollArea`, which draws its own overlay thumb
- * so the bar never takes layout width, and by the browser tab strip, which is dragged rather than
- * scrolled by a gutter.
- *
- * Declared as a real utility rather than a plain class so the theme knows it exists — with
- * `no-unknown-classes` on, a bare class in this file is indistinguishable from a typo.
- */
 @utility scroll-hidden {
     scrollbar-width: none;
 
@@ -445,66 +305,33 @@ input[type='password']::-webkit-textfield-decoration-container {
     }
 }
 
-/*
- * Separates the rows of a grouped list with hairlines instead of letting each row carry its own
- * card. The selector form is what makes this a utility rather than a class: the container owns the
- * rhythm, so its children stay plain rows that know nothing about the surface around them.
- *
- * The divider is a block-edge border, which is direction-neutral — a horizontal rule has no handedness,
- * so there is nothing for a right-to-left language to mirror.
- */
 @utility list-divide {
     & > * + * {
         border-block-start: 1px solid var(--line);
     }
 }
 
-/*
- * Everything below styles something no component owns — the document, the mount node, and Swiper's
- * own pagination markup — so none of it can be expressed as a utility on a React element.
- */
-
-/*
- * The system bars are transparent on Android, so whatever sits behind `#root` is visible inside the
- * safe areas. Left unset that is the WebView's white default.
- */
-html,
-body {
-    background: var(--base-bg);
-}
-
-/*
- * `100dvh` rather than `100vh`: on Android the soft keyboard shrinks the visual viewport but not
- * `vh`, which left a centred dialog's input sitting behind the keyboard with `overflow: hidden`
- * preventing any scroll to it. `dvh` tracks the shrink, so the dialog re-centres above the keyboard.
- */
-#root {
-    width: 100vw;
-    height: 100dvh;
-    overflow: hidden;
+@utility tap-44 {
     position: relative;
-    background: var(--base-bg);
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 44px;
+        height: 44px;
+        transform: translate(-50%, -50%);
+    }
 }
 
-/*
- * Swiper renders its own pagination, so these elements never pass through a component and cannot
- * carry utilities. Deliberately unlayered: they have to outrank the library's own stylesheet, which
- * is unlayered too.
- */
-.swiper-pagination {
-    display: flex;
-    margin-bottom: 16px;
-    justify-content: center;
-}
-
-.swiper-pagination-bullet {
-    width: 10px;
-    height: 10px;
-    border-radius: var(--radius-xs);
-    transition: transform var(--duration-surface);
-    background: var(--color-btn-primary);
-}
-
-.swiper-pagination-bullet-active {
-    transform: scaleX(1.25) scaleY(1.25);
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }
