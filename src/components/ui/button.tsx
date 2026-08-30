@@ -14,7 +14,7 @@ const fillMuted = `${fillBase} bg-btn-muted text-txt-muted hover:bg-btn-muted-ho
 
 const fillNormal = `${fillBase} bg-btn-normal text-txt-normal hover:bg-btn-normal-hover active:bg-btn-normal-active`;
 
-const fillPrimary = `${fillBase} bg-btn-primary text-txt-on-primary hover:bg-btn-primary-hover active:bg-btn-primary-active`;
+const fillPrimary = `${fillBase} bg-linear-to-r from-btn-primary to-btn-primary-border text-txt-on-primary hover:from-btn-primary-hover hover:to-btn-primary-hover active:from-btn-primary-active active:to-btn-primary-active`;
 
 const fillDanger = `${fillBase} bg-btn-danger text-txt-reverse hover:bg-btn-danger-hover active:bg-btn-danger-active`;
 
