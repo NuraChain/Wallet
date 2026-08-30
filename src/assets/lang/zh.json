@@ -133,6 +133,11 @@
         "Copied": "地址已复制到剪贴板",
         "CopyFailed": "无法复制地址",
         "Lock": "锁定",
+        "Wallet": {
+            "Nft": "NFT",
+            "Activity": "交易",
+            "NftEmpty": "暂无可显示的 NFT"
+        },
         "Tokens": {
             "Title": "代币",
             "Manage": "管理代币",

@@ -3,10 +3,11 @@ import type { Network } from '../../core/network';
 import type { TokenBalance } from '../../core/token';
 import type { Transaction } from '../../hook/history';
 
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { IoChevronDown } from 'react-icons/io5';
 import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
-import { HiOutlineCheck, HiOutlineCog6Tooth, HiOutlineSquare2Stack, HiOutlineSquares2X2, HiOutlineUser } from 'react-icons/hi2';
+import { HiOutlineCheck, HiOutlineCog6Tooth, HiOutlineListBullet, HiOutlineSquare2Stack, HiOutlineSquares2X2, HiOutlineUser } from 'react-icons/hi2';
 
 import TokenIcon from '../token.icon';
 import TokenRow, { AssetAmount } from '../token.row';
@@ -17,7 +18,7 @@ import Text from '../ui/text';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 import ListCard from '../ui/list';
-import SectionHeader from '../ui/section';
+import StatusBlock from '../ui/state';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
@@ -31,6 +32,8 @@ const chipClass = 'h-9 min-w-0 flex-1 gap-1.5 rounded-surface ps-1 pe-2.5 text-t
 const chipLabelClass = 'min-w-0 flex-1 truncate text-start font-medium';
 
 const unknownAmount = '—';
+
+type TabKey = 'token' | 'nft' | 'activity';
 
 interface BalanceView {
     formatted: string;
@@ -84,6 +87,8 @@ export default function DashboardWallet({
 }) {
     const clipboard = useClipboard();
 
+    const [tab, setTab] = useState<TabKey>('token');
+
     const copied = clipboard.state === 'done';
 
     const totalKnown = native.at > 0 && totalAt > 0;
@@ -103,6 +108,20 @@ export default function DashboardWallet({
 
         return native.at > 0 ? trimAmount(native.formatted) : unknownAmount;
     };
+
+    const tabMap = [
+        { key: 'token', label: T('Dashboard.Tokens.Title') },
+        { key: 'nft', label: T('Dashboard.Wallet.Nft') },
+        { key: 'activity', label: T('Dashboard.Wallet.Activity') }
+    ] as const;
+
+    const trailingMap: Record<TabKey, { icon: IconType; label: string; onClick: () => void } | undefined> = {
+        token: { icon: HiOutlineSquares2X2, label: T('Dashboard.Tokens.Manage'), onClick: onTokens },
+        nft: undefined,
+        activity: { icon: HiOutlineListBullet, label: T('Dashboard.Activity.Overview'), onClick: onOverview }
+    };
+
+    const trailing = trailingMap[tab];
 
     const actionMap: { key: string; icon: IconType; primary: boolean; onClick: () => void }[] = [
         { key: 'Dashboard.Send.Title', icon: FiArrowUpRight, primary: true, onClick: onSend },
@@ -148,8 +167,8 @@ export default function DashboardWallet({
 
             <DashboardOffline error={native.error} at={native.at} />
 
-            <Vertical className='items-start gap-1.5 py-2 ps-1'>
-                <Text dir='ltr' variant='display' className='break-all' text={headline()} />
+            <Vertical className='items-center gap-1.5 py-2'>
+                <Text dir='ltr' variant='display' className='text-center break-all' text={headline()} />
 
                 <Button
                     onClick={() => {
@@ -193,71 +212,103 @@ export default function DashboardWallet({
                 </Button>
             </Vertical>
 
-            <Horizontal className='gap-2'>
+            <Horizontal className='justify-center gap-2'>
                 {actionMap.map((item) => (
                     <Button
                         key={item.key}
                         onClick={item.onClick}
                         className={cn(
-                            'flex h-20 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-2 rounded-surface transition-colors duration-(--duration-fast)',
+                            'flex h-16 w-20 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-surface transition-colors duration-(--duration-fast)',
                             item.primary
                                 ? 'bg-btn-primary text-txt-on-primary hover:bg-btn-primary-hover active:bg-btn-primary-active'
                                 : 'border border-line bg-base-2 text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active'
                         )}
                     >
-                        <item.icon size={20} className='shrink-0' />
+                        <item.icon size={18} className='shrink-0' />
 
                         <Text variant='inherit' className='truncate font-medium' text={T(item.key)} />
                     </Button>
                 ))}
             </Horizontal>
 
-            <Vertical className='gap-2'>
-                <SectionHeader title={T('Dashboard.Tokens.Title')}>
-                    <Button variant='muted' size='small' onClick={onTokens} leftIcon={<HiOutlineSquares2X2 size={14} />} text={T('Dashboard.Tokens.Manage')} />
-                </SectionHeader>
-
-                <ListCard>
-                    <TokenRow
-                        grouped
-                        primary
-                        kind='network'
-                        src={getNativeLogo(network.chainId)}
-                        symbol={network.symbol}
-                        subtitle={network.coin ?? network.name}
-                    >
-                        <AssetAmount
-                            amount={nativeAmount()}
-                            value={native.loading || native.at === 0 ? undefined : rowValue(getNativeCoinId(network.chainId), native.formatted)}
-                        />
-                    </TokenRow>
-
-                    {tokens.map((item) => (
-                        <TokenRow
-                            grouped
-                            key={item.token.address}
-                            kind='token'
-                            src={getTokenLogo(network.chainId, item.token.address)}
-                            symbol={item.token.symbol}
-                            subtitle={item.token.name}
+            <Vertical className='gap-3'>
+                <Horizontal role='tablist' className='items-center border-b border-line'>
+                    {tabMap.map((item) => (
+                        <Button
+                            key={item.key}
+                            role='tab'
+                            id={`wallet-tab-${item.key}`}
+                            aria-selected={item.key === tab}
+                            aria-controls={`wallet-panel-${item.key}`}
+                            onClick={() => {
+                                setTab(item.key);
+                            }}
+                            className={cn(
+                                'relative h-10 cursor-pointer px-3 text-small font-medium transition-colors duration-(--duration-fast)',
+                                item.key === tab ? 'text-txt-accent' : 'text-txt-muted hover:text-txt-normal'
+                            )}
                         >
-                            <AssetAmount
-                                amount={trimAmount(item.formatted)}
-                                value={rowValue(getTokenCoinId(network.chainId, item.token.address, item.token.coinId), item.formatted)}
-                            />
-                        </TokenRow>
-                    ))}
-                </ListCard>
-            </Vertical>
+                            {item.label}
 
-            <DashboardActivity
-                items={history.items}
-                loading={history.loading}
-                notice={history.notice}
-                canOpen={network.explorerUrl.length > 0}
-                onOpen={onTransaction}
-                onOverview={onOverview}
-            />
+                            {item.key === tab && <span aria-hidden className='absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-txt-accent' />}
+                        </Button>
+                    ))}
+
+                    {trailing !== undefined && (
+                        <Button variant='muted' size='icon' aria-label={trailing.label} onClick={trailing.onClick} className='ms-auto shrink-0'>
+                            <trailing.icon size={16} />
+                        </Button>
+                    )}
+                </Horizontal>
+
+                <div role='tabpanel' id={`wallet-panel-${tab}`} aria-labelledby={`wallet-tab-${tab}`}>
+                    {tab === 'token' && (
+                        <ListCard>
+                            <TokenRow
+                                grouped
+                                primary
+                                kind='network'
+                                src={getNativeLogo(network.chainId)}
+                                symbol={network.symbol}
+                                subtitle={network.coin ?? network.name}
+                            >
+                                <AssetAmount
+                                    amount={nativeAmount()}
+                                    value={native.loading || native.at === 0 ? undefined : rowValue(getNativeCoinId(network.chainId), native.formatted)}
+                                />
+                            </TokenRow>
+
+                            {tokens.map((item) => (
+                                <TokenRow
+                                    grouped
+                                    key={item.token.address}
+                                    kind='token'
+                                    src={getTokenLogo(network.chainId, item.token.address)}
+                                    symbol={item.token.symbol}
+                                    subtitle={item.token.name}
+                                >
+                                    <AssetAmount
+                                        amount={trimAmount(item.formatted)}
+                                        value={rowValue(getTokenCoinId(network.chainId, item.token.address, item.token.coinId), item.formatted)}
+                                    />
+                                </TokenRow>
+                            ))}
+                        </ListCard>
+                    )}
+
+                    {tab === 'nft' && <StatusBlock panel text={T('Dashboard.Wallet.NftEmpty')} />}
+
+                    {tab === 'activity' && (
+                        <DashboardActivity
+                            items={history.items}
+                            loading={history.loading}
+                            notice={history.notice}
+                            canOpen={network.explorerUrl.length > 0}
+                            onOpen={onTransaction}
+                        />
+                    )}
+                </div>
+            </Vertical>
         </Vertical>
     );
 }

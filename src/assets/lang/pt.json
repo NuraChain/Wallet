@@ -133,6 +133,11 @@
         "Copied": "Endereço copiado",
         "CopyFailed": "Não foi possível copiar o endereço",
         "Lock": "Bloquear",
+        "Wallet": {
+            "Nft": "NFTs",
+            "Activity": "Transações",
+            "NftEmpty": "Ainda não há NFTs para mostrar"
+        },
         "Tokens": {
             "Title": "Tokens",
             "Manage": "Gerenciar tokens",

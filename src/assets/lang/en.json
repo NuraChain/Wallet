@@ -133,6 +133,11 @@
         "Copied": "Address copied to clipboard",
         "CopyFailed": "Unable to copy address",
         "Lock": "Lock",
+        "Wallet": {
+            "Nft": "NFTs",
+            "Activity": "Transactions",
+            "NftEmpty": "No NFTs to show yet"
+        },
         "Tokens": {
             "Title": "Tokens",
             "Manage": "Manage Tokens",

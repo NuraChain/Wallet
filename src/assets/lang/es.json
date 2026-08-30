@@ -133,6 +133,11 @@
         "Copied": "Dirección copiada al portapapeles",
         "CopyFailed": "No se pudo copiar la dirección",
         "Lock": "Bloquear",
+        "Wallet": {
+            "Nft": "NFT",
+            "Activity": "Transacciones",
+            "NftEmpty": "Aún no hay NFT para mostrar"
+        },
         "Tokens": {
             "Title": "Tokens",
             "Manage": "Gestionar tokens",

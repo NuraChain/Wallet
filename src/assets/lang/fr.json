@@ -133,6 +133,11 @@
         "Copied": "Adresse copiée dans le presse-papiers",
         "CopyFailed": "Impossible de copier l'adresse",
         "Lock": "Verrouiller",
+        "Wallet": {
+            "Nft": "NFT",
+            "Activity": "Transactions",
+            "NftEmpty": "Aucun NFT à afficher pour l'instant"
+        },
         "Tokens": {
             "Title": "Jetons",
             "Manage": "Gérer les jetons",

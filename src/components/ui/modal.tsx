@@ -70,7 +70,7 @@ export function Modal({
                         <DialogTitleContext value={titleId}>{children}</DialogTitleContext>
                     </motion.div>
 
-                    {scroll && <ScrollBar viewportRef={panelRef} className='inset-e-2 top-2' />}
+                    {scroll && <ScrollBar viewportRef={panelRef} className='-inset-e-0.5 top-2' />}
                 </div>
             </div>
         </>
@@ -138,7 +138,7 @@ export function ModalBody({ className = '', children }: { className?: string; ch
                 {children}
             </Vertical>
 
-            <ScrollBar viewportRef={viewportRef} className='inset-e-2' />
+            <ScrollBar viewportRef={viewportRef} className='-inset-e-0.5' />
         </Vertical>
     );
 }

@@ -1,13 +1,9 @@
 import type { Transaction } from '../../hook/history';
 
-import { HiOutlineListBullet } from 'react-icons/hi2';
-
 import TransactionRow from './dashboard.transaction';
 
-import Button from '../ui/button';
 import StatusBlock from '../ui/state';
 import ListCard from '../ui/list';
-import SectionHeader from '../ui/section';
 
 import { T } from '../../utility/language';
 import { useOnline } from '../../hook/connection';
@@ -20,15 +16,13 @@ export default function DashboardActivity({
     loading,
     notice,
     canOpen,
-    onOpen,
-    onOverview
+    onOpen
 }: {
     items: Transaction[];
     loading: boolean;
     notice: string;
     canOpen: boolean;
     onOpen: (hash: string) => void;
-    onOverview: () => void;
 }) {
     const online = useOnline();
 
@@ -42,16 +36,6 @@ export default function DashboardActivity({
 
     return (
         <Vertical className='gap-2'>
-            <SectionHeader title={T('Dashboard.Activity.Title')}>
-                <Button
-                    variant='muted'
-                    size='small'
-                    onClick={onOverview}
-                    leftIcon={<HiOutlineListBullet size={14} />}
-                    text={T('Dashboard.Activity.Overview')}
-                />
-            </SectionHeader>
-
             {items.length > 0 && (
                 <ListCard>
                     {items.slice(0, preview).map((item) => (

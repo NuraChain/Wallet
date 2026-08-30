@@ -133,6 +133,11 @@
         "Copied": "Adres panoya kopyalandı",
         "CopyFailed": "Adres kopyalanamadı",
         "Lock": "Kilitle",
+        "Wallet": {
+            "Nft": "NFT'ler",
+            "Activity": "İşlemler",
+            "NftEmpty": "Gösterilecek NFT yok"
+        },
         "Tokens": {
             "Title": "Tokenler",
             "Manage": "Tokenleri yönet",

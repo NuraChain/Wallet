@@ -133,6 +133,11 @@
         "Copied": "تم نسخ العنوان",
         "CopyFailed": "تعذّر نسخ العنوان",
         "Lock": "قفل",
+        "Wallet": {
+            "Nft": "NFT",
+            "Activity": "المعاملات",
+            "NftEmpty": "لا توجد NFT لعرضها بعد"
+        },
         "Tokens": {
             "Title": "الرموز",
             "Manage": "إدارة الرموز",
