@@ -1,6 +1,7 @@
 {
     "App": {
         "Name": "Nura Wallet",
+        "Tagline": "Güvenli, merkeziyetsiz, güven gerektirmez",
         "Tray": {
             "Open": "Nura Wallet'ı aç",
             "Quit": "Nura Wallet'tan çık"

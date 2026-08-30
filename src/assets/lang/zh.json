@@ -1,6 +1,7 @@
 {
     "App": {
         "Name": "Nura 钱包",
+        "Tagline": "安全、去中心化、免信任",
         "Tray": {
             "Open": "打开 Nura 钱包",
             "Quit": "退出 Nura 钱包"

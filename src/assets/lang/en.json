@@ -1,6 +1,7 @@
 {
     "App": {
         "Name": "Nura Wallet",
+        "Tagline": "Secure, Decentralized, Trustless",
         "Tray": {
             "Open": "Open Nura Wallet",
             "Quit": "Quit Nura Wallet"

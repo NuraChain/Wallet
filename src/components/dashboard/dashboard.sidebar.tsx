@@ -26,11 +26,11 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
 
     return (
         <Vertical className={cn('hidden w-60 shrink-0 gap-1 border-e border-line bg-base-2 p-3 pb-6 lg:flex', inset.tabTop[isWindows ? 'windows' : 'device'])}>
-            <Horizontal className='items-center gap-2 px-3 py-4'>
-                <img src={Logo} alt='' className='size-6' />
+            <Vertical className='items-center gap-2 px-3 py-5'>
+                <img src={Logo} alt={T('App.Name')} className='size-14' />
 
-                <Text variant='title' text={T('App.Name')} />
-            </Horizontal>
+                <Text className='text-center' text={T('App.Tagline')} />
+            </Vertical>
 
             {items.map((item) => (
                 <MenuRow
