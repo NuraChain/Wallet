@@ -630,7 +630,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 </div>
             </div>
 
-            <DashboardNav items={navMap} active={active} hidden={barHidden} onSelect={goTab} />
+            <DashboardNav items={navMap.slice(0, 2)} active={active} hidden={barHidden} onSelect={goTab} />
         </motion.div>
     );
 }
