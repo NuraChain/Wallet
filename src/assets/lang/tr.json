@@ -133,6 +133,8 @@
         "CopyFailed": "Adres kopyalanamadı",
         "Lock": "Kilitle",
         "Wallet": {
+            "TotalBalance": "Toplam bakiye",
+            "TotalAssets": "Toplam varlıklar",
             "Nft": "NFT'ler",
             "Activity": "İşlemler",
             "NftEmpty": "Gösterilecek NFT yok"

@@ -23,7 +23,7 @@ const topMap = {
 } as const;
 
 const bodyMap = {
-    tab: `mx-auto flex min-h-full w-full max-w-lg flex-col px-4 sm:px-6 ${inset.tabBottom}`,
+    tab: `mx-auto flex min-h-full w-full max-w-lg flex-col px-4 sm:px-6 lg:max-w-4xl lg:pb-6 ${inset.tabBottom}`,
     browser: 'flex size-full flex-col',
     intro: 'bg-base-1 flex size-full flex-col px-4 pb-4 sm:px-6 sm:pb-6'
 } as const;

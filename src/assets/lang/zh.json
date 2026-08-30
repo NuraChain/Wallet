@@ -133,6 +133,8 @@
         "CopyFailed": "无法复制地址",
         "Lock": "锁定",
         "Wallet": {
+            "TotalBalance": "总余额",
+            "TotalAssets": "总资产",
             "Nft": "NFT",
             "Activity": "交易",
             "NftEmpty": "暂无可显示的 NFT"

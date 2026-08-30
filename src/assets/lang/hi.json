@@ -133,6 +133,8 @@
         "CopyFailed": "पता कॉपी नहीं हो सका",
         "Lock": "लॉक करें",
         "Wallet": {
+            "TotalBalance": "कुल शेष",
+            "TotalAssets": "कुल संपत्तियां",
             "Nft": "NFT",
             "Activity": "लेनदेन",
             "NftEmpty": "दिखाने के लिए अभी कोई NFT नहीं"

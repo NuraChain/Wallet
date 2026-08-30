@@ -133,6 +133,8 @@
         "CopyFailed": "Impossible de copier l'adresse",
         "Lock": "Verrouiller",
         "Wallet": {
+            "TotalBalance": "Solde total",
+            "TotalAssets": "Actifs totaux",
             "Nft": "NFT",
             "Activity": "Transactions",
             "NftEmpty": "Aucun NFT à afficher pour l'instant"

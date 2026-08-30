@@ -25,6 +25,7 @@ export default function TokenRow({
     kind = 'unknown',
     primary = false,
     subtitle,
+    price,
     panel = false,
     grouped = false,
     hover = false,
@@ -35,6 +36,7 @@ export default function TokenRow({
     kind?: ImageKind;
     primary?: boolean;
     subtitle: string;
+    price?: string;
     panel?: boolean;
     grouped?: boolean;
     hover?: boolean;
@@ -57,6 +59,8 @@ export default function TokenRow({
 
                 <Text className='truncate' text={subtitle} />
             </Vertical>
+
+            {price !== undefined && <Text dir='ltr' className='hidden w-24 shrink-0 text-end font-mono lg:block' text={price} />}
 
             {children}
         </div>

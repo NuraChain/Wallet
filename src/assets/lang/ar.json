@@ -133,6 +133,8 @@
         "CopyFailed": "تعذّر نسخ العنوان",
         "Lock": "قفل",
         "Wallet": {
+            "TotalBalance": "إجمالي الرصيد",
+            "TotalAssets": "إجمالي الأصول",
             "Nft": "NFT",
             "Activity": "المعاملات",
             "NftEmpty": "لا توجد NFT لعرضها بعد"

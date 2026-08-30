@@ -146,8 +146,8 @@ export default function DashboardHistory({
                 </Horizontal>
             </Vertical>
 
-            <Vertical className='relative min-h-0 flex-1'>
-                <Vertical ref={listRef} className='flex-1 overflow-auto pb-4'>
+            <Vertical className='relative min-h-0 flex-1 pb-4'>
+                <Vertical ref={listRef} className='flex-1 overflow-auto'>
                     <Vertical className='gap-2'>
                         {visible.length > 0 && (
                             <ListCard className='h-full rounded-none'>

@@ -3,11 +3,13 @@ import type { IconType } from 'react-icons';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'motion/react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { HiOutlineGlobeAlt, HiOutlineWallet } from 'react-icons/hi2';
+import { FiArrowDownLeft, FiArrowUpRight, FiGift, FiLogOut } from 'react-icons/fi';
+import { HiOutlineCog6Tooth, HiOutlineGlobeAlt, HiOutlineListBullet, HiOutlineWallet } from 'react-icons/hi2';
 
 import ScrollArea from '../layout/scroll';
 import PageContainer, { ScrollFrame } from '../layout/container';
 import DashboardNav from '../components/dashboard/dashboard.nav';
+import DashboardSidebar, { type SidebarItem } from '../components/dashboard/dashboard.sidebar';
 import DashboardWallet from '../components/dashboard/dashboard.wallet';
 
 import { getNetwork } from '../core/network';
@@ -327,6 +329,67 @@ function DashboardView({ vault }: { vault: Vault }) {
         void saveAccounts(next);
     };
 
+    const sidebarMap: SidebarItem[] = [
+        {
+            key: 'Wallet',
+            label: T('Dashboard.Nav.Wallet'),
+            icon: HiOutlineWallet,
+            active: navMap[active].key === 'Wallet',
+            onClick: () => {
+                goTab(0);
+            }
+        },
+        {
+            key: 'Browser',
+            label: T('Dashboard.Nav.Browser'),
+            icon: HiOutlineGlobeAlt,
+            active: navMap[active].key === 'Browser',
+            onClick: () => {
+                goTab(1);
+            }
+        },
+        {
+            key: 'Send',
+            label: T('Dashboard.Send.Title'),
+            icon: FiArrowUpRight,
+            onClick: () => {
+                setModal('send');
+            }
+        },
+        {
+            key: 'Receive',
+            label: T('Dashboard.Receive.Title'),
+            icon: FiArrowDownLeft,
+            onClick: () => {
+                setModal('receive');
+            }
+        },
+        {
+            key: 'Redeem',
+            label: T('Dashboard.Redeem.Title'),
+            icon: FiGift,
+            onClick: () => {
+                setModal('redeem');
+            }
+        },
+        {
+            key: 'History',
+            label: T('Dashboard.Activity.Overview'),
+            icon: HiOutlineListBullet,
+            onClick: () => {
+                setModal('history');
+            }
+        },
+        {
+            key: 'Settings',
+            label: T('Dashboard.Settings.Title'),
+            icon: HiOutlineCog6Tooth,
+            onClick: () => {
+                setModal('settings');
+            }
+        }
+    ];
+
     const onRemoveAccount = (index: number) => {
         const next = accounts.filter((item) => item.index !== index);
 
@@ -481,92 +544,106 @@ function DashboardView({ vault }: { vault: Vault }) {
                 </AnimatePresence>
             </Suspense>
 
-            <div dir={getDirection()} className='size-full overflow-hidden'>
-                <div
-                    className='flex size-full transition-transform duration-(--duration-surface) ease-out'
-                    style={{ transform: `translateX(${getDirection() === 'rtl' ? active * 100 : active * -100}%)` }}
-                >
-                    {navMap.map((item, index) => (
-                        <div key={item.key} className='size-full shrink-0'>
-                            {item.key === 'Browser' ? (
-                                <PageContainer
-                                    variant='browser'
-                                    role='tabpanel'
-                                    id={`dashboard-panel-${item.key}`}
-                                    aria-hidden={index === active ? undefined : true}
-                                    inert={index === active ? undefined : true}
-                                    aria-labelledby={`dashboard-tab-${item.key}`}
-                                >
-                                    <Suspense fallback={null}>
-                                        <DashboardBrowser
-                                            address={address}
-                                            network={network}
-                                            request={link.url}
-                                            ticket={link.ticket}
-                                            enabled={index === active && modal === 'none' && prompt === undefined}
-                                            onExit={() => {
-                                                goTab(0);
-                                            }}
-                                        />
-                                    </Suspense>
-                                </PageContainer>
-                            ) : (
-                                <ScrollFrame>
-                                    <ScrollArea className='size-full' onRefresh={onRefresh} onScrollChange={onPanelScroll(index)}>
-                                        <PageContainer
-                                            variant='tab'
-                                            role='tabpanel'
-                                            id={`dashboard-panel-${item.key}`}
-                                            aria-hidden={index === active ? undefined : true}
-                                            inert={index === active ? undefined : true}
-                                            aria-labelledby={`dashboard-tab-${item.key}`}
-                                        >
-                                            {item.key === 'Wallet' && (
-                                                <DashboardWallet
-                                                    address={address}
-                                                    name={name}
-                                                    emoji={emoji}
-                                                    network={network}
-                                                    native={reads}
-                                                    tokens={tokens.tokens}
-                                                    total={prices.total}
-                                                    totalLoading={prices.loading}
-                                                    totalAt={prices.at}
-                                                    prices={prices.prices}
-                                                    history={history}
-                                                    onSend={() => {
-                                                        setModal('send');
-                                                    }}
-                                                    onReceive={() => {
-                                                        setModal('receive');
-                                                    }}
-                                                    onRedeem={() => {
-                                                        setModal('redeem');
-                                                    }}
-                                                    onNetwork={() => {
-                                                        setModal('network');
-                                                    }}
-                                                    onAccounts={() => {
-                                                        setModal('accounts');
-                                                    }}
-                                                    onTokens={() => {
-                                                        setModal('tokens');
-                                                    }}
-                                                    onSettings={() => {
-                                                        setModal('settings');
-                                                    }}
-                                                    onTransaction={onTransaction}
-                                                    onOverview={() => {
-                                                        setModal('history');
-                                                    }}
-                                                />
-                                            )}
-                                        </PageContainer>
-                                    </ScrollArea>
-                                </ScrollFrame>
-                            )}
-                        </div>
-                    ))}
+            <div dir={getDirection()} className='flex size-full overflow-hidden'>
+                <DashboardSidebar
+                    items={sidebarMap}
+                    footer={{
+                        key: 'Logout',
+                        label: T('Dashboard.Logout.Title'),
+                        icon: FiLogOut,
+                        onClick: () => {
+                            setModal('logout');
+                        }
+                    }}
+                />
+
+                <div className='min-w-0 flex-1 overflow-hidden'>
+                    <div
+                        className='flex size-full transition-transform duration-(--duration-surface) ease-out'
+                        style={{ transform: `translateX(${getDirection() === 'rtl' ? active * 100 : active * -100}%)` }}
+                    >
+                        {navMap.map((item, index) => (
+                            <div key={item.key} className='size-full shrink-0'>
+                                {item.key === 'Browser' ? (
+                                    <PageContainer
+                                        variant='browser'
+                                        role='tabpanel'
+                                        id={`dashboard-panel-${item.key}`}
+                                        aria-hidden={index === active ? undefined : true}
+                                        inert={index === active ? undefined : true}
+                                        aria-labelledby={`dashboard-tab-${item.key}`}
+                                    >
+                                        <Suspense fallback={null}>
+                                            <DashboardBrowser
+                                                address={address}
+                                                network={network}
+                                                request={link.url}
+                                                ticket={link.ticket}
+                                                enabled={index === active && modal === 'none' && prompt === undefined}
+                                                onExit={() => {
+                                                    goTab(0);
+                                                }}
+                                            />
+                                        </Suspense>
+                                    </PageContainer>
+                                ) : (
+                                    <ScrollFrame>
+                                        <ScrollArea className='size-full' onRefresh={onRefresh} onScrollChange={onPanelScroll(index)}>
+                                            <PageContainer
+                                                variant='tab'
+                                                role='tabpanel'
+                                                id={`dashboard-panel-${item.key}`}
+                                                aria-hidden={index === active ? undefined : true}
+                                                inert={index === active ? undefined : true}
+                                                aria-labelledby={`dashboard-tab-${item.key}`}
+                                            >
+                                                {item.key === 'Wallet' && (
+                                                    <DashboardWallet
+                                                        address={address}
+                                                        name={name}
+                                                        emoji={emoji}
+                                                        network={network}
+                                                        native={reads}
+                                                        tokens={tokens.tokens}
+                                                        total={prices.total}
+                                                        totalLoading={prices.loading}
+                                                        totalAt={prices.at}
+                                                        prices={prices.prices}
+                                                        history={history}
+                                                        onSend={() => {
+                                                            setModal('send');
+                                                        }}
+                                                        onReceive={() => {
+                                                            setModal('receive');
+                                                        }}
+                                                        onRedeem={() => {
+                                                            setModal('redeem');
+                                                        }}
+                                                        onNetwork={() => {
+                                                            setModal('network');
+                                                        }}
+                                                        onAccounts={() => {
+                                                            setModal('accounts');
+                                                        }}
+                                                        onTokens={() => {
+                                                            setModal('tokens');
+                                                        }}
+                                                        onSettings={() => {
+                                                            setModal('settings');
+                                                        }}
+                                                        onTransaction={onTransaction}
+                                                        onOverview={() => {
+                                                            setModal('history');
+                                                        }}
+                                                    />
+                                                )}
+                                            </PageContainer>
+                                        </ScrollArea>
+                                    </ScrollFrame>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
