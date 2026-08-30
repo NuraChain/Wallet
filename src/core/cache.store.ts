@@ -1,30 +1,9 @@
-/**
- * Which Web Storage a cache lives in.
- *
- * `local` survives the app being closed and reopened; `session` lasts as long as the window does and
- * is gone on the next launch. The choice is a statement about the data, not about convenience: a
- * transaction that happened stays happened, so history belongs in `local`, while a balance read
- * minutes ago is only true of that moment and must not come back looking current after a restart.
- */
 type CacheArea = 'local' | 'session';
 
-/**
- * Fallback for a webview that refuses Web Storage.
- *
- * Private modes and locked-down webviews can have `localStorage` present but throwing on every call,
- * and a cache is never worth failing a render over — so everything degrades to this map, which behaves
- * identically and simply does not outlive the process.
- */
 const shim = new Map<string, string>();
 
-/** Areas already proven unusable, so a throwing backend is only discovered once. */
 const broken = new Set<CacheArea>();
 
-/**
- * backend - The storage object for an area, or `undefined` when it cannot be used.
- * @param {CacheArea} area Which storage to reach for.
- * @returns {Storage | undefined} The storage, or `undefined` to use the shim.
- */
 const backend = (area: CacheArea): Storage | undefined => {
     if (broken.has(area)) {
         return undefined;
@@ -33,7 +12,6 @@ const backend = (area: CacheArea): Storage | undefined => {
     try {
         const store = area === 'local' ? localStorage : sessionStorage;
 
-        // Presence is not availability: a blocked backend throws here rather than on construction.
         const probe = '__cache_probe__';
 
         store.setItem(probe, '1');
@@ -47,20 +25,12 @@ const backend = (area: CacheArea): Storage | undefined => {
     }
 };
 
-/** Pending writes, per area, flushed together rather than one serialization per set. */
 const dirty = new Map<CacheArea, Map<string, string>>();
 
 let timer: ReturnType<typeof setTimeout> | undefined;
 
-/** How long writes are collected before one batched flush. */
 const flushDelay = 250;
 
-/**
- * log - Development-only cache tracing, dropped from a production build.
- * @param {string} event What happened.
- * @param {string} key The entry it happened to.
- * @param {string} [detail] Anything worth adding.
- */
 export const cacheLog = (event: string, key: string, detail = '') => {
     if (import.meta.env.DEV) {
         // oxlint-disable-next-line no-console
@@ -68,12 +38,6 @@ export const cacheLog = (event: string, key: string, detail = '') => {
     }
 };
 
-/**
- * flush - Writes every pending entry, in one pass per area.
- *
- * A quota failure drops that one write and leaves the rest alone: losing a cache entry costs a refetch,
- * which is not worth surfacing or retrying.
- */
 const flush = () => {
     timer = undefined;
 
@@ -98,14 +62,7 @@ const flush = () => {
     dirty.clear();
 };
 
-/**
- * readRaw - Reads one entry, synchronously.
- * @param {CacheArea} area Which storage to read.
- * @param {string} key The full key, prefix included.
- * @returns {string | undefined} What is stored, or `undefined`.
- */
 export const readRaw = (area: CacheArea, key: string) => {
-    // A write still sitting in the batch is the newest truth, so it answers before storage does.
     const pending = dirty.get(area)?.get(key);
 
     if (pending !== undefined) {
@@ -125,12 +82,6 @@ export const readRaw = (area: CacheArea, key: string) => {
     }
 };
 
-/**
- * writeRaw - Queues one entry for the next batched flush.
- * @param {CacheArea} area Which storage to write.
- * @param {string} key The full key, prefix included.
- * @param {string} value The serialized payload.
- */
 export const writeRaw = (area: CacheArea, key: string, value: string) => {
     const pending = dirty.get(area) ?? new Map<string, string>();
 
@@ -141,11 +92,6 @@ export const writeRaw = (area: CacheArea, key: string, value: string) => {
     timer ??= setTimeout(flush, flushDelay);
 };
 
-/**
- * removeRaw - Drops one entry now, and cancels any pending write for it.
- * @param {CacheArea} area Which storage to clear from.
- * @param {string} key The full key, prefix included.
- */
 export const removeRaw = (area: CacheArea, key: string) => {
     dirty.get(area)?.delete(key);
 
@@ -159,24 +105,10 @@ export const removeRaw = (area: CacheArea, key: string) => {
 
     try {
         store.removeItem(key);
-    } catch {
-        // Nothing useful to do; the entry ages out on its own TTL.
-    }
+    } catch {}
 };
 
-/**
- * keysUnder - Every stored key carrying a prefix.
- * @param {CacheArea} area Which storage to enumerate.
- * @param {string} prefix The namespace to match.
- * @returns {string[]} The matching full keys.
- */
 export const keysUnder = (area: CacheArea, prefix: string) => {
-    // Queued writes are listed alongside stored ones, because `readRaw` already prefers them and the
-    // two disagreeing is a hole rather than a nuance. A `clearUnder` could not see a key written in
-    // the last few hundred milliseconds, so it left it alone and the pending flush then wrote it back
-    // *after* the clear had finished — the entry surviving the very action that asked for it to go. It
-    // also kept `prune` from ever seeing a burst: a screenful of failures all queue inside one flush
-    // window, so the bound was measured against a namespace that still looked empty and never fired.
     const found = new Set<string>();
 
     for (const key of dirty.get(area)?.keys() ?? []) {
@@ -212,16 +144,6 @@ export const keysUnder = (area: CacheArea, prefix: string) => {
     return [...found];
 };
 
-/**
- * prune - Keeps a namespace inside its bound, dropping the least recently written first.
- *
- * Sorted on a stamp read back out of each entry rather than on storage order, because storage order is
- * whatever the backend reports and it outlives the process that wrote it.
- * @param {CacheArea} area Which storage to bound.
- * @param {string} prefix The namespace to bound.
- * @param {number} keep How many entries may remain.
- * @param {(raw: string) => number} stampOf Reads the sort stamp out of a stored payload.
- */
 export const prune = (area: CacheArea, prefix: string, keep: number, stampOf: (raw: string) => number) => {
     const keys = keysUnder(area, prefix);
 
@@ -240,12 +162,6 @@ export const prune = (area: CacheArea, prefix: string, keep: number, stampOf: (r
     }
 };
 
-/**
- * clearUnder - Drops every entry in a namespace, optionally filtered.
- * @param {CacheArea} area Which storage to clear.
- * @param {string} prefix The namespace to clear.
- * @param {(key: string) => boolean} [match] Which keys to drop, given the key without its prefix.
- */
 export const clearUnder = (area: CacheArea, prefix: string, match?: (key: string) => boolean) => {
     for (const key of keysUnder(area, prefix)) {
         if (match === undefined || match(key.slice(prefix.length))) {
