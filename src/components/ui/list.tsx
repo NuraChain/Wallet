@@ -9,7 +9,7 @@ export default function ListCard({
     ...rest
 }: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
     return (
-        <div className={cn(surfacePanel, 'overflow-hidden rounded-surface list-divide', className)} {...rest}>
+        <div className={cn(surfacePanel, 'divide-y divide-line overflow-hidden rounded-surface', className)} {...rest}>
             {children}
         </div>
     );

@@ -3,6 +3,8 @@ import { FiEye, FiEyeOff, FiLock } from 'react-icons/fi';
 
 import Text from './text';
 
+import { tapArea } from './button';
+
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { Horizontal, Vertical } from './stack';
@@ -165,7 +167,8 @@ export function PasswordField({
                         setShow((current) => !current);
                     }}
                     className={cn(
-                        'tap-44 absolute cursor-pointer rounded-control text-txt-muted outline-2 outline-offset-2 outline-transparent outline-double hover:text-txt-normal focus-visible:outline-focus-ring',
+                        tapArea,
+                        'absolute cursor-pointer rounded-control text-txt-muted outline-2 outline-offset-2 outline-transparent outline-double hover:text-txt-normal focus-visible:outline-focus-ring',
                         regular ? 'inset-e-4' : 'inset-e-3'
                     )}
                 >

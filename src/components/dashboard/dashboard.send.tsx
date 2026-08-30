@@ -214,7 +214,7 @@ export default function DashboardSend({
                             onClose={() => {
                                 setPicking(false);
                             }}
-                            className='scroll-hidden flex max-h-56 flex-col gap-1 overflow-y-auto'
+                            className='flex max-h-56 [scrollbar-width:none] flex-col gap-1 overflow-y-auto [&::-webkit-scrollbar]:hidden'
                         >
                             {assets.map((item) => (
                                 <Button

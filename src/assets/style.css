@@ -297,34 +297,6 @@ input[type='password']::-webkit-textfield-decoration-container {
     background-color: var(--scrollbar-thumb-hover);
 }
 
-@utility scroll-hidden {
-    scrollbar-width: none;
-
-    &::-webkit-scrollbar {
-        display: none;
-    }
-}
-
-@utility list-divide {
-    & > * + * {
-        border-block-start: 1px solid var(--line);
-    }
-}
-
-@utility tap-44 {
-    position: relative;
-
-    &::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 44px;
-        height: 44px;
-        transform: translate(-50%, -50%);
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

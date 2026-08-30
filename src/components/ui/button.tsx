@@ -6,6 +6,8 @@ import { cn } from '../../utility/cn';
 
 const focusRing = 'outline-2 outline-offset-2 outline-double outline-transparent focus-visible:outline-focus-ring';
 
+export const tapArea = 'before:absolute before:top-1/2 before:left-1/2 before:size-11 before:-translate-x-1/2 before:-translate-y-1/2';
+
 const fillBase = `cursor-pointer ${focusRing} transition-[background-color,border-color,color] duration-(--duration-fast) ease-initial`;
 
 const fillMuted = `${fillBase} bg-btn-muted text-txt-muted hover:bg-btn-muted-hover hover:text-txt-normal active:bg-btn-muted-active`;
@@ -33,9 +35,9 @@ const sizeMap = {
     small: 'h-8 gap-1 rounded-control px-3 text-tiny',
     action: 'h-11 rounded-surface text-small',
     submit: 'h-11 w-full rounded-surface text-small',
-    icon: 'tap-44 size-8 rounded-control',
-    iconChip: 'tap-44 size-9 rounded-surface',
-    iconLarge: 'tap-44 size-10 rounded-control'
+    icon: `relative ${tapArea} size-8 rounded-control`,
+    iconChip: `relative ${tapArea} size-9 rounded-surface`,
+    iconLarge: `relative ${tapArea} size-10 rounded-control`
 } as const;
 
 export default function Button({

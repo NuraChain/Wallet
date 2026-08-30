@@ -56,7 +56,7 @@ export default function DashboardBrowserTabs({
             </Button>
 
             <div className='min-w-0 flex-1'>
-                <Horizontal ref={stripRef} className='scroll-hidden w-full gap-2 overflow-x-auto overscroll-x-contain'>
+                <Horizontal ref={stripRef} className='w-full [scrollbar-width:none] gap-2 overflow-x-auto overscroll-x-contain [&::-webkit-scrollbar]:hidden'>
                     {tabs.map((item) => {
                         const url = item.index < 0 ? '' : item.entries[item.index];
 
