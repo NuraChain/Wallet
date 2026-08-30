@@ -1,24 +1,14 @@
 name: Release
 
-# Pushing a version tag builds every platform and attaches the installers to the
-# release for that tag. Can also be started by hand against any branch to check
-# the build without publishing anything.
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
 
-# Read-only by default, so a compromised dependency in one of the three build jobs
-# is holding a token that cannot write to the repository. Only the job that creates
-# the release is granted `contents: write`, and it runs no build of its own.
 permissions:
   contents: read
 
-# Retagging - moving a tag after a failed run, or pushing v1.0.4 twice - starts a
-# second run against the same ref while the first is still going, and both would
-# race to attach assets to one draft release. Queue them instead. The run in flight
-# is deliberately not cancelled: it may already be halfway through publishing.
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -30,24 +20,8 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      # Cargo.toml is the one place a version is declared, but the release is
-      # created for the *tag*, and nothing tied the two together. Tagging v1.0.5
-      # without bumping Cargo.toml first therefore shipped binaries declaring
-      # 1.0.4 under a release called v1.0.5, and no step failed. The bump is its
-      # own commit here, so that is an easy order to get wrong.
-      #
-      # This matters more now that the assets do not carry the number: a file on
-      # disk cannot be told apart from the previous release's, so the tag, the
-      # release page and the version Tauri and Vite bake into the app are the only
-      # places it survives at all. Every one of those comes from this line, so a
-      # tag that disagrees with it is a release lying about what it contains, and
-      # nothing downstream would show it.
-      #
-      # No output is published: the staging steps name files by platform and arch
-      # alone, so nothing downstream consumes the number and this job is purely a
-      # gate the three build jobs wait on.
       - name: Check the version against the tag
         env:
           TAGGED: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -73,72 +47,32 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
 
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           workspaces: src-tauri
 
       - name: Install dependencies
         run: npm ci
 
-      # Windows on ARM runs x64 binaries under emulation, so one x64 build leaves
-      # nobody without an installer and there is no second toolchain to keep alive.
-      #
-      # Only the NSIS installer is built. tauri.windows.conf.json restricts the
-      # targets rather than this job dropping the MSI at the staging step, because
-      # a discarded MSI still costs the WiX download and a second bundling pass -
-      # the point of removing it is the time back, not just the shorter list.
       - name: Build
         run: npm run tauri build
 
-      # upload-artifact roots the archive at the common ancestor of every search
-      # path it is given, not of the files actually matched. Listing nsis/ and msi/
-      # together - as this job did when it still built both - therefore rooted it
-      # at bundle/ and stored the installers one directory down, so the release
-      # job's `artifacts/*.exe` globs matched nothing and only the Android APK -
-      # uploaded from a single path, hence flat - reached the release. Collecting
-      # into one directory keeps the archive flat, and still matters here: the
-      # Linux job stages three bundle directories at once.
-      #
-      # The directory must not be `dist`: that is Vite's build output, so staging
-      # there uploaded index.html and the whole frontend bundle alongside the
-      # installers, and index.html ended up attached to the release.
-      #
-      # Tauri names bundles after `productName`, which is "Nura Wallet" - and
-      # GitHub rewrites the space when it attaches an asset, so the release listed
-      # `Nura.Wallet_1.0.0_x64-setup.exe`. Every artifact is renamed to one scheme
-      # here instead, so the whole download list reads as one product.
-      #
-      # That scheme is <product>-<platform>-<arch>.<ext>, and the platform is
-      # spelled out because the arch alone does not say which build a file came
-      # from: x86_64 and arm64 each name both a Linux package and an Android ABI,
-      # so the twelve assets sort into three obvious groups only once the platform
-      # is in the name. Windows carries it too, for one scheme rather than two.
-      #
-      # The version is deliberately absent, so a download link for a given platform
-      # reads the same at every release. The cost is that the file is anonymous once
-      # saved - two releases' installers collide in a downloads folder and the older
-      # is indistinguishable from the newer - which is why the check above is the
-      # only thing keeping the number honest.
       - name: Stage the installers
         shell: bash
         run: |
           mkdir -p release-files
           BUNDLE=src-tauri/target/release/bundle
 
-          # The glob is expanded by the caller, so $1 after the shift is either the
-          # first match or the pattern itself when nothing matched - which is the
-          # case worth hearing about, since a bundler that quietly produced nothing
-          # otherwise reaches the release as a missing download and no failed step.
           stage() {
             local name=$1
             shift
@@ -152,7 +86,7 @@ jobs:
           stage "Nura-Wallet-Windows-x64-setup.exe" "$BUNDLE"/nsis/*-setup.exe
           ls -l release-files
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: windows
           if-no-files-found: error
@@ -167,20 +101,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Both architectures build natively. GitHub's arm64 Linux runners are
-          # free for public repositories, and native beats every alternative by a
-          # wide margin here: cross-compiling against webkit2gtk needs a complete
-          # multiarch sysroot, and the emulated runner Tauri's own docs suggest
-          # takes hours for a Rust build and risks the job timeout.
-          #
-          # Those two are the whole reachable set, not a shortlist. i386 has no
-          # libwebkit2gtk in Ubuntu's partial multiarch, so a 32-bit x86 build
-          # cannot link at all, and armhf has no runner and would have to come
-          # back through one of the two paths above.
-          #
-          # The arch label differs per format because the packagers disagree about
-          # the name: dpkg says amd64/arm64, rpm and AppImage say x86_64/aarch64.
-          # Each file is named the way a user of that format expects to see it.
           - os: ubuntu-22.04
             label: linux x86_64 (.deb / .rpm / .AppImage)
             artifact: linux-x86_64
@@ -193,25 +113,20 @@ jobs:
             unix: aarch64
 
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
 
-      # rust-cache keys on the host triple, so the two architectures do not share
-      # - and cannot poison - each other's entry.
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           workspaces: src-tauri
 
-      # webkit2gtk is the webview Tauri renders into; the rest are what its bundler
-      # needs. libfuse2 is for the AppImage specifically: the bundler downloads
-      # linuxdeploy and appimagetool as AppImages and has to be able to run them.
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
@@ -222,8 +137,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Which of the three formats are produced is declared in
-      # src-tauri/tauri.linux.conf.json, so a local build makes the same set.
       - name: Build
         run: npm run tauri build
 
@@ -248,9 +161,7 @@ jobs:
           stage "Nura-Wallet-Linux-${{ matrix.unix }}.AppImage" "$BUNDLE"/appimage/*.AppImage
           ls -l release-files
 
-      # One name per matrix leg: upload-artifact@v4 refuses to write an existing
-      # artifact, so both legs sharing `linux` would fail the second one to finish.
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: ${{ matrix.artifact }}
           if-no-files-found: error
@@ -262,14 +173,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
 
-    # The `secrets` context is not available to a step's `if`, but job-level `env`
-    # may read it and `env` is available there. This mapping is that bridge; without
-    # it the signing step cannot ask whether a keystore was configured.
-    #
-    # The two SDK versions are here because they were written twice - once for
-    # sdkmanager and once in the path the collect step resolves apksigner from - and
-    # bumping one without the other leaves the build fine and the verification step
-    # looking for a binary that is not there.
     env:
       NDK_VERSION: 29.0.13113456
       BUILD_TOOLS_VERSION: 36.0.0
@@ -279,67 +182,46 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
     steps:
-      # Checked before anything is built: an unsigned APK cannot be installed, so
-      # a tag that produces one is a wasted release. Failing here costs seconds
-      # rather than discovering it twenty minutes later in the collect step.
       - name: Require a keystore for a tagged build
         if: startsWith(github.ref, 'refs/tags/v') && env.ANDROID_KEYSTORE == ''
         run: |
           echo "::error::No ANDROID_KEYSTORE secret is set, so this release would ship an APK nobody can install. Add ANDROID_KEYSTORE, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD to the repository secrets."
           exit 1
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
+      - uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699
 
       - name: Install the NDK
         run: |
           sdkmanager --install "ndk;$NDK_VERSION" "platforms;android-36" "build-tools;$BUILD_TOOLS_VERSION"
           echo "NDK_HOME=$ANDROID_HOME/ndk/$NDK_VERSION" >> "$GITHUB_ENV"
 
-      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
         with:
           targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
 
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           workspaces: src-tauri
 
       - name: Install dependencies
         run: npm ci
 
-      # Parts of src-tauri/gen/android are git-ignored because Tauri regenerates
-      # them (buildSrc, tauri.settings.gradle, app/tauri.build.gradle.kts), and
-      # without them Gradle cannot resolve the `rust` plugin.
-      #
-      # Verified locally that this leaves the hand-written files alone: init writes
-      # only the names that are missing, so MainActivity, BrowserBridge, the manifest,
-      # values/themes.xml and the committed launcher icons all come back byte-identical.
-      # That last one is why the whole mipmap set is committed rather than the one file
-      # it used to be - see "Platform shells" in CLAUDE.md.
-      #
-      # It does drop five unused files — .editorconfig, res/layout/activity_main.xml,
-      # the two ic_launcher_* vectors the Android Studio template leaves in res/drawable
-      # and res/drawable-v24, and a values-night/themes.xml declaring `Theme.nura_wallet`,
-      # which is a different style from the `@style/Theme` the manifest points at, so
-      # none of them affect the build.
       - name: Restore generated Android scaffolding
         run: npm run tauri android init
 
-      # Gradle signs during the build when this file is present, which also gets the
-      # APK zipaligned - apksigner alone does not align, and Android requires it.
-      # It is written once and covers every flavour both builds below produce.
       - name: Configure release signing
         if: env.ANDROID_KEYSTORE != ''
         working-directory: src-tauri/gen/android
@@ -352,41 +234,17 @@ jobs:
             echo "keyPassword=$ANDROID_KEY_PASSWORD"
           } > keystore.properties
 
-      # Two builds, because the two shapes are mutually exclusive. The product
-      # flavours are declared in gen/android/buildSrc RustPlugin.kt: without
-      # --split-per-abi Gradle assembles the single `universal` flavour carrying
-      # all four ABIs, and with it, it assembles the four single-ABI flavours
-      # instead. Neither run produces the other's output, so both have to happen.
-      #
-      # Both are wanted: the universal APK is the one to hand someone who does not
-      # know what their phone is, and the per-ABI ones are a fraction of the size
-      # for someone who does.
-      #
-      # The second run is the cheap one. It needs the same four Rust targets the
-      # first run already compiled into the shared cargo target directory, so only
-      # Gradle's packaging and R8 actually repeat.
       - name: Build the universal APK
         run: npm run tauri android build -- --apk
 
       - name: Build the per-ABI APKs
         run: npm run tauri android build -- --apk --split-per-abi
 
-      # Its own step, and `always()`, because the collect step below only runs when
-      # both builds succeeded - so a build that failed after the keystore was
-      # written used to leave the key and its passwords sitting in the workspace
-      # for whatever ran next.
       - name: Remove the keystore
         if: always()
         working-directory: src-tauri/gen/android
         run: rm -f keystore.properties release.jks
 
-      # A tag that got this far with a broken keystore still fails here: the guard
-      # above only proves a secret was set, not that Gradle used it.
-      #
-      # Gradle names the files app-<flavour>-release.apk, which says nothing about
-      # the product on a downloads page. Each is renamed to carry the product and
-      # the platform, like every desktop installer does, and the staging directory
-      # is deliberately not `dist` - that is Vite's output.
       - name: Collect the APKs
         env:
           TAGGED: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -400,10 +258,6 @@ jobs:
             exit 1
           fi
 
-          # <flavour>:<abi>. The name on the left is the Gradle product flavour and
-          # therefore the output directory; the name on the right is the ABI a phone
-          # reports for itself, which is the only one of the two a downloader can
-          # match against their device, so that is what the file is called.
           for pair in universal:universal arm64:arm64-v8a arm:armeabi-v7a x86:x86 x86_64:x86_64; do
             flavor=${pair%%:*}
             abi=${pair##*:}
@@ -426,7 +280,7 @@ jobs:
           done
           ls -l release-files
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: android
           if-no-files-found: error
@@ -437,23 +291,16 @@ jobs:
     needs: [ windows, linux, android ]
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    # Only a tag produces a release; a manual run just leaves the artifacts on the run.
     if: startsWith(github.ref, 'refs/tags/v')
-    # The one job that writes, and the only one that runs no build.
     permissions:
       contents: write
 
     steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           path: artifacts
           merge-multiple: true
 
-      # Every job stages exactly the files meant to ship, so the whole directory
-      # is attached rather than a list of extensions that can silently miss one.
-      # The count is checked because `merge-multiple` flattens four artifacts into
-      # one directory: two names colliding there would overwrite rather than fail,
-      # and the release would just be short a download.
       - name: List what will be attached
         run: |
           ls -lR artifacts
@@ -464,7 +311,7 @@ jobs:
             echo "::warning::Expected 12 assets (1 Windows, 6 Linux, 5 Android) but found $COUNT. Check the staging warnings in the build jobs above."
           fi
 
-      - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+      - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228
         with:
           draft: true
           generate_release_notes: true
