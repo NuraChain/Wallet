@@ -42,6 +42,10 @@ pub fn run() {
             ]);
     }
 
+    builder = builder.plugin(tauri_plugin_deep_link::init());
+
+    builder = builder.plugin(tauri_plugin_opener::init());
+
     builder = builder.plugin(tauri_plugin_os::init());
 
     builder = builder.plugin(tauri_plugin_store::Builder::new().build());

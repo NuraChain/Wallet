@@ -5,6 +5,7 @@ import ErrorBoundary from './layout/boundary';
 
 import { router } from './router';
 import { initTheme } from './utility/theme';
+import { startDeepLinks } from './core/deeplink';
 import { initNetwork } from './core/network';
 import { initLanguage } from './utility/language';
 
@@ -24,7 +25,7 @@ document.addEventListener('keydown', (event) => {
         (event.ctrlKey && event.shiftKey && (event.key === 'p' || event.key === 'P')) ||
         (event.ctrlKey && event.shiftKey && (event.key === 'i' || event.key === 'I'))
     ) {
-        event.preventDefault();
+        //event.preventDefault();
     }
 });
 
@@ -47,6 +48,8 @@ const rootElement = document.querySelector('#root');
 
 if (rootElement) {
     await startup();
+
+    startDeepLinks();
 
     const application = (
         <ErrorBoundary>

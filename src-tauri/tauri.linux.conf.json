@@ -30,13 +30,11 @@
                         "core:webview:allow-set-webview-position",
                         "core:webview:allow-set-webview-size",
                         "core:webview:allow-get-all-webviews",
-
                         "store:allow-delete",
                         "store:allow-load",
                         "store:allow-save",
                         "store:allow-get",
                         "store:allow-set",
-
                         "os:allow-hostname",
                         "os:allow-platform",
                         "os:allow-os-type",
@@ -44,7 +42,6 @@
                         "os:allow-family",
                         "os:allow-locale",
                         "os:allow-arch",
-
                         {
                             "identifier": "http:default",
                             "allow": [
@@ -56,35 +53,38 @@
                                 }
                             ]
                         },
-
                         "fs:allow-mkdir",
                         "fs:allow-write-file",
                         "fs:allow-write-text-file",
                         "fs:allow-picture-write-recursive",
                         "fs:allow-download-write-recursive",
-
                         "allow-browser-open",
                         "allow-dapp-respond",
-                        "allow-dapp-emit"
+                        "allow-dapp-emit",
+                        "deep-link:default",
+                        {
+                            "identifier": "opener:allow-open-url",
+                            "allow": [
+                                {
+                                    "url": "https://*"
+                                }
+                            ]
+                        }
                     ]
                 },
                 {
                     "identifier": "browser-capability",
                     "description": "The one thing a visited website may ask the wallet: to make a provider request. Everything a page can do with the wallet arrives through this command and is decided in the frontend against the origin Rust stamped on it.",
-
                     "webviews": [
                         "nura-browser-*"
                     ],
-
                     "local": false,
-
                     "remote": {
                         "urls": [
                             "https://*",
                             "http://*"
                         ]
                     },
-
                     "permissions": [
                         "allow-dapp-request"
                     ]

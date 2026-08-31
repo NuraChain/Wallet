@@ -16,6 +16,7 @@ import { getNetwork } from '../core/network';
 import { RouteFallback } from '../layout/root';
 import { loadConnections } from '../core/dapp';
 import { forgetDappPages, startDappBridge } from '../core/dapp.bridge';
+import { flushDeepLinks } from '../core/deeplink';
 import { lockSession, useVault } from '../core/session';
 import { answerDapp, rejectDappPrompts, setDappAccount, setDappWatchAsset, subscribeDappChange, syncDappState, useDappPrompt } from '../core/dapp.rpc';
 import { vaultAddress, vaultDerivable, type Vault } from '../core/vault';
@@ -257,6 +258,8 @@ function DashboardView({ vault }: { vault: Vault }) {
         void loadConnections();
 
         const stop = startDappBridge(answerDapp);
+
+        flushDeepLinks();
 
         return () => {
             stop();

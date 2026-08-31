@@ -25,13 +25,11 @@
                         "core:webview:allow-set-webview-position",
                         "core:webview:allow-set-webview-size",
                         "core:webview:allow-get-all-webviews",
-
                         "store:allow-delete",
                         "store:allow-load",
                         "store:allow-save",
                         "store:allow-get",
                         "store:allow-set",
-
                         "os:allow-hostname",
                         "os:allow-platform",
                         "os:allow-os-type",
@@ -39,7 +37,6 @@
                         "os:allow-family",
                         "os:allow-locale",
                         "os:allow-arch",
-
                         {
                             "identifier": "http:default",
                             "allow": [
@@ -48,6 +45,15 @@
                                 },
                                 {
                                     "url": "http://*"
+                                }
+                            ]
+                        },
+                        "deep-link:default",
+                        {
+                            "identifier": "opener:allow-open-url",
+                            "allow": [
+                                {
+                                    "url": "https://*"
                                 }
                             ]
                         }
