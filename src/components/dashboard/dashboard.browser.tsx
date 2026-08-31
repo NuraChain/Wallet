@@ -61,14 +61,12 @@ const toUrl = (value: string) => {
 };
 
 export default function DashboardBrowser({
-    address,
     network,
     enabled,
     request,
     ticket,
     onExit
 }: {
-    address: string;
     network: Network;
     enabled: boolean;
     request: string;
@@ -149,8 +147,6 @@ export default function DashboardBrowser({
 
         setConnections(getConnections().length);
     }, [settings]);
-
-    const explorer = network.explorerUrl.length > 0 ? { name: T('Dashboard.Browser.Explorer'), url: `${network.explorerUrl}/address/${address}` } : undefined;
 
     const onOpen = (value: string) => {
         const url = toUrl(value);
@@ -445,7 +441,6 @@ export default function DashboardBrowser({
                         >
                             {front && !shown ? (
                                 <DashboardBrowserStart
-                                    explorer={explorer}
                                     favorites={favorites}
                                     visits={visits}
                                     notice={notice.get(item.id) ?? ''}

@@ -6,7 +6,6 @@ import Alert from '../ui/alert';
 import Button from '../ui/button';
 import StatusBlock from '../ui/state';
 import TokenIcon from '../token.icon';
-import SectionHeader from '../ui/section';
 import SiteForm from '../site.form';
 import ScrollBar from '../ui/scrollbar';
 
@@ -14,6 +13,8 @@ import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { getSiteHost, getSiteIcon, type BrowserFavorite, type BrowserVisit } from '../../core/browser';
 import { Horizontal, Vertical } from '../ui/stack';
+
+type TabKey = 'favorite' | 'history';
 
 function BrowserShortcut({
     url,
@@ -50,8 +51,28 @@ function BrowserShortcut({
     );
 }
 
+function BrowserCard({ item, onPick }: { item: BrowserFavorite; onPick: (url: string) => void }) {
+    return (
+        <Button
+            title={item.url}
+            variant='muted'
+            onClick={() => {
+                onPick(item.url);
+            }}
+            className='flex-col items-center gap-2 rounded-surface p-4'
+        >
+            <TokenIcon primary kind='unknown' src={getSiteIcon(item.url)} symbol={item.name} className='size-12 text-small' />
+
+            <Vertical className='w-full min-w-0 items-center'>
+                <Text variant='body' className='w-full truncate text-center' text={item.name} />
+
+                <Text dir='ltr' className='w-full truncate text-center font-mono' text={getSiteHost(item.url)} />
+            </Vertical>
+        </Button>
+    );
+}
+
 export default function DashboardBrowserStart({
-    explorer,
     favorites,
     visits,
     notice,
@@ -59,7 +80,6 @@ export default function DashboardBrowserStart({
     onFavoriteSave,
     onFavoriteRemove
 }: {
-    explorer?: { name: string; url: string };
     favorites: BrowserFavorite[];
     visits: BrowserVisit[];
     notice: string;
@@ -69,95 +89,136 @@ export default function DashboardBrowserStart({
 }) {
     const viewportRef = useRef<HTMLDivElement>(null);
 
+    const [tab, setTab] = useState<TabKey>('favorite');
     const [editing, setEditing] = useState(false);
 
     const [editor, setEditor] = useState<BrowserFavorite | boolean>(false);
 
+    const tabMap: { key: TabKey; label: string }[] = [
+        { key: 'favorite', label: T('Dashboard.Browser.Favorite') },
+        { key: 'history', label: T('Dashboard.Browser.Recent') }
+    ];
+
     return (
         <Vertical className='relative size-full'>
             <Vertical ref={viewportRef} className='size-full gap-3 overflow-y-auto p-4'>
-                <SectionHeader title={T('Dashboard.Browser.Favorite')}>
-                    <Button
-                        variant='muted'
-                        size='small'
-                        onClick={() => {
-                            setEditing(!editing);
-                        }}
-                        leftIcon={editing ? <FiCheck size={14} /> : <FiEdit3 size={14} />}
-                        text={editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage')}
-                    />
-                </SectionHeader>
+                <Horizontal role='tablist' className='items-center border-b border-line'>
+                    {tabMap.map((item) => (
+                        <Button
+                            key={item.key}
+                            role='tab'
+                            id={`browser-tab-${item.key}`}
+                            aria-selected={item.key === tab}
+                            aria-controls={`browser-panel-${item.key}`}
+                            onClick={() => {
+                                setTab(item.key);
+                            }}
+                            className={cn(
+                                'relative h-10 cursor-pointer px-3 text-small font-medium transition-colors duration-(--duration-fast)',
+                                item.key === tab ? 'text-txt-accent' : 'text-txt-muted hover:text-txt-normal'
+                            )}
+                        >
+                            {item.label}
 
-                {favorites.length === 0 && explorer === undefined && !editing ? (
-                    <StatusBlock panel text={T('Dashboard.Browser.FavoriteEmpty')} />
-                ) : (
-                    <div className={cn(editing ? 'flex flex-col gap-2' : 'grid grid-cols-2 gap-2')}>
-                        {explorer !== undefined && !editing && <BrowserShortcut primary url={explorer.url} name={explorer.name} onPick={onOpen} />}
+                            {item.key === tab && <span aria-hidden className='absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-txt-accent' />}
+                        </Button>
+                    ))}
 
-                        {favorites.map((item) =>
-                            editing ? (
-                                <Horizontal key={item.id} className='items-center gap-2'>
-                                    <BrowserShortcut
-                                        primary
-                                        url={item.url}
-                                        name={item.name}
-                                        title={item.url}
-                                        className='min-w-0 flex-1'
-                                        onPick={() => {
-                                            setEditor(item);
-                                        }}
-                                    />
+                    {tab === 'favorite' && (
+                        <Button
+                            variant='muted'
+                            size='small'
+                            onClick={() => {
+                                setEditing(!editing);
+                            }}
+                            leftIcon={editing ? <FiCheck size={14} /> : <FiEdit3 size={14} />}
+                            text={editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage')}
+                            className='ms-auto mb-1 shrink-0'
+                        />
+                    )}
+                </Horizontal>
 
-                                    <Button
-                                        variant='danger'
-                                        size='icon'
-                                        onClick={() => {
-                                            onFavoriteRemove(item.id);
-                                        }}
-                                        aria-label={T('Dashboard.Browser.FavoriteRemove')}
-                                        className='shrink-0'
-                                    >
-                                        <FiTrash2 size={16} />
-                                    </Button>
-                                </Horizontal>
-                            ) : (
-                                <BrowserShortcut primary key={item.id} url={item.url} name={item.name} title={item.url} onPick={onOpen} />
-                            )
-                        )}
+                <div role='tabpanel' id={`browser-panel-${tab}`} aria-labelledby={`browser-tab-${tab}`}>
+                    {tab === 'favorite' &&
+                        (editing ? (
+                            <Vertical className='gap-2'>
+                                {favorites.map((item) => (
+                                    <Horizontal key={item.id} className='items-center gap-2'>
+                                        <BrowserShortcut
+                                            primary
+                                            url={item.url}
+                                            name={item.name}
+                                            title={item.url}
+                                            className='min-w-0 flex-1'
+                                            onPick={() => {
+                                                setEditor(item);
+                                            }}
+                                        />
 
-                        {editing && (
-                            <Button
-                                variant='normal'
-                                size='action'
-                                onClick={() => {
-                                    setEditor(true);
-                                }}
-                                leftIcon={<FiPlus size={16} />}
-                                text={T('Dashboard.Browser.FavoriteAdd')}
-                            />
-                        )}
-                    </div>
-                )}
+                                        <Button
+                                            variant='danger'
+                                            size='icon'
+                                            onClick={() => {
+                                                onFavoriteRemove(item.id);
+                                            }}
+                                            aria-label={T('Dashboard.Browser.FavoriteRemove')}
+                                            className='shrink-0'
+                                        >
+                                            <FiTrash2 size={16} />
+                                        </Button>
+                                    </Horizontal>
+                                ))}
 
-                <SectionHeader title={T('Dashboard.Browser.Recent')} />
+                                <Button
+                                    variant='normal'
+                                    size='action'
+                                    onClick={() => {
+                                        setEditor(true);
+                                    }}
+                                    leftIcon={<FiPlus size={16} />}
+                                    text={T('Dashboard.Browser.FavoriteAdd')}
+                                />
+                            </Vertical>
+                        ) : (
+                            <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'>
+                                {favorites.map((item) => (
+                                    <BrowserCard key={item.id} item={item} onPick={onOpen} />
+                                ))}
 
-                {visits.length === 0 ? (
-                    <StatusBlock panel text={T('Dashboard.Browser.RecentEmpty')} />
-                ) : (
-                    <div className='grid grid-cols-2 gap-2'>
-                        {visits.map((item) => (
-                            <BrowserShortcut
-                                ltr
-                                key={item.url}
-                                url={item.url}
-                                name={getSiteHost(item.url)}
-                                symbol={getSiteHost(item.url).toUpperCase()}
-                                title={item.url}
-                                onPick={onOpen}
-                            />
+                                <Button
+                                    variant='normal'
+                                    onClick={() => {
+                                        setEditor(true);
+                                    }}
+                                    aria-label={T('Dashboard.Browser.FavoriteAdd')}
+                                    className='min-h-28 flex-col items-center justify-center gap-2 rounded-surface border-dashed p-4 text-txt-muted hover:text-txt-normal'
+                                >
+                                    <FiPlus size={20} className='shrink-0' />
+
+                                    <Text variant='inherit' className='w-full truncate text-center' text={T('Dashboard.Browser.FavoriteAdd')} />
+                                </Button>
+                            </div>
                         ))}
-                    </div>
-                )}
+
+                    {tab === 'history' &&
+                        (visits.length === 0 ? (
+                            <StatusBlock panel text={T('Dashboard.Browser.RecentEmpty')} />
+                        ) : (
+                            <div className='grid grid-cols-2 gap-2 lg:grid-cols-4'>
+                                {visits.map((item) => (
+                                    <BrowserShortcut
+                                        ltr
+                                        key={item.url}
+                                        url={item.url}
+                                        name={getSiteHost(item.url)}
+                                        symbol={getSiteHost(item.url).toUpperCase()}
+                                        title={item.url}
+                                        onPick={onOpen}
+                                    />
+                                ))}
+                            </div>
+                        ))}
+                </div>
 
                 {notice.length > 0 && (
                     <Vertical className='mt-auto gap-1'>
