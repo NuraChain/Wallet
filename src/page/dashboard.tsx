@@ -551,7 +551,6 @@ function DashboardView({ vault }: { vault: Vault }) {
                                     >
                                         <Suspense fallback={null}>
                                             <DashboardBrowser
-                                                address={address}
                                                 network={network}
                                                 request={link.url}
                                                 ticket={link.ticket}
