@@ -39,6 +39,7 @@ export interface BrowserFavorite {
 }
 
 const defaultFavorites: BrowserFavorite[] = [
+    { id: 'nurachain', name: 'Nura Chain', url: 'https://nurachain.net' },
     { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
     { id: 'telegram', name: 'Telegram', url: 'https://t.me/nurachain' },
     { id: 'google', name: 'Google', url: 'https://google.com' },
