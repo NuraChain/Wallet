@@ -218,7 +218,7 @@ export default function DashboardWallet({
                 </Button>
             </Vertical>
 
-            <Horizontal className='justify-center gap-2 lg:justify-start'>
+            <Horizontal className='justify-center gap-2'>
                 {actionMap.map((item) => (
                     <Button
                         key={item.key}
