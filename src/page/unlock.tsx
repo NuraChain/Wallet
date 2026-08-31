@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { FiHelpCircle } from 'react-icons/fi';
 import { motion } from 'motion/react';
@@ -13,6 +13,7 @@ import Popover from '../components/ui/popover';
 import { cn } from '../utility/cn';
 import { T } from '../utility/language';
 import { readVault } from '../core/vault';
+import { closeBrowserLayers } from '../core/browser';
 import { surfacePanel } from '../components/ui/panel';
 import { passwordCheck } from '../core/password';
 import { unlockSession } from '../core/session';
@@ -20,6 +21,10 @@ import { getValueEncrypted } from '../utility/storage';
 import { Horizontal } from '../components/ui/stack';
 
 export default function UnlockPage() {
+    useEffect(() => {
+        closeBrowserLayers();
+    }, []);
+
     const navigate = useNavigate();
 
     const [error, setError] = useState('');

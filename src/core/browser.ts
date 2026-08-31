@@ -39,6 +39,7 @@ export interface BrowserFavorite {
 }
 
 const defaultFavorites: BrowserFavorite[] = [
+    { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
     { id: 'telegram', name: 'Telegram', url: 'https://t.me/nurachain' },
     { id: 'google', name: 'Google', url: 'https://google.com' },
     { id: 'github', name: 'GitHub', url: 'https://github.com/NuraChain' },
@@ -135,6 +136,7 @@ interface BrowserBridge {
     open: (url: string, x: number, y: number, width: number, height: number) => void;
     setBounds: (x: number, y: number, width: number, height: number) => void;
     close: () => void;
+    closeAll?: () => void;
     reload: () => void;
     back: () => void;
     forward: () => void;
@@ -177,6 +179,40 @@ declare global {
 }
 
 export const getNativeBrowser = () => window.__nuraBrowser;
+
+/**
+ * Close every native browser layer, wherever it came from. The multiwebview children (desktop)
+ * and the Kotlin WebViews (Android) sit above the app's own page, so a JS context that starts
+ * over — a reload, an Android activity restore — lands on the unlock screen underneath layers
+ * nobody owns any more. The lock screen calls this to take the surface back.
+ */
+export const closeBrowserLayers = () => {
+    const bridge = window.__nuraBrowser;
+
+    if (bridge !== undefined) {
+        if (bridge.closeAll === undefined) {
+            bridge.close();
+        } else {
+            bridge.closeAll();
+        }
+
+        return;
+    }
+
+    const run = async () => {
+        try {
+            const { getAllWebviews } = await import('@tauri-apps/api/webview');
+
+            const views = await getAllWebviews();
+
+            await Promise.all(views.filter((view) => view.label.startsWith('nura-browser-')).map(async (view) => view.close()));
+        } catch {
+            // Outside Tauri there is nothing to close.
+        }
+    };
+
+    void run();
+};
 
 export const nativeHoldsTabs = () => window.__nuraBrowser?.openTab !== undefined;
 

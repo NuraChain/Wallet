@@ -248,6 +248,22 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     }
 
     @JavascriptInterface
+    fun closeAll() {
+        activity.runOnUiThread {
+            scripts.clear()
+
+            for ((_, view) in pages) {
+                (view.parent as? ViewGroup)?.removeView(view)
+
+                view.stopLoading()
+                view.destroy()
+            }
+
+            pages.clear()
+        }
+    }
+
+    @JavascriptInterface
     fun closeTab(id: String) {
         activity.runOnUiThread {
             scripts.remove(id)
