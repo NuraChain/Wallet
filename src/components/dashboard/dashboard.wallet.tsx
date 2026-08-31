@@ -173,72 +173,50 @@ export default function DashboardWallet({
 
             <DashboardOffline error={native.error} at={native.at} />
 
-            <div className='lg:grid lg:grid-cols-4 lg:gap-3'>
-                <Vertical className='items-center gap-1.5 py-2 lg:items-start lg:justify-center lg:rounded-surface lg:border lg:border-line lg:bg-base-2 lg:p-4 lg:py-4'>
-                    <Text className='hidden lg:block' text={T('Dashboard.Wallet.TotalBalance')} />
+            <Vertical className='items-center gap-1.5 py-2'>
+                <Text dir='ltr' variant='display' className='text-center break-all' text={headline()} />
 
-                    <Text dir='ltr' variant='display' className='text-center break-all' text={headline()} />
+                <Button
+                    onClick={() => {
+                        void clipboard.copy(address);
+                    }}
+                    className='flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal'
+                >
+                    <span className='sr-only'>{T('Dashboard.Copy')}</span>
 
-                    <Button
-                        onClick={() => {
-                            void clipboard.copy(address);
-                        }}
-                        className='flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal'
-                    >
-                        <span className='sr-only'>{T('Dashboard.Copy')}</span>
+                    <span dir='ltr' className='font-mono'>
+                        {shortAddress(address)}
+                    </span>
 
-                        <span dir='ltr' className='font-mono'>
-                            {shortAddress(address)}
-                        </span>
-
-                        <span className='relative flex size-5 shrink-0 items-center justify-center'>
-                            <AnimatePresence initial={false} mode='wait'>
-                                {copied ? (
-                                    <motion.span
-                                        key='done'
-                                        initial={{ scale: 0.4, opacity: 0 }}
-                                        animate={{ scale: [0.4, 1.35, 1], opacity: 1 }}
-                                        exit={{ scale: 0.4, opacity: 0 }}
-                                        transition={{ duration: 0.35 }}
-                                        className='absolute text-txt-normal'
-                                    >
-                                        <HiOutlineCheck size={18} />
-                                    </motion.span>
-                                ) : (
-                                    <motion.span
-                                        key='copy'
-                                        initial={{ scale: 0.6, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        exit={{ scale: 0.6, opacity: 0 }}
-                                        transition={{ duration: 0.18 }}
-                                        className='absolute'
-                                    >
-                                        <HiOutlineSquare2Stack size={18} />
-                                    </motion.span>
-                                )}
-                            </AnimatePresence>
-                        </span>
-                    </Button>
-                </Vertical>
-
-                <Vertical className='hidden gap-1 rounded-surface border border-line bg-base-2 p-4 lg:flex lg:justify-center'>
-                    <Text text={T('Dashboard.Wallet.TotalAssets')} />
-
-                    <Text variant='heading' dir='ltr' className='font-mono' text={String(tokens.length + 1)} />
-                </Vertical>
-
-                <Vertical className='hidden gap-1 rounded-surface border border-line bg-base-2 p-4 lg:flex lg:justify-center'>
-                    <Text text={T('Dashboard.Wallet.TotalNft')} />
-
-                    <Text variant='heading' dir='ltr' className='font-mono' text='0' />
-                </Vertical>
-
-                <Vertical className='hidden gap-1 rounded-surface border border-line bg-base-2 p-4 lg:flex lg:justify-center'>
-                    <Text text={network.coin ?? network.name} />
-
-                    <Text variant='heading' dir='ltr' className='font-mono' text={`${nativeAmount()} ${network.symbol}`} />
-                </Vertical>
-            </div>
+                    <span className='relative flex size-5 shrink-0 items-center justify-center'>
+                        <AnimatePresence initial={false} mode='wait'>
+                            {copied ? (
+                                <motion.span
+                                    key='done'
+                                    initial={{ scale: 0.4, opacity: 0 }}
+                                    animate={{ scale: [0.4, 1.35, 1], opacity: 1 }}
+                                    exit={{ scale: 0.4, opacity: 0 }}
+                                    transition={{ duration: 0.35 }}
+                                    className='absolute text-txt-normal'
+                                >
+                                    <HiOutlineCheck size={18} />
+                                </motion.span>
+                            ) : (
+                                <motion.span
+                                    key='copy'
+                                    initial={{ scale: 0.6, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.6, opacity: 0 }}
+                                    transition={{ duration: 0.18 }}
+                                    className='absolute'
+                                >
+                                    <HiOutlineSquare2Stack size={18} />
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </span>
+                </Button>
+            </Vertical>
 
             <Horizontal className='justify-center gap-2 lg:justify-start'>
                 {actionMap.map((item) => (
