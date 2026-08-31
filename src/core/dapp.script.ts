@@ -209,6 +209,35 @@ export const dappScript = (identity: DappIdentity) => `
         deliver({ id: id, error: { code: 4900, message: 'Nura Wallet is not available on this page' } });
     };
 
+    // The wallet notifies every other page of a new account, but not the one that asked — that
+    // page has the answer in hand. It still has to be read out of the answer, or the page stays
+    // connected while provider.selectedAddress and the synchronous send() both report nobody.
+    var adopt = function (method, result)
+    {
+        if (method === 'eth_requestAccounts' || method === 'eth_accounts')
+        {
+            var list = Array.isArray(result) ? result : [];
+
+            var moved = list.length !== accounts.length || (list.length > 0 && list[0] !== accounts[0]);
+
+            accounts = list;
+
+            provider.selectedAddress = list.length > 0 ? list[0] : null;
+
+            if (moved) { emit('accountsChanged', accounts); }
+
+            return;
+        }
+
+        if (method === 'eth_chainId' && typeof result === 'string')
+        {
+            chainId = result;
+
+            provider.chainId = result;
+            provider.networkVersion = String(parseInt(result, 16));
+        }
+    };
+
     var send = function (method, params)
     {
         return new Promise(function (resolve, reject)
@@ -217,7 +246,10 @@ export const dappScript = (identity: DappIdentity) => `
 
             var id = 'nura-' + String(counter) + '-' + newId();
 
-            pending[id] = { resolve: resolve, reject: reject };
+            pending[id] = {
+                resolve: function (result) { adopt(method, result); resolve(result); },
+                reject: reject
+            };
 
             var body;
 
