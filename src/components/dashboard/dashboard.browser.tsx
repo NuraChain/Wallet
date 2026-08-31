@@ -330,7 +330,7 @@ export default function DashboardBrowser({
     return (
         <Vertical className='relative min-h-0 flex-1'>
             <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
-                <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} className='shrink-0'>
+                <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} className='shrink-0 lg:hidden'>
                     <IoClose size={16} />
                 </Button>
 

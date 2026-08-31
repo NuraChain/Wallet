@@ -23,6 +23,8 @@ const sizeMap = new Set([
 
 const alignMap = new Set(['left', 'center', 'right', 'justify', 'start', 'end']);
 
+const positionSet = new Set(['static', 'fixed', 'absolute', 'relative', 'sticky']);
+
 const weightMap = new Set(['thin', 'extralight', 'light', 'normal', 'medium', 'semibold', 'bold', 'extrabold', 'black']);
 
 const groupList = [
@@ -157,6 +159,10 @@ const isLength = (value: string) => /^\[-?\d*\.?\d+(?:px|rem|em|ch|ex|vw|vh|vmin
 
 const groupOf = (utility: string) => {
     const name = utility.startsWith('-') ? utility.slice(1) : utility;
+
+    if (positionSet.has(name)) {
+        return 'position';
+    }
 
     if (name.startsWith('text-')) {
         const value = name.slice(5).split('/')[0];
