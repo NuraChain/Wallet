@@ -1,4 +1,4 @@
-import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link';
+import { getCurrent, isRegistered, onOpenUrl, register } from '@tauri-apps/plugin-deep-link';
 import { openUrl } from '@tauri-apps/plugin-opener';
 
 import { getVault } from './session';
@@ -23,7 +23,14 @@ interface ParsedLink {
     callback: URL;
 }
 
+const scheme = 'nurawallet';
+
 const pending: ParsedLink[] = [];
+
+// Windows and Linux hand the launch URL over as a command line argument, so the same request
+// arrives once from getCurrent() and again through onOpenUrl(). Answering it twice would raise
+// two prompts for one signature.
+const seen = new Set<string>();
 
 const fromBase64Url = (value: string) => {
     const padded = value.replaceAll('-', '+').replaceAll('_', '/');
@@ -118,6 +125,12 @@ const handle = (raw: string) => {
         return;
     }
 
+    if (seen.has(link.id)) {
+        return;
+    }
+
+    seen.add(link.id);
+
     // A locked wallet cannot sign, so the request waits for the dashboard rather than failing.
     if (getVault() === undefined) {
         pending.push(link);
@@ -138,8 +151,25 @@ export const flushDeepLinks = () => {
     }
 };
 
+/**
+ * The installer claims the scheme — the NSIS and MSI bundles on Windows, the .desktop file on
+ * deb and rpm. A dev run and an AppImage have no installer, so the app claims it itself. The
+ * call is unsupported on Android, where the manifest declares the intent filter instead.
+ */
+const claimScheme = async () => {
+    try {
+        if (!(await isRegistered(scheme))) {
+            await register(scheme);
+        }
+    } catch {
+        // Either the platform has no registry to write to, or the scheme is already someone's.
+    }
+};
+
 export const startDeepLinks = () => {
     const run = async () => {
+        await claimScheme();
+
         await onOpenUrl((urls) => {
             for (const url of urls) {
                 handle(url);
