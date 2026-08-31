@@ -261,6 +261,14 @@ export const dappScript = (identity: DappIdentity) => `
     {
         isNuraWallet: true,
 
+        // A connect modal decides its 'MetaMask' button is usable by reading this flag off the
+        // injected provider. Without it the page falls back to a deep link that leads out of our
+        // own browser and nowhere. Only this one flag is set: wagmi rejects a provider that claims
+        // isMetaMask alongside isTrust, isRabby and friends, so the siblings stay off.
+        isMetaMask: true,
+
+        _metamask: { isUnlocked: function () { return Promise.resolve(true); } },
+
         chainId: chainId,
         networkVersion: String(parseInt(chainId, 16)),
         selectedAddress: null,
@@ -392,31 +400,51 @@ export const dappScript = (identity: DappIdentity) => `
     window.__nuraWalletReply = deliver;
     window.__nuraWalletEvent = receive;
 
+    // One uuid per entry, minted once: a modal keys its list on them and would otherwise grow a
+    // duplicate row every time the page asks providers to announce themselves again.
+    var announcements =
+    [
+        { uuid: newId(), name: IDENTITY.name, icon: IDENTITY.icon, rdns: IDENTITY.rdns },
+
+        // Inside the wallet's own browser there is no other wallet to reach, so the rows a dApp
+        // draws for the usual suspects all answer here rather than dead-ending on a deep link.
+        { uuid: newId(), name: 'MetaMask', icon: IDENTITY.icon, rdns: 'io.metamask' },
+        { uuid: newId(), name: 'Trust Wallet', icon: IDENTITY.icon, rdns: 'com.trustwallet.app' },
+        { uuid: newId(), name: 'Coinbase Wallet', icon: IDENTITY.icon, rdns: 'com.coinbase.wallet' }
+    ];
+
     var announce = function ()
     {
-        var detail = Object.freeze({
-            info: Object.freeze({ uuid: newId(), name: IDENTITY.name, icon: IDENTITY.icon, rdns: IDENTITY.rdns }),
-            provider: provider
-        });
+        for (var index = 0; index < announcements.length; index += 1)
+        {
+            var detail = Object.freeze({ info: Object.freeze(announcements[index]), provider: provider });
 
-        window.dispatchEvent(new CustomEvent('eip6963:announceProvider', { detail: detail }));
+            window.dispatchEvent(new CustomEvent('eip6963:announceProvider', { detail: detail }));
+        }
     };
 
     window.addEventListener('eip6963:requestProvider', announce);
 
     announce();
 
-    if (window.ethereum === undefined)
+    // Connectors written before EIP-6963 sniff for a named global instead of listening.
+    var expose = function (name)
     {
+        if (window[name] !== undefined) { return; }
+
         try
         {
-            Object.defineProperty(window, 'ethereum', { value: provider, writable: true, configurable: true, enumerable: true });
+            Object.defineProperty(window, name, { value: provider, writable: true, configurable: true, enumerable: true });
         }
         catch (ignored)
         {
-            window.ethereum = provider;
+            window[name] = provider;
         }
-    }
+    };
+
+    expose('ethereum');
+    expose('trustwallet');
+    expose('coinbaseWalletExtension');
 
     window.dispatchEvent(new Event('ethereum#initialized'));
 
