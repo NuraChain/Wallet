@@ -4,6 +4,7 @@
         "dev": "vite",
         "tauri": "tauri",
         "lint": "oxlint",
+        "test": "vitest run",
         "format": "oxfmt",
         "lint:fix": "oxlint --fix",
         "build": "tsc && vite build",
@@ -50,6 +51,7 @@
         "oxlint": "^1.80.0",
         "tailwindcss": "^4.3.1",
         "typescript": "^6.0.3",
-        "vite": "^8.0.16"
+        "vite": "^8.0.16",
+        "vitest": "^4.1.11"
     }
 }

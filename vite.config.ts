@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react';
 import tailwind from '@tailwindcss/vite';
 
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import { readFileSync } from 'node:fs';
 
 const host = process.env.TAURI_DEV_HOST;
@@ -26,6 +26,12 @@ export default defineConfig(() => ({
         outDir: '../dist',
         emptyOutDir: true,
         chunkSizeWarningLimit: 1024
+    },
+
+    test: {
+        include: ['**/*.test.ts'],
+        environment: 'node',
+        restoreMocks: true
     },
 
     server: {
