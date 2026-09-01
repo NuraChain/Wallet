@@ -51,27 +51,6 @@ function BrowserShortcut({
     );
 }
 
-function BrowserCard({ item, onPick }: { item: BrowserFavorite; onPick: (url: string) => void }) {
-    return (
-        <Button
-            title={item.url}
-            variant='muted'
-            onClick={() => {
-                onPick(item.url);
-            }}
-            className='flex-col items-center gap-2 rounded-surface p-4'
-        >
-            <TokenIcon primary kind='unknown' src={getSiteIcon(item.url)} symbol={item.name} className='size-12 text-small' />
-
-            <Vertical className='w-full min-w-0 items-center'>
-                <Text variant='body' className='w-full truncate text-center' text={item.name} />
-
-                <Text dir='ltr' className='w-full truncate text-center font-mono' text={getSiteHost(item.url)} />
-            </Vertical>
-        </Button>
-    );
-}
-
 export default function DashboardBrowserStart({
     favorites,
     visits,
@@ -180,9 +159,17 @@ export default function DashboardBrowserStart({
                                 />
                             </Vertical>
                         ) : (
-                            <div className='grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5'>
+                            <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5'>
                                 {favorites.map((item) => (
-                                    <BrowserCard key={item.id} item={item} onPick={onOpen} />
+                                    <BrowserShortcut
+                                        key={item.id}
+                                        primary
+                                        url={item.url}
+                                        name={item.name}
+                                        title={item.url}
+                                        className='min-w-0'
+                                        onPick={onOpen}
+                                    />
                                 ))}
 
                                 <Button
@@ -191,11 +178,11 @@ export default function DashboardBrowserStart({
                                         setEditor(true);
                                     }}
                                     aria-label={T('Dashboard.Browser.FavoriteAdd')}
-                                    className='min-h-28 flex-col items-center justify-center gap-2 rounded-surface border-dashed p-4 text-txt-muted hover:text-txt-normal'
+                                    className='h-12 items-center justify-center gap-2 rounded-surface border-dashed px-2.5 text-txt-muted hover:text-txt-normal'
                                 >
-                                    <FiPlus size={20} className='shrink-0' />
+                                    <FiPlus size={16} className='shrink-0' />
 
-                                    <Text variant='inherit' className='w-full truncate text-center' text={T('Dashboard.Browser.FavoriteAdd')} />
+                                    <Text variant='inherit' className='min-w-0 truncate' text={T('Dashboard.Browser.FavoriteAdd')} />
                                 </Button>
                             </div>
                         ))}
