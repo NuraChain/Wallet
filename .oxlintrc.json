@@ -1,12 +1,6 @@
 {
     "$schema": "./node_modules/oxlint/configuration_schema.json",
-    "plugins": [
-        "typescript",
-        "unicorn",
-        "oxc",
-        "react",
-        "import"
-    ],
+    "plugins": ["typescript", "unicorn", "oxc", "react", "import"],
     "categories": {
         "correctness": "error",
         "suspicious": "error",
@@ -19,11 +13,7 @@
         "browser": true,
         "node": true
     },
-    "ignorePatterns": [
-        "dist/",
-        "src-tauri/",
-        "node_modules/"
-    ],
+    "ignorePatterns": ["dist/", "src-tauri/", "node_modules/"],
     "rules": {
         "new-cap": "off",
         "no-void": "off",
@@ -96,9 +86,7 @@
     },
     "overrides": [
         {
-            "files": [
-                "sdk/**"
-            ],
+            "files": ["sdk/**"],
             "rules": {
                 "func-names": "off",
                 "vars-on-top": "off",
