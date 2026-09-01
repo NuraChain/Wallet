@@ -168,6 +168,82 @@ jobs:
           if-no-files-found: error
           path: release-files
 
+  macos:
+    name: macos universal (.dmg)
+    needs: version
+    runs-on: macos-14
+    timeout-minutes: 60
+
+    env:
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      KEYCHAIN_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+    steps:
+      - name: Require a certificate for a tagged build
+        if: startsWith(github.ref, 'refs/tags/v') && env.APPLE_CERTIFICATE == ''
+        run: |
+          echo "::error::No APPLE_CERTIFICATE secret is set, so this release would ship a .dmg Gatekeeper refuses to open. Add APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD and APPLE_SIGNING_IDENTITY to the repository secrets, plus APPLE_ID, APPLE_PASSWORD and APPLE_TEAM_ID to notarize."
+          exit 1
+
+      - name: Warn when the bundle will be unsigned
+        if: env.APPLE_CERTIFICATE == ''
+        run: |
+          echo "::warning::No APPLE_CERTIFICATE secret is set, so this .dmg is neither signed nor notarized and Gatekeeper will refuse it until the user right-clicks Open. Add APPLE_CERTIFICATE, APPLE_CERTIFICATE_PASSWORD and APPLE_SIGNING_IDENTITY to sign, plus APPLE_ID, APPLE_PASSWORD and APPLE_TEAM_ID to notarize."
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # One bundle for both architectures: an Intel-only runner is the other way to reach x86_64 and
+      # GitHub is retiring those, so the lipo'd binary is the one that keeps working.
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          workspaces: src-tauri
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run tauri build -- --target universal-apple-darwin
+
+      - name: Stage the installers
+        shell: bash
+        run: |
+          mkdir -p release-files
+          BUNDLE=src-tauri/target/universal-apple-darwin/release/bundle
+
+          stage() {
+            local name=$1
+            shift
+            if [ -e "$1" ]; then
+              cp "$1" "release-files/$name"
+            else
+              echo "::warning::Nothing matched for $name, so it will be missing from this release."
+            fi
+          }
+
+          stage "Nura-Wallet-macOS-universal.dmg" "$BUNDLE"/dmg/*.dmg
+          ls -l release-files
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: macos
+          if-no-files-found: error
+          path: release-files
+
   android:
     name: android (.apk)
     needs: version
@@ -287,9 +363,95 @@ jobs:
           if-no-files-found: error
           path: release-files
 
+  ios:
+    name: ios (.ipa)
+    needs: version
+    runs-on: macos-14
+    timeout-minutes: 90
+
+    env:
+      APPLE_DEVELOPMENT_TEAM: ${{ secrets.APPLE_DEVELOPMENT_TEAM }}
+      IOS_CERTIFICATE: ${{ secrets.IOS_CERTIFICATE }}
+      IOS_CERTIFICATE_PASSWORD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+      IOS_MOBILE_PROVISION: ${{ secrets.IOS_MOBILE_PROVISION }}
+
+    steps:
+      - name: Require an Apple team for a tagged build
+        if: startsWith(github.ref, 'refs/tags/v') && env.APPLE_DEVELOPMENT_TEAM == ''
+        run: |
+          echo "::error::No APPLE_DEVELOPMENT_TEAM secret is set, so this release would carry no .ipa. Add APPLE_DEVELOPMENT_TEAM, IOS_CERTIFICATE, IOS_CERTIFICATE_PASSWORD and IOS_MOBILE_PROVISION to the repository secrets."
+          exit 1
+
+      # Xcode enforces code signing on iOS, so the team is needed to write the project at all, not
+      # only to sign the result: without it there is nothing an untagged run can usefully do. It
+      # says so and stands down rather than failing a build the other four platforms are passing.
+      - name: Look for an Apple team
+        id: apple
+        run: |
+          if [ -z "$APPLE_DEVELOPMENT_TEAM" ]; then
+            echo "::warning::No APPLE_DEVELOPMENT_TEAM secret is set. Xcode enforces code signing for iOS, so the project cannot even be generated without a team and this release will carry no .ipa. Add APPLE_DEVELOPMENT_TEAM, IOS_CERTIFICATE, IOS_CERTIFICATE_PASSWORD and IOS_MOBILE_PROVISION to the repository secrets."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        if: steps.apple.outputs.ready == 'true'
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        if: steps.apple.outputs.ready == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c
+        if: steps.apple.outputs.ready == 'true'
+        with:
+          targets: aarch64-apple-ios
+
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        if: steps.apple.outputs.ready == 'true'
+        with:
+          workspaces: src-tauri
+
+      - name: Install dependencies
+        if: steps.apple.outputs.ready == 'true'
+        run: npm ci
+
+      # gen/apple is not in the tree, the same way gen/android's generated half is not.
+      - name: Restore generated iOS scaffolding
+        if: steps.apple.outputs.ready == 'true'
+        run: npm run tauri ios init
+
+      - name: Build the IPA
+        if: steps.apple.outputs.ready == 'true'
+        run: npm run tauri ios build
+
+      - name: Collect the IPA
+        if: steps.apple.outputs.ready == 'true'
+        run: |
+          mkdir -p release-files
+          IPA=$(find src-tauri/gen/apple -name '*.ipa' -type f | head -1)
+
+          if [ -z "$IPA" ]; then
+            echo "::error::The build produced no .ipa. Check that IOS_CERTIFICATE and IOS_MOBILE_PROVISION match the team in APPLE_DEVELOPMENT_TEAM, and that the provisioning profile covers io.nurawallet.ios."
+            exit 1
+          fi
+
+          cp "$IPA" "release-files/Nura-Wallet-iOS-arm64.ipa"
+          ls -l release-files
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: steps.apple.outputs.ready == 'true'
+        with:
+          name: ios
+          if-no-files-found: error
+          path: release-files
+
   release:
     name: Attach to the release
-    needs: [ windows, linux, android ]
+    needs: [ windows, linux, macos, android, ios ]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     if: startsWith(github.ref, 'refs/tags/v')
@@ -308,8 +470,8 @@ jobs:
           COUNT=$(find artifacts -type f | wc -l)
           echo "$COUNT files staged for the release."
 
-          if [ "$COUNT" -ne 12 ]; then
-            echo "::warning::Expected 12 assets (1 Windows, 6 Linux, 5 Android) but found $COUNT. Check the staging warnings in the build jobs above."
+          if [ "$COUNT" -ne 14 ]; then
+            echo "::warning::Expected 14 assets (1 Windows, 6 Linux, 1 macOS, 5 Android, 1 iOS) but found $COUNT. Check the staging warnings in the build jobs above; an iOS build with no Apple team configured stands down and accounts for exactly one of them."
           fi
 
       - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228
