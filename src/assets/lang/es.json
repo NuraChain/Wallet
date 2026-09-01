@@ -272,15 +272,7 @@
             "Connected": "Sitios conectados",
             "ConnectedCount": "%s pueden ver tu cuenta",
             "ConnectedNote": "Los sitios conectados pueden leer tu dirección y pedirte que firmes. Nunca pueden mover fondos sin tu aprobación.",
-            "ConnectedClear": "Desconectar todo",
-            "Link": "WalletConnect",
-            "LinkNote": "Pega un enlace de WalletConnect para conectar esta cartera con un sitio o una aplicación. La sesión se muestra para su aprobación antes de compartir nada.",
-            "LinkPlaceholder": "wc:…",
-            "LinkPaste": "Pegar",
-            "LinkPair": "Conectar",
-            "LinkEnd": "Cerrar sesión",
-            "LinkOff": "Esta versión no lleva un id de proyecto de WalletConnect, así que el emparejamiento está desactivado.",
-            "LinkPasteFailed": "No se pudo leer nada del portapapeles."
+            "ConnectedClear": "Desconectar todo"
         },
         "Request": {
             "Connect": "Solicitud de conexión",

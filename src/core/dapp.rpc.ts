@@ -31,11 +31,6 @@ export interface DappPrompt {
 
     summary: string;
 
-    // What the dApp calls itself. A page is known by its origin and nothing else, but a
-    // WalletConnect proposal introduces itself by name, and the person deserves to see the name
-    // they were shown on the other screen.
-    name?: string;
-
     transaction?: { to: string; value: string; data: string; fee: string };
 
     chain?: { name: string; id: number; rpc: string };
@@ -84,8 +79,6 @@ let toldChain = 0;
 
 let watchAsset: ((address: string) => Promise<boolean>) | undefined;
 
-let pairSession: ((uri: string) => Promise<void>) | undefined;
-
 export const setDappAccount = (address: string, index: number) => {
     activeAddress = address;
     activeAccount = index;
@@ -97,40 +90,11 @@ export const setDappWatchAsset = (handler: (address: string) => Promise<boolean>
     watchAsset = handler;
 };
 
-/**
- * A page inside the browser can hand the wallet a WalletConnect pairing rather than a dead `wc:`
- * link. Pairing on its own grants nothing: the session proposal that follows is still shown for
- * approval, with the proposing dApp's own name and URL on it.
- */
-export const setDappWalletConnect = (handler: (uri: string) => Promise<void>) => {
-    pairSession = handler;
-};
-
 const chainHex = (id: number) => `0x${id.toString(16)}`;
 
 const promptListeners = new Set<() => void>();
 
 const changeListeners = new Set<() => void>();
-
-export interface DappMove {
-    account: boolean;
-    chain: boolean;
-}
-
-const sinks = new Set<(address: string, chainId: number, moved: DappMove) => void>();
-
-/**
- * Everything the wallet reaches that is not a page in the browser — a WalletConnect session, say —
- * learns about a new account or network here. Pages are told directly by broadcast() below; a sink
- * is told the same thing and decides for itself how its own transport carries the news.
- */
-export const onDappBroadcast = (sink: (address: string, chainId: number, moved: DappMove) => void) => {
-    sinks.add(sink);
-
-    return () => {
-        sinks.delete(sink);
-    };
-};
 
 export const subscribeDappChange = (listener: () => void) => {
     changeListeners.add(listener);
@@ -205,12 +169,6 @@ const ask = async (detail: Omit<DappPrompt, 'id'>) =>
         announcePrompts();
     });
 
-/**
- * Raises the same prompt a page raises, for a caller that wants the answer rather than an
- * exception — a WalletConnect proposal is refused by replying to the relay, not by throwing.
- */
-export const askDappPrompt = async (detail: Omit<DappPrompt, 'id'>) => ask(detail);
-
 const approve = async (detail: Omit<DappPrompt, 'id'>) => {
     const allowed = await ask(detail);
 
@@ -278,8 +236,8 @@ const signerFor = () => {
     return new ethers.Wallet(vaultManager(vault, activeAccount).retrieve().Private, getProvider());
 };
 
-const requireGrant = (origin: string, carried: boolean) => {
-    if (!carried && !isConnected(origin)) {
+const requireGrant = (origin: string) => {
+    if (!isConnected(origin)) {
         throw failure(dappError.unauthorized, 'Connect to Nura Wallet before calling this method');
     }
 
@@ -543,18 +501,13 @@ const broadcast = () => {
             emitDappEvent(page.label, 'accountsChanged', [activeAddress]);
         }
     }
-
-    for (const sink of sinks) {
-        sink(activeAddress, chain, { account: accountMoved, chain: chainMoved });
-    }
 };
 
 /**
  * Moves the wallet onto a chain a caller asked for, prompting first. Answers whether the wallet
- * ended up there; a chain it has never heard of is left to the caller to report, since a page and
- * a session have different ways of saying no.
+ * ended up there; a chain it has never heard of is left to the caller to report.
  */
-export const ensureDappChain = async (chainId: number, origin: string) => {
+const ensureDappChain = async (chainId: number, origin: string) => {
     if (chainId === getNetwork().chainId) {
         return true;
     }
@@ -605,11 +558,7 @@ export const disconnectAllDapps = async () => {
 const route = async (envelope: DappEnvelope): Promise<unknown> => {
     const { method, params, origin } = envelope;
 
-    // A WalletConnect session was approved once, as a session; it does not also have to appear in
-    // the browser's per-origin list, which belongs to pages the person opened here.
-    const carried = envelope.granted === true;
-
-    const connected = (carried || isConnected(origin)) && activeAddress.length > 0;
+    const connected = isConnected(origin) && activeAddress.length > 0;
 
     if (origin.length === 0) {
         throw failure(dappError.unauthorized, 'Nura Wallet does not serve this page');
@@ -662,7 +611,7 @@ const route = async (envelope: DappEnvelope): Promise<unknown> => {
         }
 
         case 'personal_sign': {
-            requireGrant(origin, carried);
+            requireGrant(origin);
 
             const [first, second] = params;
 
@@ -690,7 +639,7 @@ const route = async (envelope: DappEnvelope): Promise<unknown> => {
         case 'eth_signTypedData':
         case 'eth_signTypedData_v3':
         case 'eth_signTypedData_v4': {
-            requireGrant(origin, carried);
+            requireGrant(origin);
 
             const [first, second] = params;
 
@@ -711,7 +660,7 @@ const route = async (envelope: DappEnvelope): Promise<unknown> => {
         }
 
         case 'eth_sendTransaction': {
-            requireGrant(origin, carried);
+            requireGrant(origin);
 
             const request = transactionRequest(params[0]);
 
@@ -799,22 +748,6 @@ const route = async (envelope: DappEnvelope): Promise<unknown> => {
             await approve({ kind: 'asset', origin, summary: symbol.length > 0 ? symbol : address, asset: { address, symbol, decimals } });
 
             return watchAsset === undefined ? false : watchAsset(address);
-        }
-
-        case 'nura_walletConnect': {
-            const [uri] = params;
-
-            if (typeof uri !== 'string' || uri.length === 0) {
-                throw failure(dappError.invalidParams, 'Expected a WalletConnect URI');
-            }
-
-            if (pairSession === undefined) {
-                throw failure(dappError.unsupported, 'WalletConnect is not available in this build');
-            }
-
-            await pairSession(uri);
-
-            return null;
         }
 
         default: {

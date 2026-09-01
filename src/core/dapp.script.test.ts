@@ -29,22 +29,15 @@ interface Announcement {
 
 const address = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
 
-const pairing = 'wc:a09b8c7d6e5f4a3b@2?relay-protocol=irn&symKey=deadbeef';
-
 const boot = () => {
     const calls: { id: string; method: string; params: unknown[] }[] = [];
 
     const bus = new EventTarget();
 
-    const clicks: ((event: unknown) => void)[] = [];
-
     let accounts: string[] = [];
-
-    const opened = vi.fn(() => 'a window');
 
     const win: Record<string, unknown> = {
         crypto: globalThis.crypto,
-        open: opened,
 
         addEventListener: (name: string, handler: EventListener) => {
             bus.addEventListener(name, handler);
@@ -55,14 +48,6 @@ const boot = () => {
         },
 
         dispatchEvent: (event: Event) => bus.dispatchEvent(event)
-    };
-
-    const doc = {
-        addEventListener: (name: string, handler: (event: unknown) => void) => {
-            if (name === 'click') {
-                clicks.push(handler);
-            }
-        }
     };
 
     // The wallet, as far as the page can tell: the same answers dapp.rpc.ts gives, and nothing else.
@@ -89,10 +74,6 @@ const boot = () => {
             return { result: `0xsigned:${String(params[0])}` };
         }
 
-        if (method === 'nura_walletConnect') {
-            return { result: null };
-        }
-
         return { error: { code: 4200, message: `Nura Wallet does not support ${method}` } };
     };
 
@@ -117,9 +98,9 @@ const boot = () => {
     win.__nuraEthereum = bridge;
 
     // oxlint-disable-next-line no-new-func
-    const run = new Function('window', 'document', 'CustomEvent', 'Event', 'setTimeout', dappScript(dappIdentity(1020)));
+    const run = new Function('window', 'CustomEvent', 'Event', 'setTimeout', dappScript(dappIdentity(1020)));
 
-    run(win, doc, CustomEvent, Event, setTimeout);
+    run(win, CustomEvent, Event, setTimeout);
 
     // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const provider = win.ethereum as Provider;
@@ -131,21 +112,7 @@ const boot = () => {
         receive(JSON.stringify({ event, payload }));
     };
 
-    const click = (href: string, nested = false) => {
-        const anchor = { nodeType: 1, tagName: 'A', getAttribute: (name: string) => (name === 'href' ? href : null), parentNode: null };
-
-        const node = nested ? { nodeType: 1, tagName: 'SPAN', getAttribute: () => null, parentNode: anchor } : anchor;
-
-        const event = { composedPath: () => [node], target: node, preventDefault: vi.fn(), stopPropagation: vi.fn() };
-
-        for (const handler of clicks) {
-            handler(event);
-        }
-
-        return event;
-    };
-
-    return { win, provider, calls, notify, click, opened, bus };
+    return { win, provider, calls, notify, bus };
 };
 
 describe('the injected provider', () => {
@@ -310,59 +277,5 @@ describe('the injected provider', () => {
         fire(new CustomEvent('eip6963:requestProvider'));
 
         expect(new Set(announced.map((item) => item.info.uuid)).size).toBe(ids.size);
-    });
-});
-
-describe('WalletConnect links inside a page', () => {
-    it('carries a pairing the page tried to open in a window', async () => {
-        const { calls, win, opened } = boot();
-
-        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const open = win.open as (target: string) => unknown;
-
-        expect(open(pairing)).toBeNull();
-
-        await Promise.resolve();
-
-        expect(calls.at(-1)).toMatchObject({ method: 'nura_walletConnect', params: [pairing] });
-        expect(opened).not.toHaveBeenCalled();
-    });
-
-    it('leaves an ordinary window alone', () => {
-        const { calls, win, opened } = boot();
-
-        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        const open = win.open as (target: string) => unknown;
-
-        expect(open('https://pancakeswap.finance')).toBe('a window');
-
-        expect(calls).toHaveLength(0);
-        expect(opened).toHaveBeenCalledWith('https://pancakeswap.finance');
-    });
-
-    it('carries a pairing the page offered as a link', () => {
-        const { calls, click } = boot();
-
-        const event = click(pairing);
-
-        expect(calls.at(-1)).toMatchObject({ method: 'nura_walletConnect', params: [pairing] });
-        expect(event.preventDefault).toHaveBeenCalled();
-    });
-
-    it('finds the link a click landed inside', () => {
-        const { calls, click } = boot();
-
-        click(pairing, true);
-
-        expect(calls.at(-1)).toMatchObject({ method: 'nura_walletConnect' });
-    });
-
-    it('leaves an ordinary link alone', () => {
-        const { calls, click } = boot();
-
-        const event = click('https://nurachain.net');
-
-        expect(calls).toHaveLength(0);
-        expect(event.preventDefault).not.toHaveBeenCalled();
     });
 });

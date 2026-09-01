@@ -28,8 +28,8 @@ struct DappRequest {
     payload: String,
 }
 
-/// A link the page tried to open that this webview cannot load itself — a `wc:` pairing, a wallet
-/// scheme, an app link. The page's own navigation is cancelled and the wallet is offered the URL.
+/// A link the page tried to open that this webview cannot load itself — a wallet scheme, an app
+/// link. The page's own navigation is cancelled and the wallet is offered the URL.
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct DappLink {
@@ -200,8 +200,8 @@ pub async fn browser_open<R: Runtime>(
             }
 
             // Nothing in this webview can open a foreign scheme, and letting the navigation run
-            // leaves the page on a dead end. The wallet is given the URL instead: a WalletConnect
-            // pairing is one it knows what to do with, and the rest is dropped there.
+            // leaves the page on a dead end. The wallet is given the URL instead, and decides for
+            // itself whether it has any use for it.
             let _ = carrier.emit_to(
                 WALLET_LABEL,
                 "nura://dapp-link",

@@ -17,8 +17,6 @@ import { RouteFallback } from '../layout/root';
 import { loadConnections } from '../core/dapp';
 import { forgetDappPages, startDappBridge } from '../core/dapp.bridge';
 import { flushDeepLinks } from '../core/deeplink';
-import { pairWalletConnect, startWalletConnect } from '../core/walletconnect';
-import { carriesWalletConnect } from '../core/walletconnect.uri';
 import { lockSession, useVault } from '../core/session';
 import { answerDapp, rejectDappPrompts, setDappAccount, setDappWatchAsset, subscribeDappChange, syncDappState, useDappPrompt } from '../core/dapp.rpc';
 import { vaultAddress, vaultDerivable, type Vault } from '../core/vault';
@@ -259,22 +257,12 @@ function DashboardView({ vault }: { vault: Vault }) {
     useEffect(() => {
         void loadConnections();
 
-        const stop = startDappBridge(answerDapp, (url) => {
-            // A link the page's webview refused to load. A WalletConnect pairing is the one kind
-            // the wallet can do something with; everything else is dropped where it was caught.
-            if (carriesWalletConnect(url)) {
-                void pairWalletConnect(url).catch(() => undefined);
-            }
-        });
-
-        const stopLinking = startWalletConnect();
+        const stop = startDappBridge(answerDapp);
 
         flushDeepLinks();
 
         return () => {
             stop();
-
-            stopLinking();
 
             rejectDappPrompts();
 

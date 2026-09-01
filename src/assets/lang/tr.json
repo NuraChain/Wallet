@@ -272,15 +272,7 @@
             "Connected": "Bağlı siteler",
             "ConnectedCount": "%s site hesabınızı görebiliyor",
             "ConnectedNote": "Bağlı siteler adresinizi okuyabilir ve imza isteyebilir. Onayınız olmadan hiçbir zaman varlık gönderemezler.",
-            "ConnectedClear": "Tümünün bağlantısını kes",
-            "Link": "WalletConnect",
-            "LinkNote": "Bu cüzdanı bir siteye ya da uygulamaya bağlamak için WalletConnect bağlantısını yapıştırın. Hiçbir şey paylaşılmadan önce oturum onayınıza sunulur.",
-            "LinkPlaceholder": "wc:…",
-            "LinkPaste": "Yapıştır",
-            "LinkPair": "Bağlan",
-            "LinkEnd": "Oturumu bitir",
-            "LinkOff": "Bu sürümde WalletConnect proje id'si yok, bu yüzden eşleştirme kapalı.",
-            "LinkPasteFailed": "Panodan hiçbir şey okunamadı."
+            "ConnectedClear": "Tümünün bağlantısını kes"
         },
         "Request": {
             "Connect": "Bağlantı isteği",

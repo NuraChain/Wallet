@@ -88,9 +88,9 @@ describe('what a page may put in an envelope', () => {
 
         await settled();
 
-        // Only the wallet's own session handler may set that flag; an envelope built from a page's
-        // request carries the fields the bridge writes, and nothing the page slipped in.
-        expect(seen[0].granted).toBeUndefined();
+        // An envelope is built field by field from the request: it carries what the bridge writes,
+        // and nothing the page slipped in alongside it.
+        expect('granted' in seen[0]).toBe(false);
 
         stop();
     });
@@ -168,9 +168,9 @@ describe('links a page cannot open itself', () => {
             }
         );
 
-        window.__nuraDappLink?.('wc:topic@2?relay-protocol=irn&symKey=beef');
+        window.__nuraDappLink?.('tg://resolve?domain=example');
 
-        expect(links).toEqual(['wc:topic@2?relay-protocol=irn&symKey=beef']);
+        expect(links).toEqual(['tg://resolve?domain=example']);
 
         stop();
 

@@ -272,15 +272,7 @@
             "Connected": "Connected sites",
             "ConnectedCount": "%s allowed to see your account",
             "ConnectedNote": "Connected sites can read your address and ask you to sign. They can never move funds without your approval.",
-            "ConnectedClear": "Disconnect all",
-            "Link": "WalletConnect",
-            "LinkNote": "Paste a WalletConnect link to connect this wallet to a site or an app. The session is shown for approval before anything is shared.",
-            "LinkPlaceholder": "wc:…",
-            "LinkPaste": "Paste",
-            "LinkPair": "Connect",
-            "LinkEnd": "End session",
-            "LinkOff": "This build carries no WalletConnect project id, so pairing is switched off.",
-            "LinkPasteFailed": "Nothing could be read from the clipboard."
+            "ConnectedClear": "Disconnect all"
         },
         "Request": {
             "Connect": "Connection request",

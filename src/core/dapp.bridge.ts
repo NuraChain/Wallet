@@ -84,8 +84,8 @@ const readEnvelope = (raw: unknown, label: string, origin: string): DappEnvelope
     return { id, label, origin: siteOrigin(origin), method, params: list };
 };
 
-// A link is logged by its scheme alone. A pairing carries its session key in the query string, and
-// that key is the one thing between the wallet and the dApp that has to stay unread.
+// A link is logged by its scheme alone: what a foreign scheme carries in its query string is the
+// page's business, and the log has no use for it.
 const linkScheme = (url: string) => url.slice(0, Math.max(0, url.indexOf(':')));
 
 export const startDappBridge = (handler: (envelope: DappEnvelope) => Promise<DappReply>, onLink?: DappLinkHandler) => {

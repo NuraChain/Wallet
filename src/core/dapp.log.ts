@@ -8,7 +8,7 @@
  * line of defence rather than the first — call sites pass identifiers, not payloads.
  */
 
-type DappScope = 'Provider' | 'Bridge' | 'Wallet' | 'WalletConnect';
+type DappScope = 'Provider' | 'Bridge' | 'Wallet';
 
 const flag = 'nura.debug.dapp';
 

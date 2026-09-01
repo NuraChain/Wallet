@@ -21,7 +21,6 @@ import { getConnections } from '../../core/dapp';
 import { forgetDappPage } from '../../core/dapp.bridge';
 import { disconnectAllDapps } from '../../core/dapp.rpc';
 import { dappIdentity, dappScript } from '../../core/dapp.script';
-import { disconnectWalletConnect, pairWalletConnect, useWalletConnectSessions, walletConnectConfigured } from '../../core/walletconnect';
 import {
     addBrowserVisit,
     atBrowserStart,
@@ -87,8 +86,6 @@ export default function DashboardBrowser({
 
     const [live, setLive] = useState<Map<number, BrowserState>>(new Map());
     const [notice, setNotice] = useState<Map<number, string>>(new Map());
-
-    const linked = useWalletConnectSessions();
 
     const tab = tabs.find((item) => item.id === active) ?? tabs[0];
 
@@ -312,23 +309,6 @@ export default function DashboardBrowser({
         void run();
     };
 
-    const onPair = async (uri: string) => {
-        try {
-            await pairWalletConnect(uri);
-        } catch (cause) {
-            return cause instanceof Error ? cause.message : String(cause);
-        }
-
-        // The proposal that follows is a dialog of its own, and this sheet would sit on top of it.
-        setSettings(false);
-
-        return '';
-    };
-
-    const onEndSession = (topic: string) => {
-        void disconnectWalletConnect(topic);
-    };
-
     const onFavorites = (next: BrowserFavorite[]) => {
         setFavorites(next);
 
@@ -482,14 +462,10 @@ export default function DashboardBrowser({
                         blocked={icons.blocked}
                         iconBytes={icons.bytes}
                         connections={connections}
-                        linkReady={walletConnectConfigured()}
-                        sessions={linked}
                         onView={onView}
                         onClear={onClear}
                         onClearCache={onClearCache}
                         onDisconnect={onDisconnect}
-                        onPair={onPair}
-                        onEndSession={onEndSession}
                         onClose={() => {
                             setSettings(false);
                         }}

@@ -5,8 +5,8 @@ import type { DappEnvelope } from './dapp';
 
 /**
  * The router as a dApp meets it: every request that reaches the wallet — from a page in the
- * browser, from a WalletConnect session, from a deep link — is answered here, so this is where the
- * chain id, the account, the approvals and the refusals are pinned down.
+ * browser, from a deep link — is answered here, so this is where the chain id, the account, the
+ * approvals and the refusals are pinned down.
  *
  * The Tauri plugins are stood in for: the store keeps values in memory and the HTTP client answers
  * the one read method the tests proxy, so nothing here touches disk or the network.
@@ -48,7 +48,7 @@ const { clearConnections, grantConnection } = await import('./dapp');
 const { getNetwork, setNetwork } = await import('./network');
 const { lockSession, unlockSession } = await import('./session');
 
-const { answerDapp, getDappAccount, getDappPrompt, rejectDappPrompts, resolveDappPrompt, setDappAccount, setDappWalletConnect } = await import('./dapp.rpc');
+const { answerDapp, getDappAccount, getDappPrompt, rejectDappPrompts, resolveDappPrompt, setDappAccount } = await import('./dapp.rpc');
 
 const wallet = ethers.Wallet.createRandom();
 
@@ -337,42 +337,5 @@ describe('reads and everything else', () => {
         const reply = await answerDapp(call('eth_getFilterChanges', []));
 
         expect(reply.error?.code).toBe(4200);
-    });
-
-    it('hands a WalletConnect pairing to the client', async () => {
-        const paired: string[] = [];
-
-        setDappWalletConnect(async (uri: string) => {
-            paired.push(uri);
-        });
-
-        const uri = 'wc:abc@2?relay-protocol=irn&symKey=beef';
-
-        const reply = await answerDapp(call('nura_walletConnect', [uri]));
-
-        expect(reply.error).toBeUndefined();
-        expect(paired).toEqual([uri]);
-    });
-
-    it('turns down a pairing that is not a string', async () => {
-        const reply = await answerDapp(call('nura_walletConnect', [42]));
-
-        expect(reply.error?.code).toBe(-32602);
-    });
-});
-
-describe('a WalletConnect session carries its own approval', () => {
-    it('signs for a session origin that is not in the browser list', async () => {
-        const envelope = call('personal_sign', ['0x68690a', wallet.address], { origin: 'https://relayed.example', granted: true, label: 'walletconnect:abc' });
-
-        const { reply } = await asked(envelope, true);
-
-        expect(ethers.verifyMessage(ethers.getBytes('0x68690a'), String(reply.result))).toBe(wallet.address);
-    });
-
-    it('still shows the account only to a session that has one', async () => {
-        const envelope = call('eth_accounts', [], { origin: 'https://relayed.example', granted: true });
-
-        await expect(answerDapp(envelope)).resolves.toEqual({ id: 'test-1', result: [wallet.address] });
     });
 });

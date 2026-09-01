@@ -272,15 +272,7 @@
             "Connected": "Sites conectados",
             "ConnectedCount": "%s podem ver sua conta",
             "ConnectedNote": "Sites conectados podem ler seu endereço e pedir que você assine. Nunca podem mover fundos sem sua aprovação.",
-            "ConnectedClear": "Desconectar tudo",
-            "Link": "WalletConnect",
-            "LinkNote": "Cole um link do WalletConnect para ligar esta carteira a um site ou aplicativo. A sessão é mostrada para aprovação antes de qualquer partilha.",
-            "LinkPlaceholder": "wc:…",
-            "LinkPaste": "Colar",
-            "LinkPair": "Conectar",
-            "LinkEnd": "Encerrar sessão",
-            "LinkOff": "Esta versão não traz um id de projeto do WalletConnect, então o emparelhamento está desligado.",
-            "LinkPasteFailed": "Nada pôde ser lido da área de transferência."
+            "ConnectedClear": "Desconectar tudo"
         },
         "Request": {
             "Connect": "Pedido de conexão",
