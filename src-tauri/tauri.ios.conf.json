@@ -1,0 +1,78 @@
+{
+    "$schema": "https://schema.tauri.app/config/2",
+    "identifier": "io.nurawallet.ios",
+    "app": {
+        "withGlobalTauri": false,
+        "windows": [
+            {
+                "label": "main",
+                "title": "Nura Wallet"
+            }
+        ],
+        "security": {
+            "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: data: https:; connect-src ipc: http://ipc.localhost https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:*; font-src 'self' data:",
+            "capabilities": [
+                {
+                    "identifier": "main-capability",
+                    "windows": [
+                        "main"
+                    ],
+                    "permissions": [
+                        "core:event:allow-listen",
+                        "core:event:allow-unlisten",
+                        "core:webview:allow-get-all-webviews",
+                        "store:allow-delete",
+                        "store:allow-load",
+                        "store:allow-save",
+                        "store:allow-get",
+                        "store:allow-set",
+                        "os:allow-hostname",
+                        "os:allow-platform",
+                        "os:allow-os-type",
+                        "os:allow-version",
+                        "os:allow-family",
+                        "os:allow-locale",
+                        "os:allow-arch",
+                        {
+                            "identifier": "http:default",
+                            "allow": [
+                                {
+                                    "url": "https://*"
+                                },
+                                {
+                                    "url": "http://*"
+                                }
+                            ]
+                        },
+                        "deep-link:default",
+                        {
+                            "identifier": "opener:allow-open-url",
+                            "allow": [
+                                {
+                                    "url": "https://*"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    },
+    "plugins": {
+        "deep-link": {
+            "mobile": [
+                {
+                    "scheme": [
+                        "nurawallet"
+                    ]
+                }
+            ]
+        }
+    },
+    "bundle": {
+        "active": true,
+        "iOS": {
+            "minimumSystemVersion": "13.0"
+        }
+    }
+}
