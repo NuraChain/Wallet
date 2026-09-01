@@ -442,7 +442,9 @@ export const dappScript = (identity: DappIdentity) => `
         // draws for the usual suspects all answer here rather than dead-ending on a deep link.
         { uuid: newId(), name: 'MetaMask', icon: IDENTITY.icon, rdns: 'io.metamask' },
         { uuid: newId(), name: 'Trust Wallet', icon: IDENTITY.icon, rdns: 'com.trustwallet.app' },
-        { uuid: newId(), name: 'Coinbase Wallet', icon: IDENTITY.icon, rdns: 'com.coinbase.wallet' }
+        { uuid: newId(), name: 'Coinbase Wallet', icon: IDENTITY.icon, rdns: 'com.coinbase.wallet' },
+        { uuid: newId(), name: 'Binance Wallet', icon: IDENTITY.icon, rdns: 'com.binance.wallet' },
+        { uuid: newId(), name: 'OKX Wallet', icon: IDENTITY.icon, rdns: 'com.okex.wallet' }
     ];
 
     var announce = function ()
@@ -460,23 +462,33 @@ export const dappScript = (identity: DappIdentity) => `
     announce();
 
     // Connectors written before EIP-6963 sniff for a named global instead of listening.
-    var expose = function (name)
+    var expose = function (name, held)
     {
         if (window[name] !== undefined) { return; }
 
+        var value = held === undefined ? provider : held;
+
         try
         {
-            Object.defineProperty(window, name, { value: provider, writable: true, configurable: true, enumerable: true });
+            Object.defineProperty(window, name, { value: value, writable: true, configurable: true, enumerable: true });
         }
         catch (ignored)
         {
-            window[name] = provider;
+            window[name] = value;
         }
     };
 
     expose('ethereum');
     expose('trustwallet');
     expose('coinbaseWalletExtension');
+    expose('okxwallet');
+
+    // Binance's button runs its own SDK, which never looks at window.ethereum: it reads the
+    // provider off the object its in-app browser installs, and otherwise waits forever on a phone
+    // that is meant to confirm. So it gets an object of that shape. The old window.BinanceChain
+    // global stays unset on purpose — a page that finds it signs through bnbSign() and reads the
+    // missing method as a refusal rather than falling back to personal_sign.
+    expose('binancew3w', { ethereum: provider });
 
     window.dispatchEvent(new Event('ethereum#initialized'));
 
