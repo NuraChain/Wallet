@@ -1,6 +1,7 @@
 import type { IconType } from 'react-icons';
 
 import { useNavigate } from 'react-router';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { motion, AnimatePresence } from 'motion/react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiArrowDownLeft, FiArrowUpRight, FiLogOut } from 'react-icons/fi';
@@ -24,6 +25,7 @@ import { usePrices } from '../hook/price';
 import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
+import { useIsIos } from '../hook/platform';
 import { getDirection, T } from '../utility/language';
 import {
     discoverTokens,
@@ -89,10 +91,28 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const derivable = vaultDerivable(vault);
 
+    const isIos = useIsIos();
+
+    // iOS has neither the desktop multiwebview nor Android's Kotlin bridge, so there is no second
+    // native webview to give the browser tab. It is left out of the tab set rather than shipped as
+    // a panel that cannot load a page; everything below indexes into this, not into navMap.
+    const tabMap = useMemo(() => (isIos ? navMap.filter((item) => item.key !== 'Browser') : navMap), [isIos]);
+
     const goTab = useCallback((index: number) => {
         setActive(index);
         setNavHidden(false);
     }, []);
+
+    const goKey = useCallback(
+        (key: string) => {
+            const index = tabMap.findIndex((item) => item.key === key);
+
+            if (index !== -1) {
+                goTab(index);
+            }
+        },
+        [goTab, tabMap]
+    );
 
     const closeModal = useCallback(() => {
         setModal('none');
@@ -105,7 +125,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const tracked = useMemo(() => tokenMap[network.chainId] ?? [], [tokenMap, network.chainId]);
 
-    const barHidden = navHidden || navMap[active].key === 'Browser';
+    const barHidden = navHidden || tabMap[active].key === 'Browser';
 
     const online = useOnline();
 
@@ -335,30 +355,30 @@ function DashboardView({ vault }: { vault: Vault }) {
             key: 'Wallet',
             label: T('Dashboard.Nav.Wallet'),
             icon: HiOutlineWallet,
-            active: navMap[active].key === 'Wallet',
+            active: tabMap[active].key === 'Wallet',
             onClick: () => {
-                goTab(0);
+                goKey('Wallet');
             }
         },
         {
             key: 'Browser',
             label: T('Dashboard.Nav.Browser'),
             icon: HiOutlineGlobeAlt,
-            active: navMap[active].key === 'Browser',
+            active: tabMap[active].key === 'Browser',
             onClick: () => {
-                goTab(1);
+                goKey('Browser');
             }
         },
         {
             key: 'Settings',
             label: T('Dashboard.Settings.Title'),
             icon: HiOutlineCog6Tooth,
-            active: navMap[active].key === 'Settings',
+            active: tabMap[active].key === 'Settings',
             onClick: () => {
-                goTab(2);
+                goKey('Settings');
             }
         }
-    ];
+    ].filter((item) => tabMap.some((tab) => tab.key === item.key));
 
     const onRemoveAccount = (index: number) => {
         const next = accounts.filter((item) => item.index !== index);
@@ -397,11 +417,19 @@ function DashboardView({ vault }: { vault: Vault }) {
     };
 
     const onBrowse = (url: string) => {
+        // Nothing on iOS can render the page in-app, so the link is handed to Safari rather than
+        // dropped. The wallet is no longer the provider for it, which an explorer link never needed.
+        if (isIos) {
+            void openUrl(url).catch(() => undefined);
+
+            return;
+        }
+
         setLink((value) => ({ url, ticket: value.ticket + 1 }));
 
         setModal('none');
 
-        goTab(navMap.findIndex((item) => item.key === 'Browser'));
+        goKey('Browser');
     };
 
     const onTransaction = (hash: string) => {
@@ -541,7 +569,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                         className='flex size-full transition-transform duration-(--duration-surface) ease-out'
                         style={{ transform: `translateX(${getDirection() === 'rtl' ? active * 100 : active * -100}%)` }}
                     >
-                        {navMap.map((item, index) => (
+                        {tabMap.map((item, index) => (
                             <div key={item.key} className='size-full shrink-0'>
                                 {item.key === 'Browser' ? (
                                     <PageContainer
@@ -559,7 +587,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                 ticket={link.ticket}
                                                 enabled={index === active && modal === 'none' && prompt === undefined}
                                                 onExit={() => {
-                                                    goTab(0);
+                                                    goKey('Wallet');
                                                 }}
                                             />
                                         </Suspense>
@@ -628,7 +656,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                             setModal('tokens');
                                                         }}
                                                         onSettings={() => {
-                                                            goTab(2);
+                                                            goKey('Settings');
                                                         }}
                                                         onTransaction={onTransaction}
                                                         onOverview={() => {
@@ -646,7 +674,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 </div>
             </div>
 
-            <DashboardNav items={navMap.slice(0, 2)} active={active} hidden={barHidden} onSelect={goTab} />
+            <DashboardNav items={tabMap.filter((item) => item.key !== 'Settings')} active={active} hidden={barHidden} onSelect={goTab} />
         </motion.div>
     );
 }

@@ -1,5 +1,7 @@
 import { BaseDirectory, mkdir, writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
 
+import { getPlatform } from '../utility/platform';
+
 interface AndroidBridge {
     saveImage: (base64Png: string, name: string) => string;
     saveText: (text: string, name: string) => string;
@@ -47,11 +49,21 @@ const desktopExporter: Exporter = {
     }
 };
 
+/**
+ * iOS has no ExportBridge of its own yet, and the fs plugin is a desktop-only dependency, so there
+ * is nothing on that platform that could write the file. It says so in the same word the Android
+ * bridge uses when the write is refused, and the phrase stays on screen to be copied by hand.
+ */
+const unsupportedExporter: Exporter = {
+    saveImage: async () => 'unsupported',
+    saveText: async () => 'unsupported'
+};
+
 export const getExporter = (): Exporter => {
     const bridge = window.__nuraExport;
 
     if (bridge === undefined) {
-        return desktopExporter;
+        return getPlatform() === 'ios' ? unsupportedExporter : desktopExporter;
     }
 
     return {
