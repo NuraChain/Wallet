@@ -1,11 +1,18 @@
 <resources>
 
-    <style name="Theme" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Base.Theme" parent="Theme.AppCompat.DayNight.NoActionBar">
 
         <!-- Painted before the WebView has anything on screen; without it the launch frame is white. -->
         <item name="android:windowBackground">@color/WindowBackground</item>
 
-        <!-- The web content draws edge to edge, so the bars must not paint a background of their own. -->
+    </style>
+
+    <!-- The system paints the starting window from this theme before the activity exists, so the bars
+         have to be told this early not to paint a background of their own: `enableEdgeToEdge()` in
+         MainActivity only takes over once `onCreate` runs. Android 15 deprecated all three and ignores
+         them outright, which is why values-v35 takes the base theme and leaves them unset. -->
+    <style name="Theme" parent="Base.Theme">
+
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>

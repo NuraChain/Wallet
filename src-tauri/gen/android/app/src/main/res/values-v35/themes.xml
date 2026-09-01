@@ -1,0 +1,9 @@
+<resources>
+
+    <!-- Android 15 and up lay the window out edge to edge on their own and ignore the three system-bar
+         attributes values/themes.xml sets for older releases. Leaving them unset here is the whole
+         point of this file: deprecated attributes stay out of the build on the versions that dropped
+         them, while API 24 to 34 keeps the behaviour it still needs. -->
+    <style name="Theme" parent="Base.Theme" />
+
+</resources>
