@@ -167,7 +167,22 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         applyScript(id, view)
 
         view.webViewClient = object : WebViewClient() {
-            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = !isWeb(request.url.scheme)
+            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                if (isWeb(request.url.scheme)) {
+                    return false
+                }
+
+                // A scheme this WebView cannot load is a link meant for a wallet app: a
+                // WalletConnect pairing, or another wallet's deep link. The page's navigation is
+                // dropped and the wallet is offered the URL, which knows what a pairing is.
+                val literal = JSONObject.quote(request.url.toString())
+
+                host.post {
+                    host.evaluateJavascript("window.__nuraDappLink && window.__nuraDappLink($literal)", null)
+                }
+
+                return true
+            }
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
                 if (dappScript.isNotEmpty() && !WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {

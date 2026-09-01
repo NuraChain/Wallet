@@ -7,6 +7,7 @@ interface ImportMetaEnv {
     readonly PROD: boolean;
     readonly MODE: string;
     readonly VITE_COVALENT_KEY?: string;
+    readonly VITE_WALLETCONNECT_PROJECT_ID?: string;
 }
 
 interface ImportMeta {

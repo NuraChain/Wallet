@@ -6,6 +6,12 @@ export interface DappEnvelope {
     origin: string;
     method: string;
     params: unknown[];
+
+    // A caller that carries its own approval — a WalletConnect session the person accepted, whose
+    // grant lives in the session itself rather than in the browser's per-origin list. Only the
+    // wallet's own session handler may set it; a page's envelope is built field by field from the
+    // request it sent, and never through this flag.
+    granted?: boolean;
 }
 
 export interface DappFailure {

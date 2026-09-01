@@ -272,7 +272,15 @@
             "Connected": "已连接的网站",
             "ConnectedCount": "%s 个网站可以看到你的账户",
             "ConnectedNote": "已连接的网站可以读取你的地址并请求签名。未经你批准，它们无法转移任何资金。",
-            "ConnectedClear": "全部断开"
+            "ConnectedClear": "全部断开",
+            "Link": "WalletConnect",
+            "LinkNote": "粘贴 WalletConnect 链接，即可将此钱包连接到网站或应用。在共享任何内容之前，会先显示会话供你批准。",
+            "LinkPlaceholder": "wc:…",
+            "LinkPaste": "粘贴",
+            "LinkPair": "连接",
+            "LinkEnd": "结束会话",
+            "LinkOff": "此版本没有 WalletConnect 项目 id，因此配对已关闭。",
+            "LinkPasteFailed": "无法从剪贴板读取内容。"
         },
         "Request": {
             "Connect": "连接请求",

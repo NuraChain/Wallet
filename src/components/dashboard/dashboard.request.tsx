@@ -89,6 +89,10 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
 
     const rows = rowMap();
 
+    // A page is known by its origin. A WalletConnect proposal also carries the name the dApp gave
+    // itself on the other screen, and matching the two is how a person tells them apart.
+    const name = prompt.name ?? '';
+
     const payload = prompt.kind === 'signature' || prompt.kind === 'typed' ? prompt.summary : '';
 
     const endpoint = prompt.kind === 'chain' ? (prompt.chain?.rpc ?? '') : '';
@@ -102,7 +106,11 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
                     <FiGlobe size={16} />
                 </IconBox>
 
-                <Text variant='captionStrong' dir='ltr' className='min-w-0 truncate font-mono' text={prompt.origin} />
+                <Vertical className='min-w-0 gap-0.5'>
+                    {name.length > 0 && <Text variant='body' className='truncate' text={name} />}
+
+                    <Text variant='captionStrong' dir='ltr' className='min-w-0 truncate font-mono' text={prompt.origin} />
+                </Vertical>
             </Panel>
 
             <Alert

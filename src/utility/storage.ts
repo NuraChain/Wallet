@@ -23,7 +23,8 @@ type StorageKey =
     | 'Browser.View'
     | 'Browser.History'
     | 'Browser.Favorites'
-    | 'Browser.Connections';
+    | 'Browser.Connections'
+    | 'Browser.WalletConnect';
 
 const storage = await load('application.bin');
 

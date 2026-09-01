@@ -28,6 +28,19 @@ struct DappRequest {
     payload: String,
 }
 
+/// A link the page tried to open that this webview cannot load itself — a `wc:` pairing, a wallet
+/// scheme, an app link. The page's own navigation is cancelled and the wallet is offered the URL.
+#[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct DappLink {
+    label: String,
+    url: String,
+}
+
+fn is_page_scheme(scheme: &str) -> bool {
+    matches!(scheme, "http" | "https" | "about" | "blob" | "data" | "javascript")
+}
+
 fn is_page(label: &str) -> bool {
     label.starts_with(BROWSER_PREFIX)
 }
@@ -175,9 +188,31 @@ pub async fn browser_open<R: Runtime>(
         .get_window(WALLET_LABEL)
         .ok_or_else(|| "the wallet window is gone".to_string())?;
 
+    let carrier = app.clone();
+    let carried = label.clone();
+
     let builder = tauri::webview::WebviewBuilder::new(&label, tauri::WebviewUrl::External(target))
         .user_agent(user_agent.as_str())
         .initialization_script(script.as_str())
+        .on_navigation(move |url| {
+            if is_page_scheme(url.scheme()) {
+                return true;
+            }
+
+            // Nothing in this webview can open a foreign scheme, and letting the navigation run
+            // leaves the page on a dead end. The wallet is given the URL instead: a WalletConnect
+            // pairing is one it knows what to do with, and the rest is dropped there.
+            let _ = carrier.emit_to(
+                WALLET_LABEL,
+                "nura://dapp-link",
+                DappLink {
+                    label: carried.clone(),
+                    url: url.to_string(),
+                },
+            );
+
+            false
+        })
         .focused(false);
 
     window

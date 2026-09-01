@@ -3,8 +3,16 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 
 import { getVault } from './session';
 import { answerDapp } from './dapp.rpc';
+import { pairWalletConnect } from './walletconnect';
+import { carriesWalletConnect } from './walletconnect.uri';
 
 /**
+ * nurawallet://wc?uri=<wc URI>  — and a bare `wc:` link the system hands over
+ *
+ * A WalletConnect pairing offered by another app, by a QR reader, or by a dApp that lists this
+ * wallet. It goes straight to the WalletConnect client, which shows the session proposal for
+ * approval; the link on its own grants nothing.
+ *
  * nurawallet://dapp?request=<base64url(JSON)>
  *
  * JSON: { id: string, method: string, params?: unknown[], callback: 'https://…' }
@@ -26,6 +34,8 @@ interface ParsedLink {
 const scheme = 'nurawallet';
 
 const pending: ParsedLink[] = [];
+
+const pendingPairings: string[] = [];
 
 // Windows and Linux hand the launch URL over as a command line argument, so the same request
 // arrives once from getCurrent() and again through onOpenUrl(). Answering it twice would raise
@@ -118,7 +128,26 @@ const respond = async (link: ParsedLink) => {
     }
 };
 
+const pair = (raw: string) => {
+    // A pairing is only worth anything to an unlocked wallet: the proposal names the account it
+    // would connect. A locked one keeps the link until the dashboard is up, exactly as a signing
+    // request waits.
+    if (getVault() === undefined) {
+        pendingPairings.push(raw);
+
+        return;
+    }
+
+    void pairWalletConnect(raw).catch(() => undefined);
+};
+
 const handle = (raw: string) => {
+    if (carriesWalletConnect(raw)) {
+        pair(raw);
+
+        return;
+    }
+
     const link = parse(raw);
 
     if (link === undefined) {
@@ -147,6 +176,14 @@ export const flushDeepLinks = () => {
 
         if (link !== undefined && getVault() !== undefined) {
             void respond(link);
+        }
+    }
+
+    while (pendingPairings.length > 0) {
+        const uri = pendingPairings.shift();
+
+        if (uri !== undefined && getVault() !== undefined) {
+            void pairWalletConnect(uri).catch(() => undefined);
         }
     }
 };

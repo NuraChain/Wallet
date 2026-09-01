@@ -490,6 +490,52 @@ export const dappScript = (identity: DappIdentity) => `
     // missing method as a refusal rather than falling back to personal_sign.
     expose('binancew3w', { ethereum: provider });
 
+    // A page that offers WalletConnect hands out a wc: link and waits for a wallet app to open it.
+    // In here there is no app to hand it to and the link goes nowhere, so it travels to the wallet
+    // in the same envelope every other request uses and is approved on the wallet's own screen.
+    var pairing = function (value)
+    {
+        if (typeof value !== 'string') { return false; }
+
+        var text = value.trim();
+        var lower = text.toLowerCase();
+
+        if (lower.slice(0, 3) !== 'wc:' && lower.indexOf('uri=wc:') === -1 && lower.indexOf('uri=wc%3a') === -1) { return false; }
+
+        send('nura_walletConnect', [text]).catch(function () {  });
+
+        return true;
+    };
+
+    document.addEventListener('click', function (event)
+    {
+        var path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+
+        var node = path.length > 0 ? path[0] : event.target;
+
+        while (node !== null && node !== undefined && node.nodeType === 1)
+        {
+            if (node.tagName === 'A' && pairing(node.getAttribute('href')))
+            {
+                event.preventDefault();
+                event.stopPropagation();
+
+                return;
+            }
+
+            node = node.parentNode;
+        }
+    }, true);
+
+    var opened = window.open;
+
+    window.open = function (target)
+    {
+        if (pairing(target)) { return null; }
+
+        return opened.apply(window, arguments);
+    };
+
     window.dispatchEvent(new Event('ethereum#initialized'));
 
     setTimeout(function ()
