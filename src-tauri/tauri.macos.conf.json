@@ -1,0 +1,111 @@
+{
+    "$schema": "https://schema.tauri.app/config/2",
+    "identifier": "io.nurawallet.macos",
+    "app": {
+        "withGlobalTauri": false,
+        "windows": [
+            {
+                "label": "main",
+                "title": "Nura Wallet",
+                "decorations": true,
+                "resizable": true,
+                "center": true,
+                "height": 640,
+                "width": 360
+            }
+        ],
+        "security": {
+            "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: data: https:; connect-src ipc: http://ipc.localhost https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:*; font-src 'self' data:",
+            "capabilities": [
+                {
+                    "identifier": "main-capability",
+                    "windows": [
+                        "main"
+                    ],
+                    "permissions": [
+                        "core:event:allow-listen",
+                        "core:event:allow-unlisten",
+                        "core:webview:allow-create-webview",
+                        "core:webview:allow-webview-close",
+                        "core:webview:allow-webview-hide",
+                        "core:webview:allow-webview-show",
+                        "core:webview:allow-set-webview-position",
+                        "core:webview:allow-set-webview-size",
+                        "core:webview:allow-get-all-webviews",
+                        "store:allow-delete",
+                        "store:allow-load",
+                        "store:allow-save",
+                        "store:allow-get",
+                        "store:allow-set",
+                        "os:allow-hostname",
+                        "os:allow-platform",
+                        "os:allow-os-type",
+                        "os:allow-version",
+                        "os:allow-family",
+                        "os:allow-locale",
+                        "os:allow-arch",
+                        {
+                            "identifier": "http:default",
+                            "allow": [
+                                {
+                                    "url": "https://*"
+                                },
+                                {
+                                    "url": "http://*"
+                                }
+                            ]
+                        },
+                        "fs:allow-mkdir",
+                        "fs:allow-write-file",
+                        "fs:allow-write-text-file",
+                        "fs:allow-picture-write-recursive",
+                        "fs:allow-download-write-recursive",
+                        "allow-browser-open",
+                        "allow-dapp-respond",
+                        "allow-dapp-emit",
+                        "deep-link:default",
+                        {
+                            "identifier": "opener:allow-open-url",
+                            "allow": [
+                                {
+                                    "url": "https://*"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "identifier": "browser-capability",
+                    "description": "The one thing a visited website may ask the wallet: to make a provider request. Everything a page can do with the wallet arrives through this command and is decided in the frontend against the origin Rust stamped on it.",
+                    "webviews": [
+                        "nura-browser-*"
+                    ],
+                    "local": false,
+                    "remote": {
+                        "urls": [
+                            "https://*",
+                            "http://*"
+                        ]
+                    },
+                    "permissions": [
+                        "allow-dapp-request"
+                    ]
+                }
+            ]
+        }
+    },
+    "bundle": {
+        "active": true,
+        "targets": [
+            "app",
+            "dmg"
+        ],
+        "icon": [
+            "icons/icon.icns",
+            "icons/icon.png"
+        ],
+        "macOS": {
+            "minimumSystemVersion": "10.15"
+        }
+    }
+}
