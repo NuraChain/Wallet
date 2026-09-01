@@ -117,6 +117,10 @@ android {
             }
 
             isMinifyEnabled = true
+            // Drops the resources of the AndroidX and Material UI the WebView never inflates, which
+            // is most of what those libraries ship. Safe here because nothing resolves a resource by
+            // name at runtime: all that is left is reachable from the manifest or from the theme.
+            isShrinkResources = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }.plus(getDefaultProguardFile("proguard-android-optimize.txt"))
                     .toList().toTypedArray()
