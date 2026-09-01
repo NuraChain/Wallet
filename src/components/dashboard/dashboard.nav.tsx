@@ -48,7 +48,7 @@ export default function DashboardNav({
                         {isActive && (
                             <span
                                 aria-hidden
-                                className='absolute inset-1 rounded-full border border-txt-accent/15 hover:border-txt-accent/30 bg-txt-accent/8 hover:bg-txt-accent/16'
+                                className='absolute inset-1 rounded-full border border-txt-accent/15 bg-txt-accent/8 hover:border-txt-accent/30 hover:bg-txt-accent/16'
                             />
                         )}
 
