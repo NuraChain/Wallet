@@ -18,6 +18,8 @@
                         "main"
                     ],
                     "permissions": [
+                        "core:event:allow-listen",
+                        "core:event:allow-unlisten",
                         "core:webview:allow-create-webview",
                         "core:webview:allow-webview-close",
                         "core:webview:allow-webview-hide",
