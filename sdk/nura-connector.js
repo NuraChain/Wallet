@@ -131,11 +131,11 @@
         var channel = 'BroadcastChannel' in window ? new BroadcastChannel(CHANNEL) : undefined;
 
         if (channel !== undefined) {
-            channel.onmessage = function (event) {
+            channel.addEventListener('message', function (event) {
                 if (event.data && typeof event.data.id === 'string') {
                     settle(event.data);
                 }
-            };
+            });
         }
 
         window.addEventListener('storage', function (event) {
