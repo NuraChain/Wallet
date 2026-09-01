@@ -45,11 +45,16 @@ export default function DashboardNav({
                         }}
                         className='group relative flex h-14 min-w-24 shrink cursor-pointer items-center justify-center px-6 transition-colors duration-(--duration-fast)'
                     >
-                        {isActive && <span aria-hidden className='absolute inset-3 rounded-full bg-txt-accent/25 blur-md' />}
+                        {isActive && (
+                            <span
+                                aria-hidden
+                                className='absolute inset-1 rounded-full border border-txt-accent/15 hover:border-txt-accent/30 bg-txt-accent/8 hover:bg-txt-accent/16'
+                            />
+                        )}
 
                         <Vertical
                             className={cn(
-                                'items-center gap-1 transition-colors duration-(--duration-fast)',
+                                'relative items-center gap-1 transition-colors duration-(--duration-fast)',
                                 isActive ? 'text-txt-accent' : 'text-txt-muted group-hover:text-txt-normal'
                             )}
                         >
