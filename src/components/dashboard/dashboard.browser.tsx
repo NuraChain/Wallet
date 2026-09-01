@@ -393,18 +393,16 @@ export default function DashboardBrowser({
                         className='truncate ps-10 pe-10 text-tiny'
                         leading={<FiSearch size={16} className='pointer-events-none absolute inset-s-3 text-txt-muted' />}
                         trailing={
-                            current.length > 0 ? (
-                                <Button
-                                    size='icon'
-                                    aria-label={T('Dashboard.Browser.Reload')}
-                                    onClick={() => {
-                                        patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false }));
-                                    }}
-                                    className='absolute inset-e-1 cursor-pointer text-txt-muted hover:text-txt-normal'
-                                >
-                                    <FiRotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
-                                </Button>
-                            ) : undefined
+                            <Button
+                                size='icon'
+                                aria-label={T('Dashboard.Browser.Reload')}
+                                onClick={() => {
+                                    patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false }));
+                                }}
+                                className='absolute -inset-e-0.5 cursor-pointer text-txt-muted hover:text-txt-normal'
+                            >
+                                <FiRotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
+                            </Button>
                         }
                     />
                 </div>
