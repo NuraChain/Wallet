@@ -11,7 +11,7 @@
         "format:check": "oxfmt --check",
         "desktop": "npm run tauri dev",
         "desktop-build": "npm run tauri build",
-        "android": "node scripts/android.mjs",
+        "android": "npm run tauri android dev",
         "android-aab": "npm run tauri android build -- --aab",
         "android-apk": "npm run tauri android build -- --apk",
         "ios": "npm run tauri ios dev",
