@@ -1,3 +1,4 @@
+import { httpRequest } from './request';
 import { clearUnder, keysUnder, prune, readRaw, removeRaw, writeRaw } from './cache.store';
 
 export type ImageKind = 'network' | 'token' | 'nft' | 'unknown';
@@ -48,6 +49,19 @@ class Unreadable extends Error {
         this.name = 'Unreadable';
 
         this.reason = reason;
+    }
+}
+
+/**
+ * A refusal the same request would keep earning — a 404, a page where an icon was expected, a file
+ * past the ceiling the cache accepts. Retrying only spends the backoff, so these leave the attempt
+ * loop at once and take the short cooldown instead.
+ */
+class Refused extends Error {
+    public constructor(message: string) {
+        super(message);
+
+        this.name = 'Refused';
     }
 }
 
@@ -347,7 +361,10 @@ const download = async (url: string, known: CacheEntry | undefined) => {
         headers.set('If-Modified-Since', known.modified);
     }
 
-    const response = await fetch(url, { headers, redirect: 'follow' }).catch((cause: unknown) => {
+    // The webview would send this cross origin and be refused: a favicon is served without any
+    // Access-Control-Allow-Origin, so a fetch from the page's own origin never sees the bytes. The
+    // request goes through Rust instead, where CORS does not apply.
+    const response = await httpRequest(url, { headers, redirect: 'follow' }).catch((cause: unknown) => {
         throw new Unreadable(cause);
     });
 
@@ -356,6 +373,10 @@ const download = async (url: string, known: CacheEntry | undefined) => {
     }
 
     if (!response.ok) {
+        if (response.status >= 400 && response.status < 500) {
+            throw new Refused(`image responded ${response.status}`);
+        }
+
         throw new Error(`image responded ${response.status}`);
     }
 
@@ -363,17 +384,17 @@ const download = async (url: string, known: CacheEntry | undefined) => {
     const length = Number(response.headers.get('content-length') ?? '0');
 
     if (Number.isFinite(length) && length > maxFileBytes) {
-        throw new Error('image is larger than the cache accepts');
+        throw new Refused('image is larger than the cache accepts');
     }
 
     const buffer = await response.arrayBuffer();
 
     if (buffer.byteLength > maxFileBytes) {
-        throw new Error('image is larger than the cache accepts');
+        throw new Refused('image is larger than the cache accepts');
     }
 
     if (!accepts(declared, new Uint8Array(buffer.slice(0, 8)))) {
-        throw new Error('response is not an image');
+        throw new Refused('response is not an image');
     }
 
     return {
@@ -512,6 +533,12 @@ const fetchInto = async (url: string, kind: ImageKind, known: CacheEntry | undef
                     const settled = navigator.onLine && refusedBefore(kind, url);
 
                     blockUrl(kind, url, settled ? blockedCooldown : failureCooldown);
+
+                    return '';
+                }
+
+                if (cause instanceof Refused) {
+                    blockUrl(kind, url, failureCooldown);
 
                     return '';
                 }
