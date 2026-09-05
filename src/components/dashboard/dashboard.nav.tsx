@@ -26,7 +26,7 @@ export default function DashboardNav({
             transition={{ type: 'tween', duration: 0.25 }}
             className={cn(
                 'absolute inset-x-4 z-20 mx-auto flex w-fit max-w-full overflow-hidden rounded-full border border-line bg-base-2 shadow-float lg:hidden',
-                'bottom-[calc(1rem+env(safe-area-inset-bottom))]',
+                'bottom-[calc(1rem+var(--inset-bottom))]',
                 hidden && 'pointer-events-none'
             )}
         >

@@ -41,7 +41,8 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                     layer.dialog,
                     'absolute inset-x-0 top-0 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 shadow-float outline-none',
                     inset.sheetTop,
-                    'pb-4 sm:mx-auto sm:px-6 sm:pb-6'
+                    inset.edgeBottom,
+                    'sm:mx-auto sm:px-6'
                 )}
             >
                 <Button variant='muted' size='iconLarge' aria-label={T('App.Close')} onClick={onClose} className='mt-4 shrink-0'>

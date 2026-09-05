@@ -25,7 +25,12 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
     const isWindows = useIsWindows();
 
     return (
-        <Vertical className={cn('hidden w-60 shrink-0 gap-1 border-e border-line bg-base-2 p-3 pb-6 lg:flex', inset.tabTop[isWindows ? 'windows' : 'device'])}>
+        <Vertical
+            className={cn(
+                'hidden w-60 shrink-0 gap-1 border-e border-line bg-base-2 p-3 pb-[calc(1.5rem+var(--inset-bottom))] lg:flex',
+                inset.tabTop[isWindows ? 'windows' : 'device']
+            )}
+        >
             <Vertical className='items-center gap-2 px-3 py-5'>
                 <img src={Logo} alt={T('App.Name')} className='size-24' />
 
