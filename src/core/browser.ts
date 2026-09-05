@@ -1,6 +1,7 @@
 import { getValue, removeValue, setValue } from '../utility/storage';
 
 import { imageCache } from './image';
+import { clearSiteIcons } from './site.icon';
 
 export interface BrowserState {
     id?: string;
@@ -57,14 +58,6 @@ export const getSiteHost = (url: string) => {
     }
 };
 
-export const getSiteIcon = (url: string) => {
-    try {
-        return new URL('/favicon.ico', url).href;
-    } catch {
-        return '';
-    }
-};
-
 export const getBrowserView = async (): Promise<BrowserView> => {
     const stored = await getValue('Browser.View');
 
@@ -106,6 +99,8 @@ export const addBrowserVisit = async (url: string): Promise<BrowserVisit[]> => {
 
 export const clearBrowserHistory = async () => {
     await removeValue('Browser.History');
+
+    clearSiteIcons();
 
     await imageCache.clearKind('unknown');
 };

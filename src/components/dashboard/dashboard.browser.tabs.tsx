@@ -11,11 +11,11 @@ import Text from '../ui/text';
 import Button from '../ui/button';
 
 import { selectedTint } from '../ui/menu';
-import TokenIcon from '../token.icon';
+import SiteIcon from '../site.icon';
 
 import { cn } from '../../utility/cn';
 import { getDirection, getLanguage, T } from '../../utility/language';
-import { getSiteHost, getSiteIcon, type BrowserTab } from '../../core/browser';
+import { getSiteHost, type BrowserTab } from '../../core/browser';
 import { Horizontal } from '../ui/stack';
 
 import 'swiper/css';
@@ -105,9 +105,7 @@ export default function DashboardBrowserTabs({
                                         }}
                                         className='flex min-w-0 flex-1 cursor-pointer items-center gap-1.5'
                                     >
-                                        {url.length > 0 && (
-                                            <TokenIcon kind='unknown' src={getSiteIcon(url)} symbol={name.toUpperCase()} className='size-5 text-tiny' />
-                                        )}
+                                        {url.length > 0 && <SiteIcon url={url} symbol={name.toUpperCase()} className='size-5 text-tiny' />}
 
                                         <Text
                                             variant={item.id === active ? 'captionStrong' : 'caption'}

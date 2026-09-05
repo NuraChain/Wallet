@@ -5,13 +5,13 @@ import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import StatusBlock from '../ui/state';
-import TokenIcon from '../token.icon';
+import SiteIcon from '../site.icon';
 import SiteForm from '../site.form';
 import ScrollBar from '../ui/scrollbar';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
-import { getSiteHost, getSiteIcon, type BrowserFavorite, type BrowserVisit } from '../../core/browser';
+import { getSiteHost, type BrowserFavorite, type BrowserVisit } from '../../core/browser';
 import { Horizontal, Vertical } from '../ui/stack';
 
 type TabKey = 'favorite' | 'history';
@@ -44,7 +44,7 @@ function BrowserShortcut({
             }}
             className={cn('h-12 gap-2.5 rounded-surface px-2.5 text-start', className)}
         >
-            <TokenIcon kind='unknown' src={getSiteIcon(url)} symbol={symbol ?? name} primary={primary} className='size-8 text-tiny' />
+            <SiteIcon url={url} symbol={symbol ?? name} primary={primary} />
 
             <Text variant='body' dir={ltr ? 'ltr' : undefined} className='flex-1 truncate' text={name} />
         </Button>

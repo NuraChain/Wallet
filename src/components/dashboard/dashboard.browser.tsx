@@ -17,6 +17,7 @@ import { TextField } from '../ui/field';
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { imageCache } from '../../core/image';
+import { clearSiteIcons } from '../../core/site.icon';
 import { getConnections } from '../../core/dapp';
 import { forgetDappPage } from '../../core/dapp.bridge';
 import { disconnectAllDapps } from '../../core/dapp.rpc';
@@ -279,6 +280,8 @@ export default function DashboardBrowser({
 
     const onClearCache = () => {
         const run = async () => {
+            clearSiteIcons();
+
             await imageCache.clearKind('unknown');
 
             setIcons(await imageCache.getCacheSize('unknown'));
