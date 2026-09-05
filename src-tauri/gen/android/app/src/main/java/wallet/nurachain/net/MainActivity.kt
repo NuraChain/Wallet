@@ -19,8 +19,13 @@ class MainActivity : TauriActivity() {
 
   @SuppressLint("JavascriptInterface")
   override fun onWebViewCreate(webView: WebView) {
+    val insets = InsetBridge(webView)
+
     webView.addJavascriptInterface(BrowserBridge(this, webView), "__nuraBrowser")
     webView.addJavascriptInterface(ExportBridge(this), "__nuraExport")
+    webView.addJavascriptInterface(insets, "__nuraInset")
+
+    insets.track()
   }
 
   override fun onAttachedToWindow() {

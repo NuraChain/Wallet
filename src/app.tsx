@@ -5,6 +5,7 @@ import ErrorBoundary from './layout/boundary';
 
 import { router } from './router';
 import { initTheme } from './utility/theme';
+import { initInsets } from './utility/inset';
 import { startDeepLinks } from './core/deeplink';
 import { initNetwork } from './core/network';
 import { initLanguage } from './utility/language';
@@ -34,6 +35,8 @@ document.addEventListener('contextmenu', (event) => {
 });
 
 const startup = async () => {
+    initInsets();
+
     const results = await Promise.allSettled([initTheme(), initLanguage(), initNetwork()]);
 
     for (const result of results) {

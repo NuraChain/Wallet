@@ -222,6 +222,13 @@
     --duration-fast: 150ms;
     --duration-base: 200ms;
     --duration-surface: 300ms;
+
+    /* Every layout that reaches a screen edge measures from these, never from env() itself. Android's
+       WebView fills env(safe-area-inset-*) from a display cutout and from nothing else, so the status
+       and navigation bars the window is drawn behind under edge-to-edge never reach CSS; InsetBridge
+       overwrites both variables there with the window insets the system does hand the view. */
+    --inset-top: env(safe-area-inset-top);
+    --inset-bottom: env(safe-area-inset-bottom);
 }
 
 * {
