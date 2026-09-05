@@ -273,7 +273,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
-      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+      - uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
         with:
           distribution: temurin
           java-version: 17
@@ -474,7 +474,7 @@ jobs:
             echo "::warning::Expected 14 assets (1 Windows, 6 Linux, 1 macOS, 5 Android, 1 iOS) but found $COUNT. Check the staging warnings in the build jobs above; an iOS build with no Apple team configured stands down and accounts for exactly one of them."
           fi
 
-      - uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228
+      - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
         with:
           draft: true
           generate_release_notes: true
