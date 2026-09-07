@@ -1,4 +1,4 @@
-import { appVersion, manifestVersion } from './version';
+import { appVersion, manifestVersion } from './version.ts';
 
 export type Target = 'chrome' | 'firefox' | 'safari';
 

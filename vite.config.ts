@@ -5,7 +5,7 @@ import { defineConfig } from 'vitest/config';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { appVersion } from './extension/version';
+import { appVersion } from './extension/version.ts';
 
 const host = process.env.TAURI_DEV_HOST;
 

@@ -6,9 +6,9 @@ import tailwind from '@tailwindcss/vite';
 
 import { defineConfig, type EnvironmentOptions } from 'vite';
 
-import { emitTargets } from './extension/emit';
-import { appVersion } from './extension/version';
-import { inpageModule } from './extension/plugin.inpage';
+import { emitTargets } from './extension/emit.ts';
+import { appVersion } from './extension/version.ts';
+import { inpageModule } from './extension/plugin.inpage.ts';
 
 const icon = `data:image/png;base64,${readFileSync('src/assets/image/logo.png').toString('base64')}`;
 
