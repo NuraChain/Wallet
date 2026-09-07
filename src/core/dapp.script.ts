@@ -3,13 +3,17 @@ export interface DappIdentity {
     rdns: string;
     icon: string;
     chainId: string;
+
+    /** Which way back to the wallet the page has. Decided at build time, not sniffed. */
+    channel?: 'native' | 'extension';
 }
 
-export const dappIdentity = (chainId: number): DappIdentity => ({
+export const dappIdentity = (chainId: number, channel: 'native' | 'extension' = 'native'): DappIdentity => ({
     name: 'Nura Wallet',
     rdns: 'net.nurachain.wallet',
     icon: __APP_ICON__,
-    chainId: `0x${chainId.toString(16)}`
+    chainId: `0x${chainId.toString(16)}`,
+    channel
 });
 
 export const dappScript = (identity: DappIdentity) => `
@@ -185,6 +189,15 @@ export const dappScript = (identity: DappIdentity) => `
 
     var transport = function (body, id)
     {
+        if (IDENTITY.channel === 'extension')
+        {
+            // '/' rather than an origin string: it means "this window's own origin" and is the
+            // only form that works on a page with an opaque origin, such as a sandboxed frame.
+            window.postMessage({ __nura: 'request', payload: body }, '/');
+
+            return;
+        }
+
         var android = window.__nuraEthereum;
 
         if (android !== undefined && typeof android.request === 'function')
@@ -431,6 +444,22 @@ export const dappScript = (identity: DappIdentity) => `
     window.__nuraWallet = provider;
     window.__nuraWalletReply = deliver;
     window.__nuraWalletEvent = receive;
+
+    if (IDENTITY.channel === 'extension')
+    {
+        window.addEventListener('message', function (event)
+        {
+            if (event.source !== window || event.data === null || typeof event.data !== 'object') { return; }
+
+            if (event.data.__nura === 'reply') { deliver(event.data.payload); }
+            else if (event.data.__nura === 'event') { receive(event.data.payload); }
+        });
+
+        // Read from the isolated world, which cannot see window.__nuraWallet, to know the
+        // manifest already injected us and a second script tag would only be parsed and thrown
+        // away by the guard at the top of this file.
+        try { document.documentElement.setAttribute('data-nura-inpage', '1'); } catch (ignored) {  }
+    }
 
     // One uuid per entry, minted once: a modal keys its list on them and would otherwise grow a
     // duplicate row every time the page asks providers to announce themselves again.
