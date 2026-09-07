@@ -5,11 +5,11 @@ import { defineConfig } from 'vitest/config';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import { appVersion } from './extension/version';
+
 const host = process.env.TAURI_DEV_HOST;
 
 const icon = `data:image/png;base64,${readFileSync('src/assets/image/logo.png').toString('base64')}`;
-
-const version = /^version\s*=\s*"(?<semver>[^"]+)"/mu.exec(readFileSync('src-tauri/Cargo.toml', 'utf8'))?.groups?.semver ?? '0.0.0';
 
 export default defineConfig(() => ({
     root: 'src',
@@ -18,7 +18,7 @@ export default defineConfig(() => ({
 
     define: {
         __APP_ICON__: JSON.stringify(icon),
-        __APP_VERSION__: JSON.stringify(version)
+        __APP_VERSION__: JSON.stringify(appVersion)
     },
 
     // The build's half of the platform seam: which implementation "#platform-impl" resolves to

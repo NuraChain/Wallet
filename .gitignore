@@ -8,6 +8,7 @@ node_modules/
 target/
 Build/
 dist/
+dist-extension/
 
 src-tauri/gen/android/app/src/main/java/client/global_application/generated
 src-tauri/gen/android/app/src/main/jniLibs
