@@ -86,7 +86,11 @@ export const buildManifest = (target: Target) => ({
               browser_specific_settings: {
                   gecko: {
                       id: 'wallet@nurachain.net',
-                      strict_min_version: '115.0',
+
+                      // The true floor for the keys below: optional_host_permissions landed in
+                      // 128, and data_collection_permissions — which AMO now refuses a new
+                      // submission without — in 140 on desktop and 142 on Android.
+                      strict_min_version: '142.0',
 
                       // AMO has refused new submissions without this since November 2025. The
                       // wallet hands an address to third-party RPC and price endpoints to read a
