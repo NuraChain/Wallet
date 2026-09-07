@@ -1,6 +1,13 @@
 import { platform } from '../src/platform';
 
-import { providerChannel } from './message';
+import { loadConnections } from '../src/core/dapp';
+import { vaultAddress } from '../src/core/vault';
+import { initNetwork } from '../src/core/network';
+import { loadAccounts } from '../src/utility/account';
+import { startDappBridge } from '../src/core/dapp.bridge';
+import { getVault, restoreSession } from '../src/core/session';
+import { rejectDappPrompts, resolveDappPrompt } from '../src/core/dapp.prompt';
+import { answerDapp, setDappAccount, syncDappState } from '../src/core/dapp.rpc';
 
 /**
  * The worker is the only context that exists when a dApp calls — the popup is shut almost all of
@@ -9,6 +16,8 @@ import { providerChannel } from './message';
  */
 
 const lockAlarm = 'nura:lock';
+
+const windowKey = 'ApprovalWindow';
 
 /**
  * The default already is trusted-only, and Firefox and Safari have no other setting. Saying it
@@ -23,20 +32,70 @@ const holdTheSessionClosed = () => {
     }
 };
 
-chrome.runtime.onInstalled.addListener(() => {
+/**
+ * Everything the worker forgets when it is evicted.
+ *
+ * The account is the one that matters. It lives in a module variable in the RPC router, and a
+ * router that has forgotten it answers `eth_accounts` with nothing — so every connected site
+ * would be told it had been disconnected, about thirty seconds after the user stopped typing.
+ */
+const bootstrap = async () => {
     holdTheSessionClosed();
 
-    chrome.alarms.create(lockAlarm, { periodInMinutes: 1 });
+    await restoreSession();
+
+    await Promise.all([initNetwork(), loadConnections()]);
+
+    const vault = getVault();
+
+    if (vault === undefined) {
+        setDappAccount('', 0);
+
+        return;
+    }
+
+    const { active } = await loadAccounts();
+
+    setDappAccount(vaultAddress(vault, active), active);
+
+    syncDappState();
+};
+
+let ready: Promise<void> | undefined;
+
+const boot = async () => (ready ??= bootstrap());
+
+startDappBridge(async (envelope) => {
+    await boot();
+
+    return answerDapp(envelope);
 });
 
-chrome.runtime.onStartup.addListener(() => {
-    holdTheSessionClosed();
+// A window answering a prompt the worker is holding. Anything with a tab is a content script,
+// which has no business answering on the user's behalf.
+chrome.runtime.onMessage.addListener((message: { kind?: string; id?: string; approved?: boolean }, sender) => {
+    if (sender.id !== chrome.runtime.id || sender.tab !== undefined) {
+        return;
+    }
 
-    chrome.alarms.create(lockAlarm, { periodInMinutes: 1 });
+    if (message.kind === 'approval/answer' && typeof message.id === 'string' && typeof message.approved === 'boolean') {
+        void boot().then(() => {
+            resolveDappPrompt(message.id as string, message.approved as boolean);
+        });
+    }
+});
 
-    // A browser restart clears session storage on its own; this is belt and braces for the case
-    // where it did not, so the wallet never comes back up already open.
-    void platform.session.write(undefined);
+// Closing the window is a refusal, the same as pressing the button that says so.
+chrome.windows.onRemoved.addListener((closed) => {
+    void (async () => {
+        const held = await chrome.storage.session.get(windowKey);
+
+        if (held[windowKey] === closed) {
+            await chrome.storage.session.remove(windowKey);
+
+            rejectDappPrompts();
+        }
+    })();
 });
 
 // setTimeout does not survive an evicted worker, so the deadline is checked on an alarm instead.
@@ -47,16 +106,28 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     }
 });
 
-chrome.runtime.onConnect.addListener((port) => {
-    if (port.name !== providerChannel) {
-        return;
-    }
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.alarms.create(lockAlarm, { periodInMinutes: 1 });
 
-    // The origin is taken from the sender, which only the browser can write. A page saying who it
-    // is would be a page choosing which site's grants to spend.
-    const sender = port.sender;
+    void boot();
+});
 
-    if (sender?.id !== chrome.runtime.id || sender.tab?.id === undefined) {
-        port.disconnect();
+chrome.runtime.onStartup.addListener(() => {
+    chrome.alarms.create(lockAlarm, { periodInMinutes: 1 });
+
+    // A browser restart clears session storage on its own; this is belt and braces for the case
+    // where it did not, so the wallet never comes back up already open.
+    void platform.session.write(undefined);
+});
+
+// The vault went away — a deadline, or a lock in some other window. Every connected page is owed
+// the news, and the router has to stop answering with an address it no longer holds.
+platform.session.watch((vault) => {
+    if (vault === undefined) {
+        setDappAccount('', 0);
+
+        syncDappState();
     }
 });
+
+void boot();

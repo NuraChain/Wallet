@@ -133,7 +133,7 @@ describe('what a page may put in an envelope', () => {
         stop();
     });
 
-    it('drops a request that is not one', async () => {
+    it('answers a request that is not one rather than leaving the page waiting', async () => {
         const seen: DappEnvelope[] = [];
 
         const stop = startDappBridge(async (envelope): Promise<DappReply> => {
@@ -150,8 +150,20 @@ describe('what a page may put in an envelope', () => {
 
         await settled();
 
+        // Nothing malformed reaches the router.
         expect(seen).toHaveLength(0);
-        expect(replies).toHaveLength(0);
+
+        // The three that parsed as JSON but not as a call are each refused by name. The page has
+        // a promise open on every one of them, and silence would hang it for good; only the
+        // string that was not JSON at all is dropped, because nothing in it identifies a caller.
+        expect(replies).toHaveLength(3);
+
+        for (const reply of replies) {
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const parsed = JSON.parse(reply.payload) as DappReply;
+
+            expect(parsed.error?.code).toBe(-32600);
+        }
 
         stop();
     });

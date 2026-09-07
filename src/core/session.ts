@@ -1,5 +1,3 @@
-import { useSyncExternalStore } from 'react';
-
 import { platform } from '../platform';
 
 import type { Vault } from './vault';
@@ -48,15 +46,13 @@ export const touchSession = () => {
     void platform.session.touch();
 };
 
-const subscribe = (listener: () => void) => {
+export const subscribeVault = (listener: () => void) => {
     listeners.add(listener);
 
     return () => {
         listeners.delete(listener);
     };
 };
-
-export const useVault = () => useSyncExternalStore(subscribe, getVault, getVault);
 
 // Somewhere else changed it: a second window, or the worker locking on its deadline.
 platform.session.watch((vault) => {

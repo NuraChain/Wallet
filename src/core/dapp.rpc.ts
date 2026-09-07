@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
-import { useSyncExternalStore } from 'react';
 
 import { getVault } from './session';
+import { askDappPrompt, type DappPrompt } from './dapp.prompt';
 import { dappLog } from './dapp.log';
 import { vaultManager } from './vault';
 import { httpRequest } from './request';
@@ -22,21 +22,7 @@ import {
     type DappReply
 } from './dapp';
 
-export type DappPromptKind = 'connect' | 'signature' | 'typed' | 'transaction' | 'chain' | 'asset';
-
-export interface DappPrompt {
-    id: string;
-    kind: DappPromptKind;
-    origin: string;
-
-    summary: string;
-
-    transaction?: { to: string; value: string; data: string; fee: string };
-
-    chain?: { name: string; id: number; rpc: string };
-
-    asset?: { address: string; symbol: string; decimals: number };
-}
+export { getDappPrompt, rejectDappPrompts, resolveDappPrompt, type DappPrompt, type DappPromptKind } from './dapp.prompt';
 
 const readMethods = new Set([
     'eth_blobBaseFee',
@@ -92,8 +78,6 @@ export const setDappWatchAsset = (handler: (address: string) => Promise<boolean>
 
 const chainHex = (id: number) => `0x${id.toString(16)}`;
 
-const promptListeners = new Set<() => void>();
-
 const changeListeners = new Set<() => void>();
 
 export const subscribeDappChange = (listener: () => void) => {
@@ -110,67 +94,8 @@ const announceChange = () => {
     }
 };
 
-let prompts: DappPrompt[] = [];
-
-const waiting = new Map<string, (approved: boolean) => void>();
-
-const announcePrompts = () => {
-    for (const listener of promptListeners) {
-        listener();
-    }
-};
-
-const subscribePrompts = (listener: () => void) => {
-    promptListeners.add(listener);
-
-    return () => {
-        promptListeners.delete(listener);
-    };
-};
-
-export const getDappPrompt = () => prompts[0];
-
-export const useDappPrompt = () => useSyncExternalStore(subscribePrompts, getDappPrompt, getDappPrompt);
-
-const settle = (id: string, approved: boolean) => {
-    const release = waiting.get(id);
-
-    if (release === undefined) {
-        return;
-    }
-
-    waiting.delete(id);
-
-    prompts = prompts.filter((item) => item.id !== id);
-
-    announcePrompts();
-
-    release(approved);
-};
-
-export const resolveDappPrompt = (id: string, approved: boolean) => {
-    settle(id, approved);
-};
-
-export const rejectDappPrompts = () => {
-    for (const id of [...waiting.keys()]) {
-        settle(id, false);
-    }
-};
-
-const ask = async (detail: Omit<DappPrompt, 'id'>) =>
-    new Promise<boolean>((resolve) => {
-        const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
-
-        waiting.set(id, resolve);
-
-        prompts = [...prompts, { ...detail, id }];
-
-        announcePrompts();
-    });
-
 const approve = async (detail: Omit<DappPrompt, 'id'>) => {
-    const allowed = await ask(detail);
+    const allowed = await askDappPrompt(detail);
 
     if (!allowed) {
         throw failure(dappError.rejected, 'The user rejected the request');
