@@ -1,7 +1,7 @@
 import type { IconType } from 'react-icons';
 
 import { useNavigate } from 'react-router';
-import { openUrl } from '@tauri-apps/plugin-opener';
+import { platform } from '../platform';
 import { motion, AnimatePresence } from 'motion/react';
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiArrowDownLeft, FiArrowUpRight, FiLogOut } from 'react-icons/fi';
@@ -420,7 +420,7 @@ function DashboardView({ vault }: { vault: Vault }) {
         // Nothing on iOS can render the page in-app, so the link is handed to Safari rather than
         // dropped. The wallet is no longer the provider for it, which an explorer link never needed.
         if (isIos) {
-            void openUrl(url).catch(() => undefined);
+            void platform.openUrl(url).catch(() => undefined);
 
             return;
         }

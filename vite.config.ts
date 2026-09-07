@@ -3,6 +3,7 @@ import tailwind from '@tailwindcss/vite';
 
 import { defineConfig } from 'vitest/config';
 import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -18,6 +19,14 @@ export default defineConfig(() => ({
     define: {
         __APP_ICON__: JSON.stringify(icon),
         __APP_VERSION__: JSON.stringify(version)
+    },
+
+    // The build's half of the platform seam: which implementation "#platform-impl" resolves to
+    // is what decides whether this bundle carries Tauri or a browser extension underneath it.
+    resolve: {
+        alias: {
+            '#platform-impl': fileURLToPath(new URL('src/platform/tauri.ts', import.meta.url))
+        }
     },
 
     plugins: [react(), tailwind()],

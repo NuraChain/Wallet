@@ -18,7 +18,11 @@
         "moduleResolution": "bundler",
         "useDefineForClassFields": true,
         "noFallthroughCasesInSwitch": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+
+        "paths": {
+            "#platform-impl": ["./src/platform/tauri.ts"]
+        }
     },
     "include": ["src", "vite.config.ts"],
     "exclude": ["dist", "src-tauri", "node_modules"]

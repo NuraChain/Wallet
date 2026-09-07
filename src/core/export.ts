@@ -1,76 +1,8 @@
-import { BaseDirectory, mkdir, writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
+import { platform, type PlatformExporter } from '../platform';
 
-import { getPlatform } from '../utility/platform';
+export type Exporter = PlatformExporter;
 
-interface AndroidBridge {
-    saveImage: (base64Png: string, name: string) => string;
-    saveText: (text: string, name: string) => string;
-}
-
-declare global {
-    interface Window {
-        __nuraExport?: AndroidBridge;
-    }
-}
-
-export interface Exporter {
-    saveImage: (base64Png: string, name: string) => Promise<string>;
-    saveText: (text: string, name: string) => Promise<string>;
-}
-
-const pictureFolder = 'Nura Wallet';
-
-const reason = (cause: unknown) => (cause instanceof Error && cause.message.length > 0 ? cause.message : 'failed');
-
-const desktopExporter: Exporter = {
-    saveImage: async (base64Png: string, name: string) => {
-        try {
-            const binary = atob(base64Png);
-            const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
-
-            await mkdir(pictureFolder, { baseDir: BaseDirectory.Picture, recursive: true });
-
-            await writeFile(`${pictureFolder}/${name}`, bytes, { baseDir: BaseDirectory.Picture });
-
-            return '';
-        } catch (cause) {
-            return reason(cause);
-        }
-    },
-
-    saveText: async (text: string, name: string) => {
-        try {
-            await writeTextFile(name, text, { baseDir: BaseDirectory.Download });
-
-            return '';
-        } catch (cause) {
-            return reason(cause);
-        }
-    }
-};
-
-/**
- * iOS has no ExportBridge of its own yet, and the fs plugin is a desktop-only dependency, so there
- * is nothing on that platform that could write the file. It says so in the same word the Android
- * bridge uses when the write is refused, and the phrase stays on screen to be copied by hand.
- */
-const unsupportedExporter: Exporter = {
-    saveImage: async () => 'unsupported',
-    saveText: async () => 'unsupported'
-};
-
-export const getExporter = (): Exporter => {
-    const bridge = window.__nuraExport;
-
-    if (bridge === undefined) {
-        return getPlatform() === 'ios' ? unsupportedExporter : desktopExporter;
-    }
-
-    return {
-        saveImage: async (base64Png: string, name: string) => bridge.saveImage(base64Png, name),
-        saveText: async (text: string, name: string) => bridge.saveText(text, name)
-    };
-};
+export const getExporter = (): Exporter => platform.exporter();
 
 export const phraseToPng = (words: string[], title: string, warning: string) => {
     const columns = 3;

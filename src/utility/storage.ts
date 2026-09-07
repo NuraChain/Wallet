@@ -1,5 +1,8 @@
 import { argon2id } from 'hash-wasm';
-import { load } from '@tauri-apps/plugin-store';
+
+import { platform } from '../platform';
+
+import type { StorageKey } from './storage.key';
 
 interface EncryptedPayload {
     salt: string;
@@ -8,24 +11,7 @@ interface EncryptedPayload {
     kdf?: 'argon2id';
 }
 
-type StorageKey =
-    | 'App.Language'
-    | 'App.Theme'
-    | 'App.Network'
-    | 'App.Networks'
-    | 'Wallet.Mnemonic'
-    | 'Wallet.Password'
-    | 'Wallet.Name'
-    | 'Wallet.Accounts'
-    | 'Wallet.Active'
-    | 'Wallet.Tokens'
-    | 'Wallet.TokensHidden'
-    | 'Browser.View'
-    | 'Browser.History'
-    | 'Browser.Favorites'
-    | 'Browser.Connections';
-
-const storage = await load('application.bin');
+export type { StorageKey };
 
 const deriveKeyArgon2id = async (passphrase: string, salt: Uint8Array<ArrayBuffer>) => {
     const bytes = await argon2id({ password: passphrase, salt, memorySize: 65536, iterations: 3, parallelism: 1, hashLength: 32, outputType: 'binary' });
@@ -33,25 +19,13 @@ const deriveKeyArgon2id = async (passphrase: string, salt: Uint8Array<ArrayBuffe
     return crypto.subtle.importKey('raw', new Uint8Array(bytes), 'AES-GCM', false, ['encrypt', 'decrypt']);
 };
 
-export const getValue = async (key: StorageKey) => storage.get<string>(key);
+export const getValue = async (key: StorageKey) => platform.storage.get(key);
 
-export const setValue = async (key: StorageKey, value: string) => {
-    await storage.set(key, value);
+export const setValue = async (key: StorageKey, value: string) => platform.storage.set(key, value);
 
-    await storage.save();
-};
+export const removeValue = async (key: StorageKey) => platform.storage.remove([key]);
 
-export const removeValue = async (key: StorageKey) => {
-    await storage.delete(key);
-
-    await storage.save();
-};
-
-export const removeValues = async (...keys: StorageKey[]) => {
-    await Promise.all(keys.map(async (key) => storage.delete(key)));
-
-    await storage.save();
-};
+export const removeValues = async (...keys: StorageKey[]) => platform.storage.remove(keys);
 
 export const setValueEncrypted = async (key: StorageKey, value: string, passphrase: string) => {
     const iv = crypto.getRandomValues(new Uint8Array(12));
