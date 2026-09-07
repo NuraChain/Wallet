@@ -7,6 +7,12 @@ import { getVault } from './core/session';
 import { getValue } from './utility/storage';
 
 const launchLoader = async () => {
+    // A session the platform kept for us: the wallet is already open, and the unlock screen would
+    // be asking for a passphrase it does not need.
+    if (getVault() !== undefined) {
+        return redirect('/dashboard');
+    }
+
     const [mnemonic, password] = await Promise.all([getValue('Wallet.Mnemonic').catch(() => undefined), getValue('Wallet.Password').catch(() => undefined)]);
 
     const stored = mnemonic !== undefined && mnemonic.length > 0 && password !== undefined && password.length > 0;

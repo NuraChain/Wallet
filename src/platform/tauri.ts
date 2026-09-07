@@ -5,7 +5,7 @@ import { openUrl as openExternal } from '@tauri-apps/plugin-opener';
 import { BaseDirectory, mkdir, writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
 
 import type { Host } from '../utility/platform.type';
-import type { Platform, PlatformExporter } from './type';
+import type { Platform, PlatformExporter, PlatformSession } from './type';
 
 interface AndroidBridge {
     saveImage: (base64Png: string, name: string) => string;
@@ -67,9 +67,23 @@ const unsupportedExporter: PlatformExporter = {
     saveText: async () => 'unsupported'
 };
 
+/**
+ * A Tauri window holds the unlocked vault in a module variable for as long as the process lives,
+ * which is exactly as long as the user can see the app. There is nothing here to keep, and
+ * nothing to expire it against.
+ */
+const inertSession: PlatformSession = {
+    read: async () => undefined,
+    write: async () => undefined,
+    watch: () => () => undefined,
+    touch: async () => undefined
+};
+
 let host: Host | undefined;
 
 export const platform: Platform = {
+    session: inertSession,
+
     storage: {
         get: async (key) => (await store()).get<string>(key),
 

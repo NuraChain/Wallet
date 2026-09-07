@@ -6,6 +6,7 @@ import ErrorBoundary from '../src/layout/boundary';
 import { router } from '../src/router';
 import { initTheme } from '../src/utility/theme';
 import { initNetwork } from '../src/core/network';
+import { restoreSession, touchSession } from '../src/core/session';
 import { initLanguage } from '../src/utility/language';
 
 import '../src/assets/style.css';
@@ -17,7 +18,7 @@ import '../src/assets/style.css';
  * the user's own shortcuts are not ours to take.
  */
 const startup = async () => {
-    const results = await Promise.allSettled([initTheme(), initLanguage(), initNetwork()]);
+    const results = await Promise.allSettled([restoreSession(), initTheme(), initLanguage(), initNetwork()]);
 
     for (const result of results) {
         if (result.status === 'rejected') {
@@ -31,6 +32,9 @@ const rootElement = document.querySelector('#root');
 
 if (rootElement) {
     await startup();
+
+    // Opening the wallet is the user saying they are still here.
+    touchSession();
 
     createRoot(rootElement).render(
         <ErrorBoundary>
