@@ -8,7 +8,7 @@ import { initTheme } from './utility/theme';
 import { initInsets } from './utility/inset';
 import { startDeepLinks } from './core/deeplink';
 import { initNetwork } from './core/network';
-import { initLanguage } from './utility/language';
+import { initLanguage, preloadLanguageFlags } from './utility/language';
 
 import './assets/style.css';
 
@@ -36,6 +36,8 @@ document.addEventListener('contextmenu', (event) => {
 
 const startup = async () => {
     initInsets();
+
+    void preloadLanguageFlags();
 
     const results = await Promise.allSettled([initTheme(), initLanguage(), initNetwork()]);
 

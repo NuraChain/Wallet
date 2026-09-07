@@ -7,7 +7,7 @@ import { router } from '../src/router';
 import { initTheme } from '../src/utility/theme';
 import { initNetwork } from '../src/core/network';
 import { restoreSession, touchSession } from '../src/core/session';
-import { initLanguage } from '../src/utility/language';
+import { initLanguage, preloadLanguageFlags } from '../src/utility/language';
 
 import '../src/assets/style.css';
 
@@ -18,6 +18,8 @@ import '../src/assets/style.css';
  * the user's own shortcuts are not ours to take.
  */
 const startup = async () => {
+    void preloadLanguageFlags();
+
     const results = await Promise.allSettled([restoreSession(), initTheme(), initLanguage(), initNetwork()]);
 
     for (const result of results) {

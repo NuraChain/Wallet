@@ -1,5 +1,3 @@
-import { preload } from 'react-dom';
-
 import { on, off, emit } from './event';
 import { setValue, getValue } from './storage';
 
@@ -32,9 +30,18 @@ export const languageRecord: { code: LanguageType; country: string; emoji: strin
     { code: 'tr', country: 'tr', emoji: '🇹🇷', flag: flagTr }
 ];
 
-for (const item of languageRecord) {
-    preload(item.flag, { as: 'image' });
-}
+/**
+ * Called by whatever is about to draw a flag. It used to run at module scope, which pulled
+ * react-dom into every importer of this file — including the extension's service worker, which
+ * has no document to preload anything into.
+ */
+export const preloadLanguageFlags = async () => {
+    const { preload } = await import('react-dom');
+
+    for (const item of languageRecord) {
+        preload(item.flag, { as: 'image' });
+    }
+};
 
 const resolve = (name: string): string | undefined => {
     let result = languageMap;
