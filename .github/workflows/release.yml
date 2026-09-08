@@ -454,7 +454,14 @@ jobs:
     needs: [ windows, linux, macos, android, ios ]
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: startsWith(github.ref, 'refs/tags/v')
+    # macOS and iOS stand down when their Apple secrets are absent, and a job that stood down is
+    # still a job the other three passed. Gate on the platforms that can always build, so a missing
+    # Apple certificate costs the release its .dmg and .ipa rather than costing it every asset.
+    if: >-
+      !cancelled() && startsWith(github.ref, 'refs/tags/v')
+      && needs.windows.result == 'success'
+      && needs.linux.result == 'success'
+      && needs.android.result == 'success'
     permissions:
       contents: write
 
@@ -471,7 +478,7 @@ jobs:
           echo "$COUNT files staged for the release."
 
           if [ "$COUNT" -ne 14 ]; then
-            echo "::warning::Expected 14 assets (1 Windows, 6 Linux, 1 macOS, 5 Android, 1 iOS) but found $COUNT. Check the staging warnings in the build jobs above; an iOS build with no Apple team configured stands down and accounts for exactly one of them."
+            echo "::warning::Expected 14 assets (1 Windows, 6 Linux, 1 macOS, 5 Android, 1 iOS) but found $COUNT. Check the staging warnings in the build jobs above; the macOS and iOS builds stand down when no Apple certificate or team is configured, and account for one each."
           fi
 
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
