@@ -97,8 +97,12 @@ export default function WebFrame({
                     const view = await Webview.getByLabel(label);
 
                     if (view !== null) {
-                        await view.setPosition(new LogicalPosition(target.x, target.y));
+                        // Size first, position last. Resizing a child webview re-derives its origin
+                        // from the frame it already had, and macOS gets that derivation wrong — the
+                        // page ends up pinned to the top of the window, over the browser's own
+                        // header. Setting the position afterwards states the origin outright.
                         await view.setSize(new LogicalSize(target.width, target.height));
+                        await view.setPosition(new LogicalPosition(target.x, target.y));
                     }
                 } catch {}
             });
@@ -298,11 +302,13 @@ export default function WebFrame({
                     const settled = frameRef.current?.getBoundingClientRect();
 
                     if (settled !== undefined && settled.width >= 1 && settled.height >= 1) {
-                        // oxlint-disable-next-line no-await-in-loop
-                        await view.setPosition(new LogicalPosition(settled.x, settled.y));
-
+                        // Same order as `place`: the size goes on first so the position has the
+                        // last word over the origin.
                         // oxlint-disable-next-line no-await-in-loop
                         await view.setSize(new LogicalSize(settled.width, settled.height));
+
+                        // oxlint-disable-next-line no-await-in-loop
+                        await view.setPosition(new LogicalPosition(settled.x, settled.y));
                     }
 
                     return;
