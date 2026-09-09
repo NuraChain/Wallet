@@ -262,8 +262,12 @@ input[type='password']::-ms-clear {
     display: none;
 }
 
+/* Never the decoration container itself: in WebKit that shadow element wraps the field's own
+   editable text, so hiding it leaves a password input that cannot be seen or typed into, while a
+   text input — which never grows a container — stays fine. Only the buttons Safari hangs inside
+   it are hidden. */
 input[type='password']::-webkit-credentials-auto-fill-button,
-input[type='password']::-webkit-textfield-decoration-container {
+input[type='password']::-webkit-strong-password-auto-fill-button {
     display: none !important;
 }
 
