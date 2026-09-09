@@ -2,7 +2,7 @@ import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 
 import { buildManifest, type Target } from './manifest.ts';
 
-const targets: Target[] = ['chrome', 'firefox', 'safari'];
+const targets: Target[] = ['chrome', 'edge', 'firefox', 'safari'];
 
 /**
  * The four bundles land in one directory; each store gets its own copy of it with the manifest

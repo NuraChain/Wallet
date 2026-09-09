@@ -1,6 +1,9 @@
 import { appVersion, manifestVersion } from './version.ts';
 
-export type Target = 'chrome' | 'firefox' | 'safari';
+export type Target = 'chrome' | 'edge' | 'firefox' | 'safari';
+
+/** Edge is Chromium under a different store, and reads every key Chrome reads. */
+const isChromium = (target: Target) => target === 'chrome' || target === 'edge';
 
 /**
  * The endpoints the wallet reaches on its own. Anything the user adds later — a custom chain's
@@ -50,8 +53,9 @@ const policy = [
 /**
  * `world: 'MAIN'` only landed in Chrome 111, Firefox 128 and Safari 18, and a browser that does
  * not know the key ignores the key rather than the entry — which would quietly run the provider
- * in the isolated world, where no page can see it. Only Chrome is told to inject that way; the
- * other two get the script tag the content script writes, guarded by the same sentinel.
+ * in the isolated world, where no page can see it. Only the Chromium targets are told to inject
+ * that way; the other two get the script tag the content script writes, guarded by the same
+ * sentinel.
  */
 const contentScripts = (target: Target) => {
     const relay = {
@@ -63,7 +67,7 @@ const contentScripts = (target: Target) => {
         match_about_blank: true
     };
 
-    if (target !== 'chrome') {
+    if (!isChromium(target)) {
         return [relay];
     }
 
@@ -78,7 +82,7 @@ export const buildManifest = (target: Target) => ({
     version: manifestVersion,
     homepage_url: 'https://nurachain.net',
 
-    ...(target === 'chrome' ? { minimum_chrome_version: '111', version_name: appVersion } : {}),
+    ...(isChromium(target) ? { minimum_chrome_version: '111', version_name: appVersion } : {}),
     ...(target === 'safari' ? { version_name: appVersion } : {}),
 
     ...(target === 'firefox'
@@ -118,7 +122,7 @@ export const buildManifest = (target: Target) => ({
         {
             resources: ['inpage.js'],
             matches: pages,
-            ...(target === 'chrome' ? { use_dynamic_url: true } : {})
+            ...(isChromium(target) ? { use_dynamic_url: true } : {})
         }
     ],
 
