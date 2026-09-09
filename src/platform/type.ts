@@ -78,6 +78,25 @@ export interface PlatformApproval {
 }
 
 /**
+ * The browser's own docked frame — Chromium's side panel, Gecko's sidebar. It draws the same
+ * document the popup does, in a place the browser holds open while the user goes on clicking the
+ * page, which is the one thing a popup cannot do: it is dismissed as soon as it loses focus.
+ *
+ * A Tauri window already stays open, so there is no second surface to move into and all of this
+ * is inert there.
+ */
+export interface PlatformPanel {
+    /** Whether there is one to open from here, and this document is not already it. */
+    available: () => boolean;
+
+    /**
+     * Open it. Nothing may be awaited between the click and this call — both engines refuse a
+     * panel that is not opened straight out of a user gesture — so it answers nothing.
+     */
+    open: () => void;
+}
+
+/**
  * Everything the wallet needs from the thing it is running inside — a Tauri window today, a
  * browser extension next. One implementation per target, picked by the `#platform-impl` alias, so
  * a build never carries another target's code.
@@ -87,6 +106,7 @@ export interface Platform {
     readonly session: PlatformSession;
     readonly approval: PlatformApproval;
     readonly dapp: PlatformDapp;
+    readonly panel: PlatformPanel;
     readonly host: () => Host;
     readonly fetch: (url: string, init?: RequestInit) => Promise<Response>;
     readonly openUrl: (url: string) => Promise<void>;

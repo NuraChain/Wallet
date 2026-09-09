@@ -307,6 +307,7 @@
             "Theme": "Тема",
             "ThemeLight": "Светлая",
             "ThemeDark": "Тёмная",
+            "SidePanel": "Открыть на боковой панели",
             "Version": "Версия %s",
             "Logout": "Выйти"
         },

@@ -2,7 +2,7 @@ import type { VaultKind } from '../../core/vault';
 
 import { useState } from 'react';
 import { IoChevronForward } from 'react-icons/io5';
-import { FiGlobe, FiLogOut, FiMoon, FiSun } from 'react-icons/fi';
+import { FiGlobe, FiLogOut, FiMoon, FiSidebar, FiSun } from 'react-icons/fi';
 import { HiOutlineDocumentText, HiOutlineLockClosed } from 'react-icons/hi2';
 
 import Text from '../ui/text';
@@ -12,7 +12,9 @@ import MenuRow from '../ui/menu';
 import { ModalActions } from '../ui/modal';
 import { Vertical } from '../ui/stack';
 
+import { platform } from '../../platform';
 import { T } from '../../utility/language';
+import { useHasPanel } from '../../hook/platform';
 import { getTheme, setTheme } from '../../utility/theme';
 
 const chevron = <IoChevronForward size={18} className='text-txt-muted rtl:rotate-180' />;
@@ -31,6 +33,8 @@ export default function DashboardSettings({
     onLogout: () => void;
 }) {
     const [theme, setThemeState] = useState(getTheme());
+
+    const hasPanel = useHasPanel();
 
     const onToggleTheme = () => {
         const next = getTheme() === 'light' ? 'dark' : 'light';
@@ -61,6 +65,21 @@ export default function DashboardSettings({
                 onClick={onToggleTheme}
                 trailing={<Text text={theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark')} />}
             />
+
+            {/* The panel opens and the popup this row lives in closes, so nothing here has to be
+                told about it afterwards. */}
+            {hasPanel && (
+                <MenuRow
+                    leading={
+                        <IconBox>
+                            <FiSidebar size={16} className='rtl:rotate-180' />
+                        </IconBox>
+                    }
+                    label={T('Dashboard.Settings.SidePanel')}
+                    onClick={platform.panel.open}
+                    trailing={chevron}
+                />
+            )}
 
             <MenuRow
                 leading={

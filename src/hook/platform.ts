@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { platform } from '../platform';
 import { getPlatform } from '../utility/platform';
 
 export const useIsWindows = (): boolean => {
@@ -21,4 +22,15 @@ export const useHasBrowser = (): boolean => {
     });
 
     return hasBrowser;
+};
+
+/**
+ * Whether to offer the browser's own docked panel. Read once, like the rest of this file: the
+ * answer turns on which document this is and which window opened it, and neither can change while
+ * the screen asking is on the screen.
+ */
+export const useHasPanel = (): boolean => {
+    const [hasPanel] = useState(() => platform.panel.available());
+
+    return hasPanel;
 };

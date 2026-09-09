@@ -307,6 +307,7 @@
             "Theme": "پوسته",
             "ThemeLight": "روشن",
             "ThemeDark": "تیره",
+            "SidePanel": "باز کردن در پنل کناری",
             "Version": "نسخه %s",
             "Logout": "خروج از حساب"
         },

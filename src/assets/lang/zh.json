@@ -307,6 +307,7 @@
             "Theme": "主题",
             "ThemeLight": "浅色",
             "ThemeDark": "深色",
+            "SidePanel": "在侧边栏中打开",
             "Version": "版本 %s",
             "Logout": "退出登录"
         },

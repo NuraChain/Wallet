@@ -307,6 +307,7 @@
             "Theme": "Thème",
             "ThemeLight": "Clair",
             "ThemeDark": "Sombre",
+            "SidePanel": "Ouvrir dans le panneau latéral",
             "Version": "Version %s",
             "Logout": "Se déconnecter"
         },

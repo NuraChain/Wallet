@@ -2,7 +2,7 @@ import { providerChannel } from './message.ts';
 
 import type { DappPrompt } from '../src/core/dapp.prompt';
 import type { Vault } from '../src/core/vault';
-import type { Platform, PlatformApproval, PlatformDapp, PlatformExporter, PlatformSession } from '../src/platform/type';
+import type { Platform, PlatformApproval, PlatformDapp, PlatformExporter, PlatformPanel, PlatformSession } from '../src/platform/type';
 
 /** How long an unlocked wallet survives without being touched. */
 export const idleMinutes = 15;
@@ -10,6 +10,9 @@ export const idleMinutes = 15;
 const sessionKey = 'Session';
 const promptKey = 'Prompts';
 const windowKey = 'ApprovalWindow';
+
+/** The document the browser docks: the same app as the popup, under a page that fills its frame. */
+const panelDocument = 'sidepanel.html';
 
 interface SessionRecord {
     vault: Vault;
@@ -105,6 +108,97 @@ const save = async (href: string, name: string, revoke = false) => {
         return '';
     } catch (cause) {
         return cause instanceof Error && cause.message.length > 0 ? cause.message : 'failed';
+    }
+};
+
+/** Gecko's half of the pair. `@types/chrome` only describes Chromium's, so this states the one call. */
+interface SidebarAction {
+    open: () => void;
+}
+
+/** Chromium's half, which needs to be told which window to dock the panel in. */
+interface SidePanel {
+    open: (options: { windowId: number }) => Promise<void>;
+}
+
+/**
+ * Each engine has exactly one of these and neither knows the other's, which is what picks the
+ * branch below. Both are read off the global rather than named outright: `chrome.sidePanel.open`
+ * written in full is what AMO's linter reports as an unimplemented API, in a bundle Firefox
+ * shares with the other three targets and never reaches that line of.
+ */
+const surfaces = () => globalThis as unknown as { browser?: { sidebarAction?: SidebarAction }; chrome?: { sidePanel?: SidePanel } };
+
+const inPanel = () => globalThis.location?.pathname.endsWith(panelDocument) === true;
+
+/**
+ * The window this document belongs to, and only when it is an ordinary browser window — the
+ * approval window is a popup window of our own making, and a prompt held open by the worker is
+ * not something to move into a dock halfway through answering.
+ *
+ * Read at load rather than at the click. Chromium opens the panel only for a call made straight
+ * out of a user gesture, and awaiting this first would spend the gesture on the lookup.
+ */
+let panelWindow: number | undefined;
+
+const notePanelWindow = async () => {
+    try {
+        const held = await chrome.windows.getCurrent();
+
+        if (held.type === 'normal' && held.id !== undefined) {
+            panelWindow = held.id;
+        }
+    } catch {
+        // Nothing to belong to, which is answer enough: the panel is not offered.
+    }
+};
+
+// Started, not awaited: a top-level await here would hold the popup's first paint on a round trip
+// to the browser for something that matters only once Settings is open. The worker skips it
+// outright — it has no document, and nothing it imports should be able to delay the listeners it
+// registers at module scope.
+if (globalThis.document !== undefined) {
+    // oxlint-disable-next-line unicorn/prefer-top-level-await
+    void notePanelWindow();
+}
+
+/**
+ * A popup is dismissed the moment it loses focus, which is most of what anyone does with a wallet
+ * open. The panel is the same wallet in a frame the browser keeps open beside the page, so the
+ * popup that asked for it stands down rather than lingering as a second copy.
+ */
+const browserPanel: PlatformPanel = {
+    available: () => {
+        if (globalThis.document === undefined || inPanel() || panelWindow === undefined) {
+            return false;
+        }
+
+        const { browser, chrome: chromium } = surfaces();
+
+        return browser?.sidebarAction !== undefined || chromium?.sidePanel !== undefined;
+    },
+
+    open: () => {
+        const { browser, chrome: chromium } = surfaces();
+
+        if (browser?.sidebarAction !== undefined) {
+            browser.sidebarAction.open();
+
+            globalThis.close();
+
+            return;
+        }
+
+        if (chromium?.sidePanel === undefined || panelWindow === undefined) {
+            return;
+        }
+
+        void chromium.sidePanel.open({ windowId: panelWindow }).then(
+            () => {
+                globalThis.close();
+            },
+            () => undefined
+        );
     }
 };
 
@@ -279,6 +373,7 @@ export const platform: Platform = {
     session: browserSession,
     approval: browserApproval,
     dapp: browserDapp,
+    panel: browserPanel,
 
     storage: {
         get: async (key) => {

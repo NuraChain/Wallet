@@ -307,6 +307,7 @@
             "Theme": "Tema",
             "ThemeLight": "Claro",
             "ThemeDark": "Oscuro",
+            "SidePanel": "Abrir en el panel lateral",
             "Version": "Versión %s",
             "Logout": "Cerrar sesión"
         },

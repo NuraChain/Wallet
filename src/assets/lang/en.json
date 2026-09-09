@@ -307,6 +307,7 @@
             "Theme": "Theme",
             "ThemeLight": "Light",
             "ThemeDark": "Dark",
+            "SidePanel": "Open in side panel",
             "Version": "Version %s",
             "Logout": "Log out"
         },

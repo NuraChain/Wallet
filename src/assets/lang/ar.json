@@ -307,6 +307,7 @@
             "Theme": "المظهر",
             "ThemeLight": "فاتح",
             "ThemeDark": "داكن",
+            "SidePanel": "فتح في اللوحة الجانبية",
             "Version": "الإصدار %s",
             "Logout": "تسجيل الخروج"
         },

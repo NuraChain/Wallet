@@ -82,7 +82,7 @@ export const buildManifest = (target: Target) => ({
     version: manifestVersion,
     homepage_url: 'https://nurachain.net',
 
-    ...(isChromium(target) ? { minimum_chrome_version: '111', version_name: appVersion } : {}),
+    ...(isChromium(target) ? { minimum_chrome_version: '116', version_name: appVersion } : {}),
     ...(target === 'safari' ? { version_name: appVersion } : {}),
 
     ...(target === 'firefox'
@@ -112,6 +112,30 @@ export const buildManifest = (target: Target) => ({
 
     action: { default_title: 'Nura Wallet', default_popup: 'popup.html', default_icon: icons },
 
+    /**
+     * The same wallet in a frame the browser keeps open. A popup is dismissed the moment the user
+     * clicks the page behind it, which is most of what anyone does with a wallet open, so the
+     * panel is the surface for watching a swap land or approving one call after another.
+     *
+     * Chromium docks it with `side_panel` and Gecko with `sidebar_action`; the two keys name the
+     * same document. Safari has neither, and gets the popup alone.
+     */
+    ...(isChromium(target) ? { side_panel: { default_path: 'sidepanel.html' } } : {}),
+
+    ...(target === 'firefox'
+        ? {
+              sidebar_action: {
+                  default_panel: 'sidepanel.html',
+                  default_title: 'Nura Wallet',
+                  default_icon: icons,
+
+                  // Nothing has been unlocked yet at install time, so opening on its own would
+                  // only take up a third of the window to say so.
+                  open_at_install: false
+              }
+          }
+        : {}),
+
     // Firefox has no extension service workers at all; MV3 there is a non-persistent event page.
     // `type: module` is what preserves top-level await on both.
     background: target === 'firefox' ? { scripts: ['background.js'], type: 'module' } : { service_worker: 'background.js', type: 'module' },
@@ -126,7 +150,9 @@ export const buildManifest = (target: Target) => ({
         }
     ],
 
-    permissions: ['storage', 'alarms'],
+    // sidePanel is the Chromium-only half of the pair above: `sidebar_action` needs no permission
+    // of its own, and Safari has nothing to ask for.
+    permissions: isChromium(target) ? ['storage', 'alarms', 'sidePanel'] : ['storage', 'alarms'],
 
     host_permissions: knownHosts,
 

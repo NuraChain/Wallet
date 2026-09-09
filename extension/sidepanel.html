@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Nura Wallet</title>
+        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0c121a" />
+        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#edf2f8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/png" href="./icon/128.png" />
+        <style>
+            /* The popup states a size because a popup is sized by its document. A panel is sized
+               by the user dragging its edge, so this one only fills whatever it is given. */
+            html,
+            body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="./popup.tsx"></script>
+    </body>
+</html>

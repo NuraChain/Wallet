@@ -17,9 +17,9 @@ const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 const build = 'dist-extension/build';
 const out = 'dist-extension';
 
-// The floor for content_scripts.world, which only Chrome is told to use. The other two engines
-// get the same file through a script tag, so their real floor is lower.
-const target = ['chrome111', 'firefox115', 'safari16.4'];
+// The floor for sidePanel.open, which only the Chromium targets are told about. The other two
+// engines get the sidebar or nothing at all, so their real floor is lower.
+const target = ['chrome116', 'firefox115', 'safari16.4'];
 
 /**
  * A bundle the manifest names by a fixed path. Rolldown will not emit an IIFE made of more than
@@ -60,14 +60,17 @@ export default defineConfig({
     plugins: [react(), tailwind(), inpageModule({ icon, chainId: 1020 })],
 
     environments: {
-        // The popup is an ordinary app build: code splitting, lazy routes, hashed assets.
+        // The popup is an ordinary app build: code splitting, lazy routes, hashed assets. The
+        // panel is the same app under a document that fills its frame instead of stating a size,
+        // and it is an input of the same build so the two share every chunk rather than each
+        // carrying a copy of the wallet.
         client: {
             build: {
                 target,
                 outDir: build,
                 emptyOutDir: true,
                 chunkSizeWarningLimit: 1024,
-                rolldownOptions: { input: { popup: here('extension/popup.html') } }
+                rolldownOptions: { input: { popup: here('extension/popup.html'), sidepanel: here('extension/sidepanel.html') } }
             }
         },
 

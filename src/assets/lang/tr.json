@@ -307,6 +307,7 @@
             "Theme": "Tema",
             "ThemeLight": "Açık",
             "ThemeDark": "Koyu",
+            "SidePanel": "Yan panelde aç",
             "Version": "Sürüm %s",
             "Logout": "Çıkış yap"
         },
