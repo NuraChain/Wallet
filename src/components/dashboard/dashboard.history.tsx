@@ -108,7 +108,7 @@ export default function DashboardHistory({
     }, [shown, results.length]);
 
     return (
-        <Modal frame='screen' scale={0.96} onClose={onClose} panelClass='size-full p-0'>
+        <Modal scale={0.96} onClose={onClose} panelClass='size-full p-0'>
             <Vertical className='gap-3 px-5 pt-5'>
                 <ModalHeader
                     title={T('Dashboard.Activity.Title')}

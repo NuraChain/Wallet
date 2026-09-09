@@ -17,14 +17,12 @@ import { inset, layer } from '../../layout/container';
 
 export function Modal({
     onClose,
-    frame = 'center',
     scroll = false,
     scale = 0.9,
     panelClass = '',
     children
 }: {
     onClose: () => void;
-    frame?: 'center' | 'screen';
     scroll?: boolean;
     scale?: number;
     panelClass?: string;
@@ -44,8 +42,8 @@ export function Modal({
             exit={{ opacity: 0, scale }}
             className={cn(
                 surfacePanel,
-                'flex w-80 max-w-[calc(100vw-2rem)] flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',
-                scroll && 'max-h-[80dvh] overflow-y-auto',
+                'pointer-events-auto flex w-80 max-w-full flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',
+                scroll && 'max-h-full overflow-y-auto',
                 panelClass
             )}
         >
@@ -63,16 +61,13 @@ export function Modal({
                 onClick={onClose}
             />
 
-            <div
-                className={cn(
-                    frame === 'screen'
-                        ? `absolute inset-0 flex items-center justify-center p-4 ${inset.modalFrame}`
-                        : 'absolute inset-0 m-auto flex size-fit items-center justify-center',
-                    layer.dialog
-                )}
-            >
+            {/* The frame spans the whole app, so the panel's `max-h-full` measures against a height
+                that is definite on every engine — a viewport unit read the window wrong under macOS
+                WebKit and left the taller modals overflowing. It passes clicks through to the scrim
+                underneath rather than swallowing the ones that land beside the panel. */}
+            <div className={cn('pointer-events-none absolute inset-0 flex items-center justify-center p-4', inset.modalFrame, layer.dialog)}>
                 {scroll ? (
-                    <div className='relative flex max-h-full'>
+                    <div className='pointer-events-auto relative flex max-h-full min-h-0'>
                         {panel}
 
                         <ScrollBar viewportRef={panelRef} className='-inset-e-0.5 top-2' />
