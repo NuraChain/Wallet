@@ -9,12 +9,16 @@ export const useIsWindows = (): boolean => {
 };
 
 /**
- * iOS has neither the desktop multiwebview nor Android's Kotlin browser bridge, so the features
- * that stand on a second native webview are withheld there rather than left to throw at the user.
- * Drop this once gen/apple carries a Swift BrowserBridge.
+ * Whether the wallet can host a page itself. A Tauri window opens a child webview for it and
+ * Android hands one over from Kotlin; iOS has neither, and an extension popup is a document the
+ * browser closes the moment it loses focus — the browser it lives in is the one that browses.
  */
-export const useIsIos = (): boolean => {
-    const [isIos] = useState(() => getPlatform() === 'ios');
+export const useHasBrowser = (): boolean => {
+    const [hasBrowser] = useState(() => {
+        const host = getPlatform();
 
-    return isIos;
+        return host !== 'ios' && host !== 'extension';
+    });
+
+    return hasBrowser;
 };

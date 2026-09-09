@@ -27,7 +27,7 @@ import { usePrices } from '../hook/price';
 import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
-import { useIsIos } from '../hook/platform';
+import { useHasBrowser } from '../hook/platform';
 import { getDirection, T } from '../utility/language';
 import {
     discoverTokens,
@@ -93,12 +93,12 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const derivable = vaultDerivable(vault);
 
-    const isIos = useIsIos();
+    const hasBrowser = useHasBrowser();
 
-    // iOS has neither the desktop multiwebview nor Android's Kotlin bridge, so there is no second
-    // native webview to give the browser tab. It is left out of the tab set rather than shipped as
-    // a panel that cannot load a page; everything below indexes into this, not into navMap.
-    const tabMap = useMemo(() => (isIos ? navMap.filter((item) => item.key !== 'Browser') : navMap), [isIos]);
+    // Where nothing can render a page in-app — iOS, and the extension popup — the browser tab is
+    // left out of the tab set rather than shipped as a panel that cannot load anything; everything
+    // below indexes into this, not into navMap.
+    const tabMap = useMemo(() => (hasBrowser ? navMap : navMap.filter((item) => item.key !== 'Browser')), [hasBrowser]);
 
     const goTab = useCallback((index: number) => {
         setActive(index);
@@ -419,9 +419,9 @@ function DashboardView({ vault }: { vault: Vault }) {
     };
 
     const onBrowse = (url: string) => {
-        // Nothing on iOS can render the page in-app, so the link is handed to Safari rather than
-        // dropped. The wallet is no longer the provider for it, which an explorer link never needed.
-        if (isIos) {
+        // With no browser tab the link is handed to the host browser rather than dropped. The
+        // wallet is no longer the provider for it, which an explorer link never needed.
+        if (!hasBrowser) {
             void platform.openUrl(url).catch(() => undefined);
 
             return;
