@@ -13,8 +13,11 @@ reviews:
   path_filters:
     - "!**/node_modules/**"
     - "!**/dist/**"
+    - "!**/dist-extension/**"
     - "!**/target/**"
     - "!**/*.lock"
+    - "!**/package-lock.json"
+    - "!src-tauri/gen/schemas/**"
   path_instructions:
     - path: "**/*.{ts,tsx,js,jsx}"
       instructions: |
@@ -23,18 +26,39 @@ reviews:
         - Check input validation, error handling, authentication/authorization boundaries, and safe handling of secrets.
         - For wallet code, pay special attention to transaction signing, nonce handling, chain ID validation, RPC trust boundaries, address validation, and accidental private-key/seed exposure.
         - Do not recommend weakening cryptographic guarantees for convenience.
-    - path: "**/*.{rs}"
+    - path: "**/*.rs"
       instructions: |
         Review as security-sensitive Rust/Tauri code.
         - Check unsafe code, command/event boundaries, filesystem access, process execution, IPC validation, and secret handling.
         - Flag panics in recoverable runtime paths, unchecked errors, TOCTOU issues, and concurrency problems.
         - For cryptographic or key-management code, favor established primitives and constant-time/security-safe handling.
-    - path: "**/src-tauri/**"
+    - path: "src-tauri/src/**"
       instructions: |
         Treat Tauri backend code as a privileged security boundary. Verify IPC inputs, filesystem permissions, URL/network access, and serialization boundaries.
-    - path: "**/test/**"
+        The origin of a dapp request is stamped here from the webview's own URL and is never read from the payload — flag anything that would let a page name its own origin.
+    - path: "src-tauri/gen/android/**/*.kt"
+      instructions: |
+        Review the Android bridges as the boundary between an untrusted webview and native code.
+        - Anything reachable from @JavascriptInterface is reachable by any page the webview loads: check the origin, validate every argument, and do not widen what a bridge can do.
+        - Flag file writes outside scoped storage, intents built from webview input, and secrets crossing into logs.
+    - path: "extension/**"
+      instructions: |
+        Review as an MV3 extension, where the manifest is a permission grant reviewed by four stores.
+        - Question every added permission, host permission, and manifest key, and check that keys only one engine understands stay behind the target that understands them.
+        - Treat everything crossing the page boundary as untrusted. Identity comes off port.sender, never off the payload, and a world: 'MAIN' script shares the page's globals with whatever else is on it.
+        - The service worker is evicted when idle: flag state kept in module variables that has to outlive it, and listeners registered anywhere but module scope.
+        - The unlocked vault lives in chrome.storage.session. Flag anything that would put a seed or key into local storage, a log, or a message.
+    - path: "src/platform/**"
+      instructions: |
+        This is the seam every host implements, picked by the #platform-impl alias. Check that a change to the interface lands in every implementation, that capabilities a host does not have stay inert rather than throwing, and that no implementation leaks a host-specific type through it.
+    - path: "**/*.test.{ts,tsx}"
       instructions: |
         Check negative cases, malformed input, authorization failures, transaction failures, and security-sensitive edge cases.
+    - path: ".github/workflows/**"
+      instructions: |
+        Review CI as a supply chain.
+        - Check that actions are pinned, that permissions are least-privilege, and that no secret can reach a fork, a log, or an artifact.
+        - Flag a publishing or signing step that skips the version and tag checks it is supposed to enforce.
     - path: "**/*.{md,mdx}"
       instructions: |
         Verify technical claims, configuration examples, commands, and security-sensitive documentation.
