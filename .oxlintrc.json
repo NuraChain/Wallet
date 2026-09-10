@@ -83,25 +83,5 @@
         "unicorn/numeric-separators-style": "off",
         "unicorn/no-await-expression-member": "off",
         "unicorn/consistent-function-scoping": "off"
-    },
-    "overrides": [
-        {
-            "files": ["sdk/**"],
-            "rules": {
-                "func-names": "off",
-                "vars-on-top": "off",
-                "prefer-template": "off",
-                "object-shorthand": "off",
-                "prefer-arrow-callback": "off",
-                "prefer-named-capture-group": "off",
-                "logical-assignment-operators": "off",
-                "typescript/prefer-for-of": "off",
-                "unicorn/prefer-spread": "off",
-                "unicorn/max-nested-calls": "off",
-                "unicorn/prefer-string-replace-all": "off",
-                "unicorn/prefer-optional-catch-binding": "off",
-                "unicorn/require-post-message-target-origin": "off"
-            }
-        }
-    ]
+    }
 }
