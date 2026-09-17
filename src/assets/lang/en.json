@@ -25,7 +25,9 @@
         "Missing": {
             "Title": "This screen does not exist",
             "Message": "Nothing was lost. Your wallet is still on this device."
-        }
+        },
+        "Cancel": "Cancel",
+        "Remove": "Remove"
     },
     "Language": {
         "en": "English",
@@ -128,7 +130,8 @@
             "ErrorIndex": "Enter a whole number between %s and %s",
             "Emoji": "Pick an icon",
             "EmojiClear": "Use the number",
-            "ErrorExists": "That index is already in your list"
+            "ErrorExists": "That index is already in your list",
+            "RemoveConfirm": "Remove %s from this list? You can add it back later with the same derivation index."
         },
         "Copy": "Copy Address",
         "Copied": "Address copied to clipboard",
@@ -156,7 +159,8 @@
             "NotFound": "No ERC20 token found at this address on this network",
             "Exists": "This token is already in your list",
             "Empty": "No tokens added yet",
-            "Contract": "Contract address"
+            "Contract": "Contract address",
+            "RemoveConfirm": "Stop tracking %s? Your balance is not affected and you can add the token again at any time."
         },
         "Network": {
             "Title": "Network",
@@ -173,7 +177,8 @@
             "Invalid": "Please fill in the network name and symbol",
             "InvalidRpc": "RPC URL must start with http",
             "InvalidChainId": "Chain ID must be a positive number",
-            "Remove": "Remove network"
+            "Remove": "Remove network",
+            "RemoveConfirm": "Remove %s? Its RPC endpoints are not stored anywhere else, so you would need to enter them again."
         },
         "Send": {
             "Title": "Send",
@@ -197,7 +202,10 @@
             "Offline": "You need an internet connection to send.",
             "InvalidAddress": "Recipient address is not valid",
             "InvalidAmount": "Enter a valid amount",
-            "Insufficient": "Amount exceeds your balance"
+            "Insufficient": "Amount exceeds your balance",
+            "Total": "Total",
+            "Retry": "Try again",
+            "Reserved": "The network fee has been kept aside, so this amount can actually be sent."
         },
         "Receive": {
             "Title": "Receive",
@@ -272,7 +280,9 @@
             "Connected": "Connected sites",
             "ConnectedCount": "%s allowed to see your account",
             "ConnectedNote": "Connected sites can read your address and ask you to sign. They can never move funds without your approval.",
-            "ConnectedClear": "Disconnect all"
+            "ConnectedClear": "Disconnect all",
+            "FavoriteRemoveConfirm": "Remove %s from your favorites?",
+            "Insecure": "Not secure"
         },
         "Request": {
             "Connect": "Connection request",
@@ -300,7 +310,13 @@
             "AssetSymbol": "Symbol",
             "AssetAddress": "Contract",
             "Reject": "Reject",
-            "Approve": "Approve"
+            "Approve": "Approve",
+            "Method": "Contract call",
+            "Spender": "Spender",
+            "Allowance": "Spending approval",
+            "AllowanceUnlimited": "Unlimited",
+            "AllowanceToken": "this token",
+            "AllowanceNote": "This does not move anything now. It lets this site take %s of %s from your account later, at any time, until you revoke it."
         },
         "Settings": {
             "Title": "Settings",
@@ -333,7 +349,8 @@
             "ExportFailed": "Could not save the file",
             "ExportUnsupported": "This device is too old to save files this way",
             "ExportImageTitle": "Nura Wallet recovery phrase",
-            "ExportImageWarning": "Anyone with these words owns the wallet. Keep offline."
+            "ExportImageWarning": "Anyone with these words owns the wallet. Keep offline.",
+            "Hide": "Hide"
         },
         "Logout": {
             "Title": "Log out",

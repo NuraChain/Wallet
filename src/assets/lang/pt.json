@@ -25,7 +25,9 @@
         "Missing": {
             "Title": "Esta tela não existe",
             "Message": "Nada foi perdido. Sua carteira continua neste dispositivo."
-        }
+        },
+        "Cancel": "Cancelar",
+        "Remove": "Remover"
     },
     "Language": {
         "en": "Inglês",
@@ -128,7 +130,8 @@
             "ErrorIndex": "Digite um número inteiro entre %s e %s",
             "Emoji": "Escolha um ícone",
             "EmojiClear": "Usar o número",
-            "ErrorExists": "Esse índice já está na sua lista"
+            "ErrorExists": "Esse índice já está na sua lista",
+            "RemoveConfirm": "Remover %s desta lista? Você pode adicioná-lo novamente com o mesmo índice de derivação."
         },
         "Copy": "Copiar endereço",
         "Copied": "Endereço copiado",
@@ -156,7 +159,8 @@
             "NotFound": "Nenhum token ERC20 encontrado neste endereço nesta rede",
             "Exists": "Este token já está na sua lista",
             "Empty": "Nenhum token adicionado ainda",
-            "Contract": "Endereço do contrato"
+            "Contract": "Endereço do contrato",
+            "RemoveConfirm": "Parar de acompanhar %s? Seu saldo não é afetado e você pode adicionar o token novamente quando quiser."
         },
         "Network": {
             "Title": "Rede",
@@ -173,7 +177,8 @@
             "Invalid": "Preencha o nome da rede e o símbolo",
             "InvalidRpc": "A URL de RPC deve começar com http",
             "InvalidChainId": "O ID da cadeia deve ser um número positivo",
-            "Remove": "Remover rede"
+            "Remove": "Remover rede",
+            "RemoveConfirm": "Remover %s? Seus endpoints RPC não ficam salvos em outro lugar e você teria de digitá-los novamente."
         },
         "Send": {
             "Title": "Enviar",
@@ -197,7 +202,10 @@
             "Offline": "Você precisa de conexão com a internet para enviar.",
             "InvalidAddress": "O endereço do destinatário não é válido",
             "InvalidAmount": "Digite um valor válido",
-            "Insufficient": "O valor excede seu saldo"
+            "Insufficient": "O valor excede seu saldo",
+            "Total": "Total",
+            "Retry": "Tentar de novo",
+            "Reserved": "A taxa de rede foi reservada para que este valor possa realmente ser enviado."
         },
         "Receive": {
             "Title": "Receber",
@@ -272,7 +280,9 @@
             "Connected": "Sites conectados",
             "ConnectedCount": "%s podem ver sua conta",
             "ConnectedNote": "Sites conectados podem ler seu endereço e pedir que você assine. Nunca podem mover fundos sem sua aprovação.",
-            "ConnectedClear": "Desconectar tudo"
+            "ConnectedClear": "Desconectar tudo",
+            "FavoriteRemoveConfirm": "Remover %s dos seus favoritos?",
+            "Insecure": "Não seguro"
         },
         "Request": {
             "Connect": "Pedido de conexão",
@@ -300,7 +310,13 @@
             "AssetSymbol": "Símbolo",
             "AssetAddress": "Contrato",
             "Reject": "Recusar",
-            "Approve": "Aprovar"
+            "Approve": "Aprovar",
+            "Method": "Chamada do contrato",
+            "Spender": "Autorizado",
+            "Allowance": "Autorização de gasto",
+            "AllowanceUnlimited": "Sem limite",
+            "AllowanceToken": "este token",
+            "AllowanceNote": "Isto não move nada agora. Permite que este site retire %s de %s da sua conta depois, a qualquer momento, até você revogar."
         },
         "Settings": {
             "Title": "Configurações",
@@ -333,7 +349,8 @@
             "ExportFailed": "Não foi possível salvar o arquivo",
             "ExportUnsupported": "Este dispositivo é antigo demais para salvar arquivos desta forma",
             "ExportImageTitle": "Frase de recuperação da Nura Wallet",
-            "ExportImageWarning": "Quem tiver estas palavras é dono da carteira. Mantenha offline."
+            "ExportImageWarning": "Quem tiver estas palavras é dono da carteira. Mantenha offline.",
+            "Hide": "Ocultar"
         },
         "Logout": {
             "Title": "Sair",

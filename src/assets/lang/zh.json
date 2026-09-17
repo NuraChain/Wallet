@@ -25,7 +25,9 @@
         "Missing": {
             "Title": "此页面不存在",
             "Message": "没有任何内容丢失。您的钱包仍在此设备上。"
-        }
+        },
+        "Cancel": "取消",
+        "Remove": "移除"
     },
     "Language": {
         "en": "英语",
@@ -128,7 +130,8 @@
             "ErrorIndex": "请输入 %s 到 %s 之间的整数",
             "Emoji": "选择图标",
             "EmojiClear": "使用编号",
-            "ErrorExists": "该索引已在你的列表中"
+            "ErrorExists": "该索引已在你的列表中",
+            "RemoveConfirm": "要从列表中移除 %s 吗？之后可以用相同的派生索引重新添加。"
         },
         "Copy": "复制地址",
         "Copied": "地址已复制到剪贴板",
@@ -156,7 +159,8 @@
             "NotFound": "在该网络的此地址上未找到 ERC20 代币",
             "Exists": "该代币已在你的列表中",
             "Empty": "尚未添加代币",
-            "Contract": "合约地址"
+            "Contract": "合约地址",
+            "RemoveConfirm": "不再跟踪 %s 吗？余额不受影响，随时可以重新添加该代币。"
         },
         "Network": {
             "Title": "网络",
@@ -173,7 +177,8 @@
             "Invalid": "请填写网络名称和符号",
             "InvalidRpc": "RPC 地址必须以 http 开头",
             "InvalidChainId": "链 ID 必须是正整数",
-            "Remove": "移除网络"
+            "Remove": "移除网络",
+            "RemoveConfirm": "要移除 %s 吗？它的 RPC 地址没有存在别处，之后需要重新输入。"
         },
         "Send": {
             "Title": "发送",
@@ -197,7 +202,10 @@
             "Offline": "发送交易需要网络连接。",
             "InvalidAddress": "收款地址无效",
             "InvalidAmount": "请输入有效金额",
-            "Insufficient": "金额超出你的余额"
+            "Insufficient": "金额超出你的余额",
+            "Total": "合计",
+            "Retry": "重试",
+            "Reserved": "已预留网络手续费，因此这笔金额可以实际发出。"
         },
         "Receive": {
             "Title": "接收",
@@ -272,7 +280,9 @@
             "Connected": "已连接的网站",
             "ConnectedCount": "%s 个网站可以看到你的账户",
             "ConnectedNote": "已连接的网站可以读取你的地址并请求签名。未经你批准，它们无法转移任何资金。",
-            "ConnectedClear": "全部断开"
+            "ConnectedClear": "全部断开",
+            "FavoriteRemoveConfirm": "要从收藏中移除 %s 吗？",
+            "Insecure": "不安全"
         },
         "Request": {
             "Connect": "连接请求",
@@ -300,7 +310,13 @@
             "AssetSymbol": "符号",
             "AssetAddress": "合约",
             "Reject": "拒绝",
-            "Approve": "批准"
+            "Approve": "批准",
+            "Method": "合约调用",
+            "Spender": "被授权方",
+            "Allowance": "支出授权",
+            "AllowanceUnlimited": "无上限",
+            "AllowanceToken": "该代币",
+            "AllowanceNote": "这不会立即转移任何资产。它允许该网站日后随时从你的账户中取走 %s 的 %s，直到你撤销授权。"
         },
         "Settings": {
             "Title": "设置",
@@ -333,7 +349,8 @@
             "ExportFailed": "无法保存文件",
             "ExportUnsupported": "此设备版本过旧，无法以这种方式保存文件",
             "ExportImageTitle": "Nura 钱包助记词",
-            "ExportImageWarning": "拥有这些词的人就拥有这个钱包。请离线保管。"
+            "ExportImageWarning": "拥有这些词的人就拥有这个钱包。请离线保管。",
+            "Hide": "隐藏"
         },
         "Logout": {
             "Title": "退出登录",

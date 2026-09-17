@@ -25,7 +25,9 @@
         "Missing": {
             "Title": "Bu ekran mevcut değil",
             "Message": "Hiçbir şey kaybolmadı. Cüzdanınız hâlâ bu cihazda."
-        }
+        },
+        "Cancel": "Vazgeç",
+        "Remove": "Kaldır"
     },
     "Language": {
         "en": "İngilizce",
@@ -128,7 +130,8 @@
             "ErrorIndex": "%s ile %s arasında bir tam sayı girin",
             "Emoji": "Bir simge seçin",
             "EmojiClear": "Numarayı kullan",
-            "ErrorExists": "Bu dizin zaten listenizde"
+            "ErrorExists": "Bu dizin zaten listenizde",
+            "RemoveConfirm": "%s bu listeden kaldırılsın mı? Aynı türetme indeksiyle daha sonra yeniden ekleyebilirsiniz."
         },
         "Copy": "Adresi kopyala",
         "Copied": "Adres panoya kopyalandı",
@@ -156,7 +159,8 @@
             "NotFound": "Bu ağda bu adreste ERC20 tokeni bulunamadı",
             "Exists": "Bu token zaten listenizde",
             "Empty": "Henüz token eklenmedi",
-            "Contract": "Kontrat adresi"
+            "Contract": "Kontrat adresi",
+            "RemoveConfirm": "%s takibi bırakılsın mı? Bakiyeniz etkilenmez, jetonu istediğiniz zaman yeniden ekleyebilirsiniz."
         },
         "Network": {
             "Title": "Ağ",
@@ -173,7 +177,8 @@
             "Invalid": "Lütfen ağ adını ve sembolü doldurun",
             "InvalidRpc": "RPC adresi http ile başlamalı",
             "InvalidChainId": "Zincir kimliği pozitif bir sayı olmalı",
-            "Remove": "Ağı kaldır"
+            "Remove": "Ağı kaldır",
+            "RemoveConfirm": "%s kaldırılsın mı? RPC adresleri başka bir yerde saklanmıyor, yeniden girmeniz gerekir."
         },
         "Send": {
             "Title": "Gönder",
@@ -197,7 +202,10 @@
             "Offline": "Göndermek için internet bağlantısı gerekir.",
             "InvalidAddress": "Alıcı adresi geçerli değil",
             "InvalidAmount": "Geçerli bir tutar girin",
-            "Insufficient": "Tutar bakiyenizi aşıyor"
+            "Insufficient": "Tutar bakiyenizi aşıyor",
+            "Total": "Toplam",
+            "Retry": "Tekrar dene",
+            "Reserved": "Ağ ücreti ayrıldı, böylece bu tutar gerçekten gönderilebilir."
         },
         "Receive": {
             "Title": "Al",
@@ -272,7 +280,9 @@
             "Connected": "Bağlı siteler",
             "ConnectedCount": "%s site hesabınızı görebiliyor",
             "ConnectedNote": "Bağlı siteler adresinizi okuyabilir ve imza isteyebilir. Onayınız olmadan hiçbir zaman varlık gönderemezler.",
-            "ConnectedClear": "Tümünün bağlantısını kes"
+            "ConnectedClear": "Tümünün bağlantısını kes",
+            "FavoriteRemoveConfirm": "%s favorilerden kaldırılsın mı?",
+            "Insecure": "Güvenli değil"
         },
         "Request": {
             "Connect": "Bağlantı isteği",
@@ -300,7 +310,13 @@
             "AssetSymbol": "Sembol",
             "AssetAddress": "Sözleşme",
             "Reject": "Reddet",
-            "Approve": "Onayla"
+            "Approve": "Onayla",
+            "Method": "Sözleşme çağrısı",
+            "Spender": "Yetkili taraf",
+            "Allowance": "Harcama izni",
+            "AllowanceUnlimited": "Sınırsız",
+            "AllowanceToken": "bu jeton",
+            "AllowanceNote": "Şu anda hiçbir şey aktarılmaz. Bu, siteye ileride istediği zaman hesabınızdan %s %s çekme izni verir; siz iptal edene kadar geçerlidir."
         },
         "Settings": {
             "Title": "Ayarlar",
@@ -333,7 +349,8 @@
             "ExportFailed": "Dosya kaydedilemedi",
             "ExportUnsupported": "Bu cihaz dosyaları bu şekilde kaydedemeyecek kadar eski",
             "ExportImageTitle": "Nura Wallet kurtarma ifadesi",
-            "ExportImageWarning": "Bu kelimelere sahip olan cüzdana sahiptir. Çevrimdışı saklayın."
+            "ExportImageWarning": "Bu kelimelere sahip olan cüzdana sahiptir. Çevrimdışı saklayın.",
+            "Hide": "Gizle"
         },
         "Logout": {
             "Title": "Çıkış yap",

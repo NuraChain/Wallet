@@ -25,7 +25,9 @@
         "Missing": {
             "Title": "Esta pantalla no existe",
             "Message": "No se perdió nada. Tu billetera sigue en este dispositivo."
-        }
+        },
+        "Cancel": "Cancelar",
+        "Remove": "Eliminar"
     },
     "Language": {
         "en": "Inglés",
@@ -128,7 +130,8 @@
             "ErrorIndex": "Introduce un número entero entre %s y %s",
             "Emoji": "Elige un icono",
             "EmojiClear": "Usar el número",
-            "ErrorExists": "Ese índice ya está en tu lista"
+            "ErrorExists": "Ese índice ya está en tu lista",
+            "RemoveConfirm": "¿Eliminar %s de esta lista? Puedes volver a añadirlo con el mismo índice de derivación."
         },
         "Copy": "Copiar dirección",
         "Copied": "Dirección copiada al portapapeles",
@@ -156,7 +159,8 @@
             "NotFound": "No se encontró ningún token ERC20 en esta dirección en esta red",
             "Exists": "Este token ya está en tu lista",
             "Empty": "Todavía no has añadido tokens",
-            "Contract": "Dirección del contrato"
+            "Contract": "Dirección del contrato",
+            "RemoveConfirm": "¿Dejar de seguir %s? Tu saldo no se ve afectado y puedes volver a añadir el token cuando quieras."
         },
         "Network": {
             "Title": "Red",
@@ -173,7 +177,8 @@
             "Invalid": "Rellena el nombre de la red y el símbolo",
             "InvalidRpc": "La URL de RPC debe empezar por http",
             "InvalidChainId": "El ID de cadena debe ser un número positivo",
-            "Remove": "Quitar red"
+            "Remove": "Quitar red",
+            "RemoveConfirm": "¿Eliminar %s? Sus endpoints RPC no se guardan en ningún otro sitio y tendrías que volver a introducirlos."
         },
         "Send": {
             "Title": "Enviar",
@@ -197,7 +202,10 @@
             "Offline": "Necesitas conexión a internet para enviar.",
             "InvalidAddress": "La dirección del destinatario no es válida",
             "InvalidAmount": "Introduce una cantidad válida",
-            "Insufficient": "La cantidad supera tu saldo"
+            "Insufficient": "La cantidad supera tu saldo",
+            "Total": "Total",
+            "Retry": "Reintentar",
+            "Reserved": "La comisión de red se ha reservado para que este importe se pueda enviar de verdad."
         },
         "Receive": {
             "Title": "Recibir",
@@ -272,7 +280,9 @@
             "Connected": "Sitios conectados",
             "ConnectedCount": "%s pueden ver tu cuenta",
             "ConnectedNote": "Los sitios conectados pueden leer tu dirección y pedirte que firmes. Nunca pueden mover fondos sin tu aprobación.",
-            "ConnectedClear": "Desconectar todo"
+            "ConnectedClear": "Desconectar todo",
+            "FavoriteRemoveConfirm": "¿Eliminar %s de tus favoritos?",
+            "Insecure": "No seguro"
         },
         "Request": {
             "Connect": "Solicitud de conexión",
@@ -300,7 +310,13 @@
             "AssetSymbol": "Símbolo",
             "AssetAddress": "Contrato",
             "Reject": "Rechazar",
-            "Approve": "Aprobar"
+            "Approve": "Aprobar",
+            "Method": "Llamada al contrato",
+            "Spender": "Autorizado",
+            "Allowance": "Autorización de gasto",
+            "AllowanceUnlimited": "Sin límite",
+            "AllowanceToken": "este token",
+            "AllowanceNote": "Esto no mueve nada ahora. Permite que este sitio retire %s de %s de tu cuenta más adelante, en cualquier momento, hasta que lo revoques."
         },
         "Settings": {
             "Title": "Ajustes",
@@ -333,7 +349,8 @@
             "ExportFailed": "No se pudo guardar el archivo",
             "ExportUnsupported": "Este dispositivo es demasiado antiguo para guardar archivos de esta forma",
             "ExportImageTitle": "Frase de recuperación de Nura Wallet",
-            "ExportImageWarning": "Quien tenga estas palabras es dueño de la cartera. Guárdalas sin conexión."
+            "ExportImageWarning": "Quien tenga estas palabras es dueño de la cartera. Guárdalas sin conexión.",
+            "Hide": "Ocultar"
         },
         "Logout": {
             "Title": "Cerrar sesión",

@@ -25,7 +25,9 @@
         "Missing": {
             "Title": "Cet écran n'existe pas",
             "Message": "Rien n'a été perdu. Votre portefeuille est toujours sur cet appareil."
-        }
+        },
+        "Cancel": "Annuler",
+        "Remove": "Supprimer"
     },
     "Language": {
         "en": "Anglais",
@@ -128,7 +130,8 @@
             "ErrorIndex": "Saisissez un nombre entier entre %s et %s",
             "Emoji": "Choisir une icône",
             "EmojiClear": "Utiliser le numéro",
-            "ErrorExists": "Cet indice figure déjà dans votre liste"
+            "ErrorExists": "Cet indice figure déjà dans votre liste",
+            "RemoveConfirm": "Retirer %s de cette liste ? Vous pourrez le rajouter avec le même index de dérivation."
         },
         "Copy": "Copier l'adresse",
         "Copied": "Adresse copiée dans le presse-papiers",
@@ -156,7 +159,8 @@
             "NotFound": "Aucun jeton ERC20 trouvé à cette adresse sur ce réseau",
             "Exists": "Ce jeton figure déjà dans votre liste",
             "Empty": "Aucun jeton ajouté pour l'instant",
-            "Contract": "Adresse du contrat"
+            "Contract": "Adresse du contrat",
+            "RemoveConfirm": "Ne plus suivre %s ? Votre solde n'est pas affecté et vous pourrez rajouter le jeton à tout moment."
         },
         "Network": {
             "Title": "Réseau",
@@ -173,7 +177,8 @@
             "Invalid": "Veuillez renseigner le nom du réseau et le symbole",
             "InvalidRpc": "L'URL RPC doit commencer par http",
             "InvalidChainId": "L'ID de chaîne doit être un nombre positif",
-            "Remove": "Retirer le réseau"
+            "Remove": "Retirer le réseau",
+            "RemoveConfirm": "Supprimer %s ? Ses points de terminaison RPC ne sont stockés nulle part ailleurs et devront être ressaisis."
         },
         "Send": {
             "Title": "Envoyer",
@@ -197,7 +202,10 @@
             "Offline": "Une connexion internet est nécessaire pour envoyer.",
             "InvalidAddress": "L'adresse du destinataire n'est pas valide",
             "InvalidAmount": "Saisissez un montant valide",
-            "Insufficient": "Le montant dépasse votre solde"
+            "Insufficient": "Le montant dépasse votre solde",
+            "Total": "Total",
+            "Retry": "Réessayer",
+            "Reserved": "Les frais de réseau ont été mis de côté afin que ce montant puisse réellement être envoyé."
         },
         "Receive": {
             "Title": "Recevoir",
@@ -272,7 +280,9 @@
             "Connected": "Sites connectés",
             "ConnectedCount": "%s peuvent voir votre compte",
             "ConnectedNote": "Les sites connectés peuvent lire votre adresse et demander une signature. Ils ne peuvent jamais déplacer de fonds sans votre accord.",
-            "ConnectedClear": "Tout déconnecter"
+            "ConnectedClear": "Tout déconnecter",
+            "FavoriteRemoveConfirm": "Retirer %s de vos favoris ?",
+            "Insecure": "Non sécurisé"
         },
         "Request": {
             "Connect": "Demande de connexion",
@@ -300,7 +310,13 @@
             "AssetSymbol": "Symbole",
             "AssetAddress": "Contrat",
             "Reject": "Refuser",
-            "Approve": "Approuver"
+            "Approve": "Approuver",
+            "Method": "Appel de contrat",
+            "Spender": "Bénéficiaire",
+            "Allowance": "Autorisation de dépense",
+            "AllowanceUnlimited": "Illimité",
+            "AllowanceToken": "ce jeton",
+            "AllowanceNote": "Rien n'est déplacé maintenant. Cela autorise ce site à prélever plus tard, à tout moment, %s de %s sur votre compte, jusqu'à révocation."
         },
         "Settings": {
             "Title": "Paramètres",
@@ -333,7 +349,8 @@
             "ExportFailed": "Impossible d'enregistrer le fichier",
             "ExportUnsupported": "Cet appareil est trop ancien pour enregistrer des fichiers de cette façon",
             "ExportImageTitle": "Phrase de récupération Nura Wallet",
-            "ExportImageWarning": "Quiconque détient ces mots possède le portefeuille. À garder hors ligne."
+            "ExportImageWarning": "Quiconque détient ces mots possède le portefeuille. À garder hors ligne.",
+            "Hide": "Masquer"
         },
         "Logout": {
             "Title": "Se déconnecter",
