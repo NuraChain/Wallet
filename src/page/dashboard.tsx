@@ -69,6 +69,7 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [account, setAccount] = useState(0);
     const [navHidden, setNavHidden] = useState(false);
     const [modal, setModal] = useState<Modal>('none');
+    const [browserFull, setBrowserFull] = useState(false);
     const [link, setLink] = useState({ url: '', ticket: 0 });
     const [network, setNetworkState] = useState(getNetwork());
     const [tokenMap, setTokenMap] = useState<TokenMap>({});
@@ -516,47 +517,52 @@ function DashboardView({ vault }: { vault: Vault }) {
             </AnimatePresence>
 
             <div dir={getDirection()} className='flex size-full overflow-hidden'>
-                <DashboardSidebar
-                    items={sidebarMap}
-                    actions={[
-                        {
-                            key: 'Send',
-                            label: T('Dashboard.Send.Title'),
-                            icon: ArrowUpRight,
-                            onClick: () => {
-                                setModal('send');
+                {/* Full screen is the browser's own mode, so the rail only steps aside while that
+                    tab is the one on screen — no reset to forget on the way out. */}
+                {!(browserFull && tabMap[active].key === 'Browser') && (
+                    <DashboardSidebar
+                        items={sidebarMap}
+                        actions={[
+                            {
+                                key: 'Send',
+                                label: T('Dashboard.Send.Title'),
+                                icon: ArrowUpRight,
+                                onClick: () => {
+                                    setModal('send');
+                                }
+                            },
+                            {
+                                key: 'Receive',
+                                label: T('Dashboard.Receive.Title'),
+                                icon: ArrowDownLeft,
+                                onClick: () => {
+                                    setModal('receive');
+                                }
                             }
-                        },
-                        {
-                            key: 'Receive',
-                            label: T('Dashboard.Receive.Title'),
-                            icon: ArrowDownLeft,
-                            onClick: () => {
-                                setModal('receive');
+                        ]}
+                        footer={[
+                            {
+                                key: 'Lock',
+                                label: T('Dashboard.Lock'),
+                                icon: Lock,
+                                primary: true,
+                                onClick: () => {
+                                    lockSession();
+                                    void navigate('/unlock', { replace: true });
+                                }
+                            },
+                            {
+                                key: 'Logout',
+                                label: T('Dashboard.Logout.Title'),
+                                icon: LogOut,
+                                destructive: true,
+                                onClick: () => {
+                                    setModal('logout');
+                                }
                             }
-                        }
-                    ]}
-                    footer={[
-                        {
-                            key: 'Lock',
-                            label: T('Dashboard.Lock'),
-                            icon: Lock,
-                            primary: true,
-                            onClick: () => {
-                                lockSession();
-                                void navigate('/unlock', { replace: true });
-                            }
-                        },
-                        {
-                            key: 'Logout',
-                            label: T('Dashboard.Logout.Title'),
-                            icon: LogOut,
-                            onClick: () => {
-                                setModal('logout');
-                            }
-                        }
-                    ]}
-                />
+                        ]}
+                    />
+                )}
 
                 <div className='min-w-0 flex-1 overflow-hidden'>
                     <div
@@ -578,6 +584,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                             network={network}
                                             request={link.url}
                                             ticket={link.ticket}
+                                            onFullscreen={setBrowserFull}
                                             enabled={index === active && modal === 'none' && prompt === undefined}
                                             onExit={() => {
                                                 goKey('Wallet');

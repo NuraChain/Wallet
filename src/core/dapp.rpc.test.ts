@@ -48,7 +48,7 @@ const { clearConnections, grantConnection } = await import('./dapp');
 const { getNetwork, setNetwork } = await import('./network');
 const { lockSession, unlockSession } = await import('./session');
 
-const { answerDapp, getDappAccount, getDappPrompt, rejectDappPrompts, resolveDappPrompt, setDappAccount } = await import('./dapp.rpc');
+const { answerDapp, getDappAccount, getDappPrompt, rejectDappPrompts, resolveDappPrompt, setDappAccount, setDappGrip } = await import('./dapp.rpc');
 
 const wallet = ethers.Wallet.createRandom();
 
@@ -337,5 +337,88 @@ describe('reads and everything else', () => {
         const reply = await answerDapp(call('eth_getFilterChanges', []));
 
         expect(reply.error?.code).toBe(4200);
+    });
+});
+
+/**
+ * The grip is drawn inside the page, because nothing the wallet renders can sit above the view the
+ * page is painted by. That puts a wallet control within reach of the page's own scripts, and full
+ * screen takes the address bar and its security indicator away — so the secret is the whole of the
+ * defence and these pin it down.
+ */
+describe('the floating grip', () => {
+    it('refuses a page that guesses', async () => {
+        let fired = 0;
+
+        setDappGrip('the-secret', () => {
+            fired += 1;
+
+            return true;
+        });
+
+        const wrong = await answerDapp(call('nura_chrome', ['not-the-secret']));
+        const empty = await answerDapp(call('nura_chrome', []));
+
+        expect(wrong.error?.code).toBe(4100);
+        expect(empty.error?.code).toBe(4100);
+        expect(fired).toBe(0);
+
+        setDappGrip('', undefined);
+    });
+
+    it('refuses everyone once the browser has torn the grip down', async () => {
+        let fired = 0;
+
+        setDappGrip('the-secret', () => {
+            fired += 1;
+
+            return true;
+        });
+
+        setDappGrip('', undefined);
+
+        const answer = await answerDapp(call('nura_chrome', ['the-secret']));
+
+        expect(answer.error?.code).toBe(4100);
+        expect(fired).toBe(0);
+    });
+
+    it('answers the real grip without the page ever connecting', async () => {
+        await clearConnections();
+
+        let fired = 0;
+
+        setDappGrip('the-secret', () => {
+            fired += 1;
+
+            return true;
+        });
+
+        const answer = await answerDapp(call('nura_chrome', ['the-secret']));
+
+        expect(answer.error).toBeUndefined();
+        expect(fired).toBe(1);
+
+        // The mode it landed in goes back to the grip, which has no state of its own to trust.
+        expect(answer.result).toBe(true);
+
+        setDappGrip('', undefined);
+    });
+
+    it('still refuses a page with no origin to speak of', async () => {
+        let fired = 0;
+
+        setDappGrip('the-secret', () => {
+            fired += 1;
+
+            return true;
+        });
+
+        const answer = await answerDapp(call('nura_chrome', ['the-secret'], { origin: '' }));
+
+        expect(answer.error?.code).toBe(4100);
+        expect(fired).toBe(0);
+
+        setDappGrip('', undefined);
     });
 });

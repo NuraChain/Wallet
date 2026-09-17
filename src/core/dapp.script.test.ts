@@ -279,3 +279,72 @@ describe('the injected provider', () => {
         expect(new Set(announced.map((item) => item.info.uuid)).size).toBe(ids.size);
     });
 });
+
+describe('the floating grip', () => {
+    it('ships no secret when the wallet mints none, so the grip never mounts', () => {
+        const source = dappScript(dappIdentity(1020));
+
+        expect(source).not.toContain('"grip"');
+        expect(source).toContain('typeof IDENTITY.grip');
+    });
+
+    it('carries the secret inside the closure when there is one', () => {
+        const source = dappScript(dappIdentity(1020, 'native', 'the-secret'));
+
+        expect(source).toContain('"grip":"the-secret"');
+        expect(source).toContain('nura_chrome');
+
+        // Never parked on a global, where the page could read it straight back off window.
+        expect(source).not.toContain('window.__nuraGrip');
+        expect(source).not.toContain('window.grip');
+    });
+
+    it('keeps subframes and repeat injections from stacking grips', () => {
+        const source = dappScript(dappIdentity(1020, 'native', 'the-secret'));
+
+        expect(source).toContain('window.top !== window');
+        expect(source).toContain("getElementById('nura-grip')");
+    });
+
+    it('draws the lucide astroid inline, having no icon set to import', () => {
+        const source = dappScript(dappIdentity(1020, 'native', 'the-secret'));
+
+        expect(source).toContain('M12.983 21.186a1 1 0 0 1-1.966 0');
+        expect(source).toContain('8.203 8.203 1 1 0 0 1 0 1.966');
+    });
+
+    it('answers hover and press without animating the drag', () => {
+        const source = dappScript(dappIdentity(1020, 'native', 'the-secret'));
+
+        expect(source).toContain('pointerenter');
+        expect(source).toContain('pointerleave');
+
+        // The translate rides on the outer element and the scale on the inner one, so a
+        // transition on the visual never drags the gesture through it.
+        expect(source).toContain('skin.style.transform');
+        expect(source).toContain('box.style.transform');
+    });
+
+    it('synthesises the full-screen note instead of fetching one', () => {
+        const source = dappScript(dappIdentity(1020, 'native', 'the-secret'));
+
+        expect(source).toContain('AudioContext');
+        expect(source).toContain('createOscillator');
+
+        // A file would need a URL the visited page is willing to load, which its CSP usually is not.
+        expect(source).not.toContain('new Audio(');
+    });
+
+    it('rests at half opacity over somebody else’s page', () => {
+        const source = dappScript(dappIdentity(1020, 'native', 'the-secret'));
+
+        expect(source).toContain('opacity:0.5');
+        expect(source).toContain("idle ? '0.5' : '1'");
+    });
+
+    it('stands down its motion when the viewer asked for less', () => {
+        const source = dappScript(dappIdentity(1020, 'native', 'the-secret'));
+
+        expect(source).toContain('prefers-reduced-motion');
+    });
+});

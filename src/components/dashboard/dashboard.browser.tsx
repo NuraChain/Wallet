@@ -1,6 +1,6 @@
 import type { Network } from '../../core/network';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, TriangleAlert } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -19,7 +19,7 @@ import { imageCache } from '../../core/image';
 import { clearSiteIcons } from '../../core/site.icon';
 import { getConnections } from '../../core/dapp';
 import { forgetDappPage } from '../../core/dapp.bridge';
-import { disconnectAllDapps } from '../../core/dapp.rpc';
+import { disconnectAllDapps, setDappGrip } from '../../core/dapp.rpc';
 import { dappIdentity, dappScript } from '../../core/dapp.script';
 import {
     addBrowserVisit,
@@ -65,13 +65,15 @@ export default function DashboardBrowser({
     enabled,
     request,
     ticket,
-    onExit
+    onExit,
+    onFullscreen
 }: {
     network: Network;
     enabled: boolean;
     request: string;
     ticket: number;
     onExit: () => void;
+    onFullscreen?: (on: boolean) => void;
 }) {
     const [settings, setSettings] = useState(false);
     const [view, setView] = useState<BrowserView>('mobile');
@@ -83,6 +85,16 @@ export default function DashboardBrowser({
     const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 1, entries: [], index: -1, draft: '', reload: 0, home: false }]);
 
     const mintRef = useRef(2);
+
+    const [fullMode, setFullMode] = useState(false);
+
+    /* The grip is drawn by the page, so its toggle arrives from outside React and reads the
+       current mode off a ref rather than a closure it would capture stale. */
+    const fullRef = useRef(false);
+
+    // Minted once per browser session and never put on `window`: it is what tells a real grip
+    // press apart from a page asking to hide the address bar on its own account.
+    const gripSecret = useMemo(() => crypto.randomUUID(), []);
 
     const [live, setLive] = useState<Map<number, BrowserState>>(new Map());
     const [notice, setNotice] = useState<Map<number, string>>(new Map());
@@ -97,7 +109,55 @@ export default function DashboardBrowser({
 
     const native = getNativeBrowser() !== undefined;
 
-    const script = useMemo(() => dappScript(dappIdentity(network.chainId)), [network.chainId]);
+    /* The home page is the wallet's own, so there is nothing to go full screen for and no grip
+       drawn over it. Deriving the mode rather than storing it keeps a tab that went full screen
+       from coming home to a page with no chrome and no way to bring it back, while still
+       remembering the intent for when a site is opened again. */
+    const full = fullMode && !start;
+
+    const onFull = useCallback((next: boolean) => {
+        fullRef.current = next;
+
+        setFullMode(next);
+    }, []);
+
+    useEffect(() => {
+        onFullscreen?.(full);
+    }, [full, onFullscreen]);
+
+    useEffect(() => {
+        setDappGrip(gripSecret, () => {
+            const next = !fullRef.current;
+
+            onFull(next);
+
+            return next;
+        });
+
+        return () => {
+            setDappGrip('', undefined);
+        };
+    }, [gripSecret, onFull]);
+
+    useEffect(() => {
+        if (!full) {
+            return undefined;
+        }
+
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onFull(false);
+            }
+        };
+
+        window.addEventListener('keydown', onKey);
+
+        return () => {
+            window.removeEventListener('keydown', onKey);
+        };
+    }, [full, onFull]);
+
+    const script = useMemo(() => dappScript(dappIdentity(network.chainId, 'native', gripSecret)), [network.chainId, gripSecret]);
 
     useEffect(() => {
         getNativeBrowser()?.setDappScript?.(script);
@@ -341,94 +401,96 @@ export default function DashboardBrowser({
 
     return (
         <Vertical className='relative min-h-0 flex-1'>
-            <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
-                <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} className='shrink-0 lg:hidden'>
-                    <X size={16} />
-                </Button>
+            {!full && (
+                <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
+                    <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} className='shrink-0 lg:hidden'>
+                        <X size={16} />
+                    </Button>
 
-                <Button
-                    dim
-                    variant='chip'
-                    size='iconChip'
-                    disabled={!canBack}
-                    aria-label={T('Dashboard.Browser.Back')}
-                    onClick={() => {
-                        onStep(-1);
-                    }}
-                    className='shrink-0'
-                >
-                    <ArrowLeft size={16} className='rtl:rotate-180' />
-                </Button>
-
-                <Button
-                    dim
-                    variant='chip'
-                    size='iconChip'
-                    disabled={!canForward}
-                    aria-label={T('Dashboard.Browser.Forward')}
-                    onClick={() => {
-                        onStep(1);
-                    }}
-                    className='shrink-0'
-                >
-                    <ArrowRight size={16} className='rtl:rotate-180' />
-                </Button>
-
-                <div className='min-w-0 flex-1'>
-                    <TextField
-                        dir={tab.draft.length > 0 ? 'ltr' : undefined}
-                        value={tab.draft}
-                        placeholder={T('Dashboard.Browser.Placeholder')}
-                        onValue={(value) => {
-                            patch(active, (item) => ({ ...item, draft: value }));
+                    <Button
+                        dim
+                        variant='chip'
+                        size='iconChip'
+                        disabled={!canBack}
+                        aria-label={T('Dashboard.Browser.Back')}
+                        onClick={() => {
+                            onStep(-1);
                         }}
-                        onEnter={() => {
-                            onOpen(tab.draft);
+                        className='shrink-0'
+                    >
+                        <ArrowLeft size={16} className='rtl:rotate-180' />
+                    </Button>
+
+                    <Button
+                        dim
+                        variant='chip'
+                        size='iconChip'
+                        disabled={!canForward}
+                        aria-label={T('Dashboard.Browser.Forward')}
+                        onClick={() => {
+                            onStep(1);
                         }}
-                        size='compact'
-                        className='truncate ps-10 pe-10 text-tiny'
-                        leading={
-                            <span className='pointer-events-none absolute inset-s-3 flex items-center text-txt-muted'>
-                                {originGlyph()}
+                        className='shrink-0'
+                    >
+                        <ArrowRight size={16} className='rtl:rotate-180' />
+                    </Button>
 
-                                {current.startsWith('http://') && <span className='sr-only'>{T('Dashboard.Browser.Insecure')}</span>}
-                            </span>
-                        }
-                        trailing={
-                            <Button
-                                size='icon'
-                                aria-label={T('Dashboard.Browser.Reload')}
-                                onClick={() => {
-                                    patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false }));
-                                }}
-                                className='absolute -inset-e-0.5 cursor-pointer text-txt-muted hover:text-txt-normal'
-                            >
-                                <RotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
-                            </Button>
-                        }
-                    />
-                </div>
+                    <div className='min-w-0 flex-1'>
+                        <TextField
+                            dir={tab.draft.length > 0 ? 'ltr' : undefined}
+                            value={tab.draft}
+                            placeholder={T('Dashboard.Browser.Placeholder')}
+                            onValue={(value) => {
+                                patch(active, (item) => ({ ...item, draft: value }));
+                            }}
+                            onEnter={() => {
+                                onOpen(tab.draft);
+                            }}
+                            size='compact'
+                            className='truncate ps-10 pe-10 text-tiny'
+                            leading={
+                                <span className='pointer-events-none absolute inset-s-3 flex items-center text-txt-muted'>
+                                    {originGlyph()}
 
-                <Button
-                    variant='chip'
-                    size='iconChip'
-                    aria-label={T(start ? 'Dashboard.Browser.Settings' : 'Dashboard.Browser.Home')}
-                    onClick={
-                        start
-                            ? () => {
-                                  setSettings(true);
-                              }
-                            : onHome
-                    }
-                    className='shrink-0'
-                >
-                    {start ? <Settings size={16} /> : <House size={16} />}
-                </Button>
-            </Horizontal>
+                                    {current.startsWith('http://') && <span className='sr-only'>{T('Dashboard.Browser.Insecure')}</span>}
+                                </span>
+                            }
+                            trailing={
+                                <Button
+                                    size='icon'
+                                    aria-label={T('Dashboard.Browser.Reload')}
+                                    onClick={() => {
+                                        patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false }));
+                                    }}
+                                    className='absolute -inset-e-0.5 cursor-pointer text-txt-muted hover:text-txt-normal'
+                                >
+                                    <RotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
+                                </Button>
+                            }
+                        />
+                    </div>
+
+                    <Button
+                        variant='chip'
+                        size='iconChip'
+                        aria-label={T(start ? 'Dashboard.Browser.Settings' : 'Dashboard.Browser.Home')}
+                        onClick={
+                            start
+                                ? () => {
+                                      setSettings(true);
+                                  }
+                                : onHome
+                        }
+                        className='shrink-0'
+                    >
+                        {start ? <Settings size={16} /> : <House size={16} />}
+                    </Button>
+                </Horizontal>
+            )}
 
             {start && <DashboardBrowserTabs tabs={tabs} active={active} onPick={onPickTab} onClose={onCloseTab} onAdd={onAddTab} />}
 
-            <div className='relative h-0.5 shrink-0 overflow-hidden'>
+            <div className={cn('relative h-0.5 shrink-0 overflow-hidden', full && 'hidden')}>
                 <AnimatePresence>
                     {state !== undefined && state.loading && (
                         <motion.div key='progress' initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} className='absolute inset-0'>

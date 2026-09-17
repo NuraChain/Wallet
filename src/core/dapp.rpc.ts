@@ -76,6 +76,28 @@ export const setDappWatchAsset = (handler: (address: string) => Promise<boolean>
     watchAsset = handler;
 };
 
+/**
+ * The floating grip the wallet injects into a page, and the only thing allowed to move the
+ * browser's own chrome.
+ *
+ * The grip has to be drawn inside the page, because the page is an OS-level view stacked above
+ * everything the wallet renders — no z-index reaches over it. That puts the control in reach of
+ * the page's own scripts, and full screen hides the address bar and its security indicator, which
+ * is a spoofing surface worth refusing.
+ *
+ * So the wallet mints a secret per injection and keeps it in the injected closure, never on
+ * `window`. The script is installed before any of the page's own, so a page cannot read it, hook
+ * the transport ahead of it, or forge this call. A page can still draw a button that looks like
+ * the grip; pressing it does nothing.
+ */
+let gripSecret = '';
+let gripHandler: (() => boolean) | undefined;
+
+export const setDappGrip = (secret: string, handler: (() => boolean) | undefined) => {
+    gripSecret = secret;
+    gripHandler = handler;
+};
+
 const chainHex = (id: number) => `0x${id.toString(16)}`;
 
 const changeListeners = new Set<() => void>();
@@ -487,6 +509,18 @@ const route = async (envelope: DappEnvelope): Promise<unknown> => {
 
     if (origin.length === 0) {
         throw failure(dappError.unauthorized, 'Nura Wallet does not serve this page');
+    }
+
+    /* Ahead of the connection gate on purpose: the grip belongs to the wallet, not to the site, so
+       it works on a page that has never asked to connect. The secret is what authorises it. */
+    if (method === 'nura_chrome') {
+        if (gripSecret.length === 0 || params[0] !== gripSecret) {
+            throw failure(dappError.unauthorized, 'Nura Wallet does not serve this page');
+        }
+
+        // Answers the mode it landed in, so the grip can sound the right note without keeping a
+        // copy of the state that Escape would leave stale.
+        return gripHandler?.() ?? null;
     }
 
     switch (method) {

@@ -6,14 +6,25 @@ export interface DappIdentity {
 
     /** Which way back to the wallet the page has. Decided at build time, not sniffed. */
     channel?: 'native' | 'extension';
+
+    /**
+     * The secret that authorises the floating grip, minted per injection by the wallet.
+     *
+     * The grip has to live in the page's own DOM, because the page is an OS-level view stacked
+     * above everything the wallet draws — no z-index reaches over it. Keeping the secret in this
+     * closure, and installing before any of the page's own scripts, is what stops the page from
+     * working the control itself. Absent means no grip.
+     */
+    grip?: string;
 }
 
-export const dappIdentity = (chainId: number, channel: 'native' | 'extension' = 'native'): DappIdentity => ({
+export const dappIdentity = (chainId: number, channel: 'native' | 'extension' = 'native', grip = ''): DappIdentity => ({
     name: 'Nura Wallet',
     rdns: 'net.nurachain.wallet',
     icon: __APP_ICON__,
     chainId: `0x${chainId.toString(16)}`,
-    channel
+    channel,
+    ...(grip.length > 0 ? { grip } : {})
 });
 
 export const dappScript = (identity: DappIdentity) => `
@@ -520,6 +531,285 @@ export const dappScript = (identity: DappIdentity) => `
     expose('binancew3w', { ethereum: provider });
 
     window.dispatchEvent(new Event('ethereum#initialized'));
+
+
+    // The floating grip: the wallet's one control that has to be drawn by the page, because the
+    // page is painted by a view sitting above everything the wallet renders.
+    //
+    // Nothing here may lean on the page's styles, so every rule is inline, and the visual sits in
+    // an inner element: the outer one carries the drag translate, and animating that would drag
+    // the whole gesture through a transition.
+    var mountGrip = function ()
+    {
+        if (typeof IDENTITY.grip !== 'string' || IDENTITY.grip.length === 0) { return; }
+
+        // Subframes get the provider too, and would otherwise each add a grip of their own.
+        if (window.top !== window) { return; }
+
+        if (document.getElementById('nura-grip') !== null) { return; }
+
+        var size = 44;
+        var edge = 16;
+
+        var calm = false;
+
+        try { calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+        catch (ignored) {  }
+
+        var box = document.createElement('div');
+
+        box.id = 'nura-grip';
+        box.setAttribute('role', 'button');
+        box.setAttribute('tabindex', '0');
+        box.setAttribute('aria-label', 'Nura Wallet');
+
+        box.style.cssText = [
+            'position:fixed',
+            'top:auto',
+            'left:auto',
+            'right:' + edge + 'px',
+            'bottom:' + edge + 'px',
+            'width:' + size + 'px',
+            'height:' + size + 'px',
+            'display:flex',
+            'align-items:center',
+            'justify-content:center',
+            'margin:0',
+            'padding:0',
+            'border:0',
+            'background:transparent',
+            'cursor:grab',
+            'touch-action:none',
+            'user-select:none',
+            '-webkit-user-select:none',
+            'z-index:2147483647'
+        ].join(';');
+
+        var rest = 'rgba(17,24,39,0.55)';
+        var hot = 'rgba(17,24,39,0.78)';
+
+        var skin = document.createElement('div');
+
+        skin.setAttribute('aria-hidden', 'true');
+
+        skin.style.cssText = [
+            'display:flex',
+            'align-items:center',
+            'justify-content:center',
+            'width:100%',
+            'height:100%',
+            'border-radius:9999px',
+            'border:1px solid rgba(255,255,255,0.28)',
+            'background:' + rest,
+            '-webkit-backdrop-filter:blur(12px)',
+            'backdrop-filter:blur(12px)',
+            'box-shadow:0 8px 24px rgba(0,0,0,0.35)',
+            'color:#ffffff',
+            'transform:scale(1)',
+            'opacity:0.5',
+            calm ? '' : 'transition:transform 150ms ease,background-color 150ms ease,border-color 150ms ease,opacity 150ms ease'
+        ].join(';');
+
+        // The lucide astroid, inlined: an injected script cannot import the wallet's icon set, so
+        // the path is copied rather than the component used.
+        skin.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.983 21.186a1 1 0 0 1-1.966 0 10 10 0 0 0-8.203-8.203 1 1 0 0 1 0-1.966 10 10 0 0 0 8.203-8.203 1 1 0 0 1 1.966 0 10 10 0 0 0 8.203 8.203 1 1 0 0 1 0 1.966 10 10 0 0 0-8.203 8.203"/></svg>';
+
+        box.appendChild(skin);
+
+        var place = { x: 0, y: 0 };
+        var grab = { x: 0, y: 0 };
+
+        var pointer = -1;
+        var moved = false;
+        var hover = false;
+        var last = 0;
+
+        // Half opacity at rest, whole while it is being used: it sits on top of somebody else's
+        // page, so it stays out of the way until a pointer is actually on it. Touch has no hover,
+        // which leaves it dimmed until the press — the behaviour it is modelled on.
+        var skinTo = function (scale, fill)
+        {
+            var idle = fill === rest;
+
+            skin.style.transform = calm ? 'scale(1)' : 'scale(' + scale + ')';
+            skin.style.background = fill;
+            skin.style.opacity = idle ? '0.5' : '1';
+            skin.style.borderColor = idle ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.45)';
+        };
+
+        var settle = function ()
+        {
+            if (hover) { skinTo(1.08, hot); }
+            else { skinTo(1, rest); }
+        };
+
+        var draw = function ()
+        {
+            box.style.transform = 'translate(' + place.x + 'px,' + place.y + 'px)';
+        };
+
+        // Kept inside the viewport on every move and on resize: this is the only way back out of
+        // full screen, so it may never be dragged or reflowed somewhere it cannot be tapped.
+        var clamp = function ()
+        {
+            var width = window.innerWidth || size;
+            var height = window.innerHeight || size;
+
+            var minX = edge + size - width;
+            var minY = edge + size - height;
+
+            if (place.x > 0) { place.x = 0; }
+            if (place.y > 0) { place.y = 0; }
+            if (place.x < minX) { place.x = minX; }
+            if (place.y < minY) { place.y = minY; }
+        };
+
+        // Synthesised rather than fetched: a sound file would need a URL the page is willing to
+        // load, and most sites' own CSP would refuse it. A gesture opened the context, so autoplay
+        // policy has nothing to object to.
+        var sound = null;
+
+        var chirp = function (rising)
+        {
+            try
+            {
+                var Ctor = window.AudioContext || window.webkitAudioContext;
+
+                if (Ctor === undefined) { return; }
+
+                if (sound === null) { sound = new Ctor(); }
+
+                if (sound.state === 'suspended') { sound.resume(); }
+
+                var at = sound.currentTime;
+
+                var osc = sound.createOscillator();
+                var gain = sound.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(rising ? 620 : 880, at);
+                osc.frequency.exponentialRampToValueAtTime(rising ? 940 : 460, at + 0.11);
+
+                gain.gain.setValueAtTime(0.0001, at);
+                gain.gain.exponentialRampToValueAtTime(0.08, at + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.19);
+
+                osc.connect(gain);
+                gain.connect(sound.destination);
+
+                osc.start(at);
+                osc.stop(at + 0.2);
+            }
+            catch (ignored) {  }
+        };
+
+        var toggle = function ()
+        {
+            if (!calm)
+            {
+                skinTo(1.3, hot);
+
+                setTimeout(settle, 170);
+            }
+
+            // The wallet answers with the mode it landed in, so the note is right even after an
+            // Escape the grip never heard about.
+            send('nura_chrome', [IDENTITY.grip]).then(function (state) { chirp(state === true); }, function () {  });
+        };
+
+        box.addEventListener('pointerenter', function ()
+        {
+            hover = true;
+
+            settle();
+        });
+
+        box.addEventListener('pointerleave', function ()
+        {
+            hover = false;
+
+            settle();
+        });
+
+        box.addEventListener('pointerdown', function (event)
+        {
+            pointer = event.pointerId;
+            moved = false;
+
+            grab.x = event.clientX - place.x;
+            grab.y = event.clientY - place.y;
+
+            box.style.cursor = 'grabbing';
+
+            skinTo(0.92, hot);
+
+            try { box.setPointerCapture(pointer); }
+            catch (ignored) {  }
+
+            event.preventDefault();
+        });
+
+        box.addEventListener('pointermove', function (event)
+        {
+            if (event.pointerId !== pointer) { return; }
+
+            var x = event.clientX - grab.x;
+            var y = event.clientY - grab.y;
+
+            if (Math.abs(x - place.x) > 3 || Math.abs(y - place.y) > 3) { moved = true; }
+
+            place.x = x;
+            place.y = y;
+
+            clamp();
+            draw();
+        });
+
+        var release = function (event)
+        {
+            if (event.pointerId !== pointer) { return; }
+
+            pointer = -1;
+
+            box.style.cursor = 'grab';
+
+            try { box.releasePointerCapture(event.pointerId); }
+            catch (ignored) {  }
+
+            if (moved) { settle(); return; }
+
+            var now = Date.now();
+
+            if (now - last < 400) { last = 0; toggle(); }
+            else { last = now; settle(); }
+        };
+
+        box.addEventListener('pointerup', release);
+        box.addEventListener('pointercancel', release);
+
+        box.addEventListener('keydown', function (event)
+        {
+            if (event.key === 'Enter' || event.key === ' ')
+            {
+                event.preventDefault();
+
+                toggle();
+            }
+        });
+
+        window.addEventListener('resize', function () { clamp(); draw(); });
+
+        var attach = function ()
+        {
+            if (document.body !== null) { document.body.appendChild(box); }
+            else { document.documentElement.appendChild(box); }
+        };
+
+        if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', attach); }
+        else { attach(); }
+    };
+
+    mountGrip();
 
     setTimeout(function ()
     {
