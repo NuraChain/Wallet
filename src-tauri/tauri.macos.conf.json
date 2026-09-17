@@ -24,6 +24,8 @@
                     ],
                     "permissions": [
                         "core:event:allow-listen",
+                        "core:window:allow-scale-factor",
+                        "core:window:allow-inner-size",
                         "core:event:allow-unlisten",
                         "core:webview:allow-create-webview",
                         "core:webview:allow-webview-close",

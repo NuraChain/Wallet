@@ -21,6 +21,32 @@ const settleFrames = 90;
 const originSettle = 32;
 
 /**
+ * How far the document's own origin sits below the window's.
+ *
+ * A child webview is placed in window coordinates, while the rect it is placed from was measured
+ * in the document's. On macOS those two do not share an origin: the window's content view runs the
+ * full height of the frame and the title bar is drawn over the top of it, so WebKit keeps the
+ * document out from under the bar and `innerHeight` comes back short by exactly that strip. A rect
+ * at document y sits at window y plus the strip, and placing the webview at the document's number
+ * puts it that much too high - over the browser's own header, with a gap left beneath it.
+ *
+ * The strip is the difference between the two heights, which is how it stays right without naming
+ * a title bar height: full screen takes the bar away and the difference falls to zero on its own,
+ * and on every other platform the window never covered the document and it was zero all along.
+ */
+const topOffset = async (view: Webview) => {
+    try {
+        const [factor, size] = await Promise.all([view.window.scaleFactor(), view.window.innerSize()]);
+
+        const offset = size.toLogical(factor).height - window.innerHeight;
+
+        return offset > 0 ? offset : 0;
+    } catch {
+        return 0;
+    }
+};
+
+/**
  * Size, then origin, then origin again.
  *
  * Resizing a child webview re-derives its origin from the frame it already had, and macOS gets
@@ -33,14 +59,16 @@ const originSettle = 32;
  * changes nothing.
  */
 const applyBounds = async (view: Webview, rect: { x: number; y: number; width: number; height: number }) => {
+    const top = rect.y + (await topOffset(view));
+
     await view.setSize(new LogicalSize(rect.width, rect.height));
-    await view.setPosition(new LogicalPosition(rect.x, rect.y));
+    await view.setPosition(new LogicalPosition(rect.x, top));
 
     await new Promise((resolve) => {
         setTimeout(resolve, originSettle);
     });
 
-    await view.setPosition(new LogicalPosition(rect.x, rect.y));
+    await view.setPosition(new LogicalPosition(rect.x, top));
 };
 
 export default function WebFrame({
