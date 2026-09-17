@@ -7,6 +7,7 @@ import Text from '../ui/text';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 import MenuRow from '../ui/menu';
+import { ModalActions } from '../ui/modal';
 import { Vertical } from '../ui/stack';
 
 import { platform } from '../../platform';
@@ -91,18 +92,25 @@ export default function DashboardSettings({
 
             <div className='flex-1' />
 
-            {/* Lock is the everyday action and Logout erases the wallet from this device. They
-                used to be one 50/50 row of identical buttons, a target width apart. */}
-            <Button variant='primary' size='submit' onClick={onLock} leftIcon={<Lock size={16} className='shrink-0' />} text={T('Dashboard.Lock')} />
+            {/* One row, one metric, by request. Logout erases the wallet from this device and sits
+                a target width from the everyday action, so the weight it carries is the fill:
+                `destructive` is the only red button on the screen, and the password prompt behind
+                it is what actually stands between a mis-tap and a lost wallet. */}
+            <ModalActions>
+                <Button variant='primary' size='action' onClick={onLock} leftIcon={<Lock size={16} className='shrink-0' />} className='min-w-0'>
+                    <span className='truncate'>{T('Dashboard.Lock')}</span>
+                </Button>
 
-            <Button
-                variant='danger'
-                size='action'
-                onClick={onLogout}
-                leftIcon={<LogOut size={16} className='shrink-0 rtl:rotate-180' />}
-                className='mx-auto px-4'
-                text={T('Dashboard.Settings.Logout')}
-            />
+                <Button
+                    variant='destructive'
+                    size='action'
+                    onClick={onLogout}
+                    leftIcon={<LogOut size={16} className='shrink-0 rtl:rotate-180' />}
+                    className='min-w-0'
+                >
+                    <span className='truncate'>{T('Dashboard.Settings.Logout')}</span>
+                </Button>
+            </ModalActions>
 
             <Text dir='ltr' className='pt-1 text-center' text={T('Dashboard.Settings.Version', __APP_VERSION__)} />
         </Vertical>
