@@ -27,7 +27,8 @@
             "Message": "No se perdió nada. Tu billetera sigue en este dispositivo."
         },
         "Cancel": "Cancelar",
-        "Remove": "Eliminar"
+        "Remove": "Eliminar",
+        "Website": "Abrir el sitio web de Nura Wallet"
     },
     "Language": {
         "en": "Inglés",

@@ -27,7 +27,8 @@
             "Message": "Nothing was lost. Your wallet is still on this device."
         },
         "Cancel": "Cancel",
-        "Remove": "Remove"
+        "Remove": "Remove",
+        "Website": "Open the Nura Wallet website"
     },
     "Language": {
         "en": "English",
