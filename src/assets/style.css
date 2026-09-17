@@ -31,6 +31,8 @@
     --color-base-3: var(--base-3);
 
     --color-line: var(--line);
+    --color-glass: var(--glass);
+    --color-glass-line: var(--glass-line);
     --color-scrim: var(--scrim);
     --color-scrollbar: var(--scrollbar-thumb);
     --color-scrollbar-hover: var(--scrollbar-thumb-hover);
@@ -114,6 +116,9 @@
 
     --line: oklch(92.9% 0.013 255.5);
 
+    --glass: oklch(100% 0 0 / 0.72);
+    --glass-line: oklch(0% 0 0 / 0.08);
+
     --shadow-color: oklch(20.8% 0.04 265.8 / 0.12);
 
     --focus-ring: oklch(54.7% 0.214 263.5);
@@ -175,6 +180,9 @@
     --badge-text: oklch(20.8% 0.04 265.8);
 
     --line: oklch(27.8% 0.03 256.8);
+
+    --glass: oklch(100% 0 0 / 0.1);
+    --glass-line: oklch(100% 0 0 / 0.14);
 
     --shadow-color: oklch(12.9% 0.041 264.7 / 0.6);
 
