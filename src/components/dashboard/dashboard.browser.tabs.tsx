@@ -29,7 +29,9 @@ const chipLive = selectedTint;
 // A tab keeps its width until the strip runs out of room, and shares the space while there is
 // still some — the same shape the row had when it was a flex row, kept through Swiper's own
 // width by way of the important modifier.
-const slideSize = 'w-30! grow';
+/* `grow` lets a lone tab take the whole strip, which on a wide window turned one site into a
+   banner. The cap keeps a tab reading as a tab however few of them there are. */
+const slideSize = 'w-30! max-w-52! grow';
 
 export default function DashboardBrowserTabs({
     tabs,
