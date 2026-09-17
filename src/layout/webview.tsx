@@ -17,6 +17,32 @@ const desktopAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.
 
 const settleFrames = 90;
 
+/** Long enough for macOS to finish the resize it applies on its own main-thread pass. */
+const originSettle = 32;
+
+/**
+ * Size, then origin, then origin again.
+ *
+ * Resizing a child webview re-derives its origin from the frame it already had, and macOS gets
+ * that derivation wrong. The resize lands on a later main-thread pass than the call that asked
+ * for it, so an origin stated in the same turn is thrown away afterwards and the page ends up
+ * pinned to the top of the window — over the browser's own header, with a gap left beneath it.
+ * Ordering the two calls was not enough, because awaiting the IPC round trip does not wait for
+ * the layout pass behind it. Restating the origin once the resize has settled is what makes it
+ * stick, and on the platforms that never lost it the second call carries the same numbers and
+ * changes nothing.
+ */
+const applyBounds = async (view: Webview, rect: { x: number; y: number; width: number; height: number }) => {
+    await view.setSize(new LogicalSize(rect.width, rect.height));
+    await view.setPosition(new LogicalPosition(rect.x, rect.y));
+
+    await new Promise((resolve) => {
+        setTimeout(resolve, originSettle);
+    });
+
+    await view.setPosition(new LogicalPosition(rect.x, rect.y));
+};
+
 export default function WebFrame({
     label,
     url,
@@ -97,12 +123,7 @@ export default function WebFrame({
                     const view = await Webview.getByLabel(label);
 
                     if (view !== null) {
-                        // Size first, position last. Resizing a child webview re-derives its origin
-                        // from the frame it already had, and macOS gets that derivation wrong — the
-                        // page ends up pinned to the top of the window, over the browser's own
-                        // header. Setting the position afterwards states the origin outright.
-                        await view.setSize(new LogicalSize(target.width, target.height));
-                        await view.setPosition(new LogicalPosition(target.x, target.y));
+                        await applyBounds(view, target);
                     }
                 } catch {}
             });
@@ -302,13 +323,8 @@ export default function WebFrame({
                     const settled = frameRef.current?.getBoundingClientRect();
 
                     if (settled !== undefined && settled.width >= 1 && settled.height >= 1) {
-                        // Same order as `place`: the size goes on first so the position has the
-                        // last word over the origin.
                         // oxlint-disable-next-line no-await-in-loop
-                        await view.setSize(new LogicalSize(settled.width, settled.height));
-
-                        // oxlint-disable-next-line no-await-in-loop
-                        await view.setPosition(new LogicalPosition(settled.x, settled.y));
+                        await applyBounds(view, settled);
                     }
 
                     return;
