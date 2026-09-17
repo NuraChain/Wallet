@@ -1,7 +1,7 @@
 import { useRef, type ReactNode } from 'react';
 
 import { motion } from 'motion/react';
-import { IoClose } from 'react-icons/io5';
+import { X } from 'lucide-react';
 
 import Text from './text';
 import Button from './button';
@@ -15,16 +15,28 @@ import { surfacePanel } from './panel';
 import { Horizontal, Vertical } from './stack';
 import { inset, layer } from '../../layout/container';
 
+/* The window is 360 wide, but the app lays out for a desktop too — a sidebar at `lg`, a wider
+   page container — and every dialog stayed a 320px column on all of it. That width is what made
+   a recovery word clip and an address need truncating, so it grows with the window now. Callers
+   pick a step rather than passing a width, so nothing has to out-specify a breakpoint here. */
+const widthMap = {
+    panel: 'w-80 sm:w-96 lg:w-112',
+    narrow: 'w-72 sm:w-80',
+    full: 'size-full'
+} as const;
+
 export function Modal({
     onClose,
     scroll = false,
     scale = 0.9,
+    width = 'panel',
     panelClass = '',
     children
 }: {
     onClose: () => void;
     scroll?: boolean;
     scale?: number;
+    width?: keyof typeof widthMap;
     panelClass?: string;
     children: ReactNode;
 }) {
@@ -42,7 +54,8 @@ export function Modal({
             exit={{ opacity: 0, scale }}
             className={cn(
                 surfacePanel,
-                'pointer-events-auto flex w-80 max-w-full flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',
+                'pointer-events-auto flex max-w-full flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',
+                widthMap[width],
                 scroll && 'max-h-full overflow-y-auto',
                 panelClass
             )}
@@ -94,7 +107,7 @@ export function ModalHeader({
     title: string;
     subtitle?: string;
     leading?: ReactNode;
-    close?: 'icon' | 'chip';
+    close?: 'icon' | 'chip' | 'none';
     closeLabel?: string;
     titleClass?: string;
     groupClass?: string;
@@ -119,15 +132,19 @@ export function ModalHeader({
                 </Horizontal>
             )}
 
-            <Button
-                variant={close === 'chip' ? 'chip' : 'muted'}
-                size={close === 'chip' ? 'iconChip' : 'icon'}
-                aria-label={closeLabel.length > 0 ? closeLabel : T('App.Close')}
-                onClick={onClose}
-                className='shrink-0'
-            >
-                <IoClose size={20} />
-            </Button>
+            {/* A step that must not be abandoned halfway — a transaction already in flight — asks
+                for `none`, so the header offers no way out that the surface itself refuses. */}
+            {close !== 'none' && (
+                <Button
+                    variant={close === 'chip' ? 'chip' : 'muted'}
+                    size={close === 'chip' ? 'iconChip' : 'icon'}
+                    aria-label={closeLabel.length > 0 ? closeLabel : T('App.Close')}
+                    onClick={onClose}
+                    className='shrink-0'
+                >
+                    <X size={20} />
+                </Button>
+            )}
         </Horizontal>
     );
 }

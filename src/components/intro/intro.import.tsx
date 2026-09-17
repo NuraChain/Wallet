@@ -131,7 +131,8 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
                                 onClick={() => {
                                     onMethod(item.kind);
                                 }}
-                                className='h-10 min-w-0 flex-1 rounded-control text-small'
+                                size='action'
+                                className='min-w-0 flex-1'
                                 text={T(item.label)}
                             />
                         ))}

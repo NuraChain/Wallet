@@ -1,7 +1,6 @@
 import type { Swiper as SwiperType } from 'swiper';
 
-import { IoClose } from 'react-icons/io5';
-import { FiPlus } from 'react-icons/fi';
+import { X, Plus } from 'lucide-react';
 import { useReducedMotion } from 'motion/react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { FreeMode, Mousewheel } from 'swiper/modules';
@@ -74,7 +73,7 @@ export default function DashboardBrowserTabs({
     return (
         <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
             <Button variant='chip' size='iconChip' aria-label={T('Dashboard.Browser.TabNew')} onClick={onAdd} className='size-8 shrink-0'>
-                <FiPlus size={16} />
+                <Plus size={16} />
             </Button>
 
             <div className='min-w-0 flex-1'>
@@ -122,7 +121,7 @@ export default function DashboardBrowserTabs({
                                         }}
                                         className='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'
                                     >
-                                        <IoClose size={14} />
+                                        <X size={14} />
                                     </Button>
                                 </div>
                             </SwiperSlide>

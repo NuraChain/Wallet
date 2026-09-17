@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { FiCheck, FiEdit3, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { Check, PenLine, Plus, Trash } from 'lucide-react';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
@@ -8,6 +8,7 @@ import StatusBlock from '../ui/state';
 import SiteIcon from '../site.icon';
 import SiteForm from '../site.form';
 import ScrollBar from '../ui/scrollbar';
+import ConfirmDialog from '../ui/confirm';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
@@ -16,25 +17,7 @@ import { Horizontal, Vertical } from '../ui/stack';
 
 type TabKey = 'favorite' | 'history';
 
-function BrowserShortcut({
-    url,
-    name,
-    symbol,
-    title,
-    ltr = false,
-    primary = false,
-    className = '',
-    onPick
-}: {
-    url: string;
-    name: string;
-    symbol?: string;
-    title?: string;
-    ltr?: boolean;
-    primary?: boolean;
-    className?: string;
-    onPick: (url: string) => void;
-}) {
+function BrowserShortcut({ url, name, symbol, title, onPick }: { url: string; name: string; symbol?: string; title?: string; onPick: (url: string) => void }) {
     return (
         <Button
             title={title}
@@ -42,11 +25,43 @@ function BrowserShortcut({
             onClick={() => {
                 onPick(url);
             }}
-            className={cn('h-12 gap-2.5 rounded-surface px-2.5 text-start', className)}
+            className='h-12 gap-2.5 rounded-surface px-2.5 text-start'
         >
-            <SiteIcon url={url} symbol={symbol ?? name} primary={primary} />
+            <SiteIcon url={url} symbol={symbol ?? name} />
 
-            <Text variant='body' dir={ltr ? 'ltr' : undefined} className='flex-1 truncate' text={name} />
+            <Text variant='body' dir='ltr' className='min-w-0 flex-1 truncate' text={name} />
+        </Button>
+    );
+}
+
+/**
+ * A favourite as a card: what it is, and where it actually goes.
+ *
+ * The card lays out LTR in every language. A favicon beside a domain is an inherently LTR pair,
+ * and the host line is forced LTR already — mirroring the row put the icon on one side and the
+ * address it belongs to on the other.
+ *
+ * The host is the description because it is the one fact about a bookmark worth checking before
+ * tapping it — the name is whatever the user typed, and this is the browser a site signs through.
+ */
+function FavoriteCard({ item, className = '', onPick }: { item: BrowserFavorite; className?: string; onPick: (item: BrowserFavorite) => void }) {
+    return (
+        <Button
+            dir='ltr'
+            variant='chip'
+            title={item.url}
+            onClick={() => {
+                onPick(item);
+            }}
+            className={cn('h-16 min-w-0 justify-start gap-2.5 rounded-surface px-3 text-start', className)}
+        >
+            <SiteIcon primary url={item.url} symbol={item.name} className='size-9 text-tiny' />
+
+            <Vertical className='min-w-0 flex-1'>
+                <Text variant='body' className='truncate' text={item.name} />
+
+                <Text dir='ltr' className='truncate' text={getSiteHost(item.url)} />
+            </Vertical>
         </Button>
     );
 }
@@ -72,6 +87,7 @@ export default function DashboardBrowserStart({
     const [editing, setEditing] = useState(false);
 
     const [editor, setEditor] = useState<BrowserFavorite | boolean>(false);
+    const [removing, setRemoving] = useState<BrowserFavorite | undefined>(undefined);
 
     const tabMap: { key: TabKey; label: string }[] = [
         { key: 'favorite', label: T('Dashboard.Browser.Favorite') },
@@ -110,7 +126,7 @@ export default function DashboardBrowserStart({
                             onClick={() => {
                                 setEditing(!editing);
                             }}
-                            leftIcon={editing ? <FiCheck size={14} /> : <FiEdit3 size={14} />}
+                            leftIcon={editing ? <Check size={14} /> : <PenLine size={14} />}
                             text={editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage')}
                             className='ms-auto mb-1 shrink-0'
                         />
@@ -123,12 +139,9 @@ export default function DashboardBrowserStart({
                             <Vertical className='gap-2'>
                                 {favorites.map((item) => (
                                     <Horizontal key={item.id} className='items-center gap-2'>
-                                        <BrowserShortcut
-                                            primary
-                                            url={item.url}
-                                            name={item.name}
-                                            title={item.url}
-                                            className='min-w-0 flex-1'
+                                        <FavoriteCard
+                                            item={item}
+                                            className='flex-1'
                                             onPick={() => {
                                                 setEditor(item);
                                             }}
@@ -138,12 +151,12 @@ export default function DashboardBrowserStart({
                                             variant='danger'
                                             size='icon'
                                             onClick={() => {
-                                                onFavoriteRemove(item.id);
+                                                setRemoving(item);
                                             }}
                                             aria-label={T('Dashboard.Browser.FavoriteRemove')}
                                             className='shrink-0'
                                         >
-                                            <FiTrash2 size={16} />
+                                            <Trash size={16} />
                                         </Button>
                                     </Horizontal>
                                 ))}
@@ -154,21 +167,19 @@ export default function DashboardBrowserStart({
                                     onClick={() => {
                                         setEditor(true);
                                     }}
-                                    leftIcon={<FiPlus size={16} />}
+                                    leftIcon={<Plus size={16} />}
                                     text={T('Dashboard.Browser.FavoriteAdd')}
                                 />
                             </Vertical>
                         ) : (
-                            <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5'>
+                            <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4'>
                                 {favorites.map((item) => (
-                                    <BrowserShortcut
+                                    <FavoriteCard
                                         key={item.id}
-                                        primary
-                                        url={item.url}
-                                        name={item.name}
-                                        title={item.url}
-                                        className='min-w-0'
-                                        onPick={onOpen}
+                                        item={item}
+                                        onPick={(picked) => {
+                                            onOpen(picked.url);
+                                        }}
                                     />
                                 ))}
 
@@ -178,9 +189,9 @@ export default function DashboardBrowserStart({
                                         setEditor(true);
                                     }}
                                     aria-label={T('Dashboard.Browser.FavoriteAdd')}
-                                    className='h-12 items-center justify-center gap-2 rounded-surface border-dashed px-2.5 text-txt-muted hover:text-txt-normal'
+                                    className='h-16 items-center justify-center gap-2 rounded-surface border-dashed px-3 text-txt-muted hover:text-txt-normal'
                                 >
-                                    <FiPlus size={16} className='shrink-0' />
+                                    <Plus size={16} className='shrink-0' />
 
                                     <Text variant='inherit' className='min-w-0 truncate' text={T('Dashboard.Browser.FavoriteAdd')} />
                                 </Button>
@@ -194,7 +205,6 @@ export default function DashboardBrowserStart({
                             <div className='grid grid-cols-2 gap-2 lg:grid-cols-4'>
                                 {visits.map((item) => (
                                     <BrowserShortcut
-                                        ltr
                                         key={item.url}
                                         url={item.url}
                                         name={getSiteHost(item.url)}
@@ -228,6 +238,20 @@ export default function DashboardBrowserStart({
                     }}
                     onClose={() => {
                         setEditor(false);
+                    }}
+                />
+            )}
+
+            {removing !== undefined && (
+                <ConfirmDialog
+                    title={T('Dashboard.Browser.FavoriteRemove')}
+                    message={T('Dashboard.Browser.FavoriteRemoveConfirm', removing.name)}
+                    onCancel={() => {
+                        setRemoving(undefined);
+                    }}
+                    onConfirm={() => {
+                        onFavoriteRemove(removing.id);
+                        setRemoving(undefined);
                     }}
                 />
             )}

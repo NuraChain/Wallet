@@ -1,11 +1,9 @@
-import type { IconType } from 'react-icons';
 import type { Swiper as SwiperType } from 'swiper';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { FiDownload, FiGlobe, FiMoon, FiPlusCircle, FiSun } from 'react-icons/fi';
-import { IoChevronDown, IoChevronForward } from 'react-icons/io5';
+import { Download, Globe, Moon, CirclePlus, Sun, ChevronDown, ChevronRight, type LucideIcon } from 'lucide-react';
 import { useRef, useCallback, useState, type ReactNode } from 'react';
 
 import Text from '../components/ui/text';
@@ -42,9 +40,9 @@ const slideMap = [
     }
 ];
 
-const entryMap: { key: string; icon: IconType; label: string; variant: 'primary' | 'normal'; page: (close: () => void) => ReactNode }[] = [
-    { key: 'create', icon: FiPlusCircle, label: 'Intro.Create', variant: 'primary', page: (close) => <IntroWallet onClose={close} /> },
-    { key: 'import', icon: FiDownload, label: 'Intro.Import', variant: 'normal', page: (close) => <IntroImport onClose={close} /> }
+const entryMap: { key: string; icon: LucideIcon; label: string; variant: 'primary' | 'normal'; page: (close: () => void) => ReactNode }[] = [
+    { key: 'create', icon: CirclePlus, label: 'Intro.Create', variant: 'primary', page: (close) => <IntroWallet onClose={close} /> },
+    { key: 'import', icon: Download, label: 'Intro.Import', variant: 'normal', page: (close) => <IntroImport onClose={close} /> }
 ];
 
 export default function IntroPage() {
@@ -85,15 +83,15 @@ export default function IntroPage() {
                             }}
                             className='h-10 w-fit shrink justify-start rounded-control p-2'
                         >
-                            <FiGlobe size={16} className='shrink-0' />
+                            <Globe size={16} className='shrink-0' />
 
                             <Text variant='inherit' className='truncate text-small' text={T('Intro.Language')} />
 
-                            <IoChevronDown size={16} className='shrink-0' />
+                            <ChevronDown size={16} className='shrink-0' />
                         </Button>
 
                         <Button variant='normal' size='iconLarge' onClick={toggleTheme} className='shrink-0 text-txt-normal'>
-                            {theme === 'light' ? <FiMoon size={16} /> : <FiSun size={16} />}
+                            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
                         </Button>
                     </Horizontal>
 
@@ -134,7 +132,7 @@ export default function IntroPage() {
 
                                 <Text variant='inherit' className='flex-1 truncate text-start text-small sm:text-medium' text={T(item.label)} />
 
-                                <IoChevronForward size={16} className='shrink-0 rtl:rotate-180' />
+                                <ChevronRight size={16} className='shrink-0 rtl:rotate-180' />
                             </Button>
                         ))}
 

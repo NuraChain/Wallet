@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { motion } from 'motion/react';
-import { IoClose } from 'react-icons/io5';
+import { X } from 'lucide-react';
 
 import Text from './text';
 import Button from './button';
@@ -46,7 +46,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 )}
             >
                 <Button variant='muted' size='iconLarge' aria-label={T('App.Close')} onClick={onClose} className='mt-4 shrink-0'>
-                    <IoClose size={24} />
+                    <X size={24} />
                 </Button>
 
                 <DialogTitleContext value={titleId}>{children}</DialogTitleContext>

@@ -1,17 +1,27 @@
-import type { IconType } from 'react-icons';
-
 import { useNavigate } from 'react-router';
 import { platform } from '../platform';
 import { motion, AnimatePresence } from 'motion/react';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FiArrowDownLeft, FiArrowUpRight, FiLogOut } from 'react-icons/fi';
-import { HiOutlineCog6Tooth, HiOutlineGlobeAlt, HiOutlineLockClosed, HiOutlineWallet } from 'react-icons/hi2';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowDownLeft, ArrowUpRight, LogOut, Settings, Globe, Lock, Wallet, type LucideIcon } from 'lucide-react';
 
 import ScrollArea from '../layout/scroll';
 import PageContainer, { ScrollFrame } from '../layout/container';
 import DashboardNav from '../components/dashboard/dashboard.nav';
 import DashboardSidebar, { type SidebarItem } from '../components/dashboard/dashboard.sidebar';
 import DashboardWallet from '../components/dashboard/dashboard.wallet';
+import DashboardSend from '../components/dashboard/dashboard.send';
+import IntroLanguage from '../components/intro/intro.language';
+import DashboardTokens from '../components/dashboard/dashboard.tokens';
+import DashboardLogout from '../components/dashboard/dashboard.logout';
+import DashboardPhrase from '../components/dashboard/dashboard.phrase';
+import DashboardRedeem from '../components/dashboard/dashboard.redeem';
+import DashboardAccount from '../components/dashboard/dashboard.account';
+import DashboardBrowser from '../components/dashboard/dashboard.browser';
+import DashboardHistory from '../components/dashboard/dashboard.history';
+import DashboardNetwork from '../components/dashboard/dashboard.network';
+import DashboardReceive from '../components/dashboard/dashboard.receive';
+import DashboardRequest from '../components/dashboard/dashboard.request';
+import DashboardSettings from '../components/dashboard/dashboard.settings';
 
 import { getNetwork } from '../core/network';
 import { RouteFallback } from '../layout/root';
@@ -44,28 +54,12 @@ import {
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
 
-/* oxlint-disable @typescript-eslint/naming-convention */
-const DashboardSend = lazy(async () => import('../components/dashboard/dashboard.send'));
-const DashboardTokens = lazy(async () => import('../components/dashboard/dashboard.tokens'));
-const IntroLanguage = lazy(async () => import('../components/intro/intro.language'));
-const DashboardLogout = lazy(async () => import('../components/dashboard/dashboard.logout'));
-const DashboardAccount = lazy(async () => import('../components/dashboard/dashboard.account'));
-const DashboardNetwork = lazy(async () => import('../components/dashboard/dashboard.network'));
-const DashboardReceive = lazy(async () => import('../components/dashboard/dashboard.receive'));
-const DashboardRedeem = lazy(async () => import('../components/dashboard/dashboard.redeem'));
-const DashboardBrowser = lazy(async () => import('../components/dashboard/dashboard.browser'));
-const DashboardRequest = lazy(async () => import('../components/dashboard/dashboard.request'));
-const DashboardHistory = lazy(async () => import('../components/dashboard/dashboard.history'));
-const DashboardPhrase = lazy(async () => import('../components/dashboard/dashboard.phrase'));
-const DashboardSettings = lazy(async () => import('../components/dashboard/dashboard.settings'));
-/* oxlint-enable @typescript-eslint/naming-convention */
-
 type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem';
 
-const navMap: { key: string; icon: IconType }[] = [
-    { key: 'Wallet', icon: HiOutlineWallet },
-    { key: 'Browser', icon: HiOutlineGlobeAlt },
-    { key: 'Settings', icon: HiOutlineCog6Tooth }
+const navMap: { key: string; icon: LucideIcon }[] = [
+    { key: 'Wallet', icon: Wallet },
+    { key: 'Browser', icon: Globe },
+    { key: 'Settings', icon: Settings }
 ];
 
 function DashboardView({ vault }: { vault: Vault }) {
@@ -356,7 +350,7 @@ function DashboardView({ vault }: { vault: Vault }) {
         {
             key: 'Wallet',
             label: T('Dashboard.Nav.Wallet'),
-            icon: HiOutlineWallet,
+            icon: Wallet,
             active: tabMap[active].key === 'Wallet',
             onClick: () => {
                 goKey('Wallet');
@@ -365,7 +359,7 @@ function DashboardView({ vault }: { vault: Vault }) {
         {
             key: 'Browser',
             label: T('Dashboard.Nav.Browser'),
-            icon: HiOutlineGlobeAlt,
+            icon: Globe,
             active: tabMap[active].key === 'Browser',
             onClick: () => {
                 goKey('Browser');
@@ -374,7 +368,7 @@ function DashboardView({ vault }: { vault: Vault }) {
         {
             key: 'Settings',
             label: T('Dashboard.Settings.Title'),
-            icon: HiOutlineCog6Tooth,
+            icon: Settings,
             active: tabMap[active].key === 'Settings',
             onClick: () => {
                 goKey('Settings');
@@ -453,75 +447,73 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'tween' }} className='relative size-full bg-base-1'>
-            <Suspense fallback={null}>
-                <AnimatePresence>
-                    {modal === 'send' && (
-                        <DashboardSend
-                            key='send'
-                            vault={vault}
-                            index={account}
-                            network={network}
-                            nativeValue={native.value}
-                            nativeFormatted={native.formatted}
-                            tokens={tokens.tokens}
-                            onSent={onSent}
-                            onExplorer={onTransaction}
-                            onClose={closeModal}
-                        />
-                    )}
+            <AnimatePresence>
+                {modal === 'send' && (
+                    <DashboardSend
+                        key='send'
+                        vault={vault}
+                        index={account}
+                        network={network}
+                        nativeValue={native.value}
+                        nativeFormatted={native.formatted}
+                        tokens={tokens.tokens}
+                        onSent={onSent}
+                        onExplorer={onTransaction}
+                        onClose={closeModal}
+                    />
+                )}
 
-                    {modal === 'receive' && <DashboardReceive key='receive' address={address} network={network} onClose={closeModal} />}
+                {modal === 'receive' && <DashboardReceive key='receive' address={address} network={network} onClose={closeModal} />}
 
-                    {modal === 'accounts' && (
-                        <DashboardAccount
-                            key='accounts'
-                            vault={vault}
-                            accounts={accounts}
-                            active={account}
-                            onSelect={onSelectAccount}
-                            onUpdate={onUpdateAccount}
-                            onRemove={onRemoveAccount}
-                            onClose={closeModal}
-                        />
-                    )}
+                {modal === 'accounts' && (
+                    <DashboardAccount
+                        key='accounts'
+                        vault={vault}
+                        accounts={accounts}
+                        active={account}
+                        onSelect={onSelectAccount}
+                        onUpdate={onUpdateAccount}
+                        onRemove={onRemoveAccount}
+                        onClose={closeModal}
+                    />
+                )}
 
-                    {modal === 'tokens' && (
-                        <DashboardTokens
-                            key='tokens'
-                            network={network}
-                            tokens={tokens.tokens}
-                            prices={prices.prices}
-                            onAdd={onAddToken}
-                            onRemove={onRemoveToken}
-                            onClose={closeModal}
-                        />
-                    )}
+                {modal === 'tokens' && (
+                    <DashboardTokens
+                        key='tokens'
+                        network={network}
+                        tokens={tokens.tokens}
+                        prices={prices.prices}
+                        onAdd={onAddToken}
+                        onRemove={onRemoveToken}
+                        onClose={closeModal}
+                    />
+                )}
 
-                    {modal === 'history' && (
-                        <DashboardHistory
-                            key='history'
-                            items={history.items}
-                            loading={history.loading}
-                            notice={history.notice}
-                            canOpen={network.explorerUrl.length > 0}
-                            onOpen={onTransaction}
-                            onClose={closeModal}
-                        />
-                    )}
+                {modal === 'history' && (
+                    <DashboardHistory
+                        key='history'
+                        items={history.items}
+                        loading={history.loading}
+                        notice={history.notice}
+                        canOpen={network.explorerUrl.length > 0}
+                        onOpen={onTransaction}
+                        onClose={closeModal}
+                    />
+                )}
 
-                    {modal === 'network' && <DashboardNetwork key='network' network={network} onChange={onNetworkChange} onClose={closeModal} />}
+                {modal === 'network' && <DashboardNetwork key='network' network={network} onChange={onNetworkChange} onClose={closeModal} />}
 
-                    {modal === 'language' && <IntroLanguage key='language' onClose={closeModal} />}
+                {modal === 'language' && <IntroLanguage key='language' onClose={closeModal} />}
 
-                    {modal === 'redeem' && <DashboardRedeem key='redeem' address={address} onClose={closeModal} />}
+                {modal === 'redeem' && <DashboardRedeem key='redeem' address={address} onClose={closeModal} />}
 
-                    {modal === 'phrase' && <DashboardPhrase key='phrase' kind={vault.kind} onClose={closeModal} />}
+                {modal === 'phrase' && <DashboardPhrase key='phrase' kind={vault.kind} onClose={closeModal} />}
 
-                    {modal === 'logout' && <DashboardLogout key='logout' kind={vault.kind} onClose={closeModal} />}
+                {modal === 'logout' && <DashboardLogout key='logout' kind={vault.kind} onClose={closeModal} />}
 
-                    {prompt !== undefined && <DashboardRequest key={prompt.id} prompt={prompt} address={address} network={network.name} />}
-                </AnimatePresence>
-            </Suspense>
+                {prompt !== undefined && <DashboardRequest key={prompt.id} prompt={prompt} address={address} network={network.name} tokens={tracked} />}
+            </AnimatePresence>
 
             <div dir={getDirection()} className='flex size-full overflow-hidden'>
                 <DashboardSidebar
@@ -530,7 +522,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                         {
                             key: 'Send',
                             label: T('Dashboard.Send.Title'),
-                            icon: FiArrowUpRight,
+                            icon: ArrowUpRight,
                             onClick: () => {
                                 setModal('send');
                             }
@@ -538,7 +530,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                         {
                             key: 'Receive',
                             label: T('Dashboard.Receive.Title'),
-                            icon: FiArrowDownLeft,
+                            icon: ArrowDownLeft,
                             onClick: () => {
                                 setModal('receive');
                             }
@@ -548,7 +540,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                         {
                             key: 'Lock',
                             label: T('Dashboard.Lock'),
-                            icon: HiOutlineLockClosed,
+                            icon: Lock,
                             primary: true,
                             onClick: () => {
                                 lockSession();
@@ -558,7 +550,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                         {
                             key: 'Logout',
                             label: T('Dashboard.Logout.Title'),
-                            icon: FiLogOut,
+                            icon: LogOut,
                             onClick: () => {
                                 setModal('logout');
                             }
@@ -582,17 +574,15 @@ function DashboardView({ vault }: { vault: Vault }) {
                                         inert={index === active ? undefined : true}
                                         aria-labelledby={`dashboard-tab-${item.key}`}
                                     >
-                                        <Suspense fallback={null}>
-                                            <DashboardBrowser
-                                                network={network}
-                                                request={link.url}
-                                                ticket={link.ticket}
-                                                enabled={index === active && modal === 'none' && prompt === undefined}
-                                                onExit={() => {
-                                                    goKey('Wallet');
-                                                }}
-                                            />
-                                        </Suspense>
+                                        <DashboardBrowser
+                                            network={network}
+                                            request={link.url}
+                                            ticket={link.ticket}
+                                            enabled={index === active && modal === 'none' && prompt === undefined}
+                                            onExit={() => {
+                                                goKey('Wallet');
+                                            }}
+                                        />
                                     </PageContainer>
                                 ) : (
                                     <ScrollFrame>
@@ -606,24 +596,22 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                 aria-labelledby={`dashboard-tab-${item.key}`}
                                             >
                                                 {item.key === 'Settings' && (
-                                                    <Suspense fallback={null}>
-                                                        <DashboardSettings
-                                                            kind={vault.kind}
-                                                            onLanguage={() => {
-                                                                setModal('language');
-                                                            }}
-                                                            onLock={() => {
-                                                                lockSession();
-                                                                void navigate('/unlock', { replace: true });
-                                                            }}
-                                                            onPhrase={() => {
-                                                                setModal('phrase');
-                                                            }}
-                                                            onLogout={() => {
-                                                                setModal('logout');
-                                                            }}
-                                                        />
-                                                    </Suspense>
+                                                    <DashboardSettings
+                                                        kind={vault.kind}
+                                                        onLanguage={() => {
+                                                            setModal('language');
+                                                        }}
+                                                        onLock={() => {
+                                                            lockSession();
+                                                            void navigate('/unlock', { replace: true });
+                                                        }}
+                                                        onPhrase={() => {
+                                                            setModal('phrase');
+                                                        }}
+                                                        onLogout={() => {
+                                                            setModal('logout');
+                                                        }}
+                                                    />
                                                 )}
 
                                                 {item.key === 'Wallet' && (

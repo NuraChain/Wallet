@@ -1,10 +1,11 @@
-import type { IconType } from 'react-icons';
+import type { LucideIcon } from 'lucide-react';
 
 import { motion } from 'motion/react';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
 import { cn } from '../../utility/cn';
+import { layer } from '../../layout/container';
 import { T } from '../../utility/language';
 import { Vertical } from '../ui/stack';
 
@@ -14,7 +15,7 @@ export default function DashboardNav({
     hidden,
     onSelect
 }: {
-    items: { key: string; icon: IconType }[];
+    items: { key: string; icon: LucideIcon }[];
     active: number;
     hidden: boolean;
     onSelect: (index: number) => void;
@@ -24,8 +25,12 @@ export default function DashboardNav({
             role='tablist'
             animate={{ y: hidden ? '150%' : '0%', opacity: hidden ? 0 : 1 }}
             transition={{ type: 'tween', duration: 0.25 }}
+            /* A deliberate exception to "surfaces are opaque": this is floating chrome over a
+               scrolling list, not a card, and the blur is what keeps the rows legible as they pass
+               under it. It stays scoped to this one bar — cards and rows keep their flat fill. */
             className={cn(
-                'absolute inset-x-4 z-20 mx-auto flex w-fit max-w-full overflow-hidden rounded-full border border-line bg-base-2 shadow-float lg:hidden',
+                'absolute inset-x-4 mx-auto flex w-fit max-w-full overflow-hidden rounded-full border border-glass-line bg-glass shadow-float backdrop-blur-xl lg:hidden',
+                layer.chrome,
                 'bottom-[calc(1rem+var(--inset-bottom))]',
                 hidden && 'pointer-events-none'
             )}
@@ -45,17 +50,12 @@ export default function DashboardNav({
                         }}
                         className='group relative flex h-14 min-w-24 shrink cursor-pointer items-center justify-center px-6 transition-colors duration-(--duration-fast)'
                     >
-                        {isActive && (
-                            <span
-                                aria-hidden
-                                className='absolute inset-1 rounded-full border border-txt-accent/15 bg-txt-accent/8 hover:border-txt-accent/30 hover:bg-txt-accent/16'
-                            />
-                        )}
+                        {isActive && <span aria-hidden className='absolute inset-1 rounded-full border border-glass-line bg-btn-muted-hover' />}
 
                         <Vertical
                             className={cn(
                                 'relative items-center gap-1 transition-colors duration-(--duration-fast)',
-                                isActive ? 'text-txt-accent' : 'text-txt-muted group-hover:text-txt-normal'
+                                isActive ? 'text-txt-normal' : 'text-txt-muted group-hover:text-txt-normal'
                             )}
                         >
                             <item.icon size={18} />

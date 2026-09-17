@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
 
 import { cn } from '../../utility/cn';
+import { layer } from '../../layout/container';
 
 const minSize = 32;
 
@@ -131,7 +132,8 @@ export default function ScrollBar({ viewportRef, className = '' }: { viewportRef
             onPointerCancel={onPointerUp}
             style={{ height: `${size}px` }}
             className={cn(
-                'absolute inset-e-1 top-0 z-10 w-1.5 cursor-pointer rounded-full bg-scrollbar opacity-50 transition-opacity duration-(--duration-base) hover:opacity-100',
+                'absolute inset-e-1 top-0 w-1.5 cursor-pointer rounded-full bg-scrollbar opacity-50 transition-opacity duration-(--duration-base) hover:opacity-100',
+                layer.base,
                 dragging && 'opacity-100',
                 className
             )}

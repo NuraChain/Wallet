@@ -11,7 +11,7 @@ import { Vertical } from './ui/stack';
 
 export function AssetAmount({ amount, value }: { amount: string; value?: string }) {
     return (
-        <Vertical dir='ltr' className='shrink-0 items-end'>
+        <Vertical dir='ltr' className='shrink-0 items-center'>
             <Text variant='body' className='font-mono' text={amount} />
 
             {value !== undefined && <Text className='font-mono' text={value} />}

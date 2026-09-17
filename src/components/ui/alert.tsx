@@ -1,6 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 
-import { FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
+import Live from './live';
+import { TriangleAlert, CircleCheckBig } from 'lucide-react';
 
 import { cn } from '../../utility/cn';
 
@@ -28,24 +29,26 @@ export default function Alert({
 >) {
     const content = text ?? children;
 
-    if (content === undefined || content === '') {
-        return undefined;
-    }
-
     const success = variant === 'success';
 
+    /* The announcement lives in `Live`, which stays mounted whether or not there is anything to
+       say. It used to ride on the box below, which only exists once it has a message — and a live
+       region that appears together with its own text is not announced at all. */
+    const spoken = typeof content === 'string' ? content : '';
+
     return (
-        <div
-            role={success ? 'status' : 'alert'}
-            aria-live={success ? 'polite' : 'assertive'}
-            className={cn(variantMap[variant], sizeMap[size], className)}
-            {...rest}
-        >
-            {variant === 'warning' && <FiAlertTriangle size={16} className='mt-0.5 shrink-0' />}
+        <>
+            <Live text={spoken} assertive={!success} />
 
-            {success && <FiCheckCircle size={16} className='mt-0.5 shrink-0' />}
+            {content !== undefined && content !== '' && (
+                <div className={cn(variantMap[variant], sizeMap[size], className)} {...rest}>
+                    {variant === 'warning' && <TriangleAlert size={16} className='mt-0.5 shrink-0' />}
 
-            {variant === 'error' ? content : <span>{content}</span>}
-        </div>
+                    {success && <CircleCheckBig size={16} className='mt-0.5 shrink-0' />}
+
+                    {variant === 'error' ? content : <span>{content}</span>}
+                </div>
+            )}
+        </>
     );
 }

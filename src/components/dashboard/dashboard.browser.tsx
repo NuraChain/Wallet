@@ -1,9 +1,8 @@
 import type { Network } from '../../core/network';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { IoClose } from 'react-icons/io5';
+import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, TriangleAlert } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { FiArrowLeft, FiArrowRight, FiHome, FiRotateCw, FiSearch, FiSettings } from 'react-icons/fi';
 
 import WebFrame from '../../layout/webview';
 import DashboardBrowserTabs from './dashboard.browser.tabs';
@@ -103,6 +102,20 @@ export default function DashboardBrowser({
     useEffect(() => {
         getNativeBrowser()?.setDappScript?.(script);
     }, [script]);
+
+    /* The field used to lead with a magnifier whatever it was pointing at, so a wallet's own
+       browser said nothing about whether the page asking to sign was served over TLS. */
+    const originGlyph = () => {
+        if (current.startsWith('http://')) {
+            return <TriangleAlert size={16} className='text-txt-error' />;
+        }
+
+        if (current.startsWith('https://')) {
+            return <Lock size={14} />;
+        }
+
+        return <Search size={16} />;
+    };
 
     const canBack = tab.home || (native ? state?.canBack === true : tab.index >= 0);
     const canForward = native ? state?.canForward === true : tab.index < tab.entries.length - 1;
@@ -330,7 +343,7 @@ export default function DashboardBrowser({
         <Vertical className='relative min-h-0 flex-1'>
             <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
                 <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} className='shrink-0 lg:hidden'>
-                    <IoClose size={16} />
+                    <X size={16} />
                 </Button>
 
                 <Button
@@ -344,7 +357,7 @@ export default function DashboardBrowser({
                     }}
                     className='shrink-0'
                 >
-                    <FiArrowLeft size={16} className='rtl:rotate-180' />
+                    <ArrowLeft size={16} className='rtl:rotate-180' />
                 </Button>
 
                 <Button
@@ -358,7 +371,7 @@ export default function DashboardBrowser({
                     }}
                     className='shrink-0'
                 >
-                    <FiArrowRight size={16} className='rtl:rotate-180' />
+                    <ArrowRight size={16} className='rtl:rotate-180' />
                 </Button>
 
                 <div className='min-w-0 flex-1'>
@@ -374,7 +387,13 @@ export default function DashboardBrowser({
                         }}
                         size='compact'
                         className='truncate ps-10 pe-10 text-tiny'
-                        leading={<FiSearch size={16} className='pointer-events-none absolute inset-s-3 text-txt-muted' />}
+                        leading={
+                            <span className='pointer-events-none absolute inset-s-3 flex items-center text-txt-muted'>
+                                {originGlyph()}
+
+                                {current.startsWith('http://') && <span className='sr-only'>{T('Dashboard.Browser.Insecure')}</span>}
+                            </span>
+                        }
                         trailing={
                             <Button
                                 size='icon'
@@ -384,7 +403,7 @@ export default function DashboardBrowser({
                                 }}
                                 className='absolute -inset-e-0.5 cursor-pointer text-txt-muted hover:text-txt-normal'
                             >
-                                <FiRotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
+                                <RotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
                             </Button>
                         }
                     />
@@ -403,7 +422,7 @@ export default function DashboardBrowser({
                     }
                     className='shrink-0'
                 >
-                    {start ? <FiSettings size={16} /> : <FiHome size={16} />}
+                    {start ? <Settings size={16} /> : <House size={16} />}
                 </Button>
             </Horizontal>
 

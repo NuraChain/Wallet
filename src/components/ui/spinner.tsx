@@ -1,7 +1,7 @@
-import { FiLoader } from 'react-icons/fi';
+import { Loader } from 'lucide-react';
 
 import { cn } from '../../utility/cn';
 
 export default function Spinner({ size = 16, className = '' }: { size?: number; className?: string }) {
-    return <FiLoader size={size} className={cn('animate-spin', className)} />;
+    return <Loader size={size} className={cn('animate-spin', className)} />;
 }

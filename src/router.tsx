@@ -3,6 +3,10 @@ import { createMemoryRouter, redirect } from 'react-router';
 import RootLayout, { RouteFallback } from './layout/root';
 import RouteError, { NotFound } from './layout/route.error';
 
+import IntroPage from './page/intro';
+import UnlockPage from './page/unlock';
+import DashboardPage from './page/dashboard';
+
 import { getVault } from './core/session';
 import { getValue } from './utility/storage';
 
@@ -36,16 +40,16 @@ export const router = createMemoryRouter([
             },
             {
                 path: 'intro',
-                lazy: { Component: async () => (await import('./page/intro')).default }
+                Component: IntroPage
             },
             {
                 path: 'unlock',
-                lazy: { Component: async () => (await import('./page/unlock')).default }
+                Component: UnlockPage
             },
             {
                 path: 'dashboard',
                 loader: dashboardLoader,
-                lazy: { Component: async () => (await import('./page/dashboard')).default }
+                Component: DashboardPage
             },
             {
                 path: '*',

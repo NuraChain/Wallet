@@ -1,4 +1,4 @@
-import { FiInbox } from 'react-icons/fi';
+import { Inbox } from 'lucide-react';
 
 import Text from './text';
 import Spinner from './spinner';
@@ -7,7 +7,7 @@ import { cn } from '../../utility/cn';
 import { surfacePanel } from './panel';
 
 const iconMap = {
-    empty: <FiInbox size={24} className='text-txt-muted' />,
+    empty: <Inbox size={24} className='text-txt-muted' />,
     loading: <Spinner size={24} className='text-txt-muted' />
 } as const;
 

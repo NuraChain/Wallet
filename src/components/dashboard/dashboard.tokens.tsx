@@ -2,7 +2,7 @@ import type { Network } from '../../core/network';
 import type { TokenBalance } from '../../core/token';
 
 import { useState } from 'react';
-import { FiPlus, FiTrash2 } from 'react-icons/fi';
+import { Plus, Trash } from 'lucide-react';
 
 import TokenRow, { AssetAmount } from '../token.row';
 
@@ -11,6 +11,7 @@ import StatusBlock from '../ui/state';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import ListCard from '../ui/list';
+import { ConfirmPanel } from '../ui/confirm';
 import { TextField } from '../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
@@ -35,6 +36,7 @@ export default function DashboardTokens({
     onClose: () => void;
 }) {
     const [adding, setAdding] = useState(false);
+    const [removing, setRemoving] = useState<TokenBalance | undefined>(undefined);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState('');
     const [contract, setContract] = useState('');
@@ -75,95 +77,110 @@ export default function DashboardTokens({
         <Modal scroll onClose={onClose}>
             <ModalHeader title={T('Dashboard.Tokens.ManageTitle')} onClose={onClose} />
 
-            {adding ? (
-                <Vertical className='gap-2'>
-                    <Alert text={error} />
+            {removing !== undefined && (
+                <ConfirmPanel
+                    title={T('Dashboard.Tokens.Remove')}
+                    message={T('Dashboard.Tokens.RemoveConfirm', removing.token.symbol)}
+                    onCancel={() => {
+                        setRemoving(undefined);
+                    }}
+                    onConfirm={() => {
+                        onRemove(removing.token.address);
+                        setRemoving(undefined);
+                    }}
+                />
+            )}
 
-                    <Text text={T('Dashboard.Tokens.ContractHint')} />
+            {removing === undefined &&
+                (adding ? (
+                    <Vertical className='gap-2'>
+                        <Alert text={error} />
 
-                    <TextField
-                        dir='ltr'
-                        value={contract}
-                        spellCheck={false}
-                        autoComplete='off'
-                        label={T('Dashboard.Tokens.Contract')}
-                        placeholder='0x…'
-                        onValue={setContract}
-                        className='font-mono'
-                    />
+                        <Text text={T('Dashboard.Tokens.ContractHint')} />
 
-                    <ModalActions>
+                        <TextField
+                            dir='ltr'
+                            value={contract}
+                            spellCheck={false}
+                            autoComplete='off'
+                            label={T('Dashboard.Tokens.Contract')}
+                            placeholder='0x…'
+                            onValue={setContract}
+                            className='font-mono'
+                        />
+
+                        <ModalActions>
+                            <Button
+                                dim
+                                variant='muted'
+                                size='action'
+                                disabled={busy}
+                                onClick={() => {
+                                    setAdding(false);
+                                    setError('');
+                                }}
+                                text={T('Dashboard.Tokens.Back')}
+                            />
+
+                            <Button
+                                dim
+                                variant='primary'
+                                size='action'
+                                loading={busy}
+                                onClick={() => {
+                                    void onSave();
+                                }}
+                                text={busy ? T('Dashboard.Tokens.Checking') : T('Dashboard.Tokens.Save')}
+                            />
+                        </ModalActions>
+                    </Vertical>
+                ) : (
+                    <>
+                        {tokens.length > 0 && (
+                            <ListCard>
+                                {tokens.map((item) => (
+                                    <TokenRow
+                                        grouped
+                                        hover
+                                        kind='token'
+                                        key={item.token.address}
+                                        src={getTokenLogo(network.chainId, item.token.address, item.token.symbol)}
+                                        symbol={item.token.symbol}
+                                        subtitle={item.token.name}
+                                    >
+                                        <AssetAmount amount={trimAmount(item.formatted)} value={rowValue(item)} />
+
+                                        <Button
+                                            variant='danger'
+                                            size='icon'
+                                            onClick={() => {
+                                                setRemoving(item);
+                                            }}
+                                            aria-label={T('Dashboard.Tokens.Remove')}
+                                            className='shrink-0'
+                                        >
+                                            <Trash size={16} />
+                                        </Button>
+                                    </TokenRow>
+                                ))}
+                            </ListCard>
+                        )}
+
+                        {tokens.length === 0 && <StatusBlock text={T('Dashboard.Tokens.Empty')} />}
+
                         <Button
-                            dim
-                            variant='muted'
+                            variant='normal'
                             size='action'
-                            disabled={busy}
                             onClick={() => {
-                                setAdding(false);
+                                setAdding(true);
                                 setError('');
                             }}
-                            text={T('Dashboard.Tokens.Back')}
+                            className='mt-1'
+                            leftIcon={<Plus size={16} />}
+                            text={T('Dashboard.Tokens.Add')}
                         />
-
-                        <Button
-                            dim
-                            variant='primary'
-                            size='action'
-                            loading={busy}
-                            onClick={() => {
-                                void onSave();
-                            }}
-                            text={busy ? T('Dashboard.Tokens.Checking') : T('Dashboard.Tokens.Save')}
-                        />
-                    </ModalActions>
-                </Vertical>
-            ) : (
-                <>
-                    {tokens.length > 0 && (
-                        <ListCard>
-                            {tokens.map((item) => (
-                                <TokenRow
-                                    grouped
-                                    hover
-                                    kind='token'
-                                    key={item.token.address}
-                                    src={getTokenLogo(network.chainId, item.token.address, item.token.symbol)}
-                                    symbol={item.token.symbol}
-                                    subtitle={item.token.name}
-                                >
-                                    <AssetAmount amount={trimAmount(item.formatted)} value={rowValue(item)} />
-
-                                    <Button
-                                        variant='danger'
-                                        size='icon'
-                                        onClick={() => {
-                                            onRemove(item.token.address);
-                                        }}
-                                        aria-label={T('Dashboard.Tokens.Remove')}
-                                        className='shrink-0'
-                                    >
-                                        <FiTrash2 size={16} />
-                                    </Button>
-                                </TokenRow>
-                            ))}
-                        </ListCard>
-                    )}
-
-                    {tokens.length === 0 && <StatusBlock text={T('Dashboard.Tokens.Empty')} />}
-
-                    <Button
-                        variant='normal'
-                        size='action'
-                        onClick={() => {
-                            setAdding(true);
-                            setError('');
-                        }}
-                        className='mt-1'
-                        leftIcon={<FiPlus size={16} />}
-                        text={T('Dashboard.Tokens.Add')}
-                    />
-                </>
-            )}
+                    </>
+                ))}
         </Modal>
     );
 }

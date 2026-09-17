@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiCheckCircle, FiGift } from 'react-icons/fi';
+import { CircleCheckBig, Gift } from 'lucide-react';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
@@ -52,14 +52,14 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                 onClose={onClose}
                 leading={
                     <IconBox tone='primary'>
-                        <FiGift size={16} />
+                        <Gift size={16} />
                     </IconBox>
                 }
             />
 
             {done.length > 0 ? (
                 <Vertical className='items-center gap-2 py-4'>
-                    <FiCheckCircle size={36} className='text-txt-accent' />
+                    <CircleCheckBig size={36} className='text-txt-accent' />
 
                     <Text variant='body' className='text-center' text={done} />
 

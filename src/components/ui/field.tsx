@@ -1,5 +1,5 @@
 import { useId, useState, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
-import { FiEye, FiEyeOff, FiLock } from 'react-icons/fi';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 
 import Text from './text';
 
@@ -135,7 +135,7 @@ export function PasswordField({
     return (
         <FieldShell label={label} error={error} errorId={errorId}>
             <Horizontal className='relative items-center'>
-                <FiLock size={lockSize > 0 ? lockSize : defaultLock} className={cn('absolute text-txt-muted', regular ? 'inset-s-4' : 'inset-s-3')} />
+                <Lock size={lockSize > 0 ? lockSize : defaultLock} className={cn('absolute text-txt-muted', regular ? 'inset-s-4' : 'inset-s-3')} />
 
                 <input
                     value={value}
@@ -172,7 +172,7 @@ export function PasswordField({
                         regular ? 'inset-e-4' : 'inset-e-3'
                     )}
                 >
-                    {show ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    {show ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
             </Horizontal>
         </FieldShell>

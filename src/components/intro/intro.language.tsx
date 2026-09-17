@@ -1,4 +1,4 @@
-import { FiCheck } from 'react-icons/fi';
+import { Check } from 'lucide-react';
 
 import MenuRow from '../ui/menu';
 import { Modal, ModalBody, ModalHeader } from '../ui/modal';
@@ -15,7 +15,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void }) {
     };
 
     return (
-        <Modal scroll onClose={onClose} panelClass='w-72 gap-2'>
+        <Modal scroll width='narrow' onClose={onClose} panelClass='gap-2'>
             <ModalHeader title={T('Intro.Select')} onClose={onClose} />
 
             <ModalBody className='mt-2 max-h-72 gap-2'>
@@ -28,7 +28,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void }) {
                             selected={isActive}
                             label={T(`Language.${lang.code}`)}
                             leading={<img src={lang.flag} alt='' className='size-4 shrink-0 object-contain' />}
-                            trailing={isActive ? <FiCheck size={18} /> : undefined}
+                            trailing={isActive ? <Check size={18} /> : undefined}
                             onClick={() => {
                                 void handleSelect(lang.code);
                             }}

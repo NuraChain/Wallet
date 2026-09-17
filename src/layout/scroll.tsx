@@ -1,8 +1,11 @@
-import { FiLoader } from 'react-icons/fi';
+import { Loader } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode, type UIEvent } from 'react';
 
 import Spinner from '../components/ui/spinner';
 import ScrollBar from '../components/ui/scrollbar';
+
+import { cn } from '../utility/cn';
+import { layer } from './container';
 
 type Phase = 'idle' | 'pulling' | 'refreshing' | 'releasing';
 
@@ -342,10 +345,10 @@ export default function ScrollArea({
         <div className={`relative ${className}`}>
             <div
                 ref={indicatorRef}
-                className='pointer-events-none absolute inset-x-0 top-0 z-10 flex h-0 items-center justify-center overflow-hidden opacity-0'
+                className={cn('pointer-events-none absolute inset-x-0 top-0 flex h-0 items-center justify-center overflow-hidden opacity-0', layer.base)}
             >
                 <div ref={glyphRef} className='text-txt-muted'>
-                    {refreshing ? <Spinner size={18} /> : <FiLoader size={18} />}
+                    {refreshing ? <Spinner size={18} /> : <Loader size={18} />}
                 </div>
             </div>
 

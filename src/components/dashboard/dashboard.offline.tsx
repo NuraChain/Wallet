@@ -1,4 +1,4 @@
-import { FiWifiOff } from 'react-icons/fi';
+import { WifiOff } from 'lucide-react';
 
 import Text from '../ui/text';
 import Panel from '../ui/panel';
@@ -19,7 +19,7 @@ export default function DashboardOffline({ error, at }: { error: boolean; at: nu
     return (
         <Panel className='flex items-center gap-3'>
             <IconBox className='size-9'>
-                <FiWifiOff size={18} />
+                <WifiOff size={18} />
             </IconBox>
 
             <Vertical className='min-w-0 flex-1 gap-0.5'>

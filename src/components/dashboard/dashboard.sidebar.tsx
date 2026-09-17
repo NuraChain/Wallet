@@ -1,4 +1,4 @@
-import type { IconType } from 'react-icons';
+import type { LucideIcon } from 'lucide-react';
 
 import Logo from '../../assets/image/logo.png';
 
@@ -15,7 +15,7 @@ import { Horizontal, Vertical } from '../ui/stack';
 export interface SidebarItem {
     key: string;
     label: string;
-    icon: IconType;
+    icon: LucideIcon;
     active?: boolean;
     primary?: boolean;
     onClick: () => void;

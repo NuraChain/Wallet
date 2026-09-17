@@ -1,6 +1,6 @@
 import type { Transaction } from '../../hook/history';
 
-import { FiArrowDownLeft, FiArrowUpRight } from 'react-icons/fi';
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
@@ -22,7 +22,7 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
             className={cn('flex shrink-0 items-center gap-3 p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-muted-hover')}
         >
             <IconBox tone='muted' className='size-9'>
-                {item.incoming ? <FiArrowDownLeft size={18} /> : <FiArrowUpRight size={18} />}
+                {item.incoming ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
             </IconBox>
 
             <Vertical className='min-w-0 flex-1'>
@@ -35,7 +35,7 @@ export default function TransactionRow({ item, canOpen, onOpen }: { item: Transa
                 <Text
                     dir='ltr'
                     variant='body'
-                    className={`truncate font-mono ${item.incoming ? 'text-txt-success' : 'text-txt-error'}`}
+                    className={`truncate font-mono ${item.incoming ? 'text-txt-accent' : 'text-txt-normal'}`}
                     text={`${item.incoming ? '+' : '-'}${trimAmount(item.value)} ${item.symbol}`}
                 />
 

@@ -16,6 +16,9 @@ export const inset = {
 } as const;
 
 export const layer = {
+    /* Below the chrome: an overlay thumb or a pull indicator rides over its own scrolling content
+       and under everything the shell draws on top of it. */
+    base: 'z-10',
     chrome: 'z-20',
     popover: 'z-30',
     dialog: 'z-40'

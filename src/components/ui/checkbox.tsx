@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { FiCheck } from 'react-icons/fi';
+import { Check } from 'lucide-react';
 
 import Text from './text';
 
@@ -17,7 +17,7 @@ export default function Checkbox({ checked, text, onToggle, children }: { checke
                 onClick={onToggle}
                 className={cn(fieldSurface, 'flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-control hover:bg-btn-muted-hover')}
             >
-                {checked && <FiCheck size={16} className='text-txt-muted' />}
+                {checked && <Check size={16} className='text-txt-muted' />}
             </button>
 
             <Text className='leading-snug' text={text}>

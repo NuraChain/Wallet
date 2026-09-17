@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FiCheck, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { Check, Plus, Trash } from 'lucide-react';
 
 import TokenIcon from '../token.icon';
 
@@ -8,6 +8,7 @@ import Button from '../ui/button';
 import MenuRow from '../ui/menu';
 import { TextField } from '../ui/field';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
+import { ConfirmPanel } from '../ui/confirm';
 
 import { T } from '../../utility/language';
 import { getNativeLogo } from '../../core/price';
@@ -26,6 +27,7 @@ const fieldMap = [
 
 export default function DashboardNetwork({ network, onChange, onClose }: { network: Network; onChange: () => void; onClose: () => void }) {
     const [adding, setAdding] = useState(false);
+    const [removing, setRemoving] = useState<{ id: string; name: string } | undefined>(undefined);
     const [error, setError] = useState('');
     const [draft, setDraft] = useState({ Name: '', Rpc: '', ChainId: '', Symbol: '', Explorer: '', Api: '', ApiKey: '' });
 
@@ -91,103 +93,118 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
         <Modal scroll onClose={onClose} panelClass='gap-2'>
             <ModalHeader title={T('Dashboard.Network.Title')} onClose={onClose} />
 
-            {adding ? (
-                <Vertical className='gap-2'>
-                    <Alert text={error} />
-
-                    {fieldMap.map((item) => (
-                        <TextField
-                            key={item.key}
-                            value={draft[item.key]}
-                            dir={item.key === 'Name' ? undefined : 'ltr'}
-                            inputMode={item.numeric ? 'numeric' : undefined}
-                            aria-label={T(`Dashboard.Network.${item.key}`)}
-                            placeholder={T(`Dashboard.Network.${item.key}`)}
-                            onValue={(value) => {
-                                setDraft((current) => ({ ...current, [item.key]: value }));
-                            }}
-                            className='text-center'
-                        />
-                    ))}
-
-                    <ModalActions>
-                        <Button
-                            variant='muted'
-                            size='action'
-                            onClick={() => {
-                                setAdding(false);
-                                setError('');
-                            }}
-                            text={T('Dashboard.Network.Back')}
-                        />
-
-                        <Button
-                            variant='primary'
-                            size='action'
-                            onClick={() => {
-                                void onAdd();
-                            }}
-                            text={T('Dashboard.Network.Save')}
-                        />
-                    </ModalActions>
-                </Vertical>
-            ) : (
-                <>
-                    <ModalBody className='gap-2'>
-                        {networks.map((item) => {
-                            const isActive = item.id === network.id;
-
-                            return (
-                                <Horizontal key={item.id} className='items-center gap-1'>
-                                    <MenuRow
-                                        selected={isActive}
-                                        label={item.name}
-                                        className='min-w-0 flex-1'
-                                        leading={
-                                            <TokenIcon
-                                                primary
-                                                kind='network'
-                                                src={getNativeLogo(item.chainId)}
-                                                symbol={item.symbol}
-                                                className='size-7 text-tiny'
-                                            />
-                                        }
-                                        trailing={isActive ? <FiCheck size={18} /> : undefined}
-                                        onClick={() => {
-                                            void onSelect(item.id);
-                                        }}
-                                    />
-
-                                    {item.custom && (
-                                        <Button
-                                            variant='danger'
-                                            size='iconChip'
-                                            aria-label={T('Dashboard.Network.Remove')}
-                                            onClick={() => {
-                                                void onRemove(item.id);
-                                            }}
-                                        >
-                                            <FiTrash2 size={16} />
-                                        </Button>
-                                    )}
-                                </Horizontal>
-                            );
-                        })}
-                    </ModalBody>
-
-                    <ModalActions>
-                        <Button
-                            variant='normal'
-                            size='action'
-                            onClick={() => {
-                                setAdding(true);
-                            }}
-                            leftIcon={<FiPlus size={16} />}
-                            text={T('Dashboard.Network.Add')}
-                        />
-                    </ModalActions>
-                </>
+            {removing !== undefined && (
+                <ConfirmPanel
+                    title={T('Dashboard.Network.Remove')}
+                    message={T('Dashboard.Network.RemoveConfirm', removing.name)}
+                    onCancel={() => {
+                        setRemoving(undefined);
+                    }}
+                    onConfirm={() => {
+                        void onRemove(removing.id);
+                        setRemoving(undefined);
+                    }}
+                />
             )}
+
+            {removing === undefined &&
+                (adding ? (
+                    <Vertical className='gap-2'>
+                        <Alert text={error} />
+
+                        {fieldMap.map((item) => (
+                            <TextField
+                                key={item.key}
+                                value={draft[item.key]}
+                                dir={item.key === 'Name' ? undefined : 'ltr'}
+                                inputMode={item.numeric ? 'numeric' : undefined}
+                                aria-label={T(`Dashboard.Network.${item.key}`)}
+                                placeholder={T(`Dashboard.Network.${item.key}`)}
+                                onValue={(value) => {
+                                    setDraft((current) => ({ ...current, [item.key]: value }));
+                                }}
+                                className='text-center'
+                            />
+                        ))}
+
+                        <ModalActions>
+                            <Button
+                                variant='muted'
+                                size='action'
+                                onClick={() => {
+                                    setAdding(false);
+                                    setError('');
+                                }}
+                                text={T('Dashboard.Network.Back')}
+                            />
+
+                            <Button
+                                variant='primary'
+                                size='action'
+                                onClick={() => {
+                                    void onAdd();
+                                }}
+                                text={T('Dashboard.Network.Save')}
+                            />
+                        </ModalActions>
+                    </Vertical>
+                ) : (
+                    <>
+                        <ModalBody className='gap-2'>
+                            {networks.map((item) => {
+                                const isActive = item.id === network.id;
+
+                                return (
+                                    <Horizontal key={item.id} className='items-center gap-1'>
+                                        <MenuRow
+                                            selected={isActive}
+                                            label={item.name}
+                                            className='min-w-0 flex-1'
+                                            leading={
+                                                <TokenIcon
+                                                    primary
+                                                    kind='network'
+                                                    src={getNativeLogo(item.chainId)}
+                                                    symbol={item.symbol}
+                                                    className='size-7 text-tiny'
+                                                />
+                                            }
+                                            trailing={isActive ? <Check size={18} /> : undefined}
+                                            onClick={() => {
+                                                void onSelect(item.id);
+                                            }}
+                                        />
+
+                                        {item.custom && (
+                                            <Button
+                                                variant='danger'
+                                                size='iconChip'
+                                                aria-label={T('Dashboard.Network.Remove')}
+                                                onClick={() => {
+                                                    setRemoving({ id: item.id, name: item.name });
+                                                }}
+                                            >
+                                                <Trash size={16} />
+                                            </Button>
+                                        )}
+                                    </Horizontal>
+                                );
+                            })}
+                        </ModalBody>
+
+                        <ModalActions>
+                            <Button
+                                variant='normal'
+                                size='action'
+                                onClick={() => {
+                                    setAdding(true);
+                                }}
+                                leftIcon={<Plus size={16} />}
+                                text={T('Dashboard.Network.Add')}
+                            />
+                        </ModalActions>
+                    </>
+                ))}
         </Modal>
     );
 }

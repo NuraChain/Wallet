@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { FiHelpCircle } from 'react-icons/fi';
+import { CircleQuestionMark } from 'lucide-react';
 import { motion } from 'motion/react';
 
 import Text from '../components/ui/text';
@@ -100,7 +100,7 @@ export default function UnlockPage() {
                             }}
                             className='shrink-0'
                         >
-                            <FiHelpCircle size={18} />
+                            <CircleQuestionMark size={18} />
                         </Button>
 
                         <Popover

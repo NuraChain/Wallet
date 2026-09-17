@@ -1,15 +1,16 @@
 import type { TokenBalance } from '../../core/token';
 
 import { useMemo, useState } from 'react';
-import { isAddress, parseUnits } from 'ethers';
-import { IoChevronDown } from 'react-icons/io5';
-import { FiArrowLeft, FiCheckCircle, FiCopy, FiExternalLink, FiShare2 } from 'react-icons/fi';
+import { formatUnits, isAddress, parseUnits } from 'ethers';
+import { ChevronDown, ArrowLeft, CircleCheckBig, ExternalLink, Share2 } from 'lucide-react';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import Spinner from '../ui/spinner';
 import TokenIcon from '../token.icon';
+import CopyButton from '../ui/copy';
+import AddressBlock from '../ui/address';
 import SectionHeader from '../ui/section';
 
 import Panel from '../ui/panel';
@@ -26,10 +27,16 @@ import { useClipboard } from '../../hook/clipboard';
 import { getProvider } from '../../core/network.provider';
 import type { Network } from '../../core/network';
 import { getNativeLogo, getTokenLogo } from '../../core/price';
-import { shortAddress, trimAmount } from '../../utility/format';
+import { trimAmount } from '../../utility/format';
 import { Horizontal, Vertical } from '../ui/stack';
 
 type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
+
+/** What a plain transfer between two accounts costs, and the floor for a reserve when there is no
+    recipient yet to estimate against. */
+const baseTransferGas = 21_000n;
+
+const unknownAmount = '—';
 
 interface Asset {
     key: string;
@@ -96,6 +103,10 @@ export default function DashboardSend({
     const [amount, setAmount] = useState('');
     const [chosen, setChosen] = useState('native');
     const [picking, setPicking] = useState(false);
+    const [fee, setFee] = useState<bigint | undefined>(undefined);
+    const [reserved, setReserved] = useState(false);
+    const [busy, setBusy] = useState(false);
+    const [feeBusy, setFeeBusy] = useState(false);
 
     const online = useOnline();
 
@@ -117,20 +128,89 @@ export default function DashboardSend({
 
     const asset = assets.find((item) => item.key === chosen) ?? assets[0];
 
+    const native = asset.token === undefined;
+
+    const params = (value: string) => ({ to, amount: value, decimals: network.decimals, token: asset.token });
+
     const onAsset = (key: string) => {
         setChosen(key);
         setPicking(false);
         setAmount('');
         setError('');
+        setReserved(false);
+    };
+
+    const feeText = () => {
+        if (feeBusy) {
+            return '…';
+        }
+
+        if (fee === undefined) {
+            return unknownAmount;
+        }
+
+        return `${trimAmount(formatUnits(fee, network.decimals))} ${network.symbol}`;
+    };
+
+    /* Only the native asset pays its fee out of the same balance it is spending, so it is the only
+       one with a total worth stating. A token transfer's fee comes from somewhere else entirely. */
+    const totalText = () => {
+        if (!native || fee === undefined) {
+            return '';
+        }
+
+        try {
+            return `${trimAmount(formatUnits(parseUnits(amount || '0', asset.decimals) + fee, network.decimals))} ${network.symbol}`;
+        } catch {
+            return '';
+        }
     };
 
     const reviewMap = [
-        { label: T('Dashboard.Send.Amount'), value: `${trimAmount(amount)} ${asset.symbol}`, mono: true },
-        { label: T('Dashboard.Send.To'), value: shortAddress(to), mono: true },
-        { label: T('Dashboard.Network.Title'), value: network.name, mono: false }
+        { label: T('Dashboard.Send.Amount'), value: `${trimAmount(amount)} ${asset.symbol}` },
+        { label: T('Dashboard.Request.Fee'), value: feeText() },
+        ...(totalText().length > 0 ? [{ label: T('Dashboard.Send.Total'), value: totalText() }] : []),
+        { label: T('Dashboard.Network.Title'), value: network.name }
     ];
 
-    const onReview = () => {
+    /**
+     * `Max` used to propose the entire native balance, which cannot pay for its own gas — a
+     * guaranteed revert after the user had already confirmed. The reserve is the real estimate when
+     * there is a recipient to estimate against, and the plain-transfer floor when there is not.
+     */
+    const onMax = async () => {
+        if (!native) {
+            setAmount(asset.formatted);
+
+            return;
+        }
+
+        setBusy(true);
+
+        try {
+            const provider = getProvider();
+
+            const priced = async () => {
+                const fees = await provider.getFeeData();
+
+                return (fees.maxFeePerGas ?? fees.gasPrice ?? 0n) * baseTransferGas;
+            };
+
+            const cost = isAddress(to) ? await vaultManager(vault, index).estimate(provider, params('0')) : await priced();
+
+            const spare = asset.value - cost;
+
+            setAmount(spare > 0n ? formatUnits(spare, asset.decimals) : '0');
+            setReserved(cost > 0n);
+        } catch {
+            setAmount(asset.formatted);
+            setReserved(false);
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const onReview = async () => {
         if (!isAddress(to)) {
             setError(T('Dashboard.Send.InvalidAddress'));
 
@@ -159,6 +239,18 @@ export default function DashboardSend({
 
         setError('');
         setStep('review');
+        setFee(undefined);
+        setFeeBusy(true);
+
+        // A fee that cannot be estimated is shown as unknown rather than blocking the send: an RPC
+        // that refuses to estimate is not the same thing as a transaction that cannot land.
+        try {
+            setFee(await vaultManager(vault, index).estimate(getProvider(), params(amount)));
+        } catch {
+            setFee(undefined);
+        } finally {
+            setFeeBusy(false);
+        }
     };
 
     const onConfirm = async () => {
@@ -172,21 +264,32 @@ export default function DashboardSend({
         setStep('pending');
 
         try {
-            const wallet = vaultManager(vault, index);
-            const result = await wallet.send(getProvider(), { to, amount, token: asset.token });
+            const result = await vaultManager(vault, index).send(getProvider(), params(amount));
 
             setHash(result);
             setStep('success');
             onSent();
-        } catch {
-            setFailure(T('Dashboard.Send.Error'));
+        } catch (cause) {
+            // The reason used to be swallowed and replaced with one generic sentence, which left
+            // "nonce too low", "gas too low" and "reverted" looking like the same problem.
+            setFailure(cause instanceof Error ? cause.message : String(cause));
             setStep('error');
         }
     };
 
+    const pending = step === 'pending';
+
+    /* Dismissing mid-broadcast used to take the hash with it, leaving a transaction in flight and
+       no reference to it anywhere. The header drops its close for the same reason. */
+    const dismiss = () => {
+        if (!pending) {
+            onClose();
+        }
+    };
+
     return (
-        <Modal onClose={onClose}>
-            <ModalHeader title={T('Dashboard.Send.Title')} titleClass='truncate' onClose={onClose} />
+        <Modal onClose={dismiss}>
+            <ModalHeader title={T('Dashboard.Send.Title')} close={pending ? 'none' : 'icon'} titleClass='truncate' onClose={onClose} />
 
             {step === 'form' && (
                 <Vertical className='gap-3'>
@@ -205,13 +308,7 @@ export default function DashboardSend({
                             }}
                             className={cn(fieldSurface, 'flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3')}
                         >
-                            <TokenIcon
-                                primary={asset.token === undefined}
-                                kind={asset.token === undefined ? 'network' : 'token'}
-                                src={asset.logo}
-                                symbol={asset.symbol}
-                                className='size-9'
-                            />
+                            <TokenIcon primary={native} kind={native ? 'network' : 'token'} src={asset.logo} symbol={asset.symbol} className='size-9' />
 
                             <Vertical className='min-w-0 flex-1 text-start'>
                                 <Text variant='body' className='truncate' text={asset.symbol} />
@@ -221,7 +318,7 @@ export default function DashboardSend({
 
                             <Text dir='ltr' variant='captionStrong' className='shrink-0 font-mono' text={trimAmount(asset.formatted)} />
 
-                            <IoChevronDown
+                            <ChevronDown
                                 size={12}
                                 className={`shrink-0 opacity-40 transition-transform duration-(--duration-base) ${picking ? 'rotate-180' : ''}`}
                             />
@@ -265,18 +362,19 @@ export default function DashboardSend({
                         </Popover>
                     </Vertical>
 
-                    <Vertical className='gap-1'>
-                        <TextField label={T('Dashboard.Send.Recipient')} value={to} dir='ltr' placeholder='0x…' onValue={setTo} className='font-mono' />
-                    </Vertical>
+                    <TextField label={T('Dashboard.Send.Recipient')} value={to} dir='ltr' placeholder='0x…' onValue={setTo} className='font-mono' />
 
                     <Vertical className='gap-1'>
                         <SectionHeader title={T('Dashboard.Send.Amount')}>
                             <Button
+                                dim
                                 variant='muted'
+                                size='small'
+                                loading={busy}
+                                disabled={busy}
                                 onClick={() => {
-                                    setAmount(asset.formatted);
+                                    void onMax();
                                 }}
-                                className='rounded-control px-2 py-0.5 text-tiny text-txt-muted'
                                 text={T('Dashboard.Send.Max', trimAmount(asset.formatted))}
                             />
                         </SectionHeader>
@@ -287,12 +385,24 @@ export default function DashboardSend({
                             inputMode='decimal'
                             aria-label={T('Dashboard.Send.Amount')}
                             placeholder='0.0'
-                            onValue={setAmount}
+                            onValue={(value) => {
+                                setAmount(value);
+                                setReserved(false);
+                            }}
                             className='font-mono'
                         />
+
+                        {reserved && <Text text={T('Dashboard.Send.Reserved')} />}
                     </Vertical>
 
-                    <Button variant='primary' size='action' onClick={onReview} text={T('Dashboard.Send.Review')} />
+                    <Button
+                        variant='primary'
+                        size='action'
+                        onClick={() => {
+                            void onReview();
+                        }}
+                        text={T('Dashboard.Send.Review')}
+                    />
                 </Vertical>
             )}
 
@@ -301,16 +411,15 @@ export default function DashboardSend({
                     <Panel className='flex flex-col gap-2'>
                         {reviewMap.map((item) => (
                             <Horizontal key={item.label} className='items-center justify-between gap-2'>
-                                <Text text={item.label} />
+                                <Text className='shrink-0' text={item.label} />
 
-                                <Text
-                                    variant='captionStrong'
-                                    dir={item.mono ? 'ltr' : undefined}
-                                    className={item.mono ? 'min-w-0 truncate font-mono' : 'min-w-0 truncate'}
-                                    text={item.value}
-                                />
+                                <Text dir='ltr' variant='captionStrong' className='min-w-0 truncate font-mono' text={item.value} />
                             </Horizontal>
                         ))}
+                    </Panel>
+
+                    <Panel>
+                        <AddressBlock label={T('Dashboard.Send.To')} address={to} />
                     </Panel>
 
                     <ModalActions className='mt-0'>
@@ -320,7 +429,7 @@ export default function DashboardSend({
                             onClick={() => {
                                 setStep('form');
                             }}
-                            leftIcon={<FiArrowLeft size={16} className='rtl:rotate-180' />}
+                            leftIcon={<ArrowLeft size={16} className='rtl:rotate-180' />}
                             text={T('Dashboard.Send.Back')}
                         />
 
@@ -336,7 +445,7 @@ export default function DashboardSend({
                 </Vertical>
             )}
 
-            {step === 'pending' && (
+            {pending && (
                 <Vertical className='items-center gap-3 py-6'>
                     <Spinner size={32} className='text-txt-muted' />
 
@@ -346,24 +455,25 @@ export default function DashboardSend({
 
             {step === 'success' && (
                 <Vertical className='items-center gap-3 py-4'>
-                    <FiCheckCircle size={40} className='text-txt-normal' />
+                    <CircleCheckBig size={40} className='text-txt-normal' />
 
                     <Text variant='body' text={T('Dashboard.Send.Success')} />
 
-                    <Text dir='ltr' className='w-full rounded-surface bg-base-3 p-2 text-center font-mono break-all select-text!' text={hash} />
+                    <AddressBlock address={hash} className='w-full rounded-surface bg-base-3 p-2 text-center' />
 
                     <Horizontal className='w-full gap-2 *:flex-1'>
-                        <Button
+                        <CopyButton
                             variant='muted'
                             size='action'
-                            onClick={() => {
-                                void clipboard.copy(hash);
-                            }}
-                            leftIcon={<FiCopy size={16} />}
-                            text={T('Dashboard.Send.Copy')}
-                        />
+                            value={hash}
+                            label={T('Dashboard.Send.Copy')}
+                            doneText={T('Dashboard.Send.Copied')}
+                            failedText={T('Dashboard.Send.CopyFailed')}
+                        >
+                            {T('Dashboard.Send.Copy')}
+                        </CopyButton>
 
-                        <Button variant='muted' size='action' onClick={onShare} leftIcon={<FiShare2 size={16} />} text={T('Dashboard.Send.Share')} />
+                        <Button variant='muted' size='action' onClick={onShare} leftIcon={<Share2 size={16} />} text={T('Dashboard.Send.Share')} />
                     </Horizontal>
 
                     {explorerLink.length > 0 && (
@@ -374,33 +484,44 @@ export default function DashboardSend({
                             onClick={() => {
                                 onExplorer(hash);
                             }}
-                            leftIcon={<FiExternalLink size={16} />}
+                            leftIcon={<ExternalLink size={16} />}
                             text={T('Dashboard.Send.Explorer')}
                         />
                     )}
-
-                    <Alert
-                        variant={clipboard.state === 'failed' ? 'error' : 'success'}
-                        text={clipboard.state === 'idle' ? '' : T(clipboard.state === 'failed' ? 'Dashboard.Send.CopyFailed' : 'Dashboard.Send.Copied')}
-                    />
 
                     <Button variant='primary' size='action' fullWidth onClick={onClose} text={T('Dashboard.Send.Done')} />
                 </Vertical>
             )}
 
             {step === 'error' && (
-                <Vertical className='items-center gap-3 py-4'>
-                    <Alert size='comfortable' className='w-full' text={failure.length > 0 ? failure : T('Dashboard.Send.Error')} />
+                <Vertical className='gap-3 py-2'>
+                    <Alert size='comfortable' className='text-start' text={T('Dashboard.Send.Error')} />
 
-                    <Button
-                        variant='muted'
-                        size='action'
-                        fullWidth
-                        onClick={() => {
-                            setStep('form');
-                        }}
-                        text={T('Dashboard.Send.Back')}
-                    />
+                    {failure.length > 0 && (
+                        <Panel>
+                            <Text dir='ltr' className='font-mono wrap-break-word select-text!' text={failure} />
+                        </Panel>
+                    )}
+
+                    <ModalActions className='mt-0'>
+                        <Button
+                            variant='muted'
+                            size='action'
+                            onClick={() => {
+                                setStep('form');
+                            }}
+                            text={T('Dashboard.Send.Back')}
+                        />
+
+                        <Button
+                            variant='primary'
+                            size='action'
+                            onClick={() => {
+                                void onConfirm();
+                            }}
+                            text={T('Dashboard.Send.Retry')}
+                        />
+                    </ModalActions>
                 </Vertical>
             )}
         </Modal>

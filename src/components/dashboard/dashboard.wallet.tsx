@@ -1,15 +1,12 @@
-import type { IconType } from 'react-icons';
 import type { Network } from '../../core/network';
 import type { TokenBalance } from '../../core/token';
 import type { Transaction } from '../../hook/history';
 
 import { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { IoChevronDown } from 'react-icons/io5';
-import { FiArrowDownLeft, FiArrowUpRight, FiGift } from 'react-icons/fi';
-import { HiOutlineCheck, HiOutlineCog6Tooth, HiOutlineListBullet, HiOutlineSquare2Stack, HiOutlineSquares2X2, HiOutlineUser } from 'react-icons/hi2';
+import { ChevronDown, ArrowDownLeft, ArrowUpRight, Gift, Settings, List, LayoutGrid, User, type LucideIcon } from 'lucide-react';
 
 import TokenIcon from '../token.icon';
+import CopyButton from '../ui/copy';
 import TokenRow, { AssetAmount } from '../token.row';
 import DashboardActivity from './dashboard.activity';
 import DashboardOffline from './dashboard.offline';
@@ -22,7 +19,6 @@ import StatusBlock from '../ui/state';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
-import { useClipboard } from '../../hook/clipboard';
 import { getNativeCoinId, getNativeLogo, getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
 import { Horizontal, Vertical } from '../ui/stack';
@@ -85,11 +81,7 @@ export default function DashboardWallet({
     onTransaction: (hash: string) => void;
     onOverview: () => void;
 }) {
-    const clipboard = useClipboard();
-
     const [tab, setTab] = useState<TabKey>('token');
-
-    const copied = clipboard.state === 'done';
 
     const totalKnown = native.at > 0 && totalAt > 0;
 
@@ -98,7 +90,13 @@ export default function DashboardWallet({
             return '…';
         }
 
-        return totalKnown ? formatUsd(total) : unknownAmount;
+        if (totalKnown) {
+            return formatUsd(total);
+        }
+
+        /* No price feed — a custom chain, or the feed is down. The balance itself is known, so the
+           screen says what it knows instead of putting a dash where its whole purpose goes. */
+        return native.at > 0 ? `${trimAmount(native.formatted)} ${network.symbol}` : unknownAmount;
     };
 
     const nativeAmount = () => {
@@ -115,18 +113,18 @@ export default function DashboardWallet({
         { key: 'activity', label: T('Dashboard.Wallet.Activity') }
     ] as const;
 
-    const trailingMap: Record<TabKey, { icon: IconType; label: string; onClick: () => void } | undefined> = {
-        token: { icon: HiOutlineSquares2X2, label: T('Dashboard.Tokens.Manage'), onClick: onTokens },
+    const trailingMap: Record<TabKey, { icon: LucideIcon; label: string; onClick: () => void } | undefined> = {
+        token: { icon: LayoutGrid, label: T('Dashboard.Tokens.Manage'), onClick: onTokens },
         nft: undefined,
-        activity: { icon: HiOutlineListBullet, label: T('Dashboard.Activity.Overview'), onClick: onOverview }
+        activity: { icon: List, label: T('Dashboard.Activity.Overview'), onClick: onOverview }
     };
 
     const trailing = trailingMap[tab];
 
-    const actionMap: { key: string; icon: IconType; primary: boolean; onClick: () => void }[] = [
-        { key: 'Dashboard.Send.Title', icon: FiArrowUpRight, primary: true, onClick: onSend },
-        { key: 'Dashboard.Receive.Title', icon: FiArrowDownLeft, primary: false, onClick: onReceive },
-        { key: 'Dashboard.Redeem.Title', icon: FiGift, primary: false, onClick: onRedeem }
+    const actionMap: { key: string; icon: LucideIcon; primary: boolean; onClick: () => void }[] = [
+        { key: 'Dashboard.Send.Title', icon: ArrowUpRight, primary: true, onClick: onSend },
+        { key: 'Dashboard.Receive.Title', icon: ArrowDownLeft, primary: false, onClick: onReceive },
+        { key: 'Dashboard.Redeem.Title', icon: Gift, primary: false, onClick: onRedeem }
     ];
 
     const rowPrice = (coinId: string) => {
@@ -150,12 +148,12 @@ export default function DashboardWallet({
             <Horizontal className='items-center gap-2'>
                 <Button variant='chip' onClick={onAccounts} className={chipClass}>
                     <IconBox tone='badge' className={cn('size-7', emoji.length > 0 && 'text-small')}>
-                        {emoji.length > 0 ? emoji : <HiOutlineUser size={14} />}
+                        {emoji.length > 0 ? emoji : <User size={14} />}
                     </IconBox>
 
                     <Text variant='captionStrong' className={chipLabelClass} text={name} />
 
-                    <IoChevronDown size={12} className='shrink-0 opacity-40' />
+                    <ChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
 
                 <Button variant='chip' onClick={onNetwork} className={chipClass}>
@@ -163,11 +161,11 @@ export default function DashboardWallet({
 
                     <Text variant='captionStrong' className={chipLabelClass} text={network.name} />
 
-                    <IoChevronDown size={12} className='shrink-0 opacity-40' />
+                    <ChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
 
                 <Button variant='chip' size='iconChip' onClick={onSettings} aria-label={T('Dashboard.Settings.Title')} className='shrink-0 lg:hidden'>
-                    <HiOutlineCog6Tooth size={17} />
+                    <Settings size={17} />
                 </Button>
             </Horizontal>
 
@@ -176,59 +174,20 @@ export default function DashboardWallet({
             <Vertical className='items-center gap-1.5 py-2'>
                 <Text dir='ltr' variant='display' className='text-center break-all' text={headline()} />
 
-                <Button
-                    onClick={() => {
-                        void clipboard.copy(address);
-                    }}
-                    className='flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal'
-                >
-                    <span className='sr-only'>{T('Dashboard.Copy')}</span>
-
+                <CopyButton trailing value={address} label={T('Dashboard.Copy')} className='gap-1 text-tiny text-txt-muted hover:text-txt-normal'>
                     <span dir='ltr' className='font-mono'>
                         {shortAddress(address)}
                     </span>
-
-                    <span className='relative flex size-5 shrink-0 items-center justify-center'>
-                        <AnimatePresence initial={false} mode='wait'>
-                            {copied ? (
-                                <motion.span
-                                    key='done'
-                                    initial={{ scale: 0.4, opacity: 0 }}
-                                    animate={{ scale: [0.4, 1.35, 1], opacity: 1 }}
-                                    exit={{ scale: 0.4, opacity: 0 }}
-                                    transition={{ duration: 0.35 }}
-                                    className='absolute text-txt-normal'
-                                >
-                                    <HiOutlineCheck size={18} />
-                                </motion.span>
-                            ) : (
-                                <motion.span
-                                    key='copy'
-                                    initial={{ scale: 0.6, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    exit={{ scale: 0.6, opacity: 0 }}
-                                    transition={{ duration: 0.18 }}
-                                    className='absolute'
-                                >
-                                    <HiOutlineSquare2Stack size={18} />
-                                </motion.span>
-                            )}
-                        </AnimatePresence>
-                    </span>
-                </Button>
+                </CopyButton>
             </Vertical>
 
             <Horizontal className='justify-center gap-2'>
                 {actionMap.map((item) => (
                     <Button
                         key={item.key}
+                        variant={item.primary ? 'primary' : 'chip'}
                         onClick={item.onClick}
-                        className={cn(
-                            'flex h-16 w-20 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-surface transition-colors duration-(--duration-fast)',
-                            item.primary
-                                ? 'bg-btn-primary text-txt-on-primary hover:bg-btn-primary-hover active:bg-btn-primary-active'
-                                : 'border border-line bg-base-2 text-txt-normal hover:bg-btn-muted-hover active:bg-btn-muted-active'
-                        )}
+                        className='h-16 w-20 shrink-0 flex-col gap-1 rounded-surface'
                     >
                         <item.icon size={18} className='shrink-0' />
 

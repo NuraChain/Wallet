@@ -3,22 +3,49 @@ import { ethers } from 'ethers';
 export interface SendParams {
     to: string;
     amount: string;
+
+    /** The native token's own decimals. This used to be hardcoded to 18 through `parseEther`, so
+        on a chain that uses anything else the amount confirmed was not the amount broadcast. */
+    decimals: number;
     token?: { address: string; decimals: number };
 }
 
 const transferAbi = ['function transfer(address to, uint256 amount) returns (bool)'];
 
-const broadcast = async (signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParams) => {
+/* One description of the transaction, built once and used by both the estimate and the send, so
+   the fee shown on the review screen prices the transaction that actually goes out. */
+const describe = (signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParams): ethers.TransactionRequest => {
     if (params.token === undefined) {
-        const transaction = await signer.sendTransaction({ to: params.to, value: ethers.parseEther(params.amount) });
-
-        return transaction.hash;
+        return { to: params.to, value: ethers.parseUnits(params.amount, params.decimals) };
     }
 
     const contract = new ethers.Contract(params.token.address, transferAbi, signer);
 
-    // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const transaction = (await contract.transfer(params.to, ethers.parseUnits(params.amount, params.token.decimals))) as ethers.TransactionResponse;
+    return {
+        to: params.token.address,
+        data: contract.interface.encodeFunctionData('transfer', [params.to, ethers.parseUnits(params.amount, params.token.decimals)])
+    };
+};
+
+/**
+ * What this transaction costs to mine, in native base units.
+ *
+ * Nothing in the send flow used to price gas at all, so the review screen omitted the one number
+ * that decides whether the transfer can land — and `Max` on the native token proposed the entire
+ * balance, which cannot pay for its own execution.
+ */
+export const estimateFee = async (provider: ethers.Provider, from: string, signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParams) => {
+    const request = describe(signer, params);
+
+    const [gas, fees] = await Promise.all([provider.estimateGas({ ...request, from }), provider.getFeeData()]);
+
+    const price = fees.maxFeePerGas ?? fees.gasPrice ?? 0n;
+
+    return gas * price;
+};
+
+const broadcast = async (signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParams) => {
+    const transaction = await signer.sendTransaction(describe(signer, params));
 
     return transaction.hash;
 };
@@ -44,6 +71,10 @@ export class PrivateKeyWalletManager {
 
     public async send(provider: ethers.Provider, params: SendParams) {
         return broadcast(this.WalletSigner.connect(provider), params);
+    }
+
+    public async estimate(provider: ethers.Provider, params: SendParams) {
+        return estimateFee(provider, this.WalletSigner.address, this.WalletSigner.connect(provider), params);
     }
 
     public toString() {
@@ -78,6 +109,10 @@ class WalletManager {
 
     public async send(provider: ethers.Provider, params: SendParams) {
         return broadcast(this.WalletDerive.connect(provider), params);
+    }
+
+    public async estimate(provider: ethers.Provider, params: SendParams) {
+        return estimateFee(provider, this.WalletAddress, this.WalletDerive.connect(provider), params);
     }
 
     public toString() {

@@ -1,5 +1,8 @@
+import type { Token } from '../../core/token';
+
 import { useRef, useState } from 'react';
-import { FiGlobe } from 'react-icons/fi';
+import { formatUnits } from 'ethers';
+import { Globe } from 'lucide-react';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
@@ -7,11 +10,13 @@ import Panel from '../ui/panel';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 import ScrollBar from '../ui/scrollbar';
+import AddressBlock from '../ui/address';
 import { Horizontal, Vertical } from '../ui/stack';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
-import { shortAddress } from '../../utility/format';
+import { readCalldata } from '../../core/calldata';
+import { shortAddress, trimAmount } from '../../utility/format';
 import { resolveDappPrompt, type DappPrompt } from '../../core/dapp.rpc';
 
 const titleMap: Record<DappPrompt['kind'], string> = {
@@ -32,7 +37,13 @@ const noteMap: Record<DappPrompt['kind'], string> = {
     asset: 'Dashboard.Request.AssetNote'
 };
 
-export default function DashboardRequest({ prompt, address, network }: { prompt: DappPrompt; address: string; network: string }) {
+interface Row {
+    label: string;
+    value: string;
+    mono: boolean;
+}
+
+export default function DashboardRequest({ prompt, address, network, tokens }: { prompt: DappPrompt; address: string; network: string; tokens: Token[] }) {
     const [isLoading, setIsLoading] = useState(false);
 
     const payloadRef = useRef<HTMLDivElement>(null);
@@ -51,18 +62,46 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
         onAnswer(false);
     };
 
-    const rowMap = (): { label: string; value: string; mono: boolean }[] => {
-        if (prompt.kind === 'transaction' && prompt.transaction !== undefined) {
-            const { to, value, fee, data } = prompt.transaction;
+    const transaction = prompt.kind === 'transaction' ? prompt.transaction : undefined;
+
+    const call = transaction === undefined || transaction.data.length === 0 ? undefined : readCalldata(transaction.data);
+
+    const risky = call?.approval === true;
+
+    /* The contract being called is the token whose allowance is at stake, so its own decimals are
+       the only ones that make the number mean anything. A contract the wallet does not track keeps
+       base units rather than being formatted against a guess. */
+    const subject = tokens.find((item) => item.address.toLowerCase() === (transaction?.to ?? '').toLowerCase());
+
+    const allowance = () => {
+        if (call?.unlimited === true) {
+            return T('Dashboard.Request.AllowanceUnlimited');
+        }
+
+        if (call?.amount === undefined) {
+            return '';
+        }
+
+        if (subject === undefined) {
+            return call.amount.toString();
+        }
+
+        return `${trimAmount(formatUnits(call.amount, subject.decimals))} ${subject.symbol}`;
+    };
+
+    const rows = (): Row[] => {
+        if (transaction !== undefined) {
+            const { value, fee, data } = transaction;
 
             return [
-                { label: T('Dashboard.Request.To'), value: to.length > 0 ? shortAddress(to) : T('Dashboard.Request.Deploy'), mono: true },
                 { label: T('Dashboard.Request.Value'), value, mono: true },
+                ...(call === undefined
+                    ? []
+                    : [{ label: T('Dashboard.Request.Method'), value: call.method.length > 0 ? call.method : call.selector, mono: true }]),
+                ...(risky ? [{ label: T('Dashboard.Request.Allowance'), value: allowance(), mono: true }] : []),
                 ...(fee.length > 0 ? [{ label: T('Dashboard.Request.Fee'), value: fee, mono: true }] : []),
                 { label: T('Dashboard.Network.Title'), value: network, mono: false },
-                ...(data.length > 0
-                    ? [{ label: T('Dashboard.Request.Data'), value: T('Dashboard.Request.DataSize', Math.max(0, (data.length - 2) / 2)), mono: false }]
-                    : [])
+                ...(data.length > 0 ? [{ label: T('Dashboard.Request.Data'), value: T('Dashboard.Request.DataSize', call?.bytes ?? 0), mono: false }] : [])
             ];
         }
 
@@ -76,7 +115,6 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
         if (prompt.kind === 'asset' && prompt.asset !== undefined) {
             return [
                 { label: T('Dashboard.Request.AssetSymbol'), value: prompt.asset.symbol.length > 0 ? prompt.asset.symbol : '—', mono: false },
-                { label: T('Dashboard.Request.AssetAddress'), value: shortAddress(prompt.asset.address), mono: true },
                 { label: T('Dashboard.Network.Title'), value: network, mono: false }
             ];
         }
@@ -87,7 +125,23 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
         ];
     };
 
-    const rows = rowMap();
+    /* Never `shortAddress` here. This is the screen the whole approval exists for, and a poisoning
+       contract is picked to match the first and last characters a truncation keeps. The spender of
+       an allowance gets the same treatment for the same reason. */
+    const addresses = (): Row[] => {
+        if (transaction !== undefined) {
+            return [
+                { label: T('Dashboard.Request.To'), value: transaction.to.length > 0 ? transaction.to : T('Dashboard.Request.Deploy'), mono: true },
+                ...(risky && call.spender.length > 0 ? [{ label: T('Dashboard.Request.Spender'), value: call.spender, mono: true }] : [])
+            ];
+        }
+
+        if (prompt.kind === 'asset' && prompt.asset !== undefined) {
+            return [{ label: T('Dashboard.Request.AssetAddress'), value: prompt.asset.address, mono: true }];
+        }
+
+        return [];
+    };
 
     const payload = prompt.kind === 'signature' || prompt.kind === 'typed' ? prompt.summary : '';
 
@@ -99,7 +153,7 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
 
             <Panel className='flex items-center gap-2'>
                 <IconBox tone='primary'>
-                    <FiGlobe size={16} />
+                    <Globe size={16} />
                 </IconBox>
 
                 <Vertical className='min-w-0 gap-0.5'>
@@ -107,17 +161,22 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
                 </Vertical>
             </Panel>
 
+            {/* Red is the product's one warning colour, so it is spent on the call that can still
+                take tokens after this dialog is gone, not on every routine note. */}
+            <Alert variant='warning' className='text-start' text={T(noteMap[prompt.kind])} />
+
             <Alert
-                variant={prompt.kind === 'connect' ? 'warning' : 'error'}
-                className={prompt.kind === 'connect' ? '' : 'text-start'}
-                text={T(noteMap[prompt.kind])}
+                variant='error'
+                size='comfortable'
+                className='text-start'
+                text={risky ? T('Dashboard.Request.AllowanceNote', allowance(), subject?.symbol ?? T('Dashboard.Request.AllowanceToken')) : ''}
             />
 
             <ModalBody>
                 <Panel className='flex flex-col gap-2'>
-                    {rows.map((item) => (
+                    {rows().map((item) => (
                         <Horizontal key={item.label} className='items-center justify-between gap-2'>
-                            <Text text={item.label} />
+                            <Text className='shrink-0' text={item.label} />
 
                             <Text
                                 variant='captionStrong'
@@ -128,6 +187,12 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
                         </Horizontal>
                     ))}
                 </Panel>
+
+                {addresses().map((item) => (
+                    <Panel key={item.label}>
+                        <AddressBlock label={item.label} address={item.value} />
+                    </Panel>
+                ))}
 
                 {endpoint.length > 0 && (
                     <Vertical className='gap-1'>
@@ -154,12 +219,14 @@ export default function DashboardRequest({ prompt, address, network }: { prompt:
                 )}
             </ModalBody>
 
+            {/* On an allowance the safe answer carries the weight: the expensive mistake here is the
+                reflex tap on whatever looks like the primary button. */}
             <ModalActions>
-                <Button dim variant='muted' size='action' disabled={isLoading} onClick={onClose} text={T('Dashboard.Request.Reject')} />
+                <Button dim variant={risky ? 'primary' : 'muted'} size='action' disabled={isLoading} onClick={onClose} text={T('Dashboard.Request.Reject')} />
 
                 <Button
                     dim
-                    variant='primary'
+                    variant={risky ? 'destructive' : 'primary'}
                     size='action'
                     disabled={isLoading}
                     onClick={() => {

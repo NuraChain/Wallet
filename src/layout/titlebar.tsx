@@ -1,8 +1,7 @@
-import { FiMonitor, FiSmartphone } from 'react-icons/fi';
+import { Monitor, Smartphone, X, Minus } from 'lucide-react';
 import { useIsWindows } from '../hook/platform';
 import { useLanguage } from '../hook/language';
 import { useCallback, useState } from 'react';
-import { VscChromeClose, VscChromeMinimize } from 'react-icons/vsc';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
 import Text from '../components/ui/text';
@@ -54,9 +53,9 @@ export default function TitleBar() {
     }
 
     const controlMap = [
-        { key: 'minimize', label: T('App.Window.Minimize'), icon: <VscChromeMinimize size={16} />, action: onMinimize },
-        { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <FiSmartphone size={16} /> : <FiMonitor size={16} />, action: onToggleSize },
-        { key: 'close', label: T('App.Window.Close'), icon: <VscChromeClose size={16} />, action: onClose }
+        { key: 'minimize', label: T('App.Window.Minimize'), icon: <Minus size={16} />, action: onMinimize },
+        { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <Smartphone size={16} /> : <Monitor size={16} />, action: onToggleSize },
+        { key: 'close', label: T('App.Window.Close'), icon: <X size={16} />, action: onClose }
     ];
 
     return (

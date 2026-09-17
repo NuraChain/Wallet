@@ -1,7 +1,7 @@
 import type { Transaction } from '../../hook/history';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FiSearch } from 'react-icons/fi';
+import { Search } from 'lucide-react';
 
 import TransactionRow from './dashboard.transaction';
 
@@ -108,7 +108,7 @@ export default function DashboardHistory({
     }, [shown, results.length]);
 
     return (
-        <Modal scale={0.96} onClose={onClose} panelClass='size-full p-0'>
+        <Modal scale={0.96} width='full' onClose={onClose} panelClass='p-0'>
             <Vertical className='gap-3 px-5 pt-5'>
                 <ModalHeader
                     title={T('Dashboard.Activity.Title')}
@@ -125,9 +125,10 @@ export default function DashboardHistory({
                     autoComplete='off'
                     aria-label={T('Dashboard.Activity.Search')}
                     placeholder={T('Dashboard.Activity.Search')}
+                    size='compact'
                     onValue={setQuery}
-                    className='h-10 ps-9 pe-3'
-                    leading={<FiSearch size={16} className='pointer-events-none absolute inset-s-3 text-txt-muted' />}
+                    className='ps-9 pe-3'
+                    leading={<Search size={16} className='pointer-events-none absolute inset-s-3 text-txt-muted' />}
                 />
 
                 <Horizontal className='gap-2'>

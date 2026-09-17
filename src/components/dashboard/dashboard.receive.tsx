@@ -2,33 +2,22 @@ import type { Network } from '../../core/network';
 
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
-import { FiAlertTriangle } from 'react-icons/fi';
-import { HiOutlineSquare2Stack } from 'react-icons/hi2';
+import { TriangleAlert } from 'lucide-react';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Panel from '../ui/panel';
-import Button from '../ui/button';
+import CopyButton from '../ui/copy';
+import AddressBlock from '../ui/address';
 import { Modal, ModalHeader } from '../ui/modal';
 
 import { T } from '../../utility/language';
-import { useClipboard } from '../../hook/clipboard';
 import { Horizontal } from '../ui/stack';
-
-const noticeMap = {
-    idle: '',
-    done: 'Dashboard.Copied',
-    failed: 'Dashboard.CopyFailed'
-} as const;
 
 export default function DashboardReceive({ address, network, onClose }: { address: string; network: Network; onClose: () => void }) {
     const [qr, setQr] = useState('');
 
     const [failed, setFailed] = useState(false);
-
-    const clipboard = useClipboard(0);
-
-    const notice = noticeMap[clipboard.state];
 
     useEffect(() => {
         let active = true;
@@ -61,29 +50,22 @@ export default function DashboardReceive({ address, network, onClose }: { addres
             <Horizontal className='size-56 items-center justify-center rounded-dialog border border-badge-line bg-badge p-3'>
                 {qr.length > 0 && <img src={qr} alt='' className='size-full' />}
 
-                {failed && <FiAlertTriangle size={28} className='text-txt-error' />}
+                {failed && <TriangleAlert size={28} className='text-txt-error' />}
             </Horizontal>
 
             <Alert variant='error' text={failed ? T('Dashboard.Receive.QrFailed') : ''} />
 
             <Text className='text-center' text={T('Dashboard.Receive.Scan', network.symbol)} />
 
-            <Panel dir='ltr' className='w-full text-center font-mono text-tiny break-all text-txt-normal select-text!'>
-                {address}
+            <Panel className='w-full text-center'>
+                <AddressBlock address={address} />
             </Panel>
 
-            <Button
-                variant='primary'
-                size='action'
-                fullWidth
-                onClick={() => {
-                    void clipboard.copy(address);
-                }}
-                leftIcon={<HiOutlineSquare2Stack size={16} />}
-                text={T('Dashboard.Copy')}
-            />
-
-            <Alert variant={clipboard.state === 'failed' ? 'error' : 'success'} text={notice.length > 0 ? T(notice) : ''} />
+            {/* The result rides on the button rather than an alert underneath it, which used to
+                appear after the fact and grow the dialog out from under the user's finger. */}
+            <CopyButton variant='primary' size='action' value={address} label={T('Dashboard.Copy')} className='w-full'>
+                {T('Dashboard.Copy')}
+            </CopyButton>
         </Modal>
     );
 }

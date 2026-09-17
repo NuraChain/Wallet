@@ -1,4 +1,4 @@
-import { FiMonitor, FiSmartphone, FiTrash2 } from 'react-icons/fi';
+import { Monitor, Smartphone, Trash } from 'lucide-react';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
@@ -9,9 +9,9 @@ import { T } from '../../utility/language';
 import type { BrowserView } from '../../core/browser';
 import { Horizontal } from '../ui/stack';
 
-const viewMap: { view: BrowserView; label: string; icon: typeof FiMonitor }[] = [
-    { view: 'mobile', label: 'Dashboard.Browser.ViewMobile', icon: FiSmartphone },
-    { view: 'desktop', label: 'Dashboard.Browser.ViewDesktop', icon: FiMonitor }
+const viewMap: { view: BrowserView; label: string; icon: typeof Monitor }[] = [
+    { view: 'mobile', label: 'Dashboard.Browser.ViewMobile', icon: Smartphone },
+    { view: 'desktop', label: 'Dashboard.Browser.ViewDesktop', icon: Monitor }
 ];
 
 const readableSize = (bytes: number) => {
@@ -86,7 +86,7 @@ export default function DashboardBrowserSettings({
 
             <Horizontal className='gap-2 *:flex-1'>
                 <Button dim variant='danger' size='action' disabled={connections === 0} onClick={onDisconnect}>
-                    <FiTrash2 size={16} className='shrink-0' />
+                    <Trash size={16} className='shrink-0' />
 
                     {T('Dashboard.Browser.ConnectedClear')}
                 </Button>
@@ -98,7 +98,7 @@ export default function DashboardBrowserSettings({
 
             <Horizontal className='gap-2 *:flex-1'>
                 <Button dim variant='danger' size='action' disabled={visits === 0} onClick={onClear}>
-                    <FiTrash2 size={16} className='shrink-0' />
+                    <Trash size={16} className='shrink-0' />
 
                     {T('Dashboard.Browser.Clear')}
                 </Button>
@@ -112,7 +112,7 @@ export default function DashboardBrowserSettings({
 
             <Horizontal className='gap-2 *:flex-1'>
                 <Button dim variant='danger' size='action' disabled={icons === 0 && blocked === 0} onClick={onClearCache}>
-                    <FiTrash2 size={16} className='shrink-0' />
+                    <Trash size={16} className='shrink-0' />
 
                     {T('Dashboard.Browser.CacheClear')}
                 </Button>

@@ -1,8 +1,7 @@
-import type { IconType } from 'react-icons';
 import type { VaultKind } from '../../core/vault';
 
 import { useState } from 'react';
-import { FiEye, FiFileText, FiImage } from 'react-icons/fi';
+import { Eye, EyeOff, FileText, Image, type LucideIcon } from 'lucide-react';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
@@ -16,9 +15,9 @@ import { getExporter, phraseToPng } from '../../core/export';
 import { getValueEncrypted } from '../../utility/storage';
 import { Horizontal, Vertical } from '../ui/stack';
 
-const exportMap: { kind: 'image' | 'text'; icon: IconType; label: string }[] = [
-    { kind: 'image', icon: FiImage, label: 'Dashboard.Phrase.SaveImage' },
-    { kind: 'text', icon: FiFileText, label: 'Dashboard.Phrase.SaveText' }
+const exportMap: { kind: 'image' | 'text'; icon: LucideIcon; label: string }[] = [
+    { kind: 'image', icon: Image, label: 'Dashboard.Phrase.SaveImage' },
+    { kind: 'text', icon: FileText, label: 'Dashboard.Phrase.SaveText' }
 ];
 
 export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; onClose: () => void }) {
@@ -142,15 +141,19 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                             <Text variant='captionStrong' className='font-mono break-all' text={secret} />
                         </div>
                     ) : (
+                        /* Two columns before `sm`, and no `truncate` on the word. Three columns in a
+                           320px dialog left about 55px for the word, and the wordlist has 8-character
+                           entries that need nearer 58 — `abstract`, `business`, `champion`. A word
+                           clipped to `busines` is written down that way and the wallet is gone. */
                         <div
                             dir='ltr'
-                            className={`grid grid-cols-3 gap-1.5 transition-all duration-(--duration-fast) ${revealed ? '' : 'pointer-events-none blur-sm select-none'}`}
+                            className={`grid grid-cols-2 gap-1.5 transition-all duration-(--duration-fast) sm:grid-cols-3 ${revealed ? '' : 'pointer-events-none blur-sm select-none'}`}
                         >
                             {words.map((word, index) => (
-                                <Horizontal key={`${index}-${word}`} className='items-center gap-1 rounded-control bg-base-1 px-2 py-1.5'>
-                                    <Text text={String(index + 1)} />
+                                <Horizontal key={`${index}-${word}`} className='items-baseline gap-1.5 rounded-control bg-base-1 px-2 py-1.5'>
+                                    <Text className='shrink-0 tabular-nums' text={String(index + 1)} />
 
-                                    <Text variant='captionStrong' className='truncate font-mono' text={word} />
+                                    <Text variant='captionStrong' className='font-mono' text={word} />
                                 </Horizontal>
                             ))}
                         </div>
@@ -163,7 +166,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                             }}
                             className='absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-surface bg-base-2/60 text-txt-normal hover:bg-base-2/70'
                         >
-                            <FiEye size={20} />
+                            <Eye size={20} />
 
                             <Text variant='captionStrong' text={T('Dashboard.Phrase.Reveal')} />
                         </Button>
@@ -171,6 +174,19 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
 
                     {revealed && (
                         <Vertical className='mt-3 gap-2'>
+                            {/* There was no way back once the words were on screen but closing the
+                                dialog, which is the wrong thing to reach for when someone walks past. */}
+                            <Button
+                                variant='muted'
+                                size='small'
+                                onClick={() => {
+                                    setRevealed(false);
+                                }}
+                                leftIcon={<EyeOff size={14} />}
+                                className='self-end'
+                                text={T('Dashboard.Phrase.Hide')}
+                            />
+
                             <Alert className='text-start' text={T('Dashboard.Phrase.ExportDanger')} />
 
                             <Horizontal className='gap-2'>
@@ -178,14 +194,14 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                                     <Button
                                         key={item.kind}
                                         variant='muted'
+                                        size='action'
                                         onClick={() => {
                                             void onExport(item.kind);
                                         }}
-                                        className='h-10 min-w-0 flex-1 rounded-surface text-tiny'
+                                        leftIcon={<item.icon size={14} className='shrink-0' />}
+                                        className='min-w-0 flex-1'
                                     >
-                                        <item.icon size={14} className='shrink-0' />
-
-                                        <Text className='truncate' text={T(item.label)} />
+                                        <span className='truncate'>{T(item.label)}</span>
                                     </Button>
                                 ))}
                             </Horizontal>

@@ -1,15 +1,12 @@
 import type { VaultKind } from '../../core/vault';
 
 import { useState } from 'react';
-import { IoChevronForward } from 'react-icons/io5';
-import { FiGlobe, FiLogOut, FiMoon, FiSidebar, FiSun } from 'react-icons/fi';
-import { HiOutlineDocumentText, HiOutlineLockClosed } from 'react-icons/hi2';
+import { ChevronRight, Globe, LogOut, Moon, PanelLeft, Sun, FileText, Lock } from 'lucide-react';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 import MenuRow from '../ui/menu';
-import { ModalActions } from '../ui/modal';
 import { Vertical } from '../ui/stack';
 
 import { platform } from '../../platform';
@@ -17,7 +14,7 @@ import { T } from '../../utility/language';
 import { useHasPanel } from '../../hook/platform';
 import { getTheme, setTheme } from '../../utility/theme';
 
-const chevron = <IoChevronForward size={18} className='text-txt-muted rtl:rotate-180' />;
+const chevron = <ChevronRight size={18} className='text-txt-muted rtl:rotate-180' />;
 
 export default function DashboardSettings({
     kind,
@@ -51,7 +48,7 @@ export default function DashboardSettings({
             <MenuRow
                 leading={
                     <IconBox>
-                        <FiGlobe size={16} />
+                        <Globe size={16} />
                     </IconBox>
                 }
                 label={T('Intro.Language')}
@@ -60,7 +57,7 @@ export default function DashboardSettings({
             />
 
             <MenuRow
-                leading={<IconBox>{theme === 'light' ? <FiMoon size={16} /> : <FiSun size={16} />}</IconBox>}
+                leading={<IconBox>{theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}</IconBox>}
                 label={T('Dashboard.Settings.Theme')}
                 onClick={onToggleTheme}
                 trailing={<Text text={theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark')} />}
@@ -72,7 +69,7 @@ export default function DashboardSettings({
                 <MenuRow
                     leading={
                         <IconBox>
-                            <FiSidebar size={16} className='rtl:rotate-180' />
+                            <PanelLeft size={16} className='rtl:rotate-180' />
                         </IconBox>
                     }
                     label={T('Dashboard.Settings.SidePanel')}
@@ -84,7 +81,7 @@ export default function DashboardSettings({
             <MenuRow
                 leading={
                     <IconBox>
-                        <HiOutlineDocumentText size={16} />
+                        <FileText size={16} />
                     </IconBox>
                 }
                 label={kind === 'privateKey' ? T('Dashboard.Phrase.TitleKey') : T('Dashboard.Phrase.Title')}
@@ -94,19 +91,18 @@ export default function DashboardSettings({
 
             <div className='flex-1' />
 
-            <ModalActions>
-                <Button variant='primary' size='action' onClick={onLock} className='min-w-0'>
-                    <HiOutlineLockClosed size={16} className='shrink-0' />
+            {/* Lock is the everyday action and Logout erases the wallet from this device. They
+                used to be one 50/50 row of identical buttons, a target width apart. */}
+            <Button variant='primary' size='submit' onClick={onLock} leftIcon={<Lock size={16} className='shrink-0' />} text={T('Dashboard.Lock')} />
 
-                    <span className='truncate'>{T('Dashboard.Lock')}</span>
-                </Button>
-
-                <Button variant='destructive' size='action' onClick={onLogout} className='min-w-0'>
-                    <FiLogOut size={16} className='shrink-0 rtl:rotate-180' />
-
-                    <span className='truncate'>{T('Dashboard.Settings.Logout')}</span>
-                </Button>
-            </ModalActions>
+            <Button
+                variant='danger'
+                size='action'
+                onClick={onLogout}
+                leftIcon={<LogOut size={16} className='shrink-0 rtl:rotate-180' />}
+                className='mx-auto px-4'
+                text={T('Dashboard.Settings.Logout')}
+            />
 
             <Text dir='ltr' className='pt-1 text-center' text={T('Dashboard.Settings.Version', __APP_VERSION__)} />
         </Vertical>
