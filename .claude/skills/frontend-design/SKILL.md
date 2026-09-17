@@ -22,7 +22,7 @@ carry one meaning across the switch.
 Cards, rows and inputs cast nothing — `base-2` plus a hairline is all the separation a flat
 palette needs, and a shadow under every card made the whole page float ambiguously.
 
-**Corners are a three-step ramp**: 6px controls, 10px surfaces, 14px what floats. Tighter
+**Corners are a three-step ramp**: 10px controls, 14px surfaces, 20px what floats. Tighter
 corners read as instrument rather than toy, and the difference is legible only because
 nothing else competes with it.
 

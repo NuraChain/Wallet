@@ -29,6 +29,12 @@ Everything below is the complete vocabulary. If what you need is not here, add a
 `line` (decorative hairline), `scrim`, `scrollbar`, `scrollbar-hover`, `focus-ring`,
 `badge` / `badge-line` / `badge-text`.
 
+**Glass** — `glass` + `glass-line`, the translucent fill and hairline the floating bottom
+nav wears over scrolling content. It is white in both themes and the *alpha* carries the
+theme: 0.72 in light, 0.10 in dark. Full-strength white in dark would put `txt-muted`
+labels on a white pill. Pair it with `backdrop-blur-*` — blur has no theme namespace here,
+so those are Tailwind's stock steps and the only utility family that is.
+
 **Fills** — `btn-muted`, `btn-normal`, `btn-primary`, `btn-danger`, each with `-hover`,
 `-active`, `-border`; plus flat `btn-secondary`.
 
@@ -41,8 +47,8 @@ Used as any Tailwind colour utility: `bg-base-2`, `text-txt-muted`, `border-line
 **Type** — `text-tiny` 12, `text-small` 14, `text-medium` 16, `text-large` 18,
 `text-display` 32 (the only step that pins its own leading and tracking).
 
-**Radius** — `rounded-control` 6px (chips, small squares, favicons), `rounded-surface` 10px
-(cards, rows, fields, action buttons), `rounded-dialog` 14px (what floats). `rounded-full`
+**Radius** — `rounded-control` 10px (chips, small squares, favicons), `rounded-surface` 14px
+(cards, rows, fields, action buttons), `rounded-dialog` 20px (what floats). `rounded-full`
 stays a bare utility — a pill is the absence of a step on the ramp, not a step on it.
 
 **Elevation** — `shadow-float`, and nothing else. Cards and rows cast no shadow; separation

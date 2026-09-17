@@ -61,6 +61,24 @@ twice. `dim` is the opt-in disabled fade: `disabled` means "not available yet" o
 button, and "this is the one you're already on" in the language and network pickers, where
 fading is wrong.
 
+## Icons — `lucide-react`
+
+The only icon source in the tree. `import { Check, Trash } from 'lucide-react'`.
+
+- **Always pass `size`.** Lucide defaults to 24, which is wrong almost everywhere here. The
+  steps in use are 14/16/18 inline and in rows, 20–24 for a dialog close, 28+ only for the
+  art in a status screen.
+- **Never pass `color`.** The icon strokes `currentColor`, so it inherits the surrounding
+  `text-*` — which is how one `isActive ? 'text-txt-normal' : 'text-txt-muted'` on a parent
+  colours the icon and its label together.
+- **A map that holds an icon holds the component, not an element**, typed `LucideIcon`:
+  `{ key: string; icon: LucideIcon }[]`, rendered `<item.icon size={16} />`.
+- `Button` takes `leftIcon` / `rightIcon`; do not hand-place an icon beside a label.
+- Lucide is a fork of Feather, so Feather names mostly carry over — but use the **v1
+  canonical** name, not the deprecated alias it still resolves: `Trash` not `Trash2`,
+  `House` not `Home`, `PanelLeft` not `Sidebar`, `TriangleAlert` not `AlertTriangle`,
+  `CircleQuestionMark` not `HelpCircle`, `Pen` / `PenLine` not `Edit2` / `Edit3`.
+
 ## Surfaces
 
 - **`surfacePanel`** (`ui/panel.tsx`) — the card *material* string: `border border-line
@@ -83,14 +101,16 @@ fading is wrong.
 - **`PageContainer`** (`layout/container.tsx`) — `variant='tab' | 'browser' | 'intro'`.
   Every top-level surface gets its top padding from here. It resolves the
   `Windows title bar : Android safe area` fork for you; **never hand-write that formula.**
-- **`layer`** (`layout/container.tsx`) — `chrome` z-20, `popover` z-30, `dialog` z-40.
+- **`layer`** (`layout/container.tsx`) — `base` z-10, `chrome` z-20, `popover` z-30, `dialog` z-40.
   **Never write a bare `z-*`.** Three unnamed numbers are how the language picker once
   rendered *under* the nav bar it had to cover, with the tabs still clickable through its
   own scrim.
 - **`inset`** — safe-area formulas for surfaces that pad against device insets without
-  being a page (`sheetTop`, `modalFrame`).
+  being a page: `sheetTop`, `modalFrame`, `tabTop` (a `windows`/`device` pair),
+  `tabBottom` (clears the floating nav, and stops clearing it at `lg`), `edgeBottom`.
 - **`ScrollArea`** (`layout/scroll.tsx`) — scrolling region with an overlay thumb that takes
-  no layout width, plus pull-to-refresh.
+  no layout width, plus pull-to-refresh. **`ScrollBar`** (`ui/scrollbar.tsx`) is that thumb
+  on its own, for a region that scrolls without being a page — it takes a `viewportRef`.
 
 ## Dialogs — `ui/modal.tsx`, `ui/sheet.tsx`, `ui/dialog.ts`
 
@@ -98,8 +118,14 @@ fading is wrong.
 name, no focus trap and no Escape — including the one that approves a transaction.
 
 - **`Modal`** + `ModalHeader` / `ModalBody` / `ModalActions` — the centred dialog.
-  `frame='screen'` for a padded full-screen frame, `scroll` to cap against the viewport.
-  Wrapping the growing part in `ModalBody` is what holds the header and footer still.
+  Props are `onClose`, `scroll` (cap against the viewport and hang a `ScrollBar` beside the
+  panel), `scale` (the enter/exit scale, default `0.9`), `width` and `panelClass`.
+  **`width` is a step, not a class** — `panel` (320 → 384 → 448 as the window grows), `narrow`,
+  `full`. Never pass a width through `panelClass`: it cannot out-specify the breakpoints here,
+  and a dialog frozen at 320px is what forced addresses to be truncated in the first place.
+  `ModalHeader` also takes `close='none'`, for a step that must not be abandoned halfway. Wrapping the
+  growing part in `ModalBody` is what holds the header and footer still. `ModalHeader` takes
+  `close='icon' | 'chip'`, a `leading` slot, and claims the title id from context.
 - **`Sheet`** + `SheetHeader` — the sheet that drops from the top (intro flows).
 - **`Popover`** (`ui/popover.tsx`) — opens *within* a page and must not escape it. It uses
   `useDismiss` only: Escape and focus return, but **no** focus trap. A dropdown the keyboard
@@ -124,12 +150,33 @@ They take `onValue: (value: string) => void` rather than an event, plus `label`,
   so drop the `message.length > 0 &&` guard at the call site.
 - **`StatusBlock`** (`ui/state.tsx`) — `state`: `empty` | `loading`, with `aria-live`. What a
   list shows when it has nothing to show yet or nothing at all.
+- **`Live`** (`ui/live.tsx`) — an `sr-only` announcement slot that is **always mounted**, so a
+  message is announced when it changes rather than never. `Alert` already carries one; reach for
+  it directly when feedback lands somewhere other than an alert. It is absolutely positioned, so
+  it never adds a flex gap.
 - **`ProgressBar`**, **`Spinner`**, **`FailureScreen`**, **`MenuRow`** (+ `selectedTint`).
+
+## Money and destruction
+
+Three primitives exist because getting these wrong costs the user something real.
+
+- **`AddressBlock`** (`ui/address.tsx`) — a full address, mono, wrapped, selectable.
+  **`shortAddress` is for a row being scanned; anything a user must verify before confirming gets
+  this instead.** A poisoning contract is chosen to match the first and last characters a
+  truncation keeps.
+- **`ConfirmPanel` / `ConfirmDialog`** (`ui/confirm.tsx`) — the gate in front of a delete. Use
+  `ConfirmPanel` inside a screen that is already a dialog and swaps its body (the accounts,
+  networks and tokens lists all do); `ConfirmDialog` where there is no dialog yet. Dialogs do not
+  nest — an inner `Modal` is trapped inside the outer panel's transform.
+- **`CopyButton`** (`ui/copy.tsx`) — copy with the result on the control itself, plus a `Live`
+  announcement. Never report a copy with an `Alert` under the button: it appears after the fact
+  and grows the surface out from under the finger already reaching for the next action.
 
 ## Before you write a div, check
 
 1. Is it text? → `Text`. Is it pressable? → `Button`. Is it a card? → `Panel` /
-   `surfacePanel`. A list? → `ListCard`. A flex box? → `Horizontal` / `Vertical`.
+   `surfacePanel`. A list? → `ListCard`. A flex box? → `Horizontal` / `Vertical`. An icon?
+   → `lucide-react` with an explicit `size`. An address to verify? → `AddressBlock`.
 2. Is it a dialog? → `Modal` or `Sheet`, never a hand-rolled overlay.
 3. Am I about to write a bare `z-*`, a safe-area `calc()`, a `text-tiny text-txt-muted`, or
    `border border-line bg-base-2`? All four already have a name.

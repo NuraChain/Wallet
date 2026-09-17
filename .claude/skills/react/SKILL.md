@@ -1,6 +1,6 @@
 ---
 name: react
-description: Use when writing, reviewing, or refactoring any React/TypeScript in this repo — components, hooks, state, effects, routing, or anything under src/. Covers React 19 idioms, the module-singleton + useSyncExternalStore state convention, react-router memory routing with loaders, the file/naming layout, and the oxlint rule set and oxfmt formatting the repo is held to.
+description: Use when writing, reviewing, or refactoring any React/TypeScript in this repo — components, hooks, state, effects, routing, or anything under src/. Covers React 19 idioms, the module-singleton + useSyncExternalStore state convention, react-router memory routing with loaders, the file/naming layout, the vitest setup and what earns a test, and the oxlint rule set and oxfmt formatting the repo is held to.
 ---
 
 # React in this repo
@@ -20,6 +20,7 @@ failed build. Lint and format are separate commands, not build steps.
 | `src/core/` | Domain logic: wallet, vault, network, dapp, caches | `network.provider.ts` |
 | `src/hook/` | React bindings over `core`/`utility` singletons | `balance.ts` |
 | `src/utility/` | Framework-free helpers: `cn`, `format`, `storage`, `language`, `theme`, `event` | `format.ts` |
+| `src/platform/` | The host seam — one implementation per target behind `#platform-impl` | `tauri.ts` |
 
 Filenames are lowercase, dot-separated, never PascalCase. Nothing in `utility/` may import
 React; nothing in `core/` may import a component.
@@ -156,11 +157,26 @@ What it no longer checks, and you now carry yourself:
 
 Run `npm run lint` and `npm run format` before you consider a change done.
 
+## Tests
+
+Vitest, configured in `vite.config.ts` under `test`: `include: ['**/*.test.ts']`, node
+environment, `restoreMocks: true`. `npm test` runs them once.
+
+There are three, all of them in `src/core/` beside what they cover —
+`dapp.bridge.test.ts`, `dapp.rpc.test.ts`, `dapp.script.test.ts` — and that is deliberate:
+the provider is where a regression is expensive and invisible from the UI. This is not a
+tree that chases coverage, but **a change to the dApp path updates its tests in the same
+commit**, and new logic of that kind (a parser, a policy gate, a money path) earns one too.
+
+Verification for everything else is still `npm run build`, `npm run lint` and
+`npm run format:check`.
+
 ## Do not
 
 - Add a dependency. Check `package.json` first; this tree is deliberately small and `cn`
   exists because `clsx` + `tailwind-merge` were removed.
-- Introduce a test file — there is no runner. Verification is `npm run build`, plus
-  `npm run lint` and `npm run format:check`.
+- Reach past the platform seam. Nothing in `src/` imports `src/platform/tauri.ts` or
+  `extension/platform.ts` directly, and nothing branches on the host to decide behaviour —
+  see the `extension` skill.
 - Reach for `useMemo`/`useCallback` reflexively. They appear here only where a real
   identity problem exists.

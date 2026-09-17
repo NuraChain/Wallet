@@ -1,12 +1,14 @@
 ---
 name: tauri
-description: Use for anything touching the Tauri shell — Rust in src-tauri, commands and IPC, capabilities and permissions, plugins, CSP, the per-platform config files, the multiwebview dApp browser, or building and running the desktop and Android targets. Read before adding a Rust dependency, a command, or a permission.
+description: Use for anything touching the Tauri shell — Rust in src-tauri, commands and IPC, capabilities and permissions, plugins, CSP, the per-platform config files, the multiwebview dApp browser, or building and running the desktop, Android and iOS targets. Read before adding a Rust dependency, a command, or a permission.
 ---
 
 # Tauri in this repo
 
 Tauri v2. `src-tauri/` builds the crate `app_lib` (`lib.rs`, `main.rs`, `dapp.rs`) and the
-frontend is the Vite bundle in `dist/`. Targets: Windows and Linux desktop, plus Android.
+frontend is the Vite bundle in `dist/`. Targets: Windows, Linux and macOS desktop, plus
+Android and iOS. The browser extension is a **different build** and does not come through
+here at all — see the `extension` skill.
 
 ## Commands
 
@@ -17,6 +19,8 @@ npm run desktop-build  # tauri build
 npm run android        # tauri android dev
 npm run android-apk    # signed APK
 npm run android-aab    # bundle
+npm run ios            # tauri ios dev
+npm run ios-build      # tauri ios build
 ```
 
 `beforeDevCommand` / `beforeBuildCommand` in `tauri.conf.json` chain to `npm run dev` /
@@ -29,7 +33,9 @@ Everything real lives in the platform overlays, which Tauri merges over the base
 
 - `tauri.windows.conf.json` — frameless window (`decorations: false`, 360×640), CSP, capabilities
 - `tauri.linux.conf.json`
+- `tauri.macos.conf.json`
 - `tauri.android.conf.json`
+- `tauri.ios.conf.json`
 
 **Capabilities are declared inline** under `app.security.capabilities` in those overlay
 files — there is no `src-tauri/capabilities/` directory. `src-tauri/permissions/` contains
