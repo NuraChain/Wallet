@@ -1,14 +1,14 @@
 import type { VaultKind } from '../../core/vault';
 
 import { useState } from 'react';
-import { ChevronRight, Globe, LogOut, Moon, Sun, FileText, Lock } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Globe, LogOut, Moon, Sun, FileText, Lock } from 'lucide-react';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
 import IconBox from '../ui/iconbox';
 import MenuRow from '../ui/menu';
 import { ModalActions } from '../ui/modal';
-import { Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../ui/stack';
 
 import { T } from '../../utility/language';
 import { getTheme, setTheme } from '../../utility/theme';
@@ -17,12 +17,15 @@ const chevron = <ChevronRight size={18} className='text-txt-muted rtl:rotate-180
 
 export default function DashboardSettings({
     kind,
+    onBack,
     onLanguage,
     onPhrase,
     onLock,
     onLogout
 }: {
     kind: VaultKind;
+    /** Only where there is no navigation bar to leave by. */
+    onBack?: () => void;
     onLanguage: () => void;
     onPhrase: () => void;
     onLock: () => void;
@@ -40,7 +43,15 @@ export default function DashboardSettings({
 
     return (
         <Vertical className='mt-2 min-h-0 flex-1 gap-3'>
-            <Text as='h1' variant='heading' className='py-2' text={T('Dashboard.Settings.Title')} />
+            <Horizontal className='items-center gap-3'>
+                {onBack !== undefined && (
+                    <Button variant='chip' size='iconChip' onClick={onBack} aria-label={T('Dashboard.Nav.Wallet')} className='shrink-0'>
+                        <ArrowLeft size={17} className='rtl:rotate-180' />
+                    </Button>
+                )}
+
+                <Text as='h1' variant='heading' className='py-2' text={T('Dashboard.Settings.Title')} />
+            </Horizontal>
 
             <MenuRow
                 leading={

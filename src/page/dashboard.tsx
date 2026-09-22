@@ -95,6 +95,12 @@ function DashboardView({ vault }: { vault: Vault }) {
     // below indexes into this, not into navMap.
     const tabMap = useMemo(() => (hasBrowser ? navMap : navMap.filter((item) => item.key !== 'Browser')), [hasBrowser]);
 
+    // A bar with one tab on it only ever points at the screen already open — the extension and iOS,
+    // where the browser tab is gone — so it is left out, and Settings carries its own way back.
+    const navItems = useMemo(() => tabMap.filter((item) => item.key !== 'Settings'), [tabMap]);
+
+    const hasNav = navItems.length > 1;
+
     const goTab = useCallback((index: number) => {
         setActive(index);
         setNavHidden(false);
@@ -605,6 +611,13 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                 {item.key === 'Settings' && (
                                                     <DashboardSettings
                                                         kind={vault.kind}
+                                                        onBack={
+                                                            hasNav
+                                                                ? undefined
+                                                                : () => {
+                                                                      goKey('Wallet');
+                                                                  }
+                                                        }
                                                         onLanguage={() => {
                                                             setModal('language');
                                                         }}
@@ -671,7 +684,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 </div>
             </div>
 
-            <DashboardNav items={tabMap.filter((item) => item.key !== 'Settings')} active={active} hidden={barHidden} onSelect={goTab} />
+            {hasNav && <DashboardNav items={navItems} active={active} hidden={barHidden} onSelect={goTab} />}
         </motion.div>
     );
 }
