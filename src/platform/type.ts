@@ -85,6 +85,9 @@ export interface PlatformApproval {
  * A Tauri window has a title bar of its own doing, so this is inert there.
  */
 export interface PlatformPanel {
+    /** Whether this document is drawn in the browser's dock, which already frames it. */
+    docked: () => boolean;
+
     /** Shut the frame this document is drawn in. */
     close: () => void;
 }

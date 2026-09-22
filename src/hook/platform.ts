@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { platform } from '../platform';
 import { getPlatform } from '../utility/platform';
 
 export const useIsWindows = (): boolean => {
@@ -25,14 +26,15 @@ export const useHasBrowser = (): boolean => {
 
 /**
  * Whether the app draws its own title bar. A Tauri window on Windows has the system's turned off,
- * and a browser gives an extension document none at all — on both, the strip across the top of the
- * page is the wallet's own, and every screen below has to keep out from under it.
+ * and a browser gives an extension popup or window none at all — on both, the strip across the top
+ * of the page is the wallet's own, and every screen below has to keep out from under it. The dock
+ * is the exception: the browser frames it with a header and close button of its own.
  */
 export const useHasTitleBar = (): boolean => {
     const [hasTitleBar] = useState(() => {
         const host = getPlatform();
 
-        return host === 'windows' || host === 'extension';
+        return host === 'windows' || (host === 'extension' && !platform.panel.docked());
     });
 
     return hasTitleBar;

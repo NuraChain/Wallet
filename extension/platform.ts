@@ -120,7 +120,6 @@ const save = async (href: string, name: string, revoke = false) => {
 /** Gecko's half of the pair. `@types/chrome` only describes Chromium's, so this states the one call. */
 interface SidebarAction {
     open: () => void;
-    close: () => void;
 }
 
 /** Chromium's half, which needs to be told which window to dock the panel in. */
@@ -192,20 +191,12 @@ export const dockOnActionClick = () => {
 };
 
 /**
- * The browser draws no chrome of its own around an extension document — no title bar, no close
- * button — so the wallet carries its own, and this is what its button does. Gecko's sidebar is
- * the one frame that does not answer to `window.close()`.
+ * A popup or window the browser opens for an extension document has no close button of its own,
+ * so the wallet carries one. The dock has the browser's own, and draws no title bar here.
  */
 const browserPanel: PlatformPanel = {
+    docked: inPanel,
     close: () => {
-        const { browser } = surfaces();
-
-        if (inPanel() && browser?.sidebarAction !== undefined) {
-            browser.sidebarAction.close();
-
-            return;
-        }
-
         globalThis.close();
     }
 };

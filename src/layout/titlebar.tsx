@@ -19,9 +19,9 @@ const mobileSize = { width: 360, height: 640 };
 
 /**
  * The strip the wallet draws where the host draws nothing. On Windows that is a Tauri window with
- * its decorations turned off, and the bar carries the whole set. In an extension it is a side
- * panel or a popup — a frame the browser sizes and the wallet cannot move — so the only control
- * that means anything there is the way out.
+ * its decorations turned off, and the bar carries the whole set. In an extension it is a popup or
+ * window the browser sizes and the wallet cannot move, so the only control that means anything
+ * there is the way out. The side panel gets none: the browser already frames it.
  */
 export default function TitleBar() {
     const isWindows = useIsWindows();

@@ -99,6 +99,7 @@ const inertApproval: PlatformApproval = {
  * The window is its own frame, and the title bar closes it through Tauri rather than through here.
  */
 const inertPanel: PlatformPanel = {
+    docked: () => false,
     close: () => undefined
 };
 
