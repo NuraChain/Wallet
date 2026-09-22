@@ -10,7 +10,7 @@ import { platform } from '../../platform';
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { inset } from '../../layout/container';
-import { useHasTitleBar } from '../../hook/platform';
+import { useIsWindows } from '../../hook/platform';
 import { Horizontal, Vertical } from '../ui/stack';
 
 /* The product page, handed to the host browser rather than the wallet's own. It is a brand site,
@@ -31,13 +31,13 @@ export interface SidebarItem {
 }
 
 export default function DashboardSidebar({ items, actions, footer }: { items: SidebarItem[]; actions: SidebarItem[]; footer: SidebarItem[] }) {
-    const hasTitleBar = useHasTitleBar();
+    const isWindows = useIsWindows();
 
     return (
         <Vertical
             className={cn(
                 'hidden w-60 shrink-0 gap-1 border-e border-line bg-base-2 p-3 pb-[calc(1.5rem+var(--inset-bottom))] lg:flex',
-                inset.tabTop[hasTitleBar ? 'windows' : 'device']
+                inset.tabTop[isWindows ? 'windows' : 'device']
             )}
         >
             <Vertical className='items-center gap-2 px-3 py-5'>

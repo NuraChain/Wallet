@@ -78,21 +78,6 @@ export interface PlatformApproval {
 }
 
 /**
- * The frame a browser draws the wallet in — Chromium's side panel, Gecko's sidebar, Safari's
- * popup. Which one it is, and when it opens, is the extension's own business; what the app needs
- * from it is the one thing no browser offers around an extension document, which is a way out.
- *
- * A Tauri window has a title bar of its own doing, so this is inert there.
- */
-export interface PlatformPanel {
-    /** Whether this document is drawn in the browser's dock, which already frames it. */
-    docked: () => boolean;
-
-    /** Shut the frame this document is drawn in. */
-    close: () => void;
-}
-
-/**
  * Everything the wallet needs from the thing it is running inside — a Tauri window today, a
  * browser extension next. One implementation per target, picked by the `#platform-impl` alias, so
  * a build never carries another target's code.
@@ -102,7 +87,6 @@ export interface Platform {
     readonly session: PlatformSession;
     readonly approval: PlatformApproval;
     readonly dapp: PlatformDapp;
-    readonly panel: PlatformPanel;
     readonly host: () => Host;
     readonly fetch: (url: string, init?: RequestInit) => Promise<Response>;
     readonly openUrl: (url: string) => Promise<void>;

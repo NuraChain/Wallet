@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 
 import { cn } from '../utility/cn';
-import { useHasTitleBar } from '../hook/platform';
+import { useIsWindows } from '../hook/platform';
 
 export const inset = {
     sheetTop: 'pt-[var(--inset-top)]',
@@ -41,9 +41,9 @@ export default function PageContainer({
     children,
     ...rest
 }: { variant: 'tab' | 'browser' | 'intro'; className?: string; children: ReactNode } & HTMLAttributes<HTMLDivElement>) {
-    const hasTitleBar = useHasTitleBar();
+    const isWindows = useIsWindows();
 
-    const top = variant === 'tab' ? '' : topMap[variant][hasTitleBar ? 'windows' : 'device'];
+    const top = variant === 'tab' ? '' : topMap[variant][isWindows ? 'windows' : 'device'];
 
     return (
         <div className={cn(bodyMap[variant], top, className)} {...rest}>
@@ -53,7 +53,7 @@ export default function PageContainer({
 }
 
 export function ScrollFrame({ children }: { children: ReactNode }) {
-    const hasTitleBar = useHasTitleBar();
+    const isWindows = useIsWindows();
 
-    return <div className={cn('size-full', inset.tabTop[hasTitleBar ? 'windows' : 'device'])}>{children}</div>;
+    return <div className={cn('size-full', inset.tabTop[isWindows ? 'windows' : 'device'])}>{children}</div>;
 }

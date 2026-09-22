@@ -1,5 +1,5 @@
 import { Monitor, Smartphone, X, Minus } from 'lucide-react';
-import { useHasTitleBar, useIsWindows } from '../hook/platform';
+import { useIsWindows } from '../hook/platform';
 import { useLanguage } from '../hook/language';
 import { useCallback, useState } from 'react';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
@@ -9,7 +9,6 @@ import Text from '../components/ui/text';
 import { layer } from './container';
 import Button from '../components/ui/button';
 
-import { platform } from '../platform';
 import { T } from '../utility/language';
 
 import Logo from '../assets/image/logo.png';
@@ -17,16 +16,8 @@ import { Horizontal } from '../components/ui/stack';
 
 const mobileSize = { width: 360, height: 640 };
 
-/**
- * The strip the wallet draws where the host draws nothing. On Windows that is a Tauri window with
- * its decorations turned off, and the bar carries the whole set. In an extension it is a popup or
- * window the browser sizes and the wallet cannot move, so the only control that means anything
- * there is the way out. The side panel gets none: the browser already frames it.
- */
 export default function TitleBar() {
     const isWindows = useIsWindows();
-
-    const hasTitleBar = useHasTitleBar();
 
     useLanguage();
 
@@ -54,36 +45,25 @@ export default function TitleBar() {
     }, [wide]);
 
     const onClose = useCallback(() => {
-        if (isWindows) {
-            void getCurrentWindow().hide();
+        void getCurrentWindow().hide();
+    }, []);
 
-            return;
-        }
-
-        // An extension document has no window of its own to hide: the frame it is drawn in belongs
-        // to the browser, and the platform is what knows which one to ask.
-        platform.panel.close();
-    }, [isWindows]);
-
-    if (!hasTitleBar) {
+    if (!isWindows) {
         return undefined;
     }
 
-    const close = { key: 'close', label: T('App.Window.Close'), icon: <X size={16} />, action: onClose };
-
-    const controlMap = isWindows
-        ? [
-              { key: 'minimize', label: T('App.Window.Minimize'), icon: <Minus size={16} />, action: onMinimize },
-              { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <Smartphone size={16} /> : <Monitor size={16} />, action: onToggleSize },
-              close
-          ]
-        : [close];
+    const controlMap = [
+        { key: 'minimize', label: T('App.Window.Minimize'), icon: <Minus size={16} />, action: onMinimize },
+        { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <Smartphone size={16} /> : <Monitor size={16} />, action: onToggleSize },
+        { key: 'close', label: T('App.Window.Close'), icon: <X size={16} />, action: onClose }
+    ];
 
     return (
         <div
             dir='ltr'
-            {...(isWindows ? { 'data-tauri-drag-region': true, onDoubleClick: onToggleSize } : {})}
-            className={`absolute inset-x-0 ${layer.chrome} flex h-8 items-center justify-between ${isWindows ? 'cursor-pointer' : ''}`}
+            data-tauri-drag-region
+            onDoubleClick={onToggleSize}
+            className={`absolute inset-x-0 ${layer.chrome} flex h-8 cursor-pointer items-center justify-between`}
         >
             <Horizontal className='items-center gap-2 px-2'>
                 <img src={Logo} alt='' className='size-4' />

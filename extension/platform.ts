@@ -2,7 +2,7 @@ import { providerChannel } from './message.ts';
 
 import type { DappPrompt } from '../src/core/dapp.prompt';
 import type { Vault } from '../src/core/vault';
-import type { Platform, PlatformApproval, PlatformDapp, PlatformExporter, PlatformPanel, PlatformSession } from '../src/platform/type';
+import type { Platform, PlatformApproval, PlatformDapp, PlatformExporter, PlatformSession } from '../src/platform/type';
 
 /** How long an unlocked wallet survives without being touched. */
 export const idleMinutes = 15;
@@ -188,17 +188,6 @@ export const dockOnActionClick = () => {
     chrome.action.onClicked.addListener(() => {
         openDock();
     });
-};
-
-/**
- * A popup or window the browser opens for an extension document has no close button of its own,
- * so the wallet carries one. The dock has the browser's own, and draws no title bar here.
- */
-const browserPanel: PlatformPanel = {
-    docked: inPanel,
-    close: () => {
-        globalThis.close();
-    }
 };
 
 /**
@@ -416,7 +405,6 @@ export const platform: Platform = {
     session: browserSession,
     approval: browserApproval,
     dapp: browserDapp,
-    panel: browserPanel,
 
     storage: {
         get: async (key) => {
