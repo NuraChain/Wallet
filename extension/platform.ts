@@ -11,6 +11,9 @@ const sessionKey = 'Session';
 const promptKey = 'Prompts';
 const windowKey = 'ApprovalWindow';
 
+/** The wallet's own window, the one surface besides the dock. */
+export const walletWindowKey = 'WalletWindow';
+
 /**
  * The frame whose call is waiting on the user: which window to dock beside, and which frame still
  * holds the click to open it with.
@@ -19,6 +22,9 @@ let caller: { windowId?: number; tabId: number; frameId: number } | undefined;
 
 /** The document the browser docks: the same app as the popup, under a page that fills its frame. */
 const panelDocument = 'sidepanel.html';
+
+/** The wallet's window draws the same document, which fills a frame the user resizes just as well. */
+const windowDocument = `${panelDocument}?window`;
 
 interface SessionRecord {
     vault: Vault;
@@ -120,6 +126,7 @@ const save = async (href: string, name: string, revoke = false) => {
 /** Gecko's half of the pair. `@types/chrome` only describes Chromium's, so this states the one call. */
 interface SidebarAction {
     open: () => void;
+    close: () => Promise<void>;
 }
 
 /** Chromium's half, which needs to be told which window to dock the panel in. */
@@ -136,7 +143,7 @@ interface SidePanel {
  */
 const surfaces = () => globalThis as unknown as { browser?: { sidebarAction?: SidebarAction }; chrome?: { sidePanel?: SidePanel } };
 
-const inPanel = () => globalThis.location?.pathname.endsWith(panelDocument) === true;
+const inPanel = () => globalThis.location?.pathname.endsWith(panelDocument) === true && globalThis.location.search === '';
 
 /** Whether this engine has a frame to dock into at all. Safari has neither of the two. */
 const hasDock = () => {
@@ -169,6 +176,73 @@ export const openDock = () => {
     if (chromium?.sidePanel !== undefined && caller?.windowId !== undefined) {
         void chromium.sidePanel.open({ windowId: caller.windowId }).catch(() => undefined);
     }
+};
+
+const focus = async (id: number | undefined) => {
+    if (id === undefined) {
+        return false;
+    }
+
+    try {
+        await chrome.windows.update(id, { focused: true, drawAttention: true });
+
+        return true;
+    } catch {
+        // Closed since it was noted.
+        return false;
+    }
+};
+
+/** Bring the window noted under `key` forward, or open one and note it. There is never a second. */
+const focusOrOpen = async (key: string, url: string) => {
+    const held = await chrome.storage.session.get(key);
+
+    if (await focus(held[key] as number | undefined)) {
+        return;
+    }
+
+    const created = await chrome.windows.create({ type: 'popup', url, width: 400, height: 640, focused: true });
+
+    if (created?.id !== undefined) {
+        await chrome.storage.session.set({ [key]: created.id });
+    }
+};
+
+/**
+ * The wallet in a window of its own, for whoever wants it without the dock. It is one or the other,
+ * never both: Gecko's sidebar is shut here, while the menu click is still a gesture it will accept,
+ * and Chromium's panel shuts itself on seeing the window noted — see `keepOneSurface`.
+ */
+export const openWindow = () => {
+    void surfaces()
+        .browser?.sidebarAction?.close()
+        .catch(() => undefined);
+
+    void focusOrOpen(walletWindowKey, windowDocument);
+};
+
+/**
+ * The dock's half of the same rule. Opening it shuts the window, and a window opening shuts it.
+ * Gecko's sidebar ignores `window.close()`, which is why `openWindow` shuts that one itself.
+ */
+export const keepOneSurface = () => {
+    if (!inPanel()) {
+        return;
+    }
+
+    void chrome.storage.session.get(walletWindowKey).then((held) => {
+        const open = held[walletWindowKey] as number | undefined;
+
+        if (open !== undefined) {
+            void chrome.windows.remove(open).catch(() => undefined);
+        }
+    });
+
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'session' && changes[walletWindowKey]?.newValue !== undefined) {
+            globalThis.close();
+        }
+    });
 };
 
 /**
@@ -338,37 +412,27 @@ const browserApproval: PlatformApproval = {
         // is exactly what a frame the browser holds open is for. Opening it is asked of the frame
         // that called rather than done here — the click this call came out of is spent by the time
         // the worker has finished deciding an approval is needed, but it is still live over there.
+        // A wallet window already open draws the queue as well as a dock would, and docking beside
+        // it would only shut it.
         if (hasDock()) {
-            if (caller !== undefined && caller.tabId >= 0) {
-                void chrome.tabs.sendMessage(caller.tabId, { kind: 'dock' }, { frameId: caller.frameId }).catch(() => undefined);
-            }
+            void (async () => {
+                const held = await chrome.storage.session.get(walletWindowKey);
+
+                if (await focus(held[walletWindowKey] as number | undefined)) {
+                    return;
+                }
+
+                if (caller !== undefined && caller.tabId >= 0) {
+                    await chrome.tabs.sendMessage(caller.tabId, { kind: 'dock' }, { frameId: caller.frameId }).catch(() => undefined);
+                }
+            })();
 
             return;
         }
 
         // Safari has neither a side panel nor a sidebar, so the question still needs a window of
         // its own there.
-        void (async () => {
-            const held = await chrome.storage.session.get(windowKey);
-
-            const open = held[windowKey] as number | undefined;
-
-            if (open !== undefined) {
-                try {
-                    await chrome.windows.update(open, { focused: true, drawAttention: true });
-
-                    return;
-                } catch {
-                    // It was closed since we noted it; fall through and open another.
-                }
-            }
-
-            const created = await chrome.windows.create({ type: 'popup', url: 'popup.html', width: 400, height: 640, focused: true });
-
-            if (created?.id !== undefined) {
-                await chrome.storage.session.set({ [windowKey]: created.id });
-            }
-        })();
+        void focusOrOpen(windowKey, 'popup.html');
     },
 
     dismiss: () => {

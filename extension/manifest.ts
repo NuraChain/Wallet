@@ -114,7 +114,8 @@ export const buildManifest = (target: Target) => ({
      * No `default_popup` where there is a dock to open instead. A popup is dismissed the moment
      * the user clicks the page behind it, which is most of what anyone does with a wallet open, so
      * the button opens the panel: Chromium through `setPanelBehavior`, Gecko through the click
-     * handler the worker registers. Safari has neither and keeps the popup.
+     * handler the worker registers. Its menu offers the wallet in a window instead; the two never
+     * stand open together. Safari has neither and keeps the popup.
      */
     action: {
         default_title: 'Nura Wallet',
@@ -161,8 +162,9 @@ export const buildManifest = (target: Target) => ({
     ],
 
     // sidePanel is the Chromium-only half of the pair above: `sidebar_action` needs no permission
-    // of its own, and Safari has nothing to ask for.
-    permissions: isChromium(target) ? ['storage', 'alarms', 'sidePanel'] : ['storage', 'alarms'],
+    // of its own. contextMenus puts "Open in window" on the toolbar button. Safari keeps its popup
+    // and asks for neither.
+    permissions: ['storage', 'alarms', ...(isChromium(target) ? ['sidePanel'] : []), ...(target === 'safari' ? [] : ['contextMenus'])],
 
     host_permissions: knownHosts,
 

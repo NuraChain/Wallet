@@ -8,6 +8,8 @@ import { initNetwork } from '../src/core/network';
 import { restoreSession, touchSession } from '../src/core/session';
 import { initLanguage, preloadLanguageFlags } from '../src/utility/language';
 
+import { keepOneSurface } from './platform.ts';
+
 import '../src/assets/style.css';
 
 /**
@@ -36,6 +38,8 @@ if (rootElement) {
 
     // Opening the wallet is the user saying they are still here.
     touchSession();
+
+    keepOneSurface();
 
     // Imported here rather than at the top of the file: creating the router runs the first loader
     // straight away, and that loader asks whether a session was restored — a question with only one

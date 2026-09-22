@@ -3,7 +3,7 @@ import { platform } from '../src/platform';
 import type { StorageKey } from '../src/utility/storage.key';
 
 import { dockChannel } from './message.ts';
-import { dockOnActionClick, openDock } from './platform.ts';
+import { dockOnActionClick, openDock, openWindow, walletWindowKey } from './platform.ts';
 
 import { loadConnections } from '../src/core/dapp';
 import { vaultAddress } from '../src/core/vault';
@@ -24,9 +24,19 @@ const lockAlarm = 'nura:lock';
 
 const windowKey = 'ApprovalWindow';
 
+const windowMenu = 'nura:window';
+
 // Registered at module scope, not in onInstalled: the setting is per worker start, and a button
 // with no popup behind it and nothing bound to it does nothing at all when pressed.
 dockOnActionClick();
+
+// The other way in: the wallet in a window of its own, off the toolbar button's own menu. Safari
+// asks for no menu permission and has no namespace to hang this on.
+chrome.contextMenus?.onClicked.addListener((info) => {
+    if (info.menuItemId === windowMenu) {
+        openWindow();
+    }
+});
 
 /**
  * The default already is trusted-only, and Firefox and Safari have no other setting. Saying it
@@ -157,7 +167,11 @@ chrome.runtime.onMessage.addListener((message: { kind?: string; id?: string; app
 // the toolbar button — standing, so the user can come back to it.
 chrome.windows.onRemoved.addListener((closed) => {
     void (async () => {
-        const held = await chrome.storage.session.get(windowKey);
+        const held = await chrome.storage.session.get([windowKey, walletWindowKey]);
+
+        if (held[walletWindowKey] === closed) {
+            await chrome.storage.session.remove(walletWindowKey);
+        }
 
         if (held[windowKey] === closed) {
             await chrome.storage.session.remove(windowKey);
@@ -177,6 +191,11 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.runtime.onInstalled.addListener(() => {
     chrome.alarms.create(lockAlarm, { periodInMinutes: 1 });
+
+    // Menus outlive an update, and creating one twice is an error.
+    void chrome.contextMenus?.removeAll().then(() => {
+        chrome.contextMenus.create({ id: windowMenu, title: 'Open in window', contexts: ['action'] });
+    });
 
     void boot();
 });
