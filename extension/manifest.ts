@@ -110,7 +110,17 @@ export const buildManifest = (target: Target) => ({
 
     icons,
 
-    action: { default_title: 'Nura Wallet', default_popup: 'popup.html', default_icon: icons },
+    /**
+     * No `default_popup` where there is a dock to open instead. A popup is dismissed the moment
+     * the user clicks the page behind it, which is most of what anyone does with a wallet open, so
+     * the button opens the panel: Chromium through `setPanelBehavior`, Gecko through the click
+     * handler the worker registers. Safari has neither and keeps the popup.
+     */
+    action: {
+        default_title: 'Nura Wallet',
+        default_icon: icons,
+        ...(target === 'safari' ? { default_popup: 'popup.html' } : {})
+    },
 
     /**
      * The same wallet in a frame the browser keeps open. A popup is dismissed the moment the user

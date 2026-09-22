@@ -78,22 +78,15 @@ export interface PlatformApproval {
 }
 
 /**
- * The browser's own docked frame — Chromium's side panel, Gecko's sidebar. It draws the same
- * document the popup does, in a place the browser holds open while the user goes on clicking the
- * page, which is the one thing a popup cannot do: it is dismissed as soon as it loses focus.
+ * The frame a browser draws the wallet in — Chromium's side panel, Gecko's sidebar, Safari's
+ * popup. Which one it is, and when it opens, is the extension's own business; what the app needs
+ * from it is the one thing no browser offers around an extension document, which is a way out.
  *
- * A Tauri window already stays open, so there is no second surface to move into and all of this
- * is inert there.
+ * A Tauri window has a title bar of its own doing, so this is inert there.
  */
 export interface PlatformPanel {
-    /** Whether there is one to open from here, and this document is not already it. */
-    available: () => boolean;
-
-    /**
-     * Open it. Nothing may be awaited between the click and this call — both engines refuse a
-     * panel that is not opened straight out of a user gesture — so it answers nothing.
-     */
-    open: () => void;
+    /** Shut the frame this document is drawn in. */
+    close: () => void;
 }
 
 /**

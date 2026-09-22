@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-import { platform } from '../platform';
 import { getPlatform } from '../utility/platform';
 
 export const useIsWindows = (): boolean => {
@@ -25,12 +24,16 @@ export const useHasBrowser = (): boolean => {
 };
 
 /**
- * Whether to offer the browser's own docked panel. Read once, like the rest of this file: the
- * answer turns on which document this is and which window opened it, and neither can change while
- * the screen asking is on the screen.
+ * Whether the app draws its own title bar. A Tauri window on Windows has the system's turned off,
+ * and a browser gives an extension document none at all — on both, the strip across the top of the
+ * page is the wallet's own, and every screen below has to keep out from under it.
  */
-export const useHasPanel = (): boolean => {
-    const [hasPanel] = useState(() => platform.panel.available());
+export const useHasTitleBar = (): boolean => {
+    const [hasTitleBar] = useState(() => {
+        const host = getPlatform();
 
-    return hasPanel;
+        return host === 'windows' || host === 'extension';
+    });
+
+    return hasTitleBar;
 };

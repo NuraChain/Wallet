@@ -1,4 +1,4 @@
-import { isPageMessage, providerChannel, type WorkerMessage } from './message';
+import { dockChannel, isPageMessage, providerChannel, type DockMessage, type WorkerMessage } from './message';
 
 /**
  * The isolated half of the bridge. It holds nothing and decides nothing: the page cannot be
@@ -65,8 +65,18 @@ window.addEventListener('message', (event) => {
 
 // accountsChanged and chainChanged reach a frame whose port died with a previous worker, so they
 // come as a plain message rather than down the port.
-chrome.runtime.onMessage.addListener((message: WorkerMessage) => {
+chrome.runtime.onMessage.addListener((message: WorkerMessage | DockMessage) => {
     if (message.kind === 'event') {
         toPage('event', message.payload);
+
+        return;
+    }
+
+    // Still deciding nothing: the worker asked for its own panel, and this hands the request
+    // straight back. What it adds on the way is the one thing the worker cannot have — the click
+    // the page's call came out of is live in this frame for a few seconds yet, and a browser opens
+    // a docked panel for nothing else.
+    if (message.kind === 'dock') {
+        void chrome.runtime.sendMessage({ kind: dockChannel }).catch(() => undefined);
     }
 });

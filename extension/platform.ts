@@ -11,6 +11,12 @@ const sessionKey = 'Session';
 const promptKey = 'Prompts';
 const windowKey = 'ApprovalWindow';
 
+/**
+ * The frame whose call is waiting on the user: which window to dock beside, and which frame still
+ * holds the click to open it with.
+ */
+let caller: { windowId?: number; tabId: number; frameId: number } | undefined;
+
 /** The document the browser docks: the same app as the popup, under a page that fills its frame. */
 const panelDocument = 'sidepanel.html';
 
@@ -114,11 +120,13 @@ const save = async (href: string, name: string, revoke = false) => {
 /** Gecko's half of the pair. `@types/chrome` only describes Chromium's, so this states the one call. */
 interface SidebarAction {
     open: () => void;
+    close: () => void;
 }
 
 /** Chromium's half, which needs to be told which window to dock the panel in. */
 interface SidePanel {
     open: (options: { windowId: number }) => Promise<void>;
+    setPanelBehavior?: (behavior: { openPanelOnActionClick: boolean }) => Promise<void>;
 }
 
 /**
@@ -131,74 +139,74 @@ const surfaces = () => globalThis as unknown as { browser?: { sidebarAction?: Si
 
 const inPanel = () => globalThis.location?.pathname.endsWith(panelDocument) === true;
 
+/** Whether this engine has a frame to dock into at all. Safari has neither of the two. */
+const hasDock = () => {
+    const { browser, chrome: chromium } = surfaces();
+
+    return browser?.sidebarAction !== undefined || chromium?.sidePanel !== undefined;
+};
+
 /**
- * The window this document belongs to, and only when it is an ordinary browser window — the
- * approval window is a popup window of our own making, and a prompt held open by the worker is
- * not something to move into a dock halfway through answering.
+ * Dock the wallet beside the page.
  *
- * Read at load rather than at the click. Chromium opens the panel only for a call made straight
- * out of a user gesture, and awaiting this first would spend the gesture on the lookup.
+ * Both engines refuse this unless the call is made straight out of a user gesture, and nothing may
+ * be awaited before it, so every caller is somewhere that already holds one: the toolbar button,
+ * or the relay handing back the click a page's own call came out of. A refusal is still possible —
+ * a call that came from no click at all — and is left to the badge rather than reported.
  */
-let panelWindow: number | undefined;
+export const openDock = () => {
+    const { browser, chrome: chromium } = surfaces();
 
-const notePanelWindow = async () => {
-    try {
-        const held = await chrome.windows.getCurrent();
-
-        if (held.type === 'normal' && held.id !== undefined) {
-            panelWindow = held.id;
+    if (browser?.sidebarAction !== undefined) {
+        try {
+            browser.sidebarAction.open();
+        } catch {
+            // No gesture left to spend it on; the badge is what says a page is waiting.
         }
-    } catch {
-        // Nothing to belong to, which is answer enough: the panel is not offered.
+
+        return;
+    }
+
+    if (chromium?.sidePanel !== undefined && caller?.windowId !== undefined) {
+        void chromium.sidePanel.open({ windowId: caller.windowId }).catch(() => undefined);
     }
 };
 
-// Started, not awaited: a top-level await here would hold the popup's first paint on a round trip
-// to the browser for something that matters only once Settings is open. The worker skips it
-// outright — it has no document, and nothing it imports should be able to delay the listeners it
-// registers at module scope.
-if (globalThis.document !== undefined) {
-    // oxlint-disable-next-line unicorn/prefer-top-level-await
-    void notePanelWindow();
-}
+/**
+ * The toolbar button is the only way in now that no popup hangs off it. Chromium has a setting for
+ * exactly this. Gecko has to be told at the click instead — which is a gesture, so it is the one
+ * open that never gets refused. Safari keeps its popup and never reaches the listener.
+ */
+export const dockOnActionClick = () => {
+    const { chrome: chromium } = surfaces();
+
+    if (chromium?.sidePanel?.setPanelBehavior !== undefined) {
+        void chromium.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => undefined);
+
+        return;
+    }
+
+    chrome.action.onClicked.addListener(() => {
+        openDock();
+    });
+};
 
 /**
- * A popup is dismissed the moment it loses focus, which is most of what anyone does with a wallet
- * open. The panel is the same wallet in a frame the browser keeps open beside the page, so the
- * popup that asked for it stands down rather than lingering as a second copy.
+ * The browser draws no chrome of its own around an extension document — no title bar, no close
+ * button — so the wallet carries its own, and this is what its button does. Gecko's sidebar is
+ * the one frame that does not answer to `window.close()`.
  */
 const browserPanel: PlatformPanel = {
-    available: () => {
-        if (globalThis.document === undefined || inPanel() || panelWindow === undefined) {
-            return false;
-        }
+    close: () => {
+        const { browser } = surfaces();
 
-        const { browser, chrome: chromium } = surfaces();
-
-        return browser?.sidebarAction !== undefined || chromium?.sidePanel !== undefined;
-    },
-
-    open: () => {
-        const { browser, chrome: chromium } = surfaces();
-
-        if (browser?.sidebarAction !== undefined) {
-            browser.sidebarAction.open();
-
-            globalThis.close();
+        if (inPanel() && browser?.sidebarAction !== undefined) {
+            browser.sidebarAction.close();
 
             return;
         }
 
-        if (chromium?.sidePanel === undefined || panelWindow === undefined) {
-            return;
-        }
-
-        void chromium.sidePanel.open({ windowId: panelWindow }).then(
-            () => {
-                globalThis.close();
-            },
-            () => undefined
-        );
+        globalThis.close();
     }
 };
 
@@ -231,6 +239,14 @@ const browserDapp: PlatformDapp = {
     },
 
     serve: (accept) => {
+        // Only the worker. `onConnect` fires in every extension context at once, so a window with
+        // the wallet open would take the same call a second time and answer it out of its own copy
+        // of the router — two replies for one id, and the page believes whichever won the race.
+        // A window renders the queue the worker publishes and answers it by name instead.
+        if (globalThis.document !== undefined) {
+            return () => undefined;
+        }
+
         const onConnect = (port: chrome.runtime.Port) => {
             if (port.name !== providerChannel) {
                 return;
@@ -258,6 +274,10 @@ const browserDapp: PlatformDapp = {
                 if (message.kind !== 'rpc' || typeof message.payload !== 'string') {
                     return;
                 }
+
+                // Noted here rather than at connect: the port outlives the frame's stay in any one
+                // window, and this is the last call before something may need docking beside it.
+                caller = { windowId: sender.tab?.windowId, tabId: sender.tab?.id ?? -1, frameId: sender.frameId ?? 0 };
 
                 accept({
                     label,
@@ -287,12 +307,16 @@ const browserDapp: PlatformDapp = {
  * push channel both ends already share — no port to keep alive, and it survives the worker being
  * evicted mid-approval, which a promise chain would not.
  *
- * There is at most one window. A second request while one is open joins the queue the open
- * window is already rendering rather than stacking another frame on the user.
+ * There is at most one surface. A second request while one is open joins the queue that surface
+ * is already rendering rather than stacking another frame on the user.
  */
 const browserApproval: PlatformApproval = {
     publish: (prompts) => {
         void chrome.storage.session.set({ [promptKey]: prompts });
+
+        // The toolbar button is the only thing of ours on screen when nothing is open, and the
+        // panel is one click away on it, so the count is what says a page is waiting.
+        void chrome.action.setBadgeText({ text: prompts.length > 0 ? String(prompts.length) : '' }).catch(() => undefined);
     },
 
     subscribe: (listener) => {
@@ -306,6 +330,20 @@ const browserApproval: PlatformApproval = {
 
         chrome.storage.onChanged.addListener(onChanged);
 
+        // The question a panel was opened for was published before that panel existed, and a change
+        // listener only ever hears the next one — so the queue already standing has to be read. Only
+        // in a window: the worker publishes its own and would be reading its own writing back, or,
+        // after an eviction, a queue belonging to promises it no longer has.
+        if (globalThis.document !== undefined) {
+            void chrome.storage.session.get(promptKey).then((held) => {
+                const standing = held[promptKey] as DappPrompt[] | undefined;
+
+                if (standing !== undefined && standing.length > 0) {
+                    listener(standing);
+                }
+            });
+        }
+
         return () => {
             chrome.storage.onChanged.removeListener(onChanged);
         };
@@ -316,6 +354,20 @@ const browserApproval: PlatformApproval = {
     },
 
     surface: () => {
+        // The dock is the whole surface on the engines that have one: a queue that outlives a click
+        // is exactly what a frame the browser holds open is for. Opening it is asked of the frame
+        // that called rather than done here — the click this call came out of is spent by the time
+        // the worker has finished deciding an approval is needed, but it is still live over there.
+        if (hasDock()) {
+            if (caller !== undefined && caller.tabId >= 0) {
+                void chrome.tabs.sendMessage(caller.tabId, { kind: 'dock' }, { frameId: caller.frameId }).catch(() => undefined);
+            }
+
+            return;
+        }
+
+        // Safari has neither a side panel nor a sidebar, so the question still needs a window of
+        // its own there.
         void (async () => {
             const held = await chrome.storage.session.get(windowKey);
 

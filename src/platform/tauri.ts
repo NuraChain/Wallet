@@ -96,12 +96,10 @@ const inertApproval: PlatformApproval = {
 };
 
 /**
- * The window is its own frame and stays open for as long as the user leaves it open. There is
- * nowhere else here to put the wallet.
+ * The window is its own frame, and the title bar closes it through Tauri rather than through here.
  */
 const inertPanel: PlatformPanel = {
-    available: () => false,
-    open: () => undefined
+    close: () => undefined
 };
 
 /**

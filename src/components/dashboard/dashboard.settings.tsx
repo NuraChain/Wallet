@@ -1,7 +1,7 @@
 import type { VaultKind } from '../../core/vault';
 
 import { useState } from 'react';
-import { ChevronRight, Globe, LogOut, Moon, PanelLeft, Sun, FileText, Lock } from 'lucide-react';
+import { ChevronRight, Globe, LogOut, Moon, Sun, FileText, Lock } from 'lucide-react';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
@@ -10,9 +10,7 @@ import MenuRow from '../ui/menu';
 import { ModalActions } from '../ui/modal';
 import { Vertical } from '../ui/stack';
 
-import { platform } from '../../platform';
 import { T } from '../../utility/language';
-import { useHasPanel } from '../../hook/platform';
 import { getTheme, setTheme } from '../../utility/theme';
 
 const chevron = <ChevronRight size={18} className='text-txt-muted rtl:rotate-180' />;
@@ -31,8 +29,6 @@ export default function DashboardSettings({
     onLogout: () => void;
 }) {
     const [theme, setThemeState] = useState(getTheme());
-
-    const hasPanel = useHasPanel();
 
     const onToggleTheme = () => {
         const next = getTheme() === 'light' ? 'dark' : 'light';
@@ -63,21 +59,6 @@ export default function DashboardSettings({
                 onClick={onToggleTheme}
                 trailing={<Text text={theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark')} />}
             />
-
-            {/* The panel opens and the popup this row lives in closes, so nothing here has to be
-                told about it afterwards. */}
-            {hasPanel && (
-                <MenuRow
-                    leading={
-                        <IconBox>
-                            <PanelLeft size={16} className='rtl:rotate-180' />
-                        </IconBox>
-                    }
-                    label={T('Dashboard.Settings.SidePanel')}
-                    onClick={platform.panel.open}
-                    trailing={chevron}
-                />
-            )}
 
             <MenuRow
                 leading={

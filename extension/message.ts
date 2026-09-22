@@ -19,5 +19,13 @@ export interface WorkerMessage {
     payload: unknown;
 }
 
+/** The worker asking the frame to spend its click on opening the wallet's panel. */
+export interface DockMessage {
+    kind: 'dock';
+}
+
+/** The relay handing that click back, which is the only thing a dock may be opened out of. */
+export const dockChannel = 'nura:dock';
+
 export const isPageMessage = (value: unknown): value is PageMessage =>
     typeof value === 'object' && value !== null && '__nura' in value && typeof (value as PageMessage).__nura === 'string';
