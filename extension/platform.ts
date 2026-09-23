@@ -364,8 +364,32 @@ const browserDapp: PlatformDapp = {
  * There is at most one surface. A second request while one is open joins the queue that surface
  * is already rendering rather than stacking another frame on the user.
  */
+/**
+ * A question waits on a person, and a person can take longer than the thirty idle seconds after
+ * which the browser evicts this worker. The resolver that answers the page cannot be written
+ * anywhere, so an eviction mid-question lost the answer outright: the page waited forever, and the
+ * worker the next alarm started cleared the queue out from under the dialog. Every extension API
+ * call resets the idle timer, so one every twenty seconds holds the worker exactly as long as a
+ * question is standing, and not a moment longer.
+ */
+let holding: ReturnType<typeof setInterval> | undefined;
+
+const holdWhileAsking = (asking: boolean) => {
+    if (asking && holding === undefined) {
+        holding = setInterval(() => {
+            void chrome.runtime.getPlatformInfo().catch(() => undefined);
+        }, 20_000);
+    } else if (!asking && holding !== undefined) {
+        clearInterval(holding);
+
+        holding = undefined;
+    }
+};
+
 const browserApproval: PlatformApproval = {
     publish: (prompts) => {
+        holdWhileAsking(prompts.length > 0);
+
         void chrome.storage.session.set({ [promptKey]: prompts });
 
         // The toolbar button is the only thing of ours on screen when nothing is open, and the
