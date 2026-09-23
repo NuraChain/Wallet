@@ -1,9 +1,9 @@
 import { dockChannel, isPageMessage, providerChannel, type DockMessage, type WorkerMessage } from './message';
 
 /**
- * The isolated half of the bridge. It holds nothing and decides nothing: the page cannot be
- * trusted to say who it is, so the origin is never read here — the worker takes it off
- * `port.sender`, which only the browser can write.
+ * The isolated half of the bridge. It decides nothing, and holds nothing but the ids of calls still
+ * waiting for an answer: the page cannot be trusted to say who it is, so the origin is never read
+ * here — the worker takes it off `port.sender`, which only the browser can write.
  */
 
 // On Chrome the manifest injects the provider into the main world itself and it leaves this
@@ -25,6 +25,28 @@ const toPage = (kind: 'reply' | 'event', payload: unknown) => {
 
 let port: chrome.runtime.Port | undefined;
 
+/* Calls the worker has not answered yet — the one thing this relay remembers. A worker that stops
+   mid-call (evicted, reloaded, crashed) takes its port with it and the answer never comes, and a
+   page left waiting on a promise shows a spinner forever. Failing those calls with the provider's
+   own "disconnected" code lets the page's error handling take over instead. */
+const unanswered = new Set<string>();
+
+const idOf = (body: unknown) => {
+    try {
+        const parsed: unknown = typeof body === 'string' ? JSON.parse(body) : body;
+
+        return typeof parsed === 'object' && parsed !== null && 'id' in parsed && typeof parsed.id === 'string' ? parsed.id : '';
+    } catch {
+        return '';
+    }
+};
+
+const strand = (ids: Iterable<string>) => {
+    for (const id of ids) {
+        toPage('reply', { id, error: { code: 4900, message: 'Nura Wallet stopped before answering. Try again.' } });
+    }
+};
+
 const connect = () => {
     // After an extension reload or update the old context is dead, and connecting through it
     // throws. Every page that ever loaded us would otherwise spin forever on its next call.
@@ -36,11 +58,19 @@ const connect = () => {
         const opened = chrome.runtime.connect({ name: providerChannel });
 
         opened.onMessage.addListener((message: WorkerMessage) => {
+            if (message.kind === 'reply') {
+                unanswered.delete(idOf(message.payload));
+            }
+
             toPage(message.kind, message.payload);
         });
 
         opened.onDisconnect.addListener(() => {
             port = undefined;
+
+            strand(unanswered);
+
+            unanswered.clear();
         });
 
         return opened;
@@ -56,10 +86,22 @@ window.addEventListener('message', (event) => {
 
     port ??= connect();
 
+    const id = idOf(event.data.payload);
+
     try {
-        port?.postMessage({ kind: 'rpc', payload: event.data.payload });
+        if (port === undefined) {
+            throw new Error('no worker to ask');
+        }
+
+        port.postMessage({ kind: 'rpc', payload: event.data.payload });
+
+        if (id.length > 0) {
+            unanswered.add(id);
+        }
     } catch {
         port = undefined;
+
+        strand(id.length > 0 ? [id] : []);
     }
 });
 
