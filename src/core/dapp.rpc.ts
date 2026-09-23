@@ -450,6 +450,14 @@ const broadcast = () => {
     }
 };
 
+/** The chain being left is read here, where the move is decided: in an extension the window drawing
+    the prompt keeps its own copy of the current network, and the worker is the one that changes it. */
+const approveChain = async (origin: string, chain: { name: string; id: number; rpc: string; added: boolean }) => {
+    const current = getNetwork();
+
+    await approve({ kind: 'chain', origin, summary: chain.name, chain: { ...chain, from: { name: current.name, id: current.chainId } } });
+};
+
 /**
  * Moves the wallet onto a chain a caller asked for, prompting first. Answers whether the wallet
  * ended up there; a chain it has never heard of is left to the caller to report.
@@ -465,7 +473,7 @@ const ensureDappChain = async (chainId: number, origin: string) => {
         return false;
     }
 
-    await approve({ kind: 'chain', origin, summary: found.name, chain: { name: found.name, id: chainId, rpc: found.rpcUrl } });
+    await approveChain(origin, { name: found.name, id: chainId, rpc: found.rpcUrl, added: false });
 
     await setNetwork(found.id);
 
@@ -675,7 +683,7 @@ const route = async (envelope: DappEnvelope): Promise<unknown> => {
                 return null;
             }
 
-            await approve({ kind: 'chain', origin, summary: network.name, chain: { name: network.name, id, rpc: network.rpcUrl } });
+            await approveChain(origin, { name: network.name, id, rpc: network.rpcUrl, added: true });
 
             await addNetwork(network);
 

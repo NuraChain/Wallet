@@ -11,7 +11,10 @@ export interface DappPrompt {
 
     transaction?: { to: string; value: string; data: string; fee: string };
 
-    chain?: { name: string; id: number; rpc: string };
+    /** `added` and `from` are decided where the request is routed, never by the window drawing
+        it: in an extension that window holds its own copy of the network list and the current
+        network, and the worker is the one that changes both. */
+    chain?: { name: string; id: number; rpc: string; added: boolean; from: { name: string; id: number } };
 
     asset?: { address: string; symbol: string; decimals: number };
 }

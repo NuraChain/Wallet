@@ -299,6 +299,8 @@ describe('networks', () => {
 
         expect(prompt.kind).toBe('chain');
         expect(prompt.chain?.id).toBe(56);
+        expect(prompt.chain?.added).toBe(false);
+        expect(prompt.chain?.from).toEqual({ name: 'Nura Chain', id: 1020 });
 
         expect(reply.error).toBeUndefined();
         expect(getNetwork().chainId).toBe(56);
@@ -315,6 +317,16 @@ describe('networks', () => {
 
         expect(reply.error?.code).toBe(4001);
         expect(getNetwork().chainId).toBe(1020);
+    });
+
+    it('tells the prompt it is adding a chain, not switching to one it knows', async () => {
+        const { reply, prompt } = await asked(
+            call('wallet_addEthereumChain', [{ chainId: '0xa4b1', chainName: 'Arbitrum One', rpcUrls: ['https://arb1.arbitrum.io/rpc'] }]),
+            false
+        );
+
+        expect(prompt.chain?.added).toBe(true);
+        expect(reply.error?.code).toBe(4001);
     });
 
     it('will not add a chain that offers no https endpoint', async () => {
