@@ -36,8 +36,23 @@ const rootElement = document.querySelector('#root');
 if (rootElement) {
     await startup();
 
-    // Opening the wallet is the user saying they are still here.
+    // Opening the wallet is the user saying they are still here, and so is every press and key
+    // after that: the deadline measures idle time, and a panel left open used to lock on someone
+    // mid-use fifteen minutes after it opened. One write a minute is plenty against fifteen.
     touchSession();
+
+    let touched = Date.now();
+
+    const stillHere = () => {
+        if (Date.now() - touched > 60_000) {
+            touched = Date.now();
+
+            touchSession();
+        }
+    };
+
+    document.addEventListener('pointerdown', stillHere, { capture: true, passive: true });
+    document.addEventListener('keydown', stillHere, { capture: true, passive: true });
 
     keepOneSurface();
 
