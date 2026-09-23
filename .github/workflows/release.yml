@@ -451,19 +451,57 @@ jobs:
           if-no-files-found: error
           path: release-files
 
+  extension:
+    name: browser extension (.zip)
+    needs: version
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run extension
+
+      # Zipped from inside each target so manifest.json sits at the archive root, which is where
+      # every store and every "load unpacked" expects it.
+      - name: Zip each browser
+        run: |
+          mkdir -p release-files
+          for target in chrome edge firefox safari; do
+            (cd "dist-extension/$target" && zip -qr "$GITHUB_WORKSPACE/release-files/Nura-Wallet-Extension-$target.zip" .)
+          done
+          ls -l release-files
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: extension
+          if-no-files-found: error
+          path: release-files
+
   release:
     name: Attach to the release
-    needs: [ windows, linux, macos, android, ios ]
+    needs: [ windows, linux, macos, android, ios, extension ]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # macOS and iOS stand down when their Apple secrets are absent, and a job that stood down is
-    # still a job the other three passed. Gate on the platforms that can always build, so a missing
+    # still a job the others passed. Gate on the platforms that can always build, so a missing
     # Apple certificate costs the release its .dmg and .ipa rather than costing it every asset.
     if: >-
       !cancelled() && startsWith(github.ref, 'refs/tags/v')
       && needs.windows.result == 'success'
       && needs.linux.result == 'success'
       && needs.android.result == 'success'
+      && needs.extension.result == 'success'
     permissions:
       contents: write
 
@@ -479,8 +517,8 @@ jobs:
           COUNT=$(find artifacts -type f | wc -l)
           echo "$COUNT files staged for the release."
 
-          if [ "$COUNT" -ne 14 ]; then
-            echo "::warning::Expected 14 assets (1 Windows, 6 Linux, 1 macOS, 5 Android, 1 iOS) but found $COUNT. Check the staging warnings in the build jobs above; the macOS and iOS builds stand down when no Apple certificate or team is configured, and account for one each."
+          if [ "$COUNT" -ne 18 ]; then
+            echo "::warning::Expected 18 assets (1 Windows, 6 Linux, 1 macOS, 5 Android, 1 iOS, 4 extension) but found $COUNT. Check the staging warnings in the build jobs above; the macOS and iOS builds stand down when no Apple certificate or team is configured, and account for one each."
           fi
 
       - uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
