@@ -519,7 +519,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                 {modal === 'logout' && <DashboardLogout key='logout' kind={vault.kind} onClose={closeModal} />}
 
-                {prompt !== undefined && <DashboardRequest key={prompt.id} prompt={prompt} address={address} network={network.name} tokens={tracked} />}
+                {prompt !== undefined && <DashboardRequest key={prompt.id} prompt={prompt} name={name} emoji={emoji} address={address} network={network.name} tokens={tracked} />}
             </AnimatePresence>
 
             <div dir={getDirection()} className='flex size-full overflow-hidden'>
