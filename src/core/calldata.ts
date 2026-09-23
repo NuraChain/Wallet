@@ -15,8 +15,9 @@ const unlimitedFloor = 1n << 255n;
 interface Known {
     name: string;
     types: string[];
-    /** Index of the party being handed power, and of the amount it is handed. */
+    /** Index of the party being handed power, of the party being paid, and of the amount. */
     spender?: number;
+    recipient?: number;
     amount?: number;
     approval: boolean;
 }
@@ -36,7 +37,7 @@ const register = (signature: string, detail: Omit<Known, 'name' | 'types'>) => {
 register('approve(address,uint256)', { spender: 0, amount: 1, approval: true });
 register('setApprovalForAll(address,bool)', { spender: 0, approval: true });
 register('increaseAllowance(address,uint256)', { spender: 0, amount: 1, approval: true });
-register('transfer(address,uint256)', { amount: 1, approval: false });
+register('transfer(address,uint256)', { recipient: 0, amount: 1, approval: false });
 register('transferFrom(address,address,uint256)', { amount: 2, approval: false });
 
 export interface CallSummary {
@@ -49,8 +50,17 @@ export interface CallSummary {
     /** This call delegates spending power rather than spending it. */
     approval: boolean;
     spender: string;
+
+    /** Who a `transfer` pays; the transaction's own `to` is only the token contract. Not read for
+        `transferFrom`, which can move someone else's tokens and so is no plain send. */
+    recipient: string;
     amount?: bigint;
     unlimited: boolean;
+
+    /** Takes spending power away rather than handing it over — `approve(spender, 0)` or
+        `setApprovalForAll(operator, false)`. It shares a selector with the grant, and the prompt
+        used to warn that a site could now take "0 of USDT". */
+    revoke: boolean;
 }
 
 export const readCalldata = (data: string): CallSummary | undefined => {
@@ -62,16 +72,26 @@ export const readCalldata = (data: string): CallSummary | undefined => {
     const bytes = (data.length - 2) / 2;
     const known = abi[selector];
 
-    if (known === undefined) {
-        return { selector, method: '', bytes, approval: false, spender: '', unlimited: false };
-    }
+    const plain = {
+        selector,
+        method: known?.name ?? '',
+        bytes,
+        approval: known?.approval ?? false,
+        spender: '',
+        recipient: '',
+        unlimited: false,
+        revoke: false
+    };
 
-    const plain = { selector, method: known.name, bytes, approval: known.approval, spender: '', unlimited: false };
+    if (known === undefined) {
+        return plain;
+    }
 
     try {
         const args = ethers.AbiCoder.defaultAbiCoder().decode(known.types, `0x${data.slice(10)}`);
 
         const spender = known.spender === undefined ? '' : String(args[known.spender]);
+        const recipient = known.recipient === undefined ? '' : String(args[known.recipient]);
 
         // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
         const amount = known.amount === undefined ? undefined : (args[known.amount] as bigint);
@@ -79,11 +99,18 @@ export const readCalldata = (data: string): CallSummary | undefined => {
         const flagAt = known.types.indexOf('bool');
         const blanket = flagAt !== -1 && args[flagAt] === true;
 
+        const revoke = (known.name === 'approve' && amount === 0n) || (known.name === 'setApprovalForAll' && !blanket);
+
+        const approval = known.approval && !revoke;
+
         return {
             ...plain,
+            approval,
             spender,
+            recipient,
             amount,
-            unlimited: known.approval && (blanket || (amount !== undefined && amount >= unlimitedFloor))
+            unlimited: approval && (blanket || (amount !== undefined && amount >= unlimitedFloor)),
+            revoke
         };
     } catch {
         // A payload that does not decode is still a payload whose selector we recognised; say that

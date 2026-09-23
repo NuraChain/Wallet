@@ -33,21 +33,32 @@ describe('readCalldata', () => {
         expect(summary?.unlimited).toBe(true);
     });
 
-    it('flags setApprovalForAll(true) as unlimited and false as not', () => {
+    it('flags setApprovalForAll(true) as unlimited and reads false as a revoke', () => {
         const on = readCalldata(encode('setApprovalForAll(address,bool)', ['address', 'bool'], [spender, true]));
         const off = readCalldata(encode('setApprovalForAll(address,bool)', ['address', 'bool'], [spender, false]));
 
         expect(on?.unlimited).toBe(true);
+        expect(on?.revoke).toBe(false);
         expect(off?.unlimited).toBe(false);
-        expect(off?.approval).toBe(true);
+        expect(off?.approval).toBe(false);
+        expect(off?.revoke).toBe(true);
     });
 
-    it('does not call a transfer an approval', () => {
+    it('reads an approve of zero as a revoke, not a grant', () => {
+        const summary = readCalldata(encode('approve(address,uint256)', ['address', 'uint256'], [spender, 0n]));
+
+        expect(summary?.revoke).toBe(true);
+        expect(summary?.approval).toBe(false);
+        expect(summary?.spender.toLowerCase()).toBe(spender);
+    });
+
+    it('does not call a transfer an approval, and names who it pays', () => {
         const summary = readCalldata(encode('transfer(address,uint256)', ['address', 'uint256'], [spender, maxUint256]));
 
         expect(summary?.method).toBe('transfer');
         expect(summary?.approval).toBe(false);
         expect(summary?.unlimited).toBe(false);
+        expect(summary?.recipient.toLowerCase()).toBe(spender);
     });
 
     it('keeps an unknown selector honest', () => {
