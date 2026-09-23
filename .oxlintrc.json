@@ -13,7 +13,7 @@
         "browser": true,
         "node": true
     },
-    "ignorePatterns": ["dist/", "src-tauri/", "node_modules/"],
+    "ignorePatterns": ["dist/", ".claude/", "src-tauri/", "node_modules/"],
     "rules": {
         "new-cap": "off",
         "no-void": "off",
