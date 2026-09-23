@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router';
+import { Navigate, useNavigate } from 'react-router';
 import { platform } from '../platform';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -24,7 +24,6 @@ import DashboardRequest from '../components/dashboard/dashboard.request';
 import DashboardSettings from '../components/dashboard/dashboard.settings';
 
 import { getNetwork } from '../core/network';
-import { RouteFallback } from '../layout/root';
 import { loadConnections } from '../core/dapp';
 import { forgetDappPages, startDappBridge } from '../core/dapp.bridge';
 import { flushDeepLinks } from '../core/deeplink';
@@ -519,7 +518,9 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                 {modal === 'logout' && <DashboardLogout key='logout' kind={vault.kind} onClose={closeModal} />}
 
-                {prompt !== undefined && <DashboardRequest key={prompt.id} prompt={prompt} name={name} emoji={emoji} address={address} network={network.name} tokens={tracked} />}
+                {prompt !== undefined && (
+                    <DashboardRequest key={prompt.id} prompt={prompt} name={name} emoji={emoji} address={address} network={network.name} tokens={tracked} />
+                )}
             </AnimatePresence>
 
             <div dir={getDirection()} className='flex size-full overflow-hidden'>
@@ -692,8 +693,11 @@ function DashboardView({ vault }: { vault: Vault }) {
 export default function DashboardPage() {
     const vault = useVault();
 
+    // The loader only guards the way in. A lock that lands while the dashboard is open — the
+    // extension's idle deadline, a second window's Lock — used to leave this on a spinner forever,
+    // since nothing moved the route; the unlock screen is where a locked wallet belongs.
     if (vault === undefined) {
-        return <RouteFallback />;
+        return <Navigate to='/unlock' replace />;
     }
 
     return <DashboardView vault={vault} />;
