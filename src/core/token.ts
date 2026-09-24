@@ -2,7 +2,7 @@ import { Contract, formatUnits, getAddress, isAddress } from 'ethers';
 
 import { httpRequest } from './request';
 import { getProvider } from './network.provider';
-import { getExplorerApi, type Network } from './network';
+import { getExplorerApi, nuraChainId, type Network } from './network';
 import { getValue, setValue } from '../utility/storage';
 
 export interface Token {
@@ -45,6 +45,10 @@ const knownTokens: Record<number, Token[] | undefined> = {
     ]
 };
 
+const nativeMirrors: Record<number, string | undefined> = { [nuraChainId]: '0x0000000000000000000000000000000000000900' };
+
+const isNativeMirror = (chainId: number, address: string) => nativeMirrors[chainId] === address.toLowerCase();
+
 const getCoinId = (chainId: number, address: string) =>
     knownTokens[chainId]?.find((item) => item.address.toLowerCase() === address.toLowerCase())?.coinId ?? '';
 
@@ -71,7 +75,11 @@ export const loadTokens = async (): Promise<TokenMap> => {
                 // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 const entries = list.filter(
                     (item): item is Token =>
-                        typeof item === 'object' && item !== null && typeof (item as Token).address === 'string' && typeof (item as Token).decimals === 'number'
+                        typeof item === 'object' &&
+                        item !== null &&
+                        typeof (item as Token).address === 'string' &&
+                        typeof (item as Token).decimals === 'number' &&
+                        !isNativeMirror(chainId, (item as Token).address)
                 );
 
                 if (entries.length > 0) {
@@ -145,6 +153,10 @@ export const unhideToken = (hidden: HiddenMap, chainId: number, address: string)
 export const readToken = async (chainId: number, address: string): Promise<Token> => {
     if (!isAddress(address)) {
         throw new Error('invalid contract address');
+    }
+
+    if (isNativeMirror(chainId, address)) {
+        throw new Error('contract mirrors the native coin');
     }
 
     const contract = new Contract(getAddress(address), erc20Abi, getProvider());
@@ -246,6 +258,12 @@ export const discoverTokens = async (address: string, network: Network, known: T
     const listed = rows.length > 0 || api.length === 0 ? rows : await readExplorerTokens(api, 'tokentx', address);
 
     const skip = new Set([...known.map((item) => item.address.toLowerCase()), ...hidden.map((item) => item.toLowerCase())]);
+
+    const mirror = nativeMirrors[network.chainId];
+
+    if (mirror !== undefined) {
+        skip.add(mirror);
+    }
 
     const candidates: Token[] = listed.length > 0 ? [] : (knownTokens[network.chainId] ?? []).filter((item) => !skip.has(item.address.toLowerCase()));
 
