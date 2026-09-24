@@ -81,11 +81,11 @@ export default function Button({
             )}
             {...rest}
         >
-            {loading && <Spinner size={16} className='shrink-0' />}
-
             {leftIcon}
 
             {text ?? children}
+
+            {loading && <Spinner size={16} className='shrink-0' />}
 
             {rightIcon}
         </button>
