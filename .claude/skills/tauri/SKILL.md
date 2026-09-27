@@ -102,6 +102,10 @@ Rust, so the command parks on a `tokio::sync::oneshot` with a `time` bound for t
 where no answer ever arrives. Desktop only — Android's browser is Kotlin's and never
 reaches Tauri IPC. `tokio` is in the tree for that and nothing else.
 
+The floating mouse (`src/ui/mouse.tsx`) is a plain element in the page's `#mouse`, not a view
+of its own: it sits over everything the wallet draws, and under an open tab, which is an OS
+view no z-index reaches.
+
 ## Calling from the frontend
 
 - Import from `@tauri-apps/api` and the plugin packages, never from a global — the config

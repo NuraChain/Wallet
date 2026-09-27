@@ -107,6 +107,10 @@
             "Wallet": "Cartera",
             "Browser": "Navegador"
         },
+        "Mouse": {
+            "Title": "Botón flotante",
+            "Opacity": "Opacidad"
+        },
         "Offline": {
             "Title": "Sin conexión a internet",
             "Failed": "No se pudo conectar con la red",

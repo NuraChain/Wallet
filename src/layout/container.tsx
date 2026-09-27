@@ -21,7 +21,10 @@ export const layer = {
     base: 'z-10',
     chrome: 'z-20',
     popover: 'z-30',
-    dialog: 'z-40'
+    dialog: 'z-40',
+    /* The floating mouse, over every screen and dialog the wallet draws. A browser tab is an OS
+       view no z-index reaches, so an open page still covers it. */
+    mouse: 'z-100'
 } as const;
 
 const topMap = {

@@ -107,6 +107,10 @@
             "Wallet": "Wallet",
             "Browser": "Browser"
         },
+        "Mouse": {
+            "Title": "Floating button",
+            "Opacity": "Opacity"
+        },
         "Offline": {
             "Title": "No internet connection",
             "Failed": "Could not reach the network",

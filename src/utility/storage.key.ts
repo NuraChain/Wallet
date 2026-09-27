@@ -7,6 +7,7 @@ export type StorageKey =
     | 'App.Theme'
     | 'App.Network'
     | 'App.Networks'
+    | 'App.Mouse'
     | 'Wallet.Mnemonic'
     | 'Wallet.Password'
     | 'Wallet.Name'

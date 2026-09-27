@@ -107,6 +107,10 @@
             "Wallet": "Cüzdan",
             "Browser": "Tarayıcı"
         },
+        "Mouse": {
+            "Title": "Kayan düğme",
+            "Opacity": "Opaklık"
+        },
         "Offline": {
             "Title": "İnternet bağlantısı yok",
             "Failed": "Ağa ulaşılamadı",

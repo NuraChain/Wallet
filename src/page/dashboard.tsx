@@ -21,6 +21,7 @@ import DashboardNetwork from '../component/dashboard/dashboard.network';
 import DashboardReceive from '../component/dashboard/dashboard.receive';
 import DashboardRequest from '../component/dashboard/dashboard.request';
 import DashboardSettings from '../component/dashboard/dashboard.settings';
+import DashboardMouse from '../component/dashboard/dashboard.mouse';
 
 import { getNetwork } from '../core/network';
 import { loadConnections } from '../core/dapp';
@@ -36,6 +37,9 @@ import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
+import Mouse from '../ui/mouse';
+
+import type { MouseAction } from '../core/mouse';
 import { getDirection, T } from '../utility/language';
 import {
     discoverTokens,
@@ -52,7 +56,7 @@ import {
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem';
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse';
 
 const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Settings' }];
 
@@ -113,6 +117,20 @@ function DashboardView({ vault }: { vault: Vault }) {
     const online = useOnline();
 
     const prompt = useDappPrompt();
+
+    const onMouse = (action: MouseAction) => {
+        // A press behind a dialog would act on a screen nobody is looking at, or swap a half-filled
+        // one for the mouse's own.
+        if (modal !== 'none' || prompt !== undefined) {
+            return;
+        }
+
+        if (action === 'double') {
+            setModal('mouse');
+        } else {
+            goKey('Browser');
+        }
+    };
 
     const native = useBalance(address, network);
     const tokens = useTokens(address, network, tracked);
@@ -477,6 +495,8 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                 {modal === 'redeem' && <DashboardRedeem key='redeem' address={address} onClose={closeModal} />}
 
+                {modal === 'mouse' && <DashboardMouse key='mouse' onClose={closeModal} />}
+
                 {modal === 'phrase' && <DashboardPhrase key='phrase' kind={vault.kind} onClose={closeModal} />}
 
                 {modal === 'logout' && <DashboardLogout key='logout' kind={vault.kind} onClose={closeModal} />}
@@ -485,6 +505,8 @@ function DashboardView({ vault }: { vault: Vault }) {
                     <DashboardRequest key={prompt.id} prompt={prompt} name={name} emoji={emoji} address={address} network={network.name} tokens={tracked} />
                 )}
             </AnimatePresence>
+
+            {hasBrowser && <Mouse onAction={onMouse} />}
 
             <div dir={getDirection()} className='flex size-full overflow-hidden'>
                 {/* Full screen is the browser's own mode, so the rail only steps aside while that

@@ -107,6 +107,10 @@
             "Wallet": "Portefeuille",
             "Browser": "Navigateur"
         },
+        "Mouse": {
+            "Title": "Bouton flottant",
+            "Opacity": "Opacité"
+        },
         "Offline": {
             "Title": "Aucune connexion internet",
             "Failed": "Réseau injoignable",

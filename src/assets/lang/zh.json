@@ -107,6 +107,10 @@
             "Wallet": "钱包",
             "Browser": "浏览器"
         },
+        "Mouse": {
+            "Title": "悬浮按钮",
+            "Opacity": "不透明度"
+        },
         "Offline": {
             "Title": "无网络连接",
             "Failed": "无法连接到网络",
