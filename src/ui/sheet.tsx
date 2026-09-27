@@ -6,9 +6,9 @@ import { X } from 'lucide-react';
 import Text from './text';
 import Button from './button';
 
-import { cn } from '../../utility/cn';
-import { T } from '../../utility/language';
-import { inset, layer } from '../../layout/container';
+import { cn } from '../utility/cn';
+import { T } from '../utility/language';
+import { inset, layer } from '../layout/container';
 import { DialogTitleContext, useDialog, useDialogTitleId } from './dialog';
 import { surfacePanel } from './panel';
 import { Vertical } from './stack';

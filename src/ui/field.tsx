@@ -5,8 +5,8 @@ import Text from './text';
 
 import { tapArea } from './button';
 
-import { cn } from '../../utility/cn';
-import { T } from '../../utility/language';
+import { cn } from '../utility/cn';
+import { T } from '../utility/language';
 import { Horizontal, Vertical } from './stack';
 
 export const fieldSurface =

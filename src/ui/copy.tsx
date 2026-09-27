@@ -6,9 +6,9 @@ import { Check, Copy } from 'lucide-react';
 import Live from './live';
 import Button from './button';
 
-import { cn } from '../../utility/cn';
-import { T } from '../../utility/language';
-import { useClipboard } from '../../hook/clipboard';
+import { cn } from '../utility/cn';
+import { T } from '../utility/language';
+import { useClipboard } from '../hook/clipboard';
 
 /**
  * Copy, with its result reported on the control itself.

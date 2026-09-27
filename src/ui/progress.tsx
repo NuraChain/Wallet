@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 
 export default function ProgressBar({ value, label = '', className = '' }: { value?: number; label?: string; className?: string }) {
     const determinate = value !== undefined;

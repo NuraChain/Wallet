@@ -4,15 +4,15 @@ import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { TriangleAlert } from 'lucide-react';
 
-import Text from '../ui/text';
-import Alert from '../ui/alert';
-import Panel from '../ui/panel';
-import CopyButton from '../ui/copy';
-import AddressBlock from '../ui/address';
-import { Modal, ModalHeader } from '../ui/modal';
+import Text from '../../ui/text';
+import Alert from '../../ui/alert';
+import Panel from '../../ui/panel';
+import CopyButton from '../../ui/copy';
+import AddressBlock from '../../ui/address';
+import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
-import { Horizontal } from '../ui/stack';
+import { Horizontal } from '../../ui/stack';
 
 export default function DashboardReceive({ address, network, onClose }: { address: string; network: Network; onClose: () => void }) {
     const [qr, setQr] = useState('');

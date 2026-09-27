@@ -6,16 +6,16 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { FreeMode, Mousewheel } from 'swiper/modules';
 import { useCallback, useEffect, useRef } from 'react';
 
-import Text from '../ui/text';
-import Button from '../ui/button';
+import Text from '../../ui/text';
+import Button from '../../ui/button';
 
-import { selectedTint } from '../ui/menu';
+import { selectedTint } from '../../ui/menu';
 import SiteIcon from '../site.icon';
 
 import { cn } from '../../utility/cn';
 import { getDirection, getLanguage, T } from '../../utility/language';
 import { getSiteHost, type BrowserTab } from '../../core/browser';
-import { Horizontal } from '../ui/stack';
+import { Horizontal } from '../../ui/stack';
 
 import 'swiper/css';
 import 'swiper/css/free-mode';

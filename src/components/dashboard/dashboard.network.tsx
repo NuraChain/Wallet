@@ -3,17 +3,17 @@ import { Check, Plus, Trash } from 'lucide-react';
 
 import TokenIcon from '../token.icon';
 
-import Alert from '../ui/alert';
-import Button from '../ui/button';
-import MenuRow from '../ui/menu';
-import { TextField } from '../ui/field';
-import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
-import { ConfirmPanel } from '../ui/confirm';
+import Alert from '../../ui/alert';
+import Button from '../../ui/button';
+import MenuRow from '../../ui/menu';
+import { TextField } from '../../ui/field';
+import { Modal, ModalActions, ModalBody, ModalHeader } from '../../ui/modal';
+import { ConfirmPanel } from '../../ui/confirm';
 
 import { T } from '../../utility/language';
 import { getNativeLogo } from '../../core/price';
 import { addNetwork, getNetworks, removeNetwork, setNetwork, type Network } from '../../core/network';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 const fieldMap = [
     { key: 'Name', numeric: false },

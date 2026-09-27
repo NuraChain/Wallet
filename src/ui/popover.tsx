@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { cn } from '../../utility/cn';
-import { layer } from '../../layout/container';
+import { cn } from '../utility/cn';
+import { layer } from '../layout/container';
 import { surfacePanel } from './panel';
 import { useDismiss } from './dialog';
 

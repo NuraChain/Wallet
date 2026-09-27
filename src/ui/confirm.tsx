@@ -2,7 +2,7 @@ import Text from './text';
 import Button from './button';
 import { Modal, ModalActions, ModalHeader } from './modal';
 
-import { T } from '../../utility/language';
+import { T } from '../utility/language';
 import { Vertical } from './stack';
 
 /**

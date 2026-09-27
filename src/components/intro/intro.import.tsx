@@ -6,19 +6,19 @@ import { useState } from 'react';
 
 import WalletManager from '../../core/wallet';
 
-import Text from '../ui/text';
-import Alert from '../ui/alert';
-import Button from '../ui/button';
+import Text from '../../ui/text';
+import Alert from '../../ui/alert';
+import Button from '../../ui/button';
 import IntroCredentials from './intro.credentials';
-import { TextArea } from '../ui/field';
-import { Sheet, SheetHeader } from '../ui/sheet';
+import { TextArea } from '../../ui/field';
+import { Sheet, SheetHeader } from '../../ui/sheet';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { passwordHash } from '../../core/password';
 import { unlockSession } from '../../core/session';
 import { setValue, setValueEncrypted } from '../../utility/storage';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 const methodList: { kind: VaultKind; label: string }[] = [
     { kind: 'mnemonic', label: 'Intro.ImportWallet.MethodPhrase' },

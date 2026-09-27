@@ -6,14 +6,14 @@ import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { Download, Globe, Moon, CirclePlus, Sun, ChevronDown, ChevronRight, type LucideIcon } from 'lucide-react';
 import { useRef, useCallback, useState, type ReactNode } from 'react';
 
-import Text from '../components/ui/text';
-import Button from '../components/ui/button';
+import Text from '../ui/text';
+import Button from '../ui/button';
 import PageContainer from '../layout/container';
 import IntroImport from '../components/intro/intro.import';
 import IntroWallet from '../components/intro/intro.wallet';
 import IntroLanguage from '../components/intro/intro.language';
 
-import { Horizontal, Vertical } from '../components/ui/stack';
+import { Horizontal, Vertical } from '../ui/stack';
 
 import { getTheme, setTheme } from '../utility/theme';
 import { getDirection, getLanguage, T } from '../utility/language';

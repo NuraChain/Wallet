@@ -3,10 +3,10 @@ import type { VaultKind } from '../../core/vault';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import Alert from '../ui/alert';
-import Button from '../ui/button';
-import { PasswordField } from '../ui/field';
-import { Modal, ModalActions, ModalHeader } from '../ui/modal';
+import Alert from '../../ui/alert';
+import Button from '../../ui/button';
+import { PasswordField } from '../../ui/field';
+import { Modal, ModalActions, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
 import { passwordCheck } from '../../core/password';

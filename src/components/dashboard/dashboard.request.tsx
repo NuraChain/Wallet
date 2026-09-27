@@ -4,18 +4,18 @@ import { useRef, useState, type ReactNode } from 'react';
 import { formatUnits } from 'ethers';
 import { ArrowDown, KeyRound, User } from 'lucide-react';
 
-import Text from '../ui/text';
-import Alert from '../ui/alert';
-import Panel from '../ui/panel';
-import Button from '../ui/button';
-import IconBox from '../ui/iconbox';
-import ListCard from '../ui/list';
-import ScrollBar from '../ui/scrollbar';
-import AddressBlock from '../ui/address';
+import Text from '../../ui/text';
+import Alert from '../../ui/alert';
+import Panel from '../../ui/panel';
+import Button from '../../ui/button';
+import IconBox from '../../ui/iconbox';
+import ListCard from '../../ui/list';
+import ScrollBar from '../../ui/scrollbar';
+import AddressBlock from '../../ui/address';
 import SiteIcon from '../site.icon';
 import TokenIcon from '../token.icon';
-import { Horizontal, Vertical } from '../ui/stack';
-import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
+import { Horizontal, Vertical } from '../../ui/stack';
+import { Modal, ModalActions, ModalBody, ModalHeader } from '../../ui/modal';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';

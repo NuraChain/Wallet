@@ -6,12 +6,12 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Menu, type MenuOptions } from '@tauri-apps/api/menu';
 
 import TitleBar from './titlebar';
-import Spinner from '../components/ui/spinner';
+import Spinner from '../ui/spinner';
 
 import { T } from '../utility/language';
 import { useIsWindows } from '../hook/platform';
 import { useLanguage } from '../hook/language';
-import { Horizontal } from '../components/ui/stack';
+import { Horizontal } from '../ui/stack';
 
 export function RouteFallback() {
     return (

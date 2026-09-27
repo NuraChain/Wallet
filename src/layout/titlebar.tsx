@@ -4,15 +4,15 @@ import { useLanguage } from '../hook/language';
 import { useCallback, useState } from 'react';
 import { getCurrentWindow, LogicalSize } from '@tauri-apps/api/window';
 
-import Text from '../components/ui/text';
+import Text from '../ui/text';
 
 import { layer } from './container';
-import Button from '../components/ui/button';
+import Button from '../ui/button';
 
 import { T } from '../utility/language';
 
 import Logo from '../assets/image/logo.png';
-import { Horizontal } from '../components/ui/stack';
+import { Horizontal } from '../ui/stack';
 
 const mobileSize = { width: 360, height: 640 };
 

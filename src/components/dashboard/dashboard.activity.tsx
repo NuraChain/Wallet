@@ -2,12 +2,12 @@ import type { Transaction } from '../../hook/history';
 
 import TransactionRow from './dashboard.transaction';
 
-import StatusBlock from '../ui/state';
-import ListCard from '../ui/list';
+import StatusBlock from '../../ui/state';
+import ListCard from '../../ui/list';
 
 import { T } from '../../utility/language';
 import { useOnline } from '../../hook/connection';
-import { Vertical } from '../ui/stack';
+import { Vertical } from '../../ui/stack';
 
 const preview = 10;
 

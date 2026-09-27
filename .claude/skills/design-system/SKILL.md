@@ -1,6 +1,6 @@
 ---
 name: design-system
-description: Use before writing or changing any JSX that renders UI in this repo — a screen, dialog, list, row, form, button, or piece of text. The catalog of primitives in src/components/ui and src/layout, which one to reach for, and the rule that call sites compose primitives instead of hand-writing surfaces. Read this before inventing a div.
+description: Use before writing or changing any JSX that renders UI in this repo — a screen, dialog, list, row, form, button, or piece of text. The catalog of primitives in src/ui and src/layout, which one to reach for, and the rule that call sites compose primitives instead of hand-writing surfaces. Read this before inventing a div.
 ---
 
 # The design system

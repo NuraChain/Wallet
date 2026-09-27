@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 
 import Text from './text';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 import { surfacePanel } from './panel';
 import { Horizontal, Vertical } from './stack';
 

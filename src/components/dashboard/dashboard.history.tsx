@@ -5,16 +5,16 @@ import { Search } from 'lucide-react';
 
 import TransactionRow from './dashboard.transaction';
 
-import Button from '../ui/button';
-import StatusBlock from '../ui/state';
-import ListCard from '../ui/list';
-import ScrollBar from '../ui/scrollbar';
-import { TextField } from '../ui/field';
-import { Modal, ModalHeader } from '../ui/modal';
+import Button from '../../ui/button';
+import StatusBlock from '../../ui/state';
+import ListCard from '../../ui/list';
+import ScrollBar from '../../ui/scrollbar';
+import { TextField } from '../../ui/field';
+import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
 import { useOnline } from '../../hook/connection';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 const filters = ['All', 'Sent', 'Received'] as const;
 

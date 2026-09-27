@@ -1,13 +1,13 @@
 import { WifiOff } from 'lucide-react';
 
-import Text from '../ui/text';
-import Panel from '../ui/panel';
-import IconBox from '../ui/iconbox';
+import Text from '../../ui/text';
+import Panel from '../../ui/panel';
+import IconBox from '../../ui/iconbox';
 
 import { T } from '../../utility/language';
 import { formatAge } from '../../utility/format';
 import { useOnline } from '../../hook/connection';
-import { Vertical } from '../ui/stack';
+import { Vertical } from '../../ui/stack';
 
 export default function DashboardOffline({ error, at }: { error: boolean; at: number }) {
     const online = useOnline();

@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 import { surfacePanel } from './panel';
 
 export default function ListCard({

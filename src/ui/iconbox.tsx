@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 import { Horizontal } from './stack';
 
 const toneMap = {

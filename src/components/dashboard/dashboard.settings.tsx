@@ -3,12 +3,12 @@ import type { VaultKind } from '../../core/vault';
 import { useState } from 'react';
 import { ArrowLeft, ChevronRight, Globe, LogOut, Moon, Sun, FileText, Lock } from 'lucide-react';
 
-import Text from '../ui/text';
-import Button from '../ui/button';
-import IconBox from '../ui/iconbox';
-import MenuRow from '../ui/menu';
-import { ModalActions } from '../ui/modal';
-import { Horizontal, Vertical } from '../ui/stack';
+import Text from '../../ui/text';
+import Button from '../../ui/button';
+import IconBox from '../../ui/iconbox';
+import MenuRow from '../../ui/menu';
+import { ModalActions } from '../../ui/modal';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 import { T } from '../../utility/language';
 import { getTheme, setTheme } from '../../utility/theme';

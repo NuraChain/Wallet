@@ -6,22 +6,22 @@ import { useState } from 'react';
 import { ChevronDown, ArrowDownLeft, ArrowUpRight, Gift, Globe, Settings, List, LayoutGrid, User, type LucideIcon } from 'lucide-react';
 
 import TokenIcon from '../token.icon';
-import CopyButton from '../ui/copy';
+import CopyButton from '../../ui/copy';
 import TokenRow, { AssetAmount } from '../token.row';
 import DashboardActivity from './dashboard.activity';
 import DashboardOffline from './dashboard.offline';
 
-import Text from '../ui/text';
-import Button from '../ui/button';
-import IconBox from '../ui/iconbox';
-import ListCard from '../ui/list';
-import StatusBlock from '../ui/state';
+import Text from '../../ui/text';
+import Button from '../../ui/button';
+import IconBox from '../../ui/iconbox';
+import ListCard from '../../ui/list';
+import StatusBlock from '../../ui/state';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { getNativeCoinId, getNativeLogo, getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 const chipClass = 'h-9 min-w-0 flex-1 gap-1.5 rounded-surface ps-1 pe-2.5 text-tiny';
 

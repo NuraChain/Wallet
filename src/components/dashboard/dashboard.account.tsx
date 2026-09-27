@@ -1,22 +1,22 @@
 import { useMemo, useState } from 'react';
 import { Check, Pen, Plus, Trash } from 'lucide-react';
 
-import Text from '../ui/text';
-import Alert from '../ui/alert';
-import Button from '../ui/button';
-import IconBox from '../ui/iconbox';
+import Text from '../../ui/text';
+import Alert from '../../ui/alert';
+import Button from '../../ui/button';
+import IconBox from '../../ui/iconbox';
 
-import { selectedTint } from '../ui/menu';
-import { ReadonlyField, TextField } from '../ui/field';
-import { Modal, ModalActions, ModalBody, ModalHeader } from '../ui/modal';
-import { ConfirmPanel } from '../ui/confirm';
+import { selectedTint } from '../../ui/menu';
+import { ReadonlyField, TextField } from '../../ui/field';
+import { Modal, ModalActions, ModalBody, ModalHeader } from '../../ui/modal';
+import { ConfirmPanel } from '../../ui/confirm';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
 import { vaultAddress, vaultDerivable, type Vault } from '../../core/vault';
 import { accountFirst, accountLimit, defaultAccountName, type Account } from '../../utility/account';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 const emojiList = [
     '🦊',

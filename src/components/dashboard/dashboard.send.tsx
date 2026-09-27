@@ -4,21 +4,21 @@ import { useMemo, useState } from 'react';
 import { formatUnits, isAddress, parseUnits } from 'ethers';
 import { ChevronDown, ArrowLeft, CircleCheckBig, ExternalLink, Share2 } from 'lucide-react';
 
-import Text from '../ui/text';
-import Alert from '../ui/alert';
-import Button from '../ui/button';
-import Spinner from '../ui/spinner';
+import Text from '../../ui/text';
+import Alert from '../../ui/alert';
+import Button from '../../ui/button';
+import Spinner from '../../ui/spinner';
 import TokenIcon from '../token.icon';
-import CopyButton from '../ui/copy';
-import AddressBlock from '../ui/address';
-import SectionHeader from '../ui/section';
+import CopyButton from '../../ui/copy';
+import AddressBlock from '../../ui/address';
+import SectionHeader from '../../ui/section';
 
-import Panel from '../ui/panel';
-import Popover from '../ui/popover';
-import { fieldSurface, TextField } from '../ui/field';
-import { Modal, ModalActions, ModalHeader } from '../ui/modal';
+import Panel from '../../ui/panel';
+import Popover from '../../ui/popover';
+import { fieldSurface, TextField } from '../../ui/field';
+import { Modal, ModalActions, ModalHeader } from '../../ui/modal';
 
-import { selectedTint } from '../ui/menu';
+import { selectedTint } from '../../ui/menu';
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { vaultManager, type Vault } from '../../core/vault';
@@ -28,7 +28,7 @@ import { getProvider } from '../../core/network.provider';
 import type { Network } from '../../core/network';
 import { getNativeLogo, getTokenLogo } from '../../core/price';
 import { trimAmount } from '../../utility/format';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
 

@@ -3,13 +3,13 @@ import { Webview } from '@tauri-apps/api/webview';
 import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
-import Text from '../components/ui/text';
-import Spinner from '../components/ui/spinner';
-import ProgressBar from '../components/ui/progress';
+import Text from '../ui/text';
+import Spinner from '../ui/spinner';
+import ProgressBar from '../ui/progress';
 
 import { T } from '../utility/language';
 import { getNativeBrowser, getNativeTab, nativeHoldsTabs } from '../core/browser';
-import { Vertical } from '../components/ui/stack';
+import { Vertical } from '../ui/stack';
 
 const mobileAgent = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36';
 

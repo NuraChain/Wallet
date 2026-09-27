@@ -1,19 +1,19 @@
 import { useRef, useState } from 'react';
 import { Check, PenLine, Plus, Trash } from 'lucide-react';
 
-import Text from '../ui/text';
-import Alert from '../ui/alert';
-import Button from '../ui/button';
-import StatusBlock from '../ui/state';
+import Text from '../../ui/text';
+import Alert from '../../ui/alert';
+import Button from '../../ui/button';
+import StatusBlock from '../../ui/state';
 import SiteIcon from '../site.icon';
 import SiteForm from '../site.form';
-import ScrollBar from '../ui/scrollbar';
-import ConfirmDialog from '../ui/confirm';
+import ScrollBar from '../../ui/scrollbar';
+import ConfirmDialog from '../../ui/confirm';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { getSiteHost, type BrowserFavorite, type BrowserVisit } from '../../core/browser';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 type TabKey = 'favorite' | 'history';
 

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 
-import Button from '../ui/button';
-import Checkbox from '../ui/checkbox';
+import Button from '../../ui/button';
+import Checkbox from '../../ui/checkbox';
 
-import { PasswordField } from '../ui/field';
-import { Vertical } from '../ui/stack';
+import { PasswordField } from '../../ui/field';
+import { Vertical } from '../../ui/stack';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';

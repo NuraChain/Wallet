@@ -1,6 +1,6 @@
 import type { ElementType, HTMLAttributes, ReactNode } from 'react';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 
 const variantMap = {
     caption: 'text-tiny text-txt-muted',

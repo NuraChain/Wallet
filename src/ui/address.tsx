@@ -1,6 +1,6 @@
 import Text from './text';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 import { Vertical } from './stack';
 
 /**

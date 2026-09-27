@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import Text from './text';
 import Button from './button';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 
 export const selectedTint = 'border-btn-primary-border bg-btn-primary/15';
 

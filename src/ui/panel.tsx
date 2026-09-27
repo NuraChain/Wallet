@@ -1,6 +1,6 @@
 import type { ComponentPropsWithRef, ReactNode } from 'react';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 
 export const surfacePanel = 'border border-line bg-base-2';
 

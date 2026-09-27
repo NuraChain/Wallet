@@ -1,8 +1,8 @@
 import { Loader } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
-import Spinner from '../components/ui/spinner';
-import ScrollBar from '../components/ui/scrollbar';
+import Spinner from '../ui/spinner';
+import ScrollBar from '../ui/scrollbar';
 
 import { cn } from '../utility/cn';
 import { layer } from './container';

@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router';
 
 import WalletManager from '../../core/wallet';
 
-import Alert from '../ui/alert';
+import Alert from '../../ui/alert';
 import IntroCredentials from './intro.credentials';
-import { Sheet, SheetHeader } from '../ui/sheet';
+import { Sheet, SheetHeader } from '../../ui/sheet';
 
 import { T } from '../../utility/language';
 import { passwordHash } from '../../core/password';

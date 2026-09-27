@@ -6,14 +6,14 @@ import { X } from 'lucide-react';
 import Text from './text';
 import Button from './button';
 
-import { T } from '../../utility/language';
+import { T } from '../utility/language';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 import { DialogTitleContext, useDialog, useDialogTitleId } from './dialog';
 import ScrollBar from './scrollbar';
 import { surfacePanel } from './panel';
 import { Horizontal, Vertical } from './stack';
-import { inset, layer } from '../../layout/container';
+import { inset, layer } from '../layout/container';
 
 /* The window is 360 wide, but the app lays out for a desktop too — a sidebar at `lg`, a wider
    page container — and every dialog stayed a 320px column on all of it. That width is what made

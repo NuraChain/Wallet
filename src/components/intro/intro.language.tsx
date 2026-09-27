@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 
-import MenuRow from '../ui/menu';
-import { Modal, ModalBody, ModalHeader } from '../ui/modal';
+import MenuRow from '../../ui/menu';
+import { Modal, ModalBody, ModalHeader } from '../../ui/modal';
 
 import { T, getLanguage, setLanguage, languageRecord, type LanguageType } from '../../utility/language';
 

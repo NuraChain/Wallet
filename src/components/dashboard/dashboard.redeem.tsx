@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { CircleCheckBig, Gift } from 'lucide-react';
 
-import Text from '../ui/text';
-import Alert from '../ui/alert';
-import Button from '../ui/button';
-import IconBox from '../ui/iconbox';
-import { ReadonlyField, TextField } from '../ui/field';
-import { Modal, ModalHeader } from '../ui/modal';
+import Text from '../../ui/text';
+import Alert from '../../ui/alert';
+import Button from '../../ui/button';
+import IconBox from '../../ui/iconbox';
+import { ReadonlyField, TextField } from '../../ui/field';
+import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
 import { isRedeemCode, redeemCode } from '../../core/redeem';
-import { Vertical } from '../ui/stack';
+import { Vertical } from '../../ui/stack';
 
 export default function DashboardRedeem({ address, onClose }: { address: string; onClose: () => void }) {
     const [code, setCode] = useState('');

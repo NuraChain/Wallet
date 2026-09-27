@@ -3,22 +3,22 @@ import { useNavigate } from 'react-router';
 import { CircleQuestionMark } from 'lucide-react';
 import { motion } from 'motion/react';
 
-import Text from '../components/ui/text';
-import Alert from '../components/ui/alert';
-import Button from '../components/ui/button';
-import { PasswordField } from '../components/ui/field';
+import Text from '../ui/text';
+import Alert from '../ui/alert';
+import Button from '../ui/button';
+import { PasswordField } from '../ui/field';
 
 import PageContainer, { layer } from '../layout/container';
-import Popover from '../components/ui/popover';
+import Popover from '../ui/popover';
 import { cn } from '../utility/cn';
 import { T } from '../utility/language';
 import { readVault } from '../core/vault';
 import { closeBrowserLayers } from '../core/browser';
-import { surfacePanel } from '../components/ui/panel';
+import { surfacePanel } from '../ui/panel';
 import { passwordCheck } from '../core/password';
 import { unlockSession } from '../core/session';
 import { getValueEncrypted } from '../utility/storage';
-import { Horizontal } from '../components/ui/stack';
+import { Horizontal } from '../ui/stack';
 
 export default function UnlockPage() {
     useEffect(() => {

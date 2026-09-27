@@ -3,7 +3,7 @@ import { Inbox } from 'lucide-react';
 import Text from './text';
 import Spinner from './spinner';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 import { surfacePanel } from './panel';
 
 const iconMap = {

@@ -4,7 +4,7 @@ import { Check } from 'lucide-react';
 
 import Text from './text';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 import { fieldSurface } from './field';
 
 export default function Checkbox({ checked, text, onToggle, children }: { checked: boolean; text?: string; onToggle: () => void; children?: ReactNode }) {

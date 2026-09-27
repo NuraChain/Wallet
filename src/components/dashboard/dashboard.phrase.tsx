@@ -3,17 +3,17 @@ import type { VaultKind } from '../../core/vault';
 import { useState } from 'react';
 import { Eye, EyeOff, FileText, Image, type LucideIcon } from 'lucide-react';
 
-import Text from '../ui/text';
-import Alert from '../ui/alert';
-import Button from '../ui/button';
-import { PasswordField } from '../ui/field';
-import { Modal, ModalHeader } from '../ui/modal';
+import Text from '../../ui/text';
+import Alert from '../../ui/alert';
+import Button from '../../ui/button';
+import { PasswordField } from '../../ui/field';
+import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
 import { passwordCheck } from '../../core/password';
 import { getExporter, phraseToPng } from '../../core/export';
 import { getValueEncrypted } from '../../utility/storage';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 const exportMap: { kind: 'image' | 'text'; icon: LucideIcon; label: string }[] = [
     { kind: 'image', icon: Image, label: 'Dashboard.Phrase.SaveImage' },

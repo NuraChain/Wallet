@@ -9,9 +9,9 @@ import DashboardBrowserTabs from './dashboard.browser.tabs';
 import DashboardBrowserStart from './dashboard.browser.start';
 import DashboardBrowserSettings from './dashboard.browser.settings';
 
-import Button from '../ui/button';
-import ProgressBar from '../ui/progress';
-import { TextField } from '../ui/field';
+import Button from '../../ui/button';
+import ProgressBar from '../../ui/progress';
+import { TextField } from '../../ui/field';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
@@ -40,7 +40,7 @@ import {
     type BrowserVisit,
     type BrowserView
 } from '../../core/browser';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 const toUrl = (value: string) => {
     const trimmed = value.trim();

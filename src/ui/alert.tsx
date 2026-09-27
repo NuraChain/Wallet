@@ -3,7 +3,7 @@ import type { HTMLAttributes, ReactNode } from 'react';
 import Live from './live';
 import { TriangleAlert, CircleCheckBig } from 'lucide-react';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 
 const variantMap = {
     error: 'bg-txt-error/10 text-txt-error text-center',

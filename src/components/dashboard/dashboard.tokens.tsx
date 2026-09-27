@@ -6,19 +6,19 @@ import { Plus, Trash } from 'lucide-react';
 
 import TokenRow, { AssetAmount } from '../token.row';
 
-import Text from '../ui/text';
-import StatusBlock from '../ui/state';
-import Alert from '../ui/alert';
-import Button from '../ui/button';
-import ListCard from '../ui/list';
-import { ConfirmPanel } from '../ui/confirm';
-import { TextField } from '../ui/field';
-import { Modal, ModalActions, ModalHeader } from '../ui/modal';
+import Text from '../../ui/text';
+import StatusBlock from '../../ui/state';
+import Alert from '../../ui/alert';
+import Button from '../../ui/button';
+import ListCard from '../../ui/list';
+import { ConfirmPanel } from '../../ui/confirm';
+import { TextField } from '../../ui/field';
+import { Modal, ModalActions, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
 import { getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
 import { formatUsd, trimAmount } from '../../utility/format';
-import { Vertical } from '../ui/stack';
+import { Vertical } from '../../ui/stack';
 
 export default function DashboardTokens({
     network,

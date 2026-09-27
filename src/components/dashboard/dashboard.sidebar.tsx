@@ -2,16 +2,16 @@ import type { LucideIcon } from 'lucide-react';
 
 import Logo from '../../assets/image/logo.png';
 
-import Text from '../ui/text';
-import Button from '../ui/button';
-import MenuRow from '../ui/menu';
+import Text from '../../ui/text';
+import Button from '../../ui/button';
+import MenuRow from '../../ui/menu';
 
 import { platform } from '../../platform';
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { inset } from '../../layout/container';
 import { useIsWindows } from '../../hook/platform';
-import { Horizontal, Vertical } from '../ui/stack';
+import { Horizontal, Vertical } from '../../ui/stack';
 
 /* The product page, handed to the host browser rather than the wallet's own. It is a brand site,
    not a dApp — nothing on it wants a provider, and it has no business in a tab that carries one. */

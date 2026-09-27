@@ -1,7 +1,7 @@
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router';
 
-import Button from '../components/ui/button';
-import FailureScreen from '../components/ui/failure';
+import Button from '../ui/button';
+import FailureScreen from '../ui/failure';
 
 import { line } from './boundary';
 

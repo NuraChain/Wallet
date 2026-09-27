@@ -1,13 +1,13 @@
 import { Monitor, Smartphone, Trash } from 'lucide-react';
 
-import Text from '../ui/text';
-import Button from '../ui/button';
-import SectionHeader from '../ui/section';
-import { Modal, ModalHeader } from '../ui/modal';
+import Text from '../../ui/text';
+import Button from '../../ui/button';
+import SectionHeader from '../../ui/section';
+import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
 import type { BrowserView } from '../../core/browser';
-import { Horizontal } from '../ui/stack';
+import { Horizontal } from '../../ui/stack';
 
 const viewMap: { view: BrowserView; label: string; icon: typeof Monitor }[] = [
     { view: 'mobile', label: 'Dashboard.Browser.ViewMobile', icon: Smartphone },

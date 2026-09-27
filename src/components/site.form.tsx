@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
-import Alert from './ui/alert';
-import Button from './ui/button';
-import { TextField } from './ui/field';
-import { Modal, ModalActions, ModalHeader } from './ui/modal';
+import Alert from '../ui/alert';
+import Button from '../ui/button';
+import { TextField } from '../ui/field';
+import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../utility/language';
 import { getSiteHost } from '../core/browser';

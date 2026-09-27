@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 import Spinner from './spinner';
 
-import { cn } from '../../utility/cn';
+import { cn } from '../utility/cn';
 
 const focusRing = 'outline-2 outline-offset-2 outline-double outline-transparent focus-visible:outline-focus-ring';
 

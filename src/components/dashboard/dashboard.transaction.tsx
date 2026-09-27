@@ -2,14 +2,14 @@ import type { Transaction } from '../../hook/history';
 
 import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
-import Text from '../ui/text';
-import Button from '../ui/button';
-import IconBox from '../ui/iconbox';
+import Text from '../../ui/text';
+import Button from '../../ui/button';
+import IconBox from '../../ui/iconbox';
 
 import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { formatDate, shortAddress, trimAmount } from '../../utility/format';
-import { Vertical } from '../ui/stack';
+import { Vertical } from '../../ui/stack';
 
 export default function TransactionRow({ item, canOpen, onOpen }: { item: Transaction; canOpen: boolean; onOpen: (hash: string) => void }) {
     return (

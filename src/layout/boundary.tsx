@@ -1,7 +1,7 @@
 import { Component, type ReactNode } from 'react';
 
-import Button from '../components/ui/button';
-import FailureScreen from '../components/ui/failure';
+import Button from '../ui/button';
+import FailureScreen from '../ui/failure';
 
 import { T } from '../utility/language';
 
