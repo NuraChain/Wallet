@@ -14,6 +14,8 @@ const icon = `data:image/png;base64,${readFileSync('src/assets/image/logo.png').
 export default defineConfig(() => ({
     root: 'src',
     envDir: '..',
+    // Relative to root, which is src — left unset, Vitest parks its cache in src/node_modules.
+    cacheDir: '../node_modules/.vite',
     clearScreen: false,
 
     define: {
