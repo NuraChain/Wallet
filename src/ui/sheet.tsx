@@ -36,10 +36,10 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 className={cn(
                     surfacePanel,
                     layer.dialog,
-                    'absolute inset-x-0 top-0 mx-2 flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 shadow-float outline-none',
+                    'absolute inset-x-2 top-0 mx-auto flex h-fit max-h-full max-w-lg flex-col gap-2 overflow-y-auto overscroll-contain rounded-b-dialog px-4 shadow-float outline-none',
                     inset.sheetTop,
                     inset.edgeBottom,
-                    'sm:mx-auto sm:px-6'
+                    'sm:px-6'
                 )}
             >
                 <Button variant='muted' size='iconLarge' onClick={onClose} mt={4} shrink={false} icon={<X size={24} />} />
