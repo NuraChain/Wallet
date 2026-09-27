@@ -56,9 +56,9 @@ non-extractable, AES-GCM, stored as base64 `{ salt, iv, cipher, kdf: 'argon2id' 
 wallet *exists* to decide the landing route, and never decrypts it. Keep that distinction:
 presence is public, content is not.
 
-Keys are the `StorageKey` union in `utility/storage.key.ts`. It is split out so the platform
-layer can name a key without importing the module that depends on it — add new keys there,
-never a bare string.
+Keys are the `StorageKey` union in `type/storage.ts`. It lives apart from `utility/storage.ts` so
+the platform layer can name a key without importing the module that depends on it — add new keys
+there, never a bare string.
 
 ## The session — `core/session.ts`
 

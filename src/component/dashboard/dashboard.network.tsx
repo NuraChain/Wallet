@@ -12,8 +12,9 @@ import { ConfirmPanel } from '../../ui/confirm';
 
 import { T } from '../../utility/language';
 import { getNativeLogo } from '../../core/price';
-import { addNetwork, getNetworks, removeNetwork, setNetwork, type Network } from '../../core/network';
+import { addNetwork, getNetworks, removeNetwork, setNetwork } from '../../core/network';
 import { Horizontal, Vertical } from '../../ui/stack';
+import type { Network } from '../../type/network';
 
 const fieldMap = [
     { key: 'Name', numeric: false },

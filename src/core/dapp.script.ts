@@ -1,12 +1,4 @@
-export interface DappIdentity {
-    name: string;
-    rdns: string;
-    icon: string;
-    chainId: string;
-
-    /** Which way back to the wallet the page has. Decided at build time, not sniffed. */
-    channel?: 'native' | 'extension';
-}
+import type { DappIdentity } from '../type/dapp';
 
 export const dappIdentity = (chainId: number, channel: 'native' | 'extension' = 'native'): DappIdentity => ({
     name: 'Nura Wallet',

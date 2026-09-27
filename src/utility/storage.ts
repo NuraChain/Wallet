@@ -2,7 +2,7 @@ import { argon2id } from 'hash-wasm';
 
 import { platform } from '../platform';
 
-import type { StorageKey } from './storage.key';
+import type { StorageKey } from '../type/storage';
 
 interface EncryptedPayload {
     salt: string;
@@ -10,8 +10,6 @@ interface EncryptedPayload {
     cipher: string;
     kdf?: 'argon2id';
 }
-
-export type { StorageKey };
 
 const deriveKeyArgon2id = async (passphrase: string, salt: Uint8Array<ArrayBuffer>) => {
     const bytes = await argon2id({ password: passphrase, salt, memorySize: 65536, iterations: 3, parallelism: 1, hashLength: 32, outputType: 'binary' });

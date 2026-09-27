@@ -1,5 +1,3 @@
-import type { Transaction } from '../../hook/history';
-
 import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 
 import Text from '../../ui/text';
@@ -9,6 +7,7 @@ import IconBox from '../../ui/iconbox';
 import { T } from '../../utility/language';
 import { formatDate, shortAddress, trimAmount } from '../../utility/format';
 import { Vertical } from '../../ui/stack';
+import type { Transaction } from '../../type/wallet';
 
 export default function TransactionRow({ item, canOpen, onOpen }: { item: Transaction; canOpen: boolean; onOpen: (hash: string) => void }) {
     return (

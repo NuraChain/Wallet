@@ -1,11 +1,5 @@
 import WalletManager from './wallet';
-
-export type VaultKind = 'mnemonic' | 'privateKey';
-
-export interface Vault {
-    kind: VaultKind;
-    secret: string;
-}
+import type { Vault } from '../type/wallet';
 
 const privateKeyShape = /^(?:0x)?[0-9a-fA-F]{64}$/u;
 

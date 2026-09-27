@@ -12,8 +12,9 @@ import ScrollBar from '../../ui/scrollbar';
 import ConfirmDialog from '../../ui/confirm';
 
 import { T } from '../../utility/language';
-import { getSiteHost, type BrowserFavorite, type BrowserVisit } from '../../core/browser';
+import { getSiteHost } from '../../core/browser';
 import { Horizontal, Vertical } from '../../ui/stack';
+import type { BrowserFavorite, BrowserVisit } from '../../type/browser';
 
 type TabKey = 'favorite' | 'history';
 

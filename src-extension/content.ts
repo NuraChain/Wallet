@@ -1,4 +1,5 @@
-import { dockChannel, isPageMessage, providerChannel, type DockMessage, type WorkerMessage } from './message';
+import { dockChannel, isPageMessage, providerChannel } from './message';
+import type { DockMessage, WorkerMessage } from '../src/type/extension';
 
 /**
  * The isolated half of the bridge. It decides nothing, and holds nothing but the ids of calls still

@@ -1,5 +1,3 @@
-import type { VaultKind } from '../../core/vault';
-
 import { useState } from 'react';
 import { ArrowLeft, ChevronRight, Globe, LogOut, Moon, Sun, FileText, Lock } from 'lucide-react';
 
@@ -12,6 +10,7 @@ import { Horizontal, Vertical } from '../../ui/stack';
 
 import { T } from '../../utility/language';
 import { getTheme, setTheme } from '../../utility/theme';
+import type { VaultKind } from '../../type/wallet';
 
 const chevron = <ChevronRight size={18} className='text-txt-muted rtl:rotate-180' />;
 

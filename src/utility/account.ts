@@ -1,11 +1,6 @@
 import { T } from './language';
 import { getValue, setValue } from './storage';
-
-export interface Account {
-    index: number;
-    name: string;
-    emoji?: string;
-}
+import type { Account } from '../type/wallet';
 
 const emojiLimit = 16;
 

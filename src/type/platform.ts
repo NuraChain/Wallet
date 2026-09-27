@@ -1,8 +1,10 @@
-import type { DappReply } from '../core/dapp';
-import type { DappPrompt } from '../core/dapp.prompt';
-import type { Vault } from '../core/vault';
-import type { Host } from '../utility/platform.type';
-import type { StorageKey } from '../utility/storage.key';
+/** The seam every host implements — a Tauri window or a browser extension — and the host itself. */
+
+import type { DappPrompt, DappReply } from './dapp';
+import type { StorageKey } from './storage';
+import type { Vault } from './wallet';
+
+export type Exporter = PlatformExporter;
 
 /** Durable key/value storage. Values are always strings — callers stringify their own shapes. */
 export interface PlatformStorage {
@@ -92,3 +94,9 @@ export interface Platform {
     readonly openUrl: (url: string) => Promise<void>;
     readonly exporter: () => PlatformExporter;
 }
+
+/**
+ * The host the app runs on. Mirrors the plugin-os `Platform` union rather than importing it, so a
+ * build with no Tauri in it — the browser extension — still has a name for where it is running.
+ */
+export type Host = 'linux' | 'macos' | 'ios' | 'freebsd' | 'dragonfly' | 'netbsd' | 'openbsd' | 'solaris' | 'android' | 'windows' | 'extension' | 'unknown';

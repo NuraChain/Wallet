@@ -1,25 +1,5 @@
 import { getValue, setValue } from '../utility/storage';
 
-export interface DappEnvelope {
-    id: string;
-    label: string;
-    origin: string;
-    method: string;
-    params: unknown[];
-}
-
-export interface DappFailure {
-    code: number;
-    message: string;
-    data?: unknown;
-}
-
-export interface DappReply {
-    id: string;
-    result?: unknown;
-    error?: DappFailure;
-}
-
 export const dappError = {
     rejected: 4001,
     unauthorized: 4100,

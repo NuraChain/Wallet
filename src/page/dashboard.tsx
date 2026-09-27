@@ -6,7 +6,7 @@ import { ArrowDownLeft, ArrowUpRight, LogOut, Settings, Globe, Lock, Wallet } fr
 
 import ScrollArea from '../layout/scroll';
 import PageContainer, { ScrollFrame } from '../layout/container';
-import DashboardSidebar, { type SidebarItem } from '../component/dashboard/dashboard.sidebar';
+import DashboardSidebar from '../component/dashboard/dashboard.sidebar';
 import DashboardWallet from '../component/dashboard/dashboard.wallet';
 import DashboardSend from '../component/dashboard/dashboard.send';
 import IntroLanguage from '../component/intro/intro.language';
@@ -31,7 +31,7 @@ import { lockSession } from '../core/session';
 import { useVault } from '../hook/vault';
 import { answerDapp, rejectDappPrompts, setDappAccount, setDappWatchAsset, subscribeDappChange, syncDappState } from '../core/dapp.rpc';
 import { useDappPrompt } from '../hook/dapp';
-import { vaultAddress, vaultDerivable, type Vault } from '../core/vault';
+import { vaultAddress, vaultDerivable } from '../core/vault';
 import { usePrices } from '../hook/price';
 import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
@@ -39,22 +39,13 @@ import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
 import Mouse from '../ui/mouse';
 
-import type { MouseAction } from '../core/mouse';
 import { getDirection, T } from '../utility/language';
-import {
-    discoverTokens,
-    hideToken,
-    loadHiddenTokens,
-    loadTokens,
-    readToken,
-    saveHiddenTokens,
-    saveTokens,
-    unhideToken,
-    type HiddenMap,
-    type TokenMap
-} from '../core/token';
+import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
-import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount, type Account } from '../utility/account';
+import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount } from '../utility/account';
+import type { MouseAction, SidebarItem } from '../type/app';
+import type { Account, Vault } from '../type/wallet';
+import type { HiddenMap, TokenMap } from '../type/token';
 
 type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse';
 

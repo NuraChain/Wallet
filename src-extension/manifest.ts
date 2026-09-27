@@ -1,6 +1,5 @@
 import { appVersion, manifestVersion } from './version.ts';
-
-export type Target = 'chrome' | 'edge' | 'firefox' | 'safari';
+import type { Target } from '../src/type/extension';
 
 /** Edge is Chromium under a different store, and reads every key Chrome reads. */
 const isChromium = (target: Target) => target === 'chrome' || target === 'edge';

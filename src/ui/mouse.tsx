@@ -8,7 +8,7 @@ import { focusRing } from './token';
 import { layer } from '../layout/container';
 import { useMouseOpacity } from '../hook/mouse';
 
-import type { MouseAction } from '../core/mouse';
+import type { MouseAction } from '../type/app';
 
 const size = 48;
 const edge = 16;

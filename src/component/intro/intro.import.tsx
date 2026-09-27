@@ -1,5 +1,3 @@
-import type { VaultKind } from '../../core/vault';
-
 import { Mnemonic } from 'ethers';
 import { useNavigate } from 'react-router';
 import { useState } from 'react';
@@ -18,6 +16,7 @@ import { passwordHash } from '../../core/password';
 import { unlockSession } from '../../core/session';
 import { setValue, setValueEncrypted } from '../../utility/storage';
 import { Horizontal, Vertical } from '../../ui/stack';
+import type { VaultKind } from '../../type/wallet';
 
 const methodList: { kind: VaultKind; label: string }[] = [
     { kind: 'mnemonic', label: 'Intro.ImportWallet.MethodPhrase' },

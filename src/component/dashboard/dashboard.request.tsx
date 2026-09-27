@@ -1,5 +1,3 @@
-import type { Token } from '../../core/token';
-
 import { useRef, useState, type ReactNode } from 'react';
 import { formatUnits } from 'ethers';
 import { ArrowDown, KeyRound, User } from 'lucide-react';
@@ -21,7 +19,9 @@ import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
 import { getNativeLogo } from '../../core/price';
 import { readCalldata } from '../../core/calldata';
-import { resolveDappPrompt, type DappPrompt } from '../../core/dapp.rpc';
+import { resolveDappPrompt } from '../../core/dapp.rpc';
+import type { DappPrompt } from '../../type/dapp';
+import type { Token } from '../../type/token';
 
 interface Row {
     label: string;

@@ -1,7 +1,5 @@
 import { platform } from '../src/platform';
 
-import type { StorageKey } from '../src/utility/storage.key';
-
 import { dockChannel } from './message.ts';
 import { dockOnActionClick, openDock, openWindow, walletWindowKey } from './platform.ts';
 
@@ -13,6 +11,7 @@ import { startDappBridge } from '../src/core/dapp.bridge';
 import { getVault, restoreSession } from '../src/core/session';
 import { getDappPrompt, rejectDappPrompts, resolveDappPrompt } from '../src/core/dapp.prompt';
 import { answerDapp, setDappAccount, syncDappState } from '../src/core/dapp.rpc';
+import type { StorageKey } from '../src/type/storage';
 
 /**
  * The worker is the only context that exists when a dApp calls — the popup is shut almost all of

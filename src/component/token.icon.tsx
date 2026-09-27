@@ -5,7 +5,7 @@ import IconBox from '../ui/iconbox';
 import { cn } from '../utility/cn';
 import { useCachedImage } from '../hook/image';
 
-import type { ImageKind } from '../core/image';
+import type { ImageKind } from '../type/token';
 
 const sizeMap = { 5: 'size-5', 7: 'size-7', 8: 'size-8', 9: 'size-9' } as const;
 

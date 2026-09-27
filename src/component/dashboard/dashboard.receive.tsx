@@ -1,5 +1,3 @@
-import type { Network } from '../../core/network';
-
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { TriangleAlert } from 'lucide-react';
@@ -12,6 +10,7 @@ import AddressBlock from '../../ui/address';
 import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
+import type { Network } from '../../type/network';
 
 export default function DashboardReceive({ address, network, onClose }: { address: string; network: Network; onClose: () => void }) {
     const [qr, setQr] = useState('');

@@ -6,8 +6,7 @@ import { platform as hostPlatform } from '@tauri-apps/plugin-os';
 import { openUrl as openExternal } from '@tauri-apps/plugin-opener';
 import { BaseDirectory, mkdir, writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
 
-import type { Host } from '../utility/platform.type';
-import type { Platform, PlatformApproval, PlatformDapp, PlatformExporter, PlatformSession } from './type';
+import type { Host, Platform, PlatformApproval, PlatformDapp, PlatformExporter, PlatformSession } from '../type/platform';
 
 interface AndroidBridge {
     saveImage: (base64Png: string, name: string) => string;

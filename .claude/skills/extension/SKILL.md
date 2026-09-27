@@ -28,7 +28,7 @@ Importing the module rather than the file is what keeps one build from pulling i
 other's dependencies. **Nothing in `src/` may import either implementation directly**, and
 nothing may branch on the host to decide behaviour — that is what the interface is for.
 
-`src/platform/type.ts` is the contract: `storage`, `session`, `approval`, `dapp`, `panel`,
+`src/type/platform.ts` is the contract: `storage`, `session`, `approval`, `dapp`, `panel`,
 `host`, `fetch`, `openUrl`, `exporter`. Its doc comments explain *why* each member exists,
 which is almost always "a Tauri window can do this in one place and an extension cannot".
 Adding a capability means: add it to the interface, implement it in **both** files, and make

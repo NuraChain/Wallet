@@ -1,5 +1,3 @@
-import type { VaultKind } from '../../core/vault';
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -14,6 +12,7 @@ import { lockSession } from '../../core/session';
 import { removeValues } from '../../utility/storage';
 import { invalidateHistory } from '../../core/history.cache';
 import { invalidateTokenCache } from '../../core/token.cache';
+import type { VaultKind } from '../../type/wallet';
 
 const clearList = ['Wallet.Mnemonic', 'Wallet.Password', 'Wallet.Name', 'Wallet.Accounts', 'Wallet.Active'] as const;
 

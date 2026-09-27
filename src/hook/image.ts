@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 
-import { imageCache, type ImageKind } from '../core/image';
+import { imageCache } from '../core/image';
 import { resolveSiteIcon } from '../core/site.icon';
+import type { ImageKind } from '../type/token';
 
 export const useCachedImage = (url: string, kind: ImageKind = 'unknown') => {
     const [source, setSource] = useState('');

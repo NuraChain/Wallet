@@ -1,14 +1,5 @@
 import { ethers } from 'ethers';
-
-export interface SendParams {
-    to: string;
-    amount: string;
-
-    /** The native token's own decimals. This used to be hardcoded to 18 through `parseEther`, so
-        on a chain that uses anything else the amount confirmed was not the amount broadcast. */
-    decimals: number;
-    token?: { address: string; decimals: number };
-}
+import type { SendParams } from '../type/wallet';
 
 const transferAbi = ['function transfer(address to, uint256 amount) returns (bool)'];
 

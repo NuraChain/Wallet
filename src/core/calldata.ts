@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+import type { CallSummary } from '../type/dapp';
 
 /**
  * Just enough call decoding to tell an approval screen what it is approving.
@@ -39,29 +40,6 @@ register('setApprovalForAll(address,bool)', { spender: 0, approval: true });
 register('increaseAllowance(address,uint256)', { spender: 0, amount: 1, approval: true });
 register('transfer(address,uint256)', { recipient: 0, amount: 1, approval: false });
 register('transferFrom(address,address,uint256)', { amount: 2, approval: false });
-
-export interface CallSummary {
-    selector: string;
-
-    /** The method name, or an empty string when the selector is not one this wallet names. */
-    method: string;
-    bytes: number;
-
-    /** This call delegates spending power rather than spending it. */
-    approval: boolean;
-    spender: string;
-
-    /** Who a `transfer` pays; the transaction's own `to` is only the token contract. Not read for
-        `transferFrom`, which can move someone else's tokens and so is no plain send. */
-    recipient: string;
-    amount?: bigint;
-    unlimited: boolean;
-
-    /** Takes spending power away rather than handing it over — `approve(spender, 0)` or
-        `setApprovalForAll(operator, false)`. It shares a selector with the grant, and the prompt
-        used to warn that a site could now take "0 of USDT". */
-    revoke: boolean;
-}
 
 export const readCalldata = (data: string): CallSummary | undefined => {
     if (!data.startsWith('0x') || data.length < 10) {

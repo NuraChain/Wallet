@@ -1,5 +1,3 @@
-import type { TokenBalance } from '../../core/token';
-
 import { useMemo, useState } from 'react';
 import { formatUnits, isAddress, parseUnits } from 'ethers';
 import { ChevronDown, ArrowLeft, CircleCheckBig, ExternalLink, Share2 } from 'lucide-react';
@@ -19,14 +17,17 @@ import { TextField } from '../../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
-import { vaultManager, type Vault } from '../../core/vault';
+import { vaultManager } from '../../core/vault';
 import { useOnline } from '../../hook/connection';
 import { useClipboard } from '../../hook/clipboard';
 import { getProvider } from '../../core/network.provider';
-import type { Network } from '../../core/network';
+
 import { getNativeLogo, getTokenLogo } from '../../core/price';
 import { trimAmount } from '../../utility/format';
 import { Horizontal, Vertical } from '../../ui/stack';
+import type { TokenBalance } from '../../type/token';
+import type { Vault } from '../../type/wallet';
+import type { Network } from '../../type/network';
 
 type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
 

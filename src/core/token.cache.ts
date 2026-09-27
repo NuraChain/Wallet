@@ -1,6 +1,6 @@
 import { cacheLog, clearUnder, prune, readRaw, writeRaw } from './cache.store';
 
-import type { Token, TokenBalance } from './token';
+import type { Token, TokenBalance } from '../type/token';
 
 const tokenCacheConfig = {
     balances: 30 * 1000,

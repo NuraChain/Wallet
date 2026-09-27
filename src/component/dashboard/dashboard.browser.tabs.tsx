@@ -15,11 +15,12 @@ import SiteIcon from '../site.icon';
 
 import { cn } from '../../utility/cn';
 import { getDirection, getLanguage, T } from '../../utility/language';
-import { getSiteHost, type BrowserTab } from '../../core/browser';
+import { getSiteHost } from '../../core/browser';
 
 import 'swiper/css';
 import 'swiper/css/free-mode';
 import 'swiper/css/mousewheel';
+import type { BrowserTab } from '../../type/browser';
 
 const chipBase =
     'flex h-9 w-full items-center gap-1 rounded-surface border ps-3 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';

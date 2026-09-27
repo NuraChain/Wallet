@@ -1,15 +1,5 @@
 import { cacheLog, clearUnder, prune, readRaw, writeRaw } from './cache.store';
-
-export interface Transaction {
-    id: string;
-    hash: string;
-    from: string;
-    to: string;
-    value: string;
-    symbol: string;
-    timestamp: number;
-    incoming: boolean;
-}
+import type { Transaction } from '../type/wallet';
 
 const cacheConfig = {
     history: 2 * 60 * 1000,

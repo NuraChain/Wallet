@@ -2,26 +2,10 @@ import { Contract, formatUnits, getAddress, isAddress } from 'ethers';
 
 import { httpRequest } from './request';
 import { getProvider } from './network.provider';
-import { getExplorerApi, nuraChainId, type Network } from './network';
+import { getExplorerApi, nuraChainId } from './network';
 import { getValue, setValue } from '../utility/storage';
-
-export interface Token {
-    address: string;
-    symbol: string;
-    name: string;
-    decimals: number;
-    coinId: string;
-}
-
-export interface TokenBalance {
-    token: Token;
-    value: bigint;
-    formatted: string;
-}
-
-export type TokenMap = Record<number, Token[]>;
-
-export type HiddenMap = Record<number, string[]>;
+import type { Network } from '../type/network';
+import type { HiddenMap, Token, TokenBalance, TokenMap } from '../type/token';
 
 export const erc20Abi = [
     'function balanceOf(address owner) view returns (uint256)',

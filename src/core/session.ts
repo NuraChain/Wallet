@@ -1,6 +1,6 @@
 import { platform } from '../platform';
 
-import type { Vault } from './vault';
+import type { Vault } from '../type/wallet';
 
 let current: Vault | undefined;
 

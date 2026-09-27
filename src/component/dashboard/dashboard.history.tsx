@@ -1,5 +1,3 @@
-import type { Transaction } from '../../hook/history';
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 
@@ -15,6 +13,7 @@ import { Modal, ModalHeader } from '../../ui/modal';
 import { T } from '../../utility/language';
 import { useOnline } from '../../hook/connection';
 import { Horizontal, Vertical } from '../../ui/stack';
+import type { Transaction } from '../../type/wallet';
 
 const filters = ['All', 'Sent', 'Received'] as const;
 

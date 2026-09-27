@@ -21,9 +21,11 @@ failed build. Lint and format are separate commands, not build steps.
 | `src/hook/` | React bindings over `core`/`utility` singletons | `balance.ts` |
 | `src/utility/` | Framework-free helpers: `cn`, `format`, `storage`, `language`, `theme`, `event` | `format.ts` |
 | `src/platform/` | The host seam — one implementation per target behind `#platform-impl` | `tauri.ts` |
+| `src/type/` | Every exported type outside `src/ui`, one file per area; `global.d.ts` holds the ambient ones | `wallet.ts` |
 
-Filenames are lowercase, dot-separated, never PascalCase. Nothing in `utility/` may import
-React; nothing in `core/` may import a component.
+A shared type goes in `src/type/`, never beside the code that happens to use it first; a
+component in `src/ui` keeps its own prop types. Filenames are lowercase, dot-separated, never
+PascalCase. Nothing in `utility/` may import React; nothing in `core/` may import a component.
 
 ## Component shape
 

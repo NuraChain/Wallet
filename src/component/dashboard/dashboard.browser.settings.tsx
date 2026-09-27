@@ -6,8 +6,9 @@ import SectionHeader from '../../ui/section';
 import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
-import type { BrowserView } from '../../core/browser';
+
 import { Horizontal } from '../../ui/stack';
+import type { BrowserView } from '../../type/browser';
 
 const viewMap: { view: BrowserView; label: string; icon: typeof Monitor }[] = [
     { view: 'mobile', label: 'Dashboard.Browser.ViewMobile', icon: Smartphone },

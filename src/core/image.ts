@@ -1,7 +1,6 @@
 import { httpRequest } from './request';
 import { clearUnder, keysUnder, prune, readRaw, removeRaw, writeRaw } from './cache.store';
-
-export type ImageKind = 'network' | 'token' | 'nft' | 'unknown';
+import type { ImageKind } from '../type/token';
 
 const day = 24 * 60 * 60 * 1000;
 

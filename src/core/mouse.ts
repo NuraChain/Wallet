@@ -1,7 +1,5 @@
 import { getValue, setValue } from '../utility/storage';
 
-export type MouseAction = 'click' | 'double';
-
 export const defaultMouseOpacity = 0.25;
 
 export const readMouseOpacity = (value: unknown) => {

@@ -4,11 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useOnline } from './connection';
 import { isOnline } from '../core/connection';
 import { httpRequest } from '../core/request';
-import { getExplorerApi, type Network } from '../core/network';
-import { historyKey, readHistory, touchHistory, writeHistory, type Transaction } from '../core/history.cache';
-import type { Token } from '../core/token';
+import { getExplorerApi } from '../core/network';
+import { historyKey, readHistory, touchHistory, writeHistory } from '../core/history.cache';
 
-export type { Transaction };
+import type { Network } from '../type/network';
+import type { Transaction } from '../type/wallet';
+import type { Token } from '../type/token';
 
 interface ExplorerRow {
     hash?: unknown;

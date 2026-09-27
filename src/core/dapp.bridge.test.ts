@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { DappEnvelope, DappReply } from './dapp';
+import type { DappEnvelope, DappReply } from '../type/dapp';
 
 /**
  * The bridge is the only door a web page has into the wallet, so what matters here is what it

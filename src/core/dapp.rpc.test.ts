@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { DappEnvelope } from './dapp';
+import type { DappEnvelope } from '../type/dapp';
 
 /**
  * The router as a dApp meets it: every request that reaches the wallet — from a page in the

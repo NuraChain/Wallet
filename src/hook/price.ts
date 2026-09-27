@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { useOnline } from './connection';
-import { getNativeCoinId, getTokenCoinId, readPrices, type PriceMap } from '../core/price';
+import { getNativeCoinId, getTokenCoinId, readPrices } from '../core/price';
 
-import type { Network } from '../core/network';
-import type { TokenBalance } from '../core/token';
+import type { PriceMap, TokenBalance } from '../type/token';
+import type { Network } from '../type/network';
 
 export const usePrices = (network: Network, nativeFormatted: string, tokens: TokenBalance[]) => {
     const [held, setHeld] = useState<{ prices: PriceMap; at: number }>({ prices: {}, at: 0 });

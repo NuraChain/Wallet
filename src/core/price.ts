@@ -2,13 +2,7 @@ import { isOnline } from './connection';
 import { nuraChainId } from './network';
 import { httpRequest } from './request';
 import { prune, readRaw, writeRaw } from './cache.store';
-
-export type PriceMap = Record<string, number>;
-
-export interface PriceRead {
-    prices: PriceMap;
-    at: number;
-}
+import type { PriceMap, PriceRead } from '../type/token';
 
 const marketPrefix = 'nura:';
 

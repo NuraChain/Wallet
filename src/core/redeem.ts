@@ -1,8 +1,7 @@
 import { httpRequest } from './request';
+import type { RedeemResult } from '../type/wallet';
 
 const endpoint = '';
-
-export type RedeemResult = { ok: true; message: string } | { ok: false; message: string };
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 

@@ -1,5 +1,3 @@
-import type { Network } from '../../core/network';
-
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, TriangleAlert } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -34,14 +32,11 @@ import {
     getNativeTab,
     onNativeBrowserState,
     setBrowserFavorites,
-    setBrowserView,
-    type BrowserFavorite,
-    type BrowserState,
-    type BrowserTab,
-    type BrowserVisit,
-    type BrowserView
+    setBrowserView
 } from '../../core/browser';
 import { Vertical } from '../../ui/stack';
+import type { Network } from '../../type/network';
+import type { BrowserFavorite, BrowserState, BrowserTab, BrowserView, BrowserVisit } from '../../type/browser';
 
 const toUrl = (value: string) => {
     const trimmed = value.trim();

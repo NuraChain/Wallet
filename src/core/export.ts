@@ -1,6 +1,5 @@
-import { platform, type PlatformExporter } from '../platform';
-
-export type Exporter = PlatformExporter;
+import { platform } from '../platform';
+import type { Exporter } from '../type/platform';
 
 export const getExporter = (): Exporter => platform.exporter();
 

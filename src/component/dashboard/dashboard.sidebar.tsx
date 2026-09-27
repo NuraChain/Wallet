@@ -1,5 +1,3 @@
-import type { LucideIcon } from 'lucide-react';
-
 import Logo from '../../assets/image/logo.png';
 
 import Text from '../../ui/text';
@@ -12,23 +10,11 @@ import { T } from '../../utility/language';
 import { inset } from '../../layout/container';
 import { useIsWindows } from '../../hook/platform';
 import { Horizontal, Vertical } from '../../ui/stack';
+import type { SidebarItem } from '../../type/app';
 
 /* The product page, handed to the host browser rather than the wallet's own. It is a brand site,
    not a dApp — nothing on it wants a provider, and it has no business in a tab that carries one. */
 const site = 'https://nurawallet.app';
-
-export interface SidebarItem {
-    key: string;
-    label: string;
-    icon: LucideIcon;
-    active?: boolean;
-    primary?: boolean;
-
-    /** Marks the one action that erases the wallet, so the rail names it the same way the
-        settings screen does rather than hiding it among the ordinary ones. */
-    destructive?: boolean;
-    onClick: () => void;
-}
 
 export default function DashboardSidebar({ items, actions, footer }: { items: SidebarItem[]; actions: SidebarItem[]; footer: SidebarItem[] }) {
     const isWindows = useIsWindows();

@@ -3,11 +3,10 @@ import type { ReactNode } from 'react';
 import Text from '../ui/text';
 import TokenIcon from './token.icon';
 
-import type { ImageKind } from '../core/image';
-
 import { cn } from '../utility/cn';
 import { surfacePanel } from '../ui/panel';
 import { Vertical } from '../ui/stack';
+import type { ImageKind } from '../type/token';
 
 export function AssetAmount({ amount, value }: { amount: string; value?: string }) {
     return (

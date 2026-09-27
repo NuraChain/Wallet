@@ -1,4 +1,4 @@
-import type { LanguageType } from './language';
+import type { LanguageType } from '../type/app';
 
 interface EventMap {
     'Language.Change': [code: LanguageType];

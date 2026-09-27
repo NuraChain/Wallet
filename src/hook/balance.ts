@@ -3,11 +3,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useOnline } from './connection';
 import { isOnline } from '../core/connection';
-import type { Network } from '../core/network';
 
 import { getProvider } from '../core/network.provider';
 import { balanceKey, readBalances, readLastBalances, readLastNative, readNative, writeBalances, writeNative } from '../core/token.cache';
-import { readTokenBalances, type Token, type TokenBalance } from '../core/token';
+import { readTokenBalances } from '../core/token';
+import type { Network } from '../type/network';
+import type { Token, TokenBalance } from '../type/token';
 
 export const useBalance = (address: string, network: Network) => {
     const [held, setHeld] = useState({ key: '', value: 0n, at: 0 });

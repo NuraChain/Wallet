@@ -1,5 +1,3 @@
-import type { VaultKind } from '../../core/vault';
-
 import { useState } from 'react';
 import { Eye, EyeOff, FileText, Image, type LucideIcon } from 'lucide-react';
 
@@ -14,6 +12,7 @@ import { passwordCheck } from '../../core/password';
 import { getExporter, phraseToPng } from '../../core/export';
 import { getValueEncrypted } from '../../utility/storage';
 import { Horizontal, Vertical } from '../../ui/stack';
+import type { VaultKind } from '../../type/wallet';
 
 const exportMap: { kind: 'image' | 'text'; icon: LucideIcon; label: string }[] = [
     { kind: 'image', icon: Image, label: 'Dashboard.Phrase.SaveImage' },

@@ -11,8 +11,7 @@ import flagRu from '../assets/flag/ru.svg';
 import flagSa from '../assets/flag/sa.svg';
 import flagTr from '../assets/flag/tr.svg';
 import flagUs from '../assets/flag/us.svg';
-
-export type LanguageType = 'en' | 'fa' | 'ar' | 'es' | 'pt' | 'hi' | 'zh' | 'ru' | 'fr' | 'tr';
+import type { LanguageType } from '../type/app';
 
 let languageCurrent: LanguageType = 'en';
 let languageMap: Record<string, Record<string, never>> = {};

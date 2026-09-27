@@ -13,9 +13,10 @@ import { ConfirmPanel } from '../../ui/confirm';
 
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
-import { vaultAddress, vaultDerivable, type Vault } from '../../core/vault';
-import { accountFirst, accountLimit, defaultAccountName, type Account } from '../../utility/account';
+import { vaultAddress, vaultDerivable } from '../../core/vault';
+import { accountFirst, accountLimit, defaultAccountName } from '../../utility/account';
 import { Horizontal, Vertical } from '../../ui/stack';
+import type { Account, Vault } from '../../type/wallet';
 
 const emojiList = [
     '🦊',

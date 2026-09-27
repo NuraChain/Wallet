@@ -3,7 +3,8 @@ import { Check } from 'lucide-react';
 import MenuRow from '../../ui/menu';
 import { Modal, ModalBody, ModalHeader } from '../../ui/modal';
 
-import { T, getLanguage, setLanguage, languageRecord, type LanguageType } from '../../utility/language';
+import { T, getLanguage, setLanguage, languageRecord } from '../../utility/language';
+import type { LanguageType } from '../../type/app';
 
 export default function IntroLanguage({ onClose }: { onClose: () => void }) {
     const current = getLanguage();

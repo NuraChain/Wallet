@@ -2,18 +2,8 @@ import { platform } from '../platform';
 
 import { dappLog } from './dapp.log';
 
-import { siteOrigin, type DappEnvelope, type DappReply } from './dapp';
-
-export interface DappPage {
-    label: string;
-    origin: string;
-}
-
-/**
- * A URL a page tried to open that its webview cannot load — the native layers cancel the
- * navigation and hand it here instead of leaving the page on a dead link.
- */
-export type DappLinkHandler = (url: string) => void;
+import { siteOrigin } from './dapp';
+import type { DappEnvelope, DappLinkHandler, DappPage, DappReply } from '../type/dapp';
 
 const pages = new Map<string, string>();
 

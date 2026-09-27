@@ -1,8 +1,8 @@
 import { providerChannel } from './message.ts';
 
-import type { DappPrompt } from '../src/core/dapp.prompt';
-import type { Vault } from '../src/core/vault';
-import type { Platform, PlatformApproval, PlatformDapp, PlatformExporter, PlatformSession } from '../src/platform/type';
+import type { DappPrompt } from '../src/type/dapp';
+import type { Vault } from '../src/type/wallet';
+import type { Platform, PlatformApproval, PlatformDapp, PlatformExporter, PlatformSession } from '../src/type/platform';
 
 /** How long an unlocked wallet survives without being touched. */
 export const idleMinutes = 15;

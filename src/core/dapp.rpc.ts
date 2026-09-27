@@ -1,28 +1,17 @@
 import { ethers } from 'ethers';
 
 import { getVault } from './session';
-import { askDappPrompt, type DappPrompt } from './dapp.prompt';
+import { askDappPrompt } from './dapp.prompt';
 import { dappLog } from './dapp.log';
 import { vaultManager } from './vault';
 import { httpRequest } from './request';
 import { getProvider } from './network.provider';
 import { emitDappEvent, getDappPages } from './dapp.bridge';
 import { addNetwork, getNetwork, getNetworks, setNetwork } from './network';
-import {
-    DappError,
-    clearConnections,
-    dappError,
-    failure,
-    getConnections,
-    grantConnection,
-    isConnected,
-    revokeConnection,
-    type DappEnvelope,
-    type DappFailure,
-    type DappReply
-} from './dapp';
+import { DappError, clearConnections, dappError, failure, getConnections, grantConnection, isConnected, revokeConnection } from './dapp';
+import type { DappEnvelope, DappFailure, DappPrompt, DappReply } from '../type/dapp';
 
-export { getDappPrompt, rejectDappPrompts, resolveDappPrompt, type DappPrompt, type DappPromptKind } from './dapp.prompt';
+export { getDappPrompt, rejectDappPrompts, resolveDappPrompt } from './dapp.prompt';
 
 const readMethods = new Set([
     'eth_blobBaseFee',

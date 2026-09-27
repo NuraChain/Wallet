@@ -1,6 +1,3 @@
-import type { Network } from '../../core/network';
-import type { TokenBalance } from '../../core/token';
-
 import { useState } from 'react';
 import { Plus, Trash } from 'lucide-react';
 
@@ -16,9 +13,11 @@ import { TextField } from '../../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
-import { getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
+import { getTokenCoinId, getTokenLogo } from '../../core/price';
 import { formatUsd, trimAmount } from '../../utility/format';
 import { Vertical } from '../../ui/stack';
+import type { Network } from '../../type/network';
+import type { PriceMap, TokenBalance } from '../../type/token';
 
 export default function DashboardTokens({
     network,

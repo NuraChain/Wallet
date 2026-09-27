@@ -1,23 +1,5 @@
 import { platform } from '../platform';
-
-export type DappPromptKind = 'connect' | 'signature' | 'typed' | 'transaction' | 'chain' | 'asset';
-
-export interface DappPrompt {
-    id: string;
-    kind: DappPromptKind;
-    origin: string;
-
-    summary: string;
-
-    transaction?: { to: string; value: string; data: string; fee: string };
-
-    /** `added` and `from` are decided where the request is routed, never by the window drawing
-        it: in an extension that window holds its own copy of the network list and the current
-        network, and the worker is the one that changes both. */
-    chain?: { name: string; id: number; rpc: string; added: boolean; from: { name: string; id: number } };
-
-    asset?: { address: string; symbol: string; decimals: number };
-}
+import type { DappPrompt } from '../type/dapp';
 
 /**
  * The queue of things waiting on the user.

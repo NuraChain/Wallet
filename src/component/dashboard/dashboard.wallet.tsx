@@ -1,7 +1,3 @@
-import type { Network } from '../../core/network';
-import type { TokenBalance } from '../../core/token';
-import type { Transaction } from '../../hook/history';
-
 import { useState } from 'react';
 import { ChevronDown, ArrowDownLeft, ArrowUpRight, Gift, Globe, Settings, List, LayoutGrid, User, type LucideIcon } from 'lucide-react';
 
@@ -19,9 +15,12 @@ import ListCard from '../../ui/list';
 import StatusBlock from '../../ui/state';
 
 import { T } from '../../utility/language';
-import { getNativeCoinId, getNativeLogo, getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
+import { getNativeCoinId, getNativeLogo, getTokenCoinId, getTokenLogo } from '../../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
 import { Horizontal, Vertical } from '../../ui/stack';
+import type { Network } from '../../type/network';
+import type { PriceMap, TokenBalance } from '../../type/token';
+import type { Transaction } from '../../type/wallet';
 
 const unknownAmount = '—';
 
