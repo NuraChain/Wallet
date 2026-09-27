@@ -3,7 +3,7 @@
     "productName": "Nura Wallet",
     "identifier": "io.nurawallet",
     "build": {
-        "frontendDist": "../dist",
+        "frontendDist": "../.dist",
         "beforeDevCommand": "npm run dev",
         "devUrl": "http://localhost:1420",
         "beforeBuildCommand": "npm run build"

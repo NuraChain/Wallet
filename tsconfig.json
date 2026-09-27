@@ -25,5 +25,5 @@
         }
     },
     "include": ["src", "vite.config.ts"],
-    "exclude": ["dist", "src-tauri", "node_modules"]
+    "exclude": [".dist", "src-tauri", "node_modules"]
 }

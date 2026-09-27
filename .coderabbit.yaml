@@ -12,7 +12,7 @@ reviews:
     drafts: false
   path_filters:
     - "!**/node_modules/**"
-    - "!**/dist/**"
+    - "!**/.dist/**"
     - "!**/dist-extension/**"
     - "!**/target/**"
     - "!**/*.lock"

@@ -6,7 +6,7 @@ description: Use for anything touching the Tauri shell — Rust in src-tauri, co
 # Tauri in this repo
 
 Tauri v2. `src-tauri/` builds the crate `app_lib` (`lib.rs`, `main.rs`, `dapp.rs`) and the
-frontend is the Vite bundle in `dist/`. Targets: Windows, Linux and macOS desktop, plus
+frontend is the Vite bundle in `.dist/`. Targets: Windows, Linux and macOS desktop, plus
 Android and iOS. The browser extension is a **different build** and does not come through
 here at all — see the `extension` skill.
 

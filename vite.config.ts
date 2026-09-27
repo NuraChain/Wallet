@@ -34,7 +34,7 @@ export default defineConfig(() => ({
     plugins: [react(), tailwind()],
 
     build: {
-        outDir: '../dist',
+        outDir: '../.dist',
         emptyOutDir: true,
         chunkSizeWarningLimit: 1024
     },
@@ -57,7 +57,7 @@ export default defineConfig(() => ({
               }
             : undefined,
         watch: {
-            ignored: ['**/dist/**', '**/src-tauri/**']
+            ignored: ['**/.dist/**', '**/src-tauri/**']
         }
     }
 }));
