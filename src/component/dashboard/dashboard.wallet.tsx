@@ -108,10 +108,10 @@ export default function DashboardWallet({
         { key: 'activity', label: T('Dashboard.Wallet.Activity') }
     ] as const;
 
-    const trailingMap: Record<TabKey, { icon: LucideIcon; label: string; onClick: () => void } | undefined> = {
-        token: { icon: LayoutGrid, label: T('Dashboard.Tokens.Manage'), onClick: onTokens },
+    const trailingMap: Record<TabKey, { icon: LucideIcon; onClick: () => void } | undefined> = {
+        token: { icon: LayoutGrid, onClick: onTokens },
         nft: undefined,
-        activity: { icon: List, label: T('Dashboard.Activity.Overview'), onClick: onOverview }
+        activity: { icon: List, onClick: onOverview }
     };
 
     const trailing = trailingMap[tab];
@@ -159,15 +159,7 @@ export default function DashboardWallet({
                     <ChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
 
-                <Button
-                    variant='chip'
-                    size='iconChip'
-                    onClick={onSettings}
-                    aria-label={T('Dashboard.Settings.Title')}
-                    shrink={false}
-                    wide='hide'
-                    icon={<Settings size={17} />}
-                />
+                <Button variant='chip' size='iconChip' onClick={onSettings} shrink={false} wide='hide' icon={<Settings size={17} />} />
             </Horizontal>
 
             <DashboardOffline error={native.error} at={native.at} />
@@ -175,7 +167,7 @@ export default function DashboardWallet({
             <Vertical align='center' gap={1.5} py={2}>
                 <Text dir='ltr' variant='display' align='center' breaks='all' text={headline()} />
 
-                <CopyButton trailing value={address} label={T('Dashboard.Copy')} subtle>
+                <CopyButton trailing value={address} subtle>
                     <Text as='span' variant='plain' dir='ltr' mono>
                         {shortAddress(address)}
                     </Text>
@@ -197,8 +189,6 @@ export default function DashboardWallet({
                     {tabMap.map((item) => (
                         <Tab
                             key={item.key}
-                            id={`wallet-tab-${item.key}`}
-                            panel={`wallet-panel-${item.key}`}
                             label={item.label}
                             selected={item.key === tab}
                             onSelect={() => {
@@ -208,19 +198,11 @@ export default function DashboardWallet({
                     ))}
 
                     {trailing !== undefined && (
-                        <Button
-                            variant='muted'
-                            size='icon'
-                            aria-label={trailing.label}
-                            onClick={trailing.onClick}
-                            ms='auto'
-                            shrink={false}
-                            icon={<trailing.icon size={16} />}
-                        />
+                        <Button variant='muted' size='icon' onClick={trailing.onClick} ms='auto' shrink={false} icon={<trailing.icon size={16} />} />
                     )}
                 </TabBar>
 
-                <Vertical squeeze='y' grow role='tabpanel' id={`wallet-panel-${tab}`} aria-labelledby={`wallet-tab-${tab}`}>
+                <Vertical squeeze='y' grow role='tabpanel'>
                     {tab === 'token' && (
                         <ListCard>
                             <TokenRow

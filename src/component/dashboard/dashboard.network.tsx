@@ -119,7 +119,6 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                 value={draft[item.key]}
                                 dir={item.key === 'Name' ? undefined : 'ltr'}
                                 inputMode={item.numeric ? 'numeric' : undefined}
-                                aria-label={T(`Dashboard.Network.${item.key}`)}
                                 placeholder={T(`Dashboard.Network.${item.key}`)}
                                 onValue={(value) => {
                                     setDraft((current) => ({ ...current, [item.key]: value }));
@@ -182,7 +181,6 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                             <Button
                                                 variant='danger'
                                                 size='iconChip'
-                                                aria-label={T('Dashboard.Network.Remove')}
                                                 onClick={() => {
                                                     setRemoving({ id: item.id, name: item.name });
                                                 }}

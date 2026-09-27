@@ -105,8 +105,6 @@ export default function DashboardBrowserStart({
                     {tabMap.map((item) => (
                         <Tab
                             key={item.key}
-                            id={`browser-tab-${item.key}`}
-                            panel={`browser-panel-${item.key}`}
                             label={item.label}
                             selected={item.key === tab}
                             onSelect={() => {
@@ -131,7 +129,7 @@ export default function DashboardBrowserStart({
                     )}
                 </TabBar>
 
-                <Block role='tabpanel' id={`browser-panel-${tab}`} aria-labelledby={`browser-tab-${tab}`}>
+                <Block role='tabpanel'>
                     {tab === 'favorite' &&
                         (editing ? (
                             <Vertical gap={2}>
@@ -151,7 +149,6 @@ export default function DashboardBrowserStart({
                                             onClick={() => {
                                                 setRemoving(item);
                                             }}
-                                            aria-label={T('Dashboard.Browser.FavoriteRemove')}
                                             shrink={false}
                                             icon={<Trash size={16} />}
                                         />
@@ -185,7 +182,6 @@ export default function DashboardBrowserStart({
                                     onClick={() => {
                                         setEditor(true);
                                     }}
-                                    aria-label={T('Dashboard.Browser.FavoriteAdd')}
                                     size='siteAdd'
                                 >
                                     <Plus size={16} className='shrink-0' />

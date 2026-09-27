@@ -22,7 +22,7 @@ export default function MenuRow({
     onClick: () => void;
 } & Placement) {
     return (
-        <Button variant={variant} size='menu' selected={selected} aria-current={selected || undefined} onClick={onClick} {...place}>
+        <Button variant={variant} size='menu' selected={selected} onClick={onClick} {...place}>
             {leading}
 
             <Text variant='body' squeeze='x' grow truncate align='start' tone={variant === 'primary' ? 'onPrimary' : undefined} text={label} />

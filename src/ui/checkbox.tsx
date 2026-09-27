@@ -13,7 +13,6 @@ export default function Checkbox({ checked, text, onToggle, children }: { checke
             <button
                 type='button'
                 role='checkbox'
-                aria-checked={checked}
                 onClick={onToggle}
                 className={cn(fieldSurface, 'flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-control hover:bg-btn-muted-hover')}
             >

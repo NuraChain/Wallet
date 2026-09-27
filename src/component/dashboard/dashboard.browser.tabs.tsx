@@ -70,7 +70,7 @@ export default function DashboardBrowserTabs({
 
     return (
         <Toolbar>
-            <Button variant='chip' size='iconChipSmall' aria-label={T('Dashboard.Browser.TabNew')} onClick={onAdd} shrink={false} icon={<Plus size={16} />} />
+            <Button variant='chip' size='iconChipSmall' onClick={onAdd} shrink={false} icon={<Plus size={16} />} />
 
             <Block squeeze='x' grow>
                 <Swiper
@@ -93,7 +93,6 @@ export default function DashboardBrowserTabs({
                             <SwiperSlide key={item.id} className={slideSize}>
                                 <TabChip active={item.id === active}>
                                     <Button
-                                        aria-current={item.id === active}
                                         title={url.length > 0 ? url : name}
                                         onClick={() => {
                                             onPick(item.id);
@@ -116,7 +115,6 @@ export default function DashboardBrowserTabs({
                                     </Button>
 
                                     <Button
-                                        aria-label={T('Dashboard.Browser.TabClose')}
                                         onClick={() => {
                                             onClose(item.id);
                                         }}

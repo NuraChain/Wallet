@@ -7,14 +7,13 @@ import Text from './text';
 import Button from './button';
 
 import { cn } from '../utility/cn';
-import { T } from '../utility/language';
 import { inset, layer } from './container';
-import { DialogTitleContext, useDialog, useDialogTitleId } from './dialog';
+import { useDialog } from './dialog';
 import { surfacePanel } from './panel';
 import { Vertical } from './stack';
 
 export function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode }) {
-    const { panelRef, titleId } = useDialog(onClose);
+    const { panelRef } = useDialog(onClose);
 
     return (
         <>
@@ -29,8 +28,6 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
             <motion.div
                 ref={panelRef}
                 role='dialog'
-                aria-modal
-                aria-labelledby={titleId}
                 tabIndex={-1}
                 initial={{ y: '-100%' }}
                 animate={{ y: '0%' }}
@@ -45,20 +42,18 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                     'sm:mx-auto sm:px-6'
                 )}
             >
-                <Button variant='muted' size='iconLarge' aria-label={T('App.Close')} onClick={onClose} mt={4} shrink={false} icon={<X size={24} />} />
+                <Button variant='muted' size='iconLarge' onClick={onClose} mt={4} shrink={false} icon={<X size={24} />} />
 
-                <DialogTitleContext value={titleId}>{children}</DialogTitleContext>
+                {children}
             </motion.div>
         </>
     );
 }
 
 export function SheetHeader({ title, subtitle }: { title: string; subtitle: string }) {
-    const titleId = useDialogTitleId();
-
     return (
         <Vertical>
-            <Text as='h2' id={titleId} variant='title' align='center' scaleUp text={title} />
+            <Text as='h2' variant='title' align='center' scaleUp text={title} />
 
             <Text align='center' scaleUp text={subtitle} />
         </Vertical>

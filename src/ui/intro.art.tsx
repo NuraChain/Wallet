@@ -3,7 +3,7 @@ const artSize = 'h-44 max-h-[52%] w-auto max-w-full sm:h-60 md:h-72';
 
 export function IntroArtConnect() {
     return (
-        <svg fill='none' aria-hidden='true' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg' className={artSize}>
+        <svg fill='none' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg' className={artSize}>
             <circle cx='100' cy='100' r='86' className='fill-btn-primary/10' />
 
             <circle cx='100' cy='100' r='62' strokeWidth='2' className='fill-btn-primary/10 stroke-btn-primary/40' />
@@ -37,7 +37,7 @@ export function IntroArtConnect() {
 
 export function IntroArtDecentralized() {
     return (
-        <svg fill='none' aria-hidden='true' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg' className={artSize}>
+        <svg fill='none' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg' className={artSize}>
             <circle cx='100' cy='100' r='86' className='fill-btn-primary/10' />
 
             <path d='M100 32 L158 66 V134 L100 168 L42 134 V66 Z' strokeWidth='2' strokeLinejoin='round' className='stroke-txt-normal/25' />
@@ -75,7 +75,7 @@ export function IntroArtDecentralized() {
 
 export function IntroArtSecure() {
     return (
-        <svg fill='none' aria-hidden='true' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg' className={artSize}>
+        <svg fill='none' viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg' className={artSize}>
             <circle cx='100' cy='100' r='86' className='fill-btn-primary/10' />
 
             <path

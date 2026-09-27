@@ -51,7 +51,7 @@ variant: `size` (`small` | `large`), `scaleUp` (one step up at `sm`), `tone` (`n
 
 `as` picks the element and defaults to `div`. **Use it.** A visual heading and a semantic
 one are the same object here: pass `as='h1'`/`'h2'` so screens have an outline and dialogs
-have a title `aria-labelledby` can point at.
+have a heading. No `aria-*` attributes anywhere (see `CLAUDE.md`).
 
 ## Buttons — `ui/button.tsx`
 
@@ -186,11 +186,9 @@ name, no focus trap and no Escape — including the one that approves a transact
 - **`Popover`** (`ui/popover.tsx`) — opens *within* a page and must not escape it. It uses
   `useDismiss` only: Escape and focus return, but **no** focus trap. A dropdown the keyboard
   cannot leave is a dropdown that has captured the page.
-- **`useDialog(onClose)`** returns `{ panelRef, titleId }` and supplies the four things that
-  make a dialog one: a name, focus in and back out again, Tab cycling inside the panel, and
+- **`useDialog(onClose)`** returns `{ panelRef }` and supplies the three things that
+  make a dialog one: focus in and back out again, Tab cycling inside the panel, and
   Escape closing the **topmost** dialog only (they stack — Settings opens Language).
-
-Put `titleId` on the title; `ModalHeader` claims it from context automatically.
 
 ## Forms — `ui/field.tsx`
 
@@ -207,7 +205,7 @@ icon, or of both edges), `mono`, `align`, `textSize` and `truncate`; `TextArea` 
   `size`: `compact` (dialogs) | `comfortable` (intro) | `dense` | `banner`, plus `textAlign`,
   `mono` and `Placement`. **An empty message renders nothing**,
   so drop the `message.length > 0 &&` guard at the call site.
-- **`StatusBlock`** (`ui/state.tsx`) — `state`: `empty` | `loading`, with `aria-live`. What a
+- **`StatusBlock`** (`ui/state.tsx`) — `state`: `empty` | `loading`. What a
   list shows when it has nothing to show yet or nothing at all.
 - **`Live`** (`ui/live.tsx`) — an `sr-only` announcement slot that is **always mounted**, so a
   message is announced when it changes rather than never. `Alert` already carries one; reach for

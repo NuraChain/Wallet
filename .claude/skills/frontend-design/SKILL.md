@@ -82,11 +82,10 @@ and nothing else. It is never the app's default face.
   only a colour and nothing reflows.
 - **44px minimum touch target.** Icon buttons are 32–40px squares by design; `tap-44` grows
   the hit area without changing a pixel that's drawn. Never scale the glyph up instead.
-- **A dialog is a role, a name, a focus trap and an Escape.** Use `Modal`/`Sheet`.
-- **A list that finishes loading and turns out empty is a change worth hearing** —
-  `StatusBlock` carries `aria-live`.
+- **A dialog is a role, a focus trap and an Escape.** Use `Modal`/`Sheet`.
+- **No `aria-*` attributes** — a project rule (`CLAUDE.md`); `role` and `inert` stay.
 - Announce with the element, not with an attribute bolted on: `Text as='h2'` gives a screen
-  an outline and a dialog a title to point at.
+  an outline and a dialog a heading.
 
 ## Every screen ships four ways
 

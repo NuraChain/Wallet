@@ -19,7 +19,6 @@ import { useClipboard } from '../hook/clipboard';
  */
 export default function CopyButton({
     value,
-    label,
     doneText = '',
     failedText = '',
     variant = 'bare',
@@ -30,7 +29,6 @@ export default function CopyButton({
     children
 }: {
     value: string;
-    label: string;
     doneText?: string;
     failedText?: string;
     variant?: 'bare' | 'muted' | 'normal' | 'primary';
@@ -95,7 +93,6 @@ export default function CopyButton({
             variant={variant === 'bare' ? bare : variant}
             size={size}
             width={width}
-            aria-label={children === undefined ? label : undefined}
             onClick={() => {
                 void clipboard.copy(value);
             }}

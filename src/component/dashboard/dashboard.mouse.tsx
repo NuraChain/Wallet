@@ -31,12 +31,12 @@ export default function DashboardMouse({ onClose }: { onClose: () => void }) {
 
             <Vertical gap={2}>
                 <Horizontal align='center' justify='between'>
-                    <Text id='mouse-opacity' variant='captionStrong' text={T('Dashboard.Mouse.Opacity')} />
+                    <Text variant='captionStrong' text={T('Dashboard.Mouse.Opacity')} />
 
                     <Text dir='ltr' tabular text={`${percent}%`} />
                 </Horizontal>
 
-                <Slider value={percent} min={10} max={100} step={5} labelledBy='mouse-opacity' onValue={onChange} />
+                <Slider value={percent} min={10} max={100} step={5} onValue={onChange} />
             </Vertical>
         </Modal>
     );

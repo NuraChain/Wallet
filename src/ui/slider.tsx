@@ -4,15 +4,12 @@ export default function Slider({
     min,
     max,
     step,
-    labelledBy,
     onValue
 }: {
     value: number;
     min: number;
     max: number;
     step: number;
-    /** The id of the text that names it. */
-    labelledBy: string;
     onValue: (value: number) => void;
 }) {
     return (
@@ -22,7 +19,6 @@ export default function Slider({
             max={max}
             step={step}
             value={value}
-            aria-labelledby={labelledBy}
             onChange={(event) => {
                 onValue(Number(event.target.value));
             }}

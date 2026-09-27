@@ -115,7 +115,6 @@ export default function DashboardHistory({
                     subtitle={T('Dashboard.Activity.Count', String(results.length))}
                     titleGrow
                     close='chip'
-                    closeLabel={T('Dashboard.Activity.Close')}
                     onClose={onClose}
                 />
 
@@ -123,7 +122,6 @@ export default function DashboardHistory({
                     value={query}
                     spellCheck={false}
                     autoComplete='off'
-                    aria-label={T('Dashboard.Activity.Search')}
                     placeholder={T('Dashboard.Activity.Search')}
                     size='compact'
                     onValue={setQuery}
@@ -139,7 +137,6 @@ export default function DashboardHistory({
                             onClick={() => {
                                 setFilter(item);
                             }}
-                            aria-pressed={filter === item}
                             size='segment'
                             grow
                             text={T(`Dashboard.Activity.Filter${item}`)}
@@ -163,7 +160,7 @@ export default function DashboardHistory({
 
                         {!loading && results.length === 0 && <StatusBlock px={5} text={emptyText()} />}
 
-                        {shown < results.length && <Block ref={endRef} aria-hidden='true' height={4} shrink={false} />}
+                        {shown < results.length && <Block ref={endRef} height={4} shrink={false} />}
                     </Vertical>
                 </Vertical>
 

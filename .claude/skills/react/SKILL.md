@@ -96,8 +96,7 @@ export const useLanguage = (): LanguageType => useSyncExternalStore(subscribeLan
   (`on`/`emit`/`off`). Adding an event means adding a line to its `EventMap`. Keep the
   import direction one-way — the emitter imports the bus, the bus imports only *types*
   back, or the two modules cycle.
-- Context is used for exactly one thing: passing a dialog's `titleId` down to whatever
-  renders its header (`ui/dialog.ts`). Read it with React 19's `use()`, not `useContext`.
+- No React context. If one is ever needed, read it with React 19's `use()`, not `useContext`.
 
 ## Routing
 

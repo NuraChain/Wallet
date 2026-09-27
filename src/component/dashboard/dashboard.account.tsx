@@ -261,7 +261,6 @@ export default function DashboardAccount({
                                                     setEditing(-1);
                                                     setPicking(item.index);
                                                 }}
-                                                aria-label={T('Dashboard.Accounts.Emoji')}
                                                 variant='plain'
                                                 shrink={false}
                                                 icon={
@@ -292,7 +291,6 @@ export default function DashboardAccount({
                                         <Button
                                             variant='muted'
                                             size='icon'
-                                            aria-label={T('Dashboard.Accounts.Rename')}
                                             onClick={() => {
                                                 onEdit(item.index, name);
                                             }}
@@ -304,7 +302,6 @@ export default function DashboardAccount({
                                             <Button
                                                 variant='danger'
                                                 size='icon'
-                                                aria-label={T('Dashboard.Accounts.Remove')}
                                                 onClick={() => {
                                                     setRemoving({ index: item.index, name });
                                                 }}

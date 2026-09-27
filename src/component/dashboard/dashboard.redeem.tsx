@@ -96,7 +96,6 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                         onClick={() => {
                             void onSubmit();
                         }}
-                        aria-label={isLoading ? T('Dashboard.Redeem.Pending') : undefined}
                         mt={1}
                         text={isLoading ? '' : T('Dashboard.Redeem.Submit')}
                     />

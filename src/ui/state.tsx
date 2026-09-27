@@ -27,7 +27,6 @@ export default function StatusBlock({
 }) {
     return (
         <div
-            aria-live='polite'
             className={cn(
                 'flex flex-col items-center gap-1 text-center',
                 panel ? `${surfacePanel} rounded-surface px-3 py-6` : 'py-10',

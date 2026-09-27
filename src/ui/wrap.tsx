@@ -33,7 +33,7 @@ export function Block(
 
 /** The line joining one stop of a request's route to the next. */
 export function Rail() {
-    return <div aria-hidden='true' className='my-1 w-px flex-1 bg-line' />;
+    return <div className='my-1 w-px flex-1 bg-line' />;
 }
 
 const gridMap = {

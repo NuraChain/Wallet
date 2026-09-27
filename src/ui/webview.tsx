@@ -458,7 +458,7 @@ export default function WebFrame({
 
                     <Text text={T('Dashboard.Browser.Loading')} />
 
-                    <ProgressBar label={T('Dashboard.Browser.Loading')} look='track' />
+                    <ProgressBar look='track' />
                 </div>
             )}
         </div>

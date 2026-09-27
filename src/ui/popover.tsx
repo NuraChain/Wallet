@@ -38,7 +38,7 @@ export default function Popover({
 
     return (
         <>
-            <div aria-hidden='true' className={`fixed inset-0 ${layer.chrome}`} onClick={onClose} />
+            <div className={`fixed inset-0 ${layer.chrome}`} onClick={onClose} />
 
             <div
                 role={role}

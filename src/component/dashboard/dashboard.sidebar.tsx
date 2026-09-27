@@ -22,7 +22,6 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
                 <Button
                     variant='logo'
                     title={site}
-                    aria-label={T('App.Website')}
                     onClick={() => {
                         void platform.openUrl(site).catch(() => undefined);
                     }}

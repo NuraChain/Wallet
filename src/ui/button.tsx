@@ -138,7 +138,6 @@ export default function Button(
         <button
             type={type}
             disabled={inactive}
-            aria-busy={loading || undefined}
             className={cn(
                 isFilled(variant) && 'flex items-center justify-center gap-2 disabled:cursor-not-allowed!',
                 isFilled(variant) ? fillMap[variant] : bareMap[variant],

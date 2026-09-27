@@ -1,4 +1,4 @@
-import { createContext, use, useEffect, useId, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 const stack: (() => void)[] = [];
 
@@ -66,8 +66,6 @@ export const useDismiss = (active: boolean, onClose: () => void) => {
 export const useDialog = (onClose: () => void) => {
     const panelRef = useRef<HTMLDivElement>(null);
 
-    const titleId = `${useId()}-title`;
-
     useDismiss(true, onClose);
 
     useEffect(() => {
@@ -115,10 +113,5 @@ export const useDialog = (onClose: () => void) => {
         };
     }, []);
 
-    return { panelRef, titleId };
+    return { panelRef };
 };
-
-/* oxlint-disable-next-line @typescript-eslint/naming-convention */
-export const DialogTitleContext = createContext<string | undefined>(undefined);
-
-export const useDialogTitleId = () => use(DialogTitleContext);

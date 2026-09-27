@@ -562,11 +562,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                         {tabMap.map((item, index) => (
                             <Block key={item.key} fill shrink={false}>
                                 {item.key === 'Browser' ? (
-                                    <PageContainer
-                                        variant='browser'
-                                        aria-hidden={index === active ? undefined : true}
-                                        inert={index === active ? undefined : true}
-                                    >
+                                    <PageContainer variant='browser' inert={index === active ? undefined : true}>
                                         <DashboardBrowser
                                             network={network}
                                             request={link.url}
@@ -582,11 +578,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                 ) : (
                                     <ScrollFrame>
                                         <ScrollArea fill onRefresh={onRefresh}>
-                                            <PageContainer
-                                                variant='tab'
-                                                aria-hidden={index === active ? undefined : true}
-                                                inert={index === active ? undefined : true}
-                                            >
+                                            <PageContainer variant='tab' inert={index === active ? undefined : true}>
                                                 {item.key === 'Settings' && (
                                                     <DashboardSettings
                                                         kind={vault.kind}

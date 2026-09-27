@@ -53,9 +53,9 @@ export default function TitleBar() {
     }
 
     const controlMap = [
-        { key: 'minimize', label: T('App.Window.Minimize'), icon: <Minus size={16} />, action: onMinimize },
-        { key: 'size', label: T('App.Window.Maximize'), icon: wide ? <Smartphone size={16} /> : <Monitor size={16} />, action: onToggleSize },
-        { key: 'close', label: T('App.Window.Close'), icon: <X size={16} />, action: onClose }
+        { key: 'minimize', icon: <Minus size={16} />, action: onMinimize },
+        { key: 'size', icon: wide ? <Smartphone size={16} /> : <Monitor size={16} />, action: onToggleSize },
+        { key: 'close', icon: <X size={16} />, action: onClose }
     ];
 
     return (
@@ -73,7 +73,7 @@ export default function TitleBar() {
 
             <Horizontal fill='height'>
                 {controlMap.map((item) => (
-                    <Button key={item.key} aria-label={item.label} onClick={item.action} variant='window' icon={item.icon} />
+                    <Button key={item.key} onClick={item.action} variant='window' icon={item.icon} />
                 ))}
             </Horizontal>
         </div>

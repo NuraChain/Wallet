@@ -1,10 +1,9 @@
-import { useId, useState, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
+import { useState, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 
 import Text from './text';
 
 import { cn } from '../utility/cn';
-import { T } from '../utility/language';
 import { Horizontal, Vertical } from './stack';
 import { fieldSurface, tapArea } from './token';
 
@@ -12,18 +11,12 @@ const fieldInvalid = 'border-input-error';
 
 const roomMap = { leading: 'ps-9 pe-3', both: 'ps-10 pe-10' } as const;
 
-const describedBy = (ids: (string | false | undefined)[]) => {
-    const present = ids.filter((id): id is string => typeof id === 'string' && id.length > 0);
-
-    return present.length > 0 ? present.join(' ') : undefined;
-};
-
-function FieldShell({ label, error, errorId, children }: { label: string; error: string; errorId: string; children: ReactNode }) {
+function FieldShell({ label, error, children }: { label: string; error: string; children: ReactNode }) {
     const body = (
         <>
             {children}
 
-            {error.length > 0 && <Text id={errorId} variant='caption' role='alert' tone='error' text={error} />}
+            {error.length > 0 && <Text variant='caption' role='alert' tone='error' text={error} />}
         </>
     );
 
@@ -53,7 +46,6 @@ export function TextField({
     align,
     textSize,
     truncate = false,
-    'aria-describedby': describedById,
     ...rest
 }: {
     label?: string;
@@ -70,18 +62,14 @@ export function TextField({
     textSize?: 'tiny';
     truncate?: boolean;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'size'>) {
-    const errorId = `${useId()}-error`;
-
     const invalid = error.length > 0;
 
     return (
-        <FieldShell label={label} error={error} errorId={errorId}>
+        <FieldShell label={label} error={error}>
             <Horizontal relative align='center'>
                 {leading}
 
                 <input
-                    aria-invalid={invalid || undefined}
-                    aria-describedby={describedBy([invalid && errorId, describedById])}
                     onChange={(event) => {
                         onValue(event.target.value);
                     }}
@@ -122,7 +110,6 @@ export function PasswordField({
     onEnter,
     size = 'regular',
     lockSize = 0,
-    'aria-describedby': describedById,
     ...rest
 }: {
     label: string;
@@ -135,14 +122,12 @@ export function PasswordField({
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'value' | 'size' | 'type'>) {
     const [show, setShow] = useState(false);
 
-    const errorId = `${useId()}-error`;
-
     const regular = size === 'regular';
     const defaultLock = regular ? 20 : 18;
     const invalid = error.length > 0;
 
     return (
-        <FieldShell label={label} error={error} errorId={errorId}>
+        <FieldShell label={label} error={error}>
             <Horizontal relative align='center'>
                 <Lock size={lockSize > 0 ? lockSize : defaultLock} className={cn('absolute text-txt-muted', regular ? 'inset-s-4' : 'inset-s-3')} />
 
@@ -150,8 +135,6 @@ export function PasswordField({
                     value={value}
                     placeholder={label}
                     type={show ? 'text' : 'password'}
-                    aria-invalid={invalid || undefined}
-                    aria-describedby={describedBy([invalid && errorId, describedById])}
                     onChange={(event) => {
                         onValue(event.target.value);
                     }}
@@ -170,8 +153,6 @@ export function PasswordField({
 
                 <button
                     type='button'
-                    aria-label={T(show ? 'App.Field.HidePassword' : 'App.Field.ShowPassword')}
-                    aria-pressed={show}
                     onClick={() => {
                         setShow((current) => !current);
                     }}
@@ -194,7 +175,6 @@ export function TextArea({
     onValue,
     tall = false,
     breaks,
-    'aria-describedby': describedById,
     ...rest
 }: {
     label?: string;
@@ -204,15 +184,11 @@ export function TextArea({
     tall?: boolean;
     breaks?: 'all';
 } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'className' | 'onChange'>) {
-    const errorId = `${useId()}-error`;
-
     const invalid = error.length > 0;
 
     return (
-        <FieldShell label={label} error={error} errorId={errorId}>
+        <FieldShell label={label} error={error}>
             <textarea
-                aria-invalid={invalid || undefined}
-                aria-describedby={describedBy([invalid && errorId, describedById])}
                 onChange={(event) => {
                     onValue(event.target.value);
                 }}

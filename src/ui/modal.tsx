@@ -6,10 +6,8 @@ import { X } from 'lucide-react';
 import Text from './text';
 import Button from './button';
 
-import { T } from '../utility/language';
-
 import { cn } from '../utility/cn';
-import { DialogTitleContext, useDialog, useDialogTitleId } from './dialog';
+import { useDialog } from './dialog';
 import ScrollBar from './scrollbar';
 import { surfacePanel } from './panel';
 import { Horizontal, Vertical } from './stack';
@@ -46,14 +44,12 @@ export function Modal({
     align?: 'center';
     children: ReactNode;
 }) {
-    const { panelRef, titleId } = useDialog(onClose);
+    const { panelRef } = useDialog(onClose);
 
     const panel = (
         <motion.div
             ref={panelRef}
             role='dialog'
-            aria-modal
-            aria-labelledby={titleId}
             tabIndex={-1}
             initial={{ opacity: 0, scale }}
             animate={{ opacity: 1, scale: 1 }}
@@ -68,7 +64,7 @@ export function Modal({
                 align === 'center' && 'items-center'
             )}
         >
-            <DialogTitleContext value={titleId}>{children}</DialogTitleContext>
+            {children}
         </motion.div>
     );
 
@@ -106,7 +102,6 @@ export function ModalHeader({
     subtitle = '',
     leading,
     close = 'icon',
-    closeLabel = '',
     truncate = false,
     titleSize,
     titleGrow = false,
@@ -117,7 +112,6 @@ export function ModalHeader({
     subtitle?: string;
     leading?: ReactNode;
     close?: 'icon' | 'chip' | 'none';
-    closeLabel?: string;
     /** Cuts a long title to one line. */
     truncate?: boolean;
     titleSize?: 'large';
@@ -126,12 +120,10 @@ export function ModalHeader({
     width?: 'full';
     onClose: () => void;
 }) {
-    const titleId = useDialogTitleId();
-
     // With nothing leading, the title and its subtitle stack; with an icon, they sit beside it.
     const Group = leading === undefined ? Vertical : Horizontal;
 
-    const heading = <Text as='h2' id={titleId} variant='title' squeeze='x' size={titleSize} truncate={truncate} text={title} />;
+    const heading = <Text as='h2' variant='title' squeeze='x' size={titleSize} truncate={truncate} text={title} />;
 
     return (
         <Horizontal shrink={false} align='center' justify='between' gap={3} width={width}>
@@ -153,7 +145,6 @@ export function ModalHeader({
                 <Button
                     variant={close === 'chip' ? 'chip' : 'muted'}
                     size={close === 'chip' ? 'iconChip' : 'icon'}
-                    aria-label={closeLabel.length > 0 ? closeLabel : T('App.Close')}
                     onClick={onClose}
                     shrink={false}
                     icon={<X size={20} />}

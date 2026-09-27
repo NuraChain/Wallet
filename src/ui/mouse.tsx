@@ -125,7 +125,6 @@ export default function Mouse({ onAction }: { onAction: (action: MouseAction) =>
     return createPortal(
         <button
             type='button'
-            aria-label='Nura Wallet'
             onPointerDown={onDown}
             onPointerMove={onMove}
             onPointerUp={onUp}

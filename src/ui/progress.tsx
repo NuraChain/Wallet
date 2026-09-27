@@ -9,18 +9,11 @@ const lookMap = {
     track: 'w-32 rounded-full bg-base-3'
 } as const;
 
-export default function ProgressBar({ value, label = '', look }: { value?: number; label?: string; look?: keyof typeof lookMap }) {
+export default function ProgressBar({ value, look }: { value?: number; look?: keyof typeof lookMap }) {
     const determinate = value !== undefined;
 
     return (
-        <div
-            role='progressbar'
-            aria-label={label.length > 0 ? label : undefined}
-            aria-valuemin={determinate ? 0 : undefined}
-            aria-valuemax={determinate ? 100 : undefined}
-            aria-valuenow={determinate ? Math.round(value) : undefined}
-            className={cn('relative h-0.5 overflow-hidden', look !== undefined && lookMap[look])}
-        >
+        <div role='progressbar' className={cn('relative h-0.5 overflow-hidden', look !== undefined && lookMap[look])}>
             {determinate ? (
                 <div className='absolute inset-y-0 inset-s-0 min-w-1.5 bg-txt-accent' style={{ width: `${value}%` }} />
             ) : (
@@ -35,13 +28,13 @@ export default function ProgressBar({ value, label = '', look }: { value?: numbe
 }
 
 /** The strip under the browser's address bar: a page's load, fading out once it is done. */
-export function LoadStrip({ loading, progress, label, hidden = false }: { loading: boolean; progress: number; label: string; hidden?: boolean }) {
+export function LoadStrip({ loading, progress, hidden = false }: { loading: boolean; progress: number; hidden?: boolean }) {
     return (
         <div className={cn('relative h-0.5 shrink-0 overflow-hidden', hidden && 'hidden')}>
             <AnimatePresence>
                 {loading && (
                     <motion.div key='progress' initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} className='absolute inset-0'>
-                        <ProgressBar value={progress} label={label} look='strip' />
+                        <ProgressBar value={progress} look='strip' />
                     </motion.div>
                 )}
             </AnimatePresence>

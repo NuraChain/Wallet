@@ -81,6 +81,7 @@ These are checked by tests in `src/ui/`; a violation fails `npm test`.
   `src/assets/lang/`. Layout is RTL-safe: logical properties (`ps-`, `inset-e-`), never
   `left`/`right`.
 - **Layers:** no bare `z-*`; use `layer` from `src/ui/container.tsx`.
+- **No `aria-*` attributes**, anywhere — nor props or ids that only fed one. `role` and `inert` stay.
 - **Files:** lowercase and dot-separated (`dashboard.send.tsx`), never PascalCase.
 - **Tauri:** capabilities live in the per-platform `tauri.*.conf.json` files. `browser-capability`
   (third-party pages) grants exactly one command; widening it is a security decision.

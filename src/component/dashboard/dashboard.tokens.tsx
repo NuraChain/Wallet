@@ -155,7 +155,6 @@ export default function DashboardTokens({
                                             onClick={() => {
                                                 setRemoving(item);
                                             }}
-                                            aria-label={T('Dashboard.Tokens.Remove')}
                                             shrink={false}
                                             icon={<Trash size={16} />}
                                         />

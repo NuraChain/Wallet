@@ -127,7 +127,6 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                         onClick={() => {
                             void onUnlock();
                         }}
-                        aria-label={isLoading ? T('Dashboard.Phrase.Pending') : undefined}
                         mt={1}
                         text={isLoading ? '' : unlockLabel}
                     />

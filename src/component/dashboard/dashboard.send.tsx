@@ -300,8 +300,6 @@ export default function DashboardSend({
                         <Text text={T('Dashboard.Send.Asset')} />
 
                         <Button
-                            aria-haspopup='listbox'
-                            aria-expanded={picking}
                             onClick={() => {
                                 setPicking(!picking);
                             }}
@@ -335,7 +333,6 @@ export default function DashboardSend({
                                 <Button
                                     key={item.key}
                                     role='option'
-                                    aria-selected={item.key === asset.key}
                                     onClick={() => {
                                         onAsset(item.key);
                                     }}
@@ -382,7 +379,6 @@ export default function DashboardSend({
                             value={amount}
                             dir='ltr'
                             inputMode='decimal'
-                            aria-label={T('Dashboard.Send.Amount')}
                             placeholder='0.0'
                             onValue={(value) => {
                                 setAmount(value);
@@ -465,7 +461,6 @@ export default function DashboardSend({
                             variant='muted'
                             size='action'
                             value={hash}
-                            label={T('Dashboard.Send.Copy')}
                             doneText={T('Dashboard.Send.Copied')}
                             failedText={T('Dashboard.Send.CopyFailed')}
                         >

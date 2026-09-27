@@ -386,22 +386,13 @@ export default function DashboardBrowser({
         <Vertical relative squeeze='y' grow>
             {!full && (
                 <Toolbar>
-                    <Button
-                        variant='danger'
-                        size='iconChip'
-                        aria-label={T('Dashboard.Browser.Exit')}
-                        onClick={onExit}
-                        shrink={false}
-                        wide='hide'
-                        icon={<X size={16} />}
-                    />
+                    <Button variant='danger' size='iconChip' onClick={onExit} shrink={false} wide='hide' icon={<X size={16} />} />
 
                     <Button
                         dim
                         variant='chip'
                         size='iconChip'
                         disabled={!canBack}
-                        aria-label={T('Dashboard.Browser.Back')}
                         onClick={() => {
                             onStep(-1);
                         }}
@@ -414,7 +405,6 @@ export default function DashboardBrowser({
                         variant='chip'
                         size='iconChip'
                         disabled={!canForward}
-                        aria-label={T('Dashboard.Browser.Forward')}
                         onClick={() => {
                             onStep(1);
                         }}
@@ -451,7 +441,6 @@ export default function DashboardBrowser({
                             trailing={
                                 <Button
                                     variant='fieldAction'
-                                    aria-label={T('Dashboard.Browser.Reload')}
                                     onClick={() => {
                                         patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false }));
                                     }}
@@ -464,7 +453,6 @@ export default function DashboardBrowser({
                     <Button
                         variant='chip'
                         size='iconChip'
-                        aria-label={T(start ? 'Dashboard.Browser.Settings' : 'Dashboard.Browser.Home')}
                         onClick={
                             start
                                 ? () => {
@@ -480,7 +468,7 @@ export default function DashboardBrowser({
 
             {start && <DashboardBrowserTabs tabs={tabs} active={active} onPick={onPickTab} onClose={onCloseTab} onAdd={onAddTab} />}
 
-            <LoadStrip hidden={full} loading={state !== undefined && state.loading} progress={state?.progress ?? 0} label={T('Dashboard.Browser.Loading')} />
+            <LoadStrip hidden={full} loading={state !== undefined && state.loading} progress={state?.progress ?? 0} />
 
             <Block relative squeeze='y' grow>
                 {tabs.map((item) => {

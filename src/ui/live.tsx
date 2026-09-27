@@ -10,7 +10,7 @@
  */
 export default function Live({ text, assertive = false }: { text: string; assertive?: boolean }) {
     return (
-        <div role={assertive ? 'alert' : 'status'} aria-live={assertive ? 'assertive' : 'polite'} className='sr-only'>
+        <div role={assertive ? 'alert' : 'status'} className='sr-only'>
             {text}
         </div>
     );
