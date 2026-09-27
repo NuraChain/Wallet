@@ -14,8 +14,8 @@ failed build. Lint and format are separate commands, not build steps.
 | Directory | Holds | Naming |
 |---|---|---|
 | `src/page/` | Route-level screens | `dashboard.tsx` |
-| `src/layout/` | Shell: root, containers, error boundary, scroll, titlebar | `container.tsx` |
-| `src/ui/` | Design-system primitives (see the `design-system` skill) | `button.tsx` |
+| `src/layout/` | The router's shell: the root layout, the error boundary, the route error | `root.tsx` |
+| `src/ui/` | Design-system primitives and the only markup in the app (see the `design-system` skill) | `button.tsx` |
 | `src/component/dashboard/` | Screen-specific composites | `dashboard.tokens.tsx` |
 | `src/core/` | Domain logic: wallet, vault, network, dapp, caches | `network.provider.ts` |
 | `src/hook/` | React bindings over `core`/`utility` singletons | `balance.ts` |

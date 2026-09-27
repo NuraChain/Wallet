@@ -122,7 +122,7 @@ order.
 - **Transition only what changes.** `transition-[background-color,border-color]`, never
   `transition-all` — a blanket transition drags layout properties into every hover.
 - Classes reached dynamically must exist as whole literals somewhere Tailwind's scanner can
-  see them (see `inset` and `layer` in `layout/container.tsx`) — never build a class name by
+  see them (see `inset` and `layer` in `ui/container.tsx`) — never build a class name by
   interpolation.
 
 ## What can't be a utility

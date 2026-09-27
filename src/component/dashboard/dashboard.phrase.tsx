@@ -13,6 +13,8 @@ import { getExporter, phraseToPng } from '../../core/export';
 import { getValueEncrypted } from '../../utility/storage';
 import { Horizontal, Vertical } from '../../ui/stack';
 import type { VaultKind } from '../../type/wallet';
+import { Block } from '../../ui/wrap';
+import { SecretKey, SecretWord, SecretWords } from '../../ui/secret';
 
 const exportMap: { kind: 'image' | 'text'; icon: LucideIcon; label: string }[] = [
     { kind: 'image', icon: Image, label: 'Dashboard.Phrase.SaveImage' },
@@ -131,31 +133,21 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                     />
                 </>
             ) : (
-                <div className='relative'>
+                <Block relative>
                     {isKey ? (
-                        <div
-                            dir='ltr'
-                            className={`rounded-control bg-base-1 px-3 py-2.5 transition-all duration-(--duration-fast) ${revealed ? '' : 'pointer-events-none blur-sm select-none'}`}
-                        >
+                        <SecretKey revealed={revealed}>
                             <Text variant='captionStrong' mono breaks='all' text={secret} />
-                        </div>
+                        </SecretKey>
                     ) : (
                         /* Two columns before `sm`, and no `truncate` on the word. Three columns in a
                            320px dialog left about 55px for the word, and the wordlist has 8-character
                            entries that need nearer 58 — `abstract`, `business`, `champion`. A word
                            clipped to `busines` is written down that way and the wallet is gone. */
-                        <div
-                            dir='ltr'
-                            className={`grid grid-cols-2 gap-1.5 transition-all duration-(--duration-fast) sm:grid-cols-3 ${revealed ? '' : 'pointer-events-none blur-sm select-none'}`}
-                        >
+                        <SecretWords revealed={revealed}>
                             {words.map((word, index) => (
-                                <div key={`${index}-${word}`} className='flex items-baseline gap-1.5 rounded-control bg-base-1 px-2 py-1.5'>
-                                    <Text shrink={false} tabular text={String(index + 1)} />
-
-                                    <Text variant='captionStrong' mono text={word} />
-                                </div>
+                                <SecretWord key={`${index}-${word}`} index={index} word={word} />
                             ))}
-                        </div>
+                        </SecretWords>
                     )}
 
                     {!revealed && (
@@ -200,16 +192,15 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                                         leftIcon={<item.icon size={14} className='shrink-0' />}
                                         squeeze='x'
                                         grow
-                                    >
-                                        <span className='truncate'>{T(item.label)}</span>
-                                    </Button>
+                                        label={T(item.label)}
+                                    />
                                 ))}
                             </Horizontal>
 
                             <Alert variant={notice.ok ? 'success' : 'error'} text={notice.text} />
                         </Vertical>
                     )}
-                </div>
+                </Block>
             )}
         </Modal>
     );

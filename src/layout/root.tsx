@@ -5,20 +5,16 @@ import { defaultWindowIcon } from '@tauri-apps/api/app';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Menu, type MenuOptions } from '@tauri-apps/api/menu';
 
-import TitleBar from './titlebar';
-import Spinner from '../ui/spinner';
+import TitleBar from '../ui/titlebar';
 
 import { T } from '../utility/language';
 import { useIsWindows } from '../hook/platform';
 import { useLanguage } from '../hook/language';
 import { Horizontal } from '../ui/stack';
+import { Splash } from '../ui/screen';
 
 export function RouteFallback() {
-    return (
-        <div className='flex size-full items-center justify-center bg-base-1'>
-            <Spinner />
-        </div>
-    );
+    return <Splash />;
 }
 
 export default function RootLayout() {

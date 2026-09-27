@@ -10,10 +10,8 @@ import Text from '../../ui/text';
 import Button from '../../ui/button';
 import Toolbar from '../../ui/toolbar';
 
-import { selectedTint } from '../../ui/token';
 import SiteIcon from '../site.icon';
 
-import { cn } from '../../utility/cn';
 import { getDirection, getLanguage, T } from '../../utility/language';
 import { getSiteHost } from '../../core/browser';
 
@@ -21,11 +19,8 @@ import 'swiper/css';
 import 'swiper/css/free-mode';
 import 'swiper/css/mousewheel';
 import type { BrowserTab } from '../../type/browser';
-
-const chipBase =
-    'flex h-9 w-full items-center gap-1 rounded-surface border ps-3 pe-1 transition-[background-color,border-color] duration-(--duration-fast) ease-initial';
-const chipIdle = 'border-line bg-base-3 hover:bg-base-2';
-const chipLive = selectedTint;
+import { Block } from '../../ui/wrap';
+import { TabChip } from '../../ui/tabs';
 
 // A tab keeps its width until the strip runs out of room, and shares the space while there is
 // still some — the same shape the row had when it was a flex row, kept through Swiper's own
@@ -77,7 +72,7 @@ export default function DashboardBrowserTabs({
         <Toolbar>
             <Button variant='chip' size='iconChipSmall' aria-label={T('Dashboard.Browser.TabNew')} onClick={onAdd} shrink={false} icon={<Plus size={16} />} />
 
-            <div className='min-w-0 flex-1'>
+            <Block squeeze='x' grow>
                 <Swiper
                     key={getLanguage().code}
                     dir={getDirection()}
@@ -96,7 +91,7 @@ export default function DashboardBrowserTabs({
 
                         return (
                             <SwiperSlide key={item.id} className={slideSize}>
-                                <div className={cn(chipBase, item.id === active ? chipLive : chipIdle)}>
+                                <TabChip active={item.id === active}>
                                     <Button
                                         aria-current={item.id === active}
                                         title={url.length > 0 ? url : name}
@@ -129,12 +124,12 @@ export default function DashboardBrowserTabs({
                                         shrink={false}
                                         icon={<X size={14} />}
                                     />
-                                </div>
+                                </TabChip>
                             </SwiperSlide>
                         );
                     })}
                 </Swiper>
-            </div>
+            </Block>
         </Toolbar>
     );
 }

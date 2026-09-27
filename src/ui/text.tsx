@@ -11,7 +11,9 @@ const variantMap = {
     bodyMuted: 'text-small text-txt-muted',
     title: 'text-medium font-semibold text-txt-normal',
     heading: 'text-large font-semibold text-txt-normal',
-    display: 'text-display font-bold text-txt-normal'
+    display: 'text-display font-bold text-txt-normal',
+    /** No size and no colour: a label inside a control whose own classes decide both. */
+    plain: ''
 } as const;
 
 // The size each variant starts from, so `scaleUp` knows which step comes next.
@@ -23,7 +25,8 @@ const variantSize = {
     bodyMuted: 'small',
     title: 'medium',
     heading: 'large',
-    display: 'display'
+    display: 'display',
+    plain: 'plain'
 } as const;
 
 const sizeMap = { small: 'text-small', large: 'text-large' } as const;

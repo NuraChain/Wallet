@@ -1,18 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, TriangleAlert } from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 
-import WebFrame from '../../layout/webview';
+import WebFrame from '../../ui/webview';
 import DashboardBrowserTabs from './dashboard.browser.tabs';
 import DashboardBrowserStart from './dashboard.browser.start';
 import DashboardBrowserSettings from './dashboard.browser.settings';
 
 import Button from '../../ui/button';
 import Toolbar from '../../ui/toolbar';
-import ProgressBar from '../../ui/progress';
-import { TextField } from '../../ui/field';
+import { FieldLead, TextField } from '../../ui/field';
 
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { imageCache } from '../../core/image';
 import { clearSiteIcons } from '../../core/site.icon';
@@ -37,6 +35,9 @@ import {
 import { Vertical } from '../../ui/stack';
 import type { Network } from '../../type/network';
 import type { BrowserFavorite, BrowserState, BrowserTab, BrowserView, BrowserVisit } from '../../type/browser';
+import { Block } from '../../ui/wrap';
+import Text from '../../ui/text';
+import { LoadStrip } from '../../ui/progress';
 
 const toUrl = (value: string) => {
     const trimmed = value.trim();
@@ -407,7 +408,7 @@ export default function DashboardBrowser({
                         icon={<ArrowRight size={16} className='rtl:rotate-180' />}
                     />
 
-                    <div className='min-w-0 flex-1'>
+                    <Block squeeze='x' grow>
                         <TextField
                             dir={tab.draft.length > 0 ? 'ltr' : undefined}
                             value={tab.draft}
@@ -423,11 +424,15 @@ export default function DashboardBrowser({
                             room='both'
                             textSize='tiny'
                             leading={
-                                <span className='pointer-events-none absolute inset-s-3 flex items-center text-txt-muted'>
+                                <FieldLead>
                                     {originGlyph()}
 
-                                    {current.startsWith('http://') && <span className='sr-only'>{T('Dashboard.Browser.Insecure')}</span>}
-                                </span>
+                                    {current.startsWith('http://') && (
+                                        <Text as='span' variant='plain' srOnly>
+                                            {T('Dashboard.Browser.Insecure')}
+                                        </Text>
+                                    )}
+                                </FieldLead>
                             }
                             trailing={
                                 <Button
@@ -440,7 +445,7 @@ export default function DashboardBrowser({
                                 />
                             }
                         />
-                    </div>
+                    </Block>
 
                     <Button
                         variant='chip'
@@ -461,17 +466,9 @@ export default function DashboardBrowser({
 
             {start && <DashboardBrowserTabs tabs={tabs} active={active} onPick={onPickTab} onClose={onCloseTab} onAdd={onAddTab} />}
 
-            <div className={cn('relative h-0.5 shrink-0 overflow-hidden', full && 'hidden')}>
-                <AnimatePresence>
-                    {state !== undefined && state.loading && (
-                        <motion.div key='progress' initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} className='absolute inset-0'>
-                            <ProgressBar value={state.progress} label={T('Dashboard.Browser.Loading')} look='strip' />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+            <LoadStrip hidden={full} loading={state !== undefined && state.loading} progress={state?.progress ?? 0} label={T('Dashboard.Browser.Loading')} />
 
-            <div className='relative min-h-0 flex-1'>
+            <Block relative squeeze='y' grow>
                 {tabs.map((item) => {
                     const front = item.id === active;
 
@@ -490,7 +487,7 @@ export default function DashboardBrowser({
                             onFallback={(value) => {
                                 setNotice((map) => new Map(map).set(item.id, value));
                             }}
-                            className={cn('absolute inset-0 overflow-hidden bg-base-1', front ? 'visible' : 'invisible')}
+                            front={front}
                         >
                             {front && !shown ? (
                                 <DashboardBrowserStart
@@ -505,7 +502,7 @@ export default function DashboardBrowser({
                         </WebFrame>
                     );
                 })}
-            </div>
+            </Block>
 
             <AnimatePresence>
                 {settings && (

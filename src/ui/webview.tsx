@@ -3,10 +3,11 @@ import { Webview } from '@tauri-apps/api/webview';
 import { LogicalPosition, LogicalSize } from '@tauri-apps/api/dpi';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 
-import Text from '../ui/text';
-import Spinner from '../ui/spinner';
-import ProgressBar from '../ui/progress';
+import Text from './text';
+import Spinner from './spinner';
+import ProgressBar from './progress';
 
+import { cn } from '../utility/cn';
 import { T } from '../utility/language';
 import { getNativeBrowser, getNativeTab, nativeHoldsTabs } from '../core/browser';
 
@@ -78,7 +79,7 @@ export default function WebFrame({
     reload = 0,
     title = '',
     script = '',
-    className = '',
+    front,
     children,
     onFallback
 }: {
@@ -89,7 +90,8 @@ export default function WebFrame({
     reload?: number;
     title?: string;
     script?: string;
-    className?: string;
+    /** The tab on show; the others stay mounted, and hidden. */
+    front: boolean;
     children?: ReactNode;
     onFallback?: (notice: string) => void;
 }) {
@@ -436,7 +438,7 @@ export default function WebFrame({
     }, [isLive, enabled, place, settle]);
 
     return (
-        <div ref={frameRef} className={className}>
+        <div ref={frameRef} className={cn('absolute inset-0 overflow-hidden bg-base-1', front ? 'visible' : 'invisible')}>
             {children !== undefined && children}
 
             {children === undefined && url.length > 0 && !embedded && (

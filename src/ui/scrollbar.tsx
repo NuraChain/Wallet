@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type RefObject } from 'react';
 
 import { cn } from '../utility/cn';
-import { layer } from '../layout/container';
+import { layer } from './container';
 
 const minSize = 32;
 

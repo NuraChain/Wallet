@@ -251,3 +251,8 @@ export function ReadonlyField({ label = '', value }: { label?: string; value: st
         </Vertical>
     );
 }
+
+/** What sits over a field's leading edge — an icon, and anything said about it to a screen reader. */
+export function FieldLead({ children }: { children: ReactNode }) {
+    return <span className='pointer-events-none absolute inset-s-3 flex items-center text-txt-muted'>{children}</span>;
+}

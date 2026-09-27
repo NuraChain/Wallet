@@ -11,6 +11,7 @@ import { Horizontal, Vertical } from '../../ui/stack';
 import { T } from '../../utility/language';
 import { getTheme, setTheme } from '../../utility/theme';
 import type { VaultKind } from '../../type/wallet';
+import { Block } from '../../ui/wrap';
 
 const chevron = <ChevronRight size={18} className='text-txt-muted rtl:rotate-180' />;
 
@@ -84,20 +85,30 @@ export default function DashboardSettings({
                 trailing={chevron}
             />
 
-            <div className='flex-1' />
+            <Block grow />
 
             {/* One row, one metric, by request. Logout erases the wallet from this device and sits
                 a target width from the everyday action, so the weight it carries is the fill:
                 `destructive` is the only red button on the screen, and the password prompt behind
                 it is what actually stands between a mis-tap and a lost wallet. */}
             <ModalActions>
-                <Button variant='primary' size='action' onClick={onLock} leftIcon={<Lock size={16} className='shrink-0' />} squeeze='x'>
-                    <span className='truncate'>{T('Dashboard.Lock')}</span>
-                </Button>
+                <Button
+                    variant='primary'
+                    size='action'
+                    onClick={onLock}
+                    leftIcon={<Lock size={16} className='shrink-0' />}
+                    squeeze='x'
+                    label={T('Dashboard.Lock')}
+                />
 
-                <Button variant='destructive' size='action' onClick={onLogout} leftIcon={<LogOut size={16} className='shrink-0 rtl:rotate-180' />} squeeze='x'>
-                    <span className='truncate'>{T('Dashboard.Settings.Logout')}</span>
-                </Button>
+                <Button
+                    variant='destructive'
+                    size='action'
+                    onClick={onLogout}
+                    leftIcon={<LogOut size={16} className='shrink-0 rtl:rotate-180' />}
+                    squeeze='x'
+                    label={T('Dashboard.Settings.Logout')}
+                />
             </ModalActions>
 
             <Text dir='ltr' pt={1} align='center' text={T('Dashboard.Settings.Version', __APP_VERSION__)} />

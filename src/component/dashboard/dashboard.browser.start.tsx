@@ -15,6 +15,7 @@ import { T } from '../../utility/language';
 import { getSiteHost } from '../../core/browser';
 import { Horizontal, Vertical } from '../../ui/stack';
 import type { BrowserFavorite, BrowserVisit } from '../../type/browser';
+import { Block, Grid } from '../../ui/wrap';
 
 type TabKey = 'favorite' | 'history';
 
@@ -130,7 +131,7 @@ export default function DashboardBrowserStart({
                     )}
                 </TabBar>
 
-                <div role='tabpanel' id={`browser-panel-${tab}`} aria-labelledby={`browser-tab-${tab}`}>
+                <Block role='tabpanel' id={`browser-panel-${tab}`} aria-labelledby={`browser-tab-${tab}`}>
                     {tab === 'favorite' &&
                         (editing ? (
                             <Vertical gap={2}>
@@ -168,7 +169,7 @@ export default function DashboardBrowserStart({
                                 />
                             </Vertical>
                         ) : (
-                            <div className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4'>
+                            <Grid look='favorites'>
                                 {favorites.map((item) => (
                                     <FavoriteCard
                                         key={item.id}
@@ -191,14 +192,14 @@ export default function DashboardBrowserStart({
 
                                     <Text variant='inherit' squeeze='x' truncate text={T('Dashboard.Browser.FavoriteAdd')} />
                                 </Button>
-                            </div>
+                            </Grid>
                         ))}
 
                     {tab === 'history' &&
                         (visits.length === 0 ? (
                             <StatusBlock panel text={T('Dashboard.Browser.RecentEmpty')} />
                         ) : (
-                            <div className='grid grid-cols-2 gap-2 lg:grid-cols-4'>
+                            <Grid look='recent'>
                                 {visits.map((item) => (
                                     <BrowserShortcut
                                         key={item.url}
@@ -209,9 +210,9 @@ export default function DashboardBrowserStart({
                                         onPick={onOpen}
                                     />
                                 ))}
-                            </div>
+                            </Grid>
                         ))}
-                </div>
+                </Block>
 
                 {notice.length > 0 && (
                     <Vertical mt='auto' gap={1}>

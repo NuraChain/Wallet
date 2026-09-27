@@ -109,7 +109,7 @@ npm run extension             # all four stores into .dist-extension/
 npm run -s extension:lint     # web-ext over the Firefox build: 0 errors, 3 known innerHTML warnings
 ```
 
-`npm run lint` currently exits non-zero on a pre-existing `src/layout/webview.tsx:43`
+`npm run lint` currently exits non-zero on a pre-existing `src/ui/webview.tsx:43`
 `prefer-math-min-max` error; lint the files you touch with `npx oxlint <files>`.
 
 ## Gotchas

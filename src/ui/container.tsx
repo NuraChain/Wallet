@@ -40,16 +40,21 @@ const bodyMap = {
 
 export default function PageContainer({
     variant,
-    className = '',
+    center = false,
     children,
     ...rest
-}: { variant: 'tab' | 'browser' | 'intro'; className?: string; children: ReactNode } & HTMLAttributes<HTMLDivElement>) {
+}: {
+    variant: 'tab' | 'browser' | 'intro';
+    /** Holds a single card in the middle of the page, as the unlock screen does. */
+    center?: boolean;
+    children: ReactNode;
+} & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
     const isWindows = useIsWindows();
 
     const top = variant === 'tab' ? '' : topMap[variant][isWindows ? 'windows' : 'device'];
 
     return (
-        <div className={cn(bodyMap[variant], top, className)} {...rest}>
+        <div className={cn(bodyMap[variant], top, center && 'items-center justify-center')} {...rest}>
             {children}
         </div>
     );

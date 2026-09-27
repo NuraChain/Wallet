@@ -14,6 +14,7 @@ import { T } from '../../utility/language';
 import { useOnline } from '../../hook/connection';
 import { Horizontal, Vertical } from '../../ui/stack';
 import type { Transaction } from '../../type/wallet';
+import { Block } from '../../ui/wrap';
 
 const filters = ['All', 'Sent', 'Received'] as const;
 
@@ -162,7 +163,7 @@ export default function DashboardHistory({
 
                         {!loading && results.length === 0 && <StatusBlock px={5} text={emptyText()} />}
 
-                        {shown < results.length && <div ref={endRef} aria-hidden='true' className='h-4 shrink-0' />}
+                        {shown < results.length && <Block ref={endRef} aria-hidden='true' height={4} shrink={false} />}
                     </Vertical>
                 </Vertical>
 

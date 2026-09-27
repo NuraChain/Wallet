@@ -1,8 +1,8 @@
 import { Loader } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 
-import Spinner from '../ui/spinner';
-import ScrollBar from '../ui/scrollbar';
+import Spinner from './spinner';
+import ScrollBar from './scrollbar';
 
 import { cn } from '../utility/cn';
 import { layer } from './container';
@@ -35,11 +35,12 @@ const painted = (element: HTMLElement) => {
 };
 
 export default function ScrollArea({
-    className = '',
+    fill = false,
     children,
     onRefresh
 }: {
-    className?: string;
+    /** Takes its parent's whole box. */
+    fill?: boolean;
     children: ReactNode;
     onRefresh?: () => Promise<void> | void;
 }) {
@@ -329,7 +330,7 @@ export default function ScrollArea({
     }, []);
 
     return (
-        <div className={`relative ${className}`}>
+        <div className={cn('relative', fill && 'size-full')}>
             <div
                 ref={indicatorRef}
                 className={cn('pointer-events-none absolute inset-x-0 top-0 flex h-0 items-center justify-center overflow-hidden opacity-0', layer.base)}

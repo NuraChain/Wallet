@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { ChevronDown, ArrowDownLeft, ArrowUpRight, Gift, Globe, Settings, List, LayoutGrid, User, type LucideIcon } from 'lucide-react';
 
-import TokenIcon from '../token.icon';
+import TokenIcon from '../../ui/token.icon';
 import CopyButton from '../../ui/copy';
-import TokenRow, { AssetAmount } from '../token.row';
+import TokenRow, { AssetAmount } from '../../ui/token.row';
 import DashboardActivity from './dashboard.activity';
 import DashboardOffline from './dashboard.offline';
 
@@ -191,9 +191,9 @@ export default function DashboardWallet({
                 <Text dir='ltr' variant='display' align='center' breaks='all' text={headline()} />
 
                 <CopyButton trailing value={address} label={T('Dashboard.Copy')} subtle>
-                    <span dir='ltr' className='font-mono'>
+                    <Text as='span' variant='plain' dir='ltr' mono>
                         {shortAddress(address)}
-                    </span>
+                    </Text>
                 </CopyButton>
             </Vertical>
 

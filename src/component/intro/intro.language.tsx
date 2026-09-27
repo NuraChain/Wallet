@@ -5,6 +5,7 @@ import { Modal, ModalBody, ModalHeader } from '../../ui/modal';
 
 import { T, getLanguage, setLanguage, languageRecord } from '../../utility/language';
 import type { LanguageType } from '../../type/app';
+import { Flag } from '../../ui/media';
 
 export default function IntroLanguage({ onClose }: { onClose: () => void }) {
     const current = getLanguage();
@@ -28,7 +29,7 @@ export default function IntroLanguage({ onClose }: { onClose: () => void }) {
                             key={lang.code}
                             selected={isActive}
                             label={T(`Language.${lang.code}`)}
-                            leading={<img src={lang.flag} alt='' className='size-4 shrink-0 object-contain' />}
+                            leading={<Flag src={lang.flag} />}
                             trailing={isActive ? <Check size={18} /> : undefined}
                             onClick={() => {
                                 void handleSelect(lang.code);

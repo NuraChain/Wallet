@@ -1,24 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { CircleQuestionMark } from 'lucide-react';
-import { motion } from 'motion/react';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
 import { PasswordField } from '../ui/field';
 
-import PageContainer, { layer } from '../layout/container';
-import Popover from '../ui/popover';
-import { cn } from '../utility/cn';
+import PageContainer from '../ui/container';
+import Popover, { PopoverAnchor } from '../ui/popover';
 import { T } from '../utility/language';
 import { readVault } from '../core/vault';
 import { closeBrowserLayers } from '../core/browser';
-import { surfacePanel } from '../ui/panel';
 import { passwordCheck } from '../core/password';
 import { unlockSession } from '../core/session';
 import { getValueEncrypted } from '../utility/storage';
 import { Horizontal } from '../ui/stack';
+import { EntryCard } from '../ui/screen';
+import { Block } from '../ui/wrap';
 
 export default function UnlockPage() {
     useEffect(() => {
@@ -77,21 +76,16 @@ export default function UnlockPage() {
     };
 
     return (
-        <PageContainer variant='intro' className='items-center justify-center'>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ type: 'tween' }}
-                className={cn(surfacePanel, 'flex w-full max-w-md flex-col gap-4 rounded-dialog p-6')}
-            >
+        <PageContainer variant='intro' center>
+            <EntryCard>
                 <Horizontal align='center' justify='between' gap={2}>
-                    <div>
+                    <Block>
                         <Text as='h1' variant='heading' text={T('Unlock.Title')} />
 
                         <Text text={T('Unlock.Subtitle')} />
-                    </div>
+                    </Block>
 
-                    <div className={`relative ${layer.popover}`}>
+                    <PopoverAnchor>
                         <Button
                             variant='muted'
                             size='iconLarge'
@@ -112,7 +106,7 @@ export default function UnlockPage() {
                         >
                             {T('Unlock.Recovery')}
                         </Popover>
-                    </div>
+                    </PopoverAnchor>
                 </Horizontal>
 
                 <Alert size='comfortable' mt={2} text={error} />
@@ -137,7 +131,7 @@ export default function UnlockPage() {
                     }}
                     text={T('Unlock.Submit')}
                 />
-            </motion.div>
+            </EntryCard>
         </PageContainer>
     );
 }

@@ -1,4 +1,4 @@
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 
 import { cn } from '../utility/cn';
 
@@ -30,6 +30,21 @@ export default function ProgressBar({ value, label = '', look }: { value?: numbe
                     className='absolute inset-y-0 inset-s-0 w-1/2 rounded-full bg-txt-accent'
                 />
             )}
+        </div>
+    );
+}
+
+/** The strip under the browser's address bar: a page's load, fading out once it is done. */
+export function LoadStrip({ loading, progress, label, hidden = false }: { loading: boolean; progress: number; label: string; hidden?: boolean }) {
+    return (
+        <div className={cn('relative h-0.5 shrink-0 overflow-hidden', hidden && 'hidden')}>
+            <AnimatePresence>
+                {loading && (
+                    <motion.div key='progress' initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} className='absolute inset-0'>
+                        <ProgressBar value={progress} label={label} look='strip' />
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

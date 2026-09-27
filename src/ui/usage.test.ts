@@ -5,10 +5,12 @@ import { describe, expect, it } from 'vitest';
 import { parseAst } from 'rolldown/parseAst';
 
 /**
- * How the rest of the app may use `src/ui`, checked on every file outside it. A rule a reviewer
- * has to remember is a rule that erodes one call site at a time; these fail the suite instead.
+ * How the rest of the app may use `src/ui`, checked on every file outside it — the app and the
+ * extension's own entry points. A rule a reviewer has to remember is a rule that erodes one call
+ * site at a time; these fail the suite instead.
  */
 const src = fileURLToPath(new URL('../', import.meta.url));
+const root = resolve(src, '..');
 const ui = resolve(src, 'ui');
 
 const walk = (dir: string): string[] =>
@@ -53,15 +55,39 @@ const visit = (node: unknown, fn: (node: Node) => void) => {
     }
 };
 
-const files = walk(src).map((file) => {
+const files = [...walk(src), ...walk(resolve(root, 'src-extension'))].map((file) => {
     const source = readFileSync(file, 'utf8');
 
-    return { name: relative(src, file).replaceAll('\\', '/'), source, ast: parseAst(source, { lang: 'tsx' }, file) };
+    return { name: relative(root, file).replaceAll('\\', '/'), source, ast: parseAst(source, { lang: 'tsx' }, file) };
 });
 
 const lineOf = (source: string, offset: number) => source.slice(0, offset).split('\n').length;
 
 describe('outside src/ui', () => {
+    // Markup — an HTML or SVG tag, or `motion.*`, which renders one — belongs to the design system.
+    // Everything else composes its primitives, so a look is only ever defined once.
+    it.each(files)('$name renders no HTML element of its own', ({ source, ast }) => {
+        const found: string[] = [];
+
+        visit(ast, (node) => {
+            if (node.type !== 'JSXOpeningElement') {
+                return;
+            }
+
+            // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            const name = node.name as { type: string; name?: string; object?: { name?: string } };
+
+            const intrinsic = name.type === 'JSXIdentifier' && /^[a-z]/u.test(name.name ?? '');
+            const animated = name.type === 'JSXMemberExpression' && name.object?.name === 'motion';
+
+            if (intrinsic || animated) {
+                found.push(`${lineOf(source, node.start)}: ${source.slice(node.start, node.start + 40).split('\n')[0]}`);
+            }
+        });
+
+        expect(found, 'markup outside src/ui: use or add a primitive there').toEqual([]);
+    });
+
     it.each(files)('$name gives a Button its glyph through `icon`, not as a child', ({ source, ast }) => {
         const found: number[] = [];
 

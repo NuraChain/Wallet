@@ -11,7 +11,7 @@ import ListCard from '../../ui/list';
 import ScrollBar from '../../ui/scrollbar';
 import AddressBlock from '../../ui/address';
 import SiteIcon from '../site.icon';
-import TokenIcon from '../token.icon';
+import TokenIcon from '../../ui/token.icon';
 import { Horizontal, Vertical } from '../../ui/stack';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../../ui/modal';
 
@@ -22,6 +22,7 @@ import { readCalldata } from '../../core/calldata';
 import { resolveDappPrompt } from '../../core/dapp.rpc';
 import type { DappPrompt } from '../../type/dapp';
 import type { Token } from '../../type/token';
+import { Rail } from '../../ui/wrap';
 
 interface Row {
     label: string;
@@ -69,7 +70,7 @@ function Stop({ icon, label, rail = false, children }: { icon: ReactNode; label:
             <Vertical shrink={false} align='center'>
                 {icon}
 
-                {rail && <div aria-hidden='true' className='my-1 w-px flex-1 bg-line' />}
+                {rail && <Rail />}
             </Vertical>
 
             <Vertical squeeze='x' grow gap={0.5} pb={rail ? 4 : undefined}>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import IconBox from '../ui/iconbox';
+import IconBox from './iconbox';
 
 import { cn } from '../utility/cn';
 import { useCachedImage } from '../hook/image';

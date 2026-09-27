@@ -1,6 +1,6 @@
 ---
 name: design-system
-description: Use before writing or changing any JSX that renders UI in this repo — a screen, dialog, list, row, form, button, or piece of text. The catalog of primitives in src/ui and src/layout, which one to reach for, and the rule that call sites compose primitives instead of hand-writing surfaces. Read this before inventing a div.
+description: Use before writing or changing any JSX that renders UI in this repo — a screen, dialog, list, row, form, button, or piece of text. The catalog of primitives in src/ui, which one to reach for, and the two rules it is held to — no markup outside src/ui, and no className on anything in it. Read this before inventing a div.
 ---
 
 # The design system
@@ -10,6 +10,12 @@ primitives; it does not re-describe a surface.** Almost every primitive here exi
 the same class string had been retyped ten to thirty times and had drifted. Retyping it an
 eleventh time is the failure mode this catalog prevents.
 
+**No markup outside `src/ui`.** A page or component renders primitives, never an HTML or SVG
+tag of its own, and never `motion.*`, which renders one. When nothing in the catalog is the
+element a screen needs, add a primitive here — named for what it is — rather than a `div` there.
+`src/ui/usage.test.ts` fails on any lowercase JSX tag outside `src/ui`, in `src/` and
+`src-extension/` alike.
+
 **No primitive takes a `className`.** A primitive says what it is through named props, and
 every value maps to one class written out in full in that component — Tailwind only generates
 a class it finds in source, so none is ever assembled at runtime. How an element sits in its
@@ -17,7 +23,7 @@ parent is one shared set, `Placement` in `ui/place.ts`, taken by every primitive
 `grow`, `shrink`, `squeeze='x' | 'y'`, `mt` / `mb` / `ms` / `mx`, `self`,
 `wide='hide' | 'only'` (the `lg` sidebar layout) and `width`.
 
-`src/ui/ui.test.ts` enforces it: a file in `src/ui` that declares a `className` or `…Class`
+`src/ui/ui.test.ts` enforces this one: a file in `src/ui` that declares a `className` or `…Class`
 prop, or spreads HTML attributes without omitting `className`, fails the suite. When a
 primitive nearly fits, give it the named prop or variant it lacks. A surface that is truly one
 of a kind is a plain element at its call site, built from the shared strings in
@@ -25,7 +31,8 @@ of a kind is a plain element at its call site, built from the shared strings in
 
 ## Typography — `ui/text.tsx`
 
-`<Text variant as text />`. Never write a raw `text-tiny text-txt-muted` on a div. Beyond the
+`<Text variant as text />`, with a `plain` variant (no size, no colour) for a label inside a
+control that sets both. Never write a raw `text-tiny text-txt-muted` on a div. Beyond the
 variant: `size` (`small` | `large`), `scaleUp` (one step up at `sm`), `tone` (`normal` | `accent`
 | `error` | `onPrimary`), `align`, `truncate`, `mono`, `weight`, `tabular`, `breaks` (`all` |
 `words`), `pre`, `selectable`, `leading`, `srOnly`, `inset` (a recessed box of its own),
@@ -48,8 +55,10 @@ have a title `aria-labelledby` can point at.
 
 ## Buttons — `ui/button.tsx`
 
-`<Button variant size text loading dim fullWidth selected current leftIcon rightIcon />` plus
-`Placement`. `selected` tints the choice already in effect; `current` marks a button disabled
+`<Button variant size text label icon loading dim fullWidth selected current leftIcon rightIcon />` plus
+`Placement`. **An icon button's glyph goes in `icon`, never as its child** — `usage.test.ts`
+fails a `Button` whose only child is an icon. `label` is a label cut to one line where the row
+squeezes the button; `text` wraps. `selected` tints the choice already in effect; `current` marks a button disabled
 because it is the current choice rather than unavailable. **Every**
 interactive control routes through this, including ones with a complete look of their own —
 that is what `variant='bare'` is for (focus ring only, plus the `type='button'` default).
@@ -132,20 +141,29 @@ The only icon source in the tree. `import { Check, Trash } from 'lucide-react'`.
   `p` / `px` / `py` / `pt` / `pb`, `relative`, `fill` (`both` | `height`), `maxWidth`, `scroll`,
   `even` (children share the row equally), `textAlign`, and `Placement` — only the steps in use,
   so a new one is added to the map, not typed at the call site.
+- **`Block`** (`ui/wrap.tsx`) — a plain `div` for a wrapper that only has to sit in its parent,
+  hold a `ref` or carry a role: `Placement`, `relative`, `fill`, `clip`, `height`. It stops there;
+  a box that wants a look is a primitive named for that look. **`Grid`** (`look='emoji' |
+  'favorites' | 'recent'`) and **`Rail`** live beside it.
+- **`Screen`** (`enter='fade' | 'grow'`, `backdrop`), **`EntryCard`**, **`Track`** (the dashboard's
+  tabs side by side), **`SidebarPanel`**, **`Splash`**, **`IntroBar`** and **`IntroSlide`**
+  (`ui/screen.tsx`) — the scaffolding a route is built from.
 - **`Toolbar`** (`ui/toolbar.tsx`) — the strip of controls across the top of the browser.
-- **`TabBar` / `Tab`** (`ui/tabs.tsx`) — underlined tabs, with room at the end for an action.
+- **`TabBar` / `Tab`** (`ui/tabs.tsx`) — underlined tabs, with room at the end for an action;
+  **`TabChip`** is one tab in the browser's tab list.
 - **`SectionHeader`** (`ui/section.tsx`) — muted title with an optional trailing control.
-- **`PageContainer`** (`layout/container.tsx`) — `variant='tab' | 'browser' | 'intro'`.
+- **`PageContainer`** (`ui/container.tsx`) — `variant='tab' | 'browser' | 'intro'`.
   Every top-level surface gets its top padding from here. It resolves the
   `Windows title bar : Android safe area` fork for you; **never hand-write that formula.**
-- **`layer`** (`layout/container.tsx`) — `base` z-10, `chrome` z-20, `popover` z-30, `dialog` z-40.
+- **`layer`** (`ui/container.tsx`) — `base` z-10, `chrome` z-20, `popover` z-30, `dialog` z-40,
+  `mouse` z-100.
   **Never write a bare `z-*`.** Three unnamed numbers are how the language picker once
   rendered *under* the nav bar it had to cover, with the tabs still clickable through its
   own scrim.
 - **`inset`** — safe-area formulas for surfaces that pad against device insets without
   being a page: `sheetTop`, `modalFrame`, `tabTop` (a `windows`/`device` pair),
   `tabBottom`, `edgeBottom`.
-- **`ScrollArea`** (`layout/scroll.tsx`) — scrolling region with an overlay thumb that takes
+- **`ScrollArea`** (`ui/scroll.tsx`, `fill`) — scrolling region with an overlay thumb that takes
   no layout width, plus pull-to-refresh. **`ScrollBar`** (`ui/scrollbar.tsx`) is that thumb
   on its own, for a region that scrolls without being a page — it takes a `viewportRef`.
 
@@ -197,7 +215,12 @@ icon, or of both edges), `mono`, `align`, `textSize` and `truncate`; `TextArea` 
   it never adds a flex gap.
 - **`ProgressBar`** (`look='strip' | 'track'`), **`Spinner`** (`muted`), **`FailureScreen`**,
   **`MenuRow`** (`selected`, `Placement`), **`ScrollBar`** (`edge`), and **`Popover`**
-  (`anchor='below' | 'corner'`, `look='list' | 'note'`). `StatusBlock` takes `fill` and `px`.
+  (`anchor='below' | 'corner'`, `look='list' | 'note'`, with `PopoverAnchor` around its trigger).
+  `StatusBlock` takes `fill` and `px`; `LoadStrip` is the browser's page-load strip.
+- **`Slider`**, **`Logo`**, **`Flag`**, **`QrFrame`** (`ui/media.tsx`), **`FieldLead`** (the glyph over a
+  field's leading edge), and the recovery phrase's **`SecretKey` / `SecretWords` / `SecretWord`**
+  (`ui/secret.tsx`), which stay blurred until revealed.
+- **`Mouse`** (`ui/mouse.tsx`) — the floating logo, one element in the page's `#mouse`.
 
 ## Money and destruction
 
@@ -217,7 +240,8 @@ Three primitives exist because getting these wrong costs the user something real
 
 ## Before you write a div, check
 
-1. Is it text? → `Text`. Is it pressable? → `Button`. Is it a card? → `Panel` /
+1. Am I outside `src/ui`? Then no tag at all — find the primitive, or add one in `src/ui`.
+   Is it text? → `Text`. Is it pressable? → `Button`. Is it a card? → `Panel` /
    `surfacePanel`. A list? → `ListCard`. A flex box? → `Horizontal` / `Vertical`. An icon?
    → `lucide-react` with an explicit `size`. An address to verify? → `AddressBlock`.
 2. Is it a dialog? → `Modal` or `Sheet`, never a hand-rolled overlay.

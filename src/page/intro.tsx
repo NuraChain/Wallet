@@ -2,13 +2,13 @@ import type { Swiper as SwiperType } from 'swiper';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay, Pagination } from 'swiper/modules';
-import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
+import { AnimatePresence, useReducedMotion } from 'motion/react';
 import { Download, Globe, Moon, CirclePlus, Sun, ChevronDown, ChevronRight, type LucideIcon } from 'lucide-react';
 import { useRef, useCallback, useState, type ReactNode } from 'react';
 
 import Text from '../ui/text';
 import Button from '../ui/button';
-import PageContainer from '../layout/container';
+import PageContainer from '../ui/container';
 import IntroImport from '../component/intro/intro.import';
 import IntroWallet from '../component/intro/intro.wallet';
 import IntroLanguage from '../component/intro/intro.language';
@@ -17,10 +17,11 @@ import { Vertical } from '../ui/stack';
 
 import { getTheme, setTheme } from '../utility/theme';
 import { getDirection, getLanguage, T } from '../utility/language';
-import { IntroArtConnect, IntroArtDecentralized, IntroArtSecure } from '../component/intro/intro.art';
+import { IntroArtConnect, IntroArtDecentralized, IntroArtSecure } from '../ui/intro.art';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
+import { IntroBar, IntroSlide, Screen } from '../ui/screen';
 
 const slideMap = [
     {
@@ -70,12 +71,12 @@ export default function IntroPage() {
     }, []);
 
     return (
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'tween' }} className='relative size-full'>
+        <Screen enter='grow'>
             <AnimatePresence>{subPage}</AnimatePresence>
 
             <PageContainer variant='intro'>
                 <Vertical mx='auto' fill='both' maxWidth='lg'>
-                    <div className='mt-3 flex shrink-0 items-center justify-between gap-2 sm:mt-4'>
+                    <IntroBar>
                         <Button
                             variant='normal'
                             onClick={() => {
@@ -98,7 +99,7 @@ export default function IntroPage() {
                             shrink={false}
                             icon={theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
                         />
-                    </div>
+                    </IntroBar>
 
                     <Swiper
                         key={getLanguage().code}
@@ -112,13 +113,13 @@ export default function IntroPage() {
                     >
                         {slideMap.map((slide) => (
                             <SwiperSlide key={slide.header}>
-                                <div className='flex h-full cursor-pointer flex-col items-center justify-center gap-2 px-2 pb-10'>
-                                    <slide.art className='h-44 max-h-[52%] w-auto max-w-full sm:h-60 md:h-72' />
+                                <IntroSlide>
+                                    <slide.art />
 
                                     <Text as='h1' variant='title' align='center' scaleUp text={T(slide.header)} />
 
                                     <Text as='p' variant='caption' maxWidth='sm' align='center' scaleUp text={T(slide.message)} />
-                                </div>
+                                </IntroSlide>
                             </SwiperSlide>
                         ))}
                     </Swiper>
@@ -145,6 +146,6 @@ export default function IntroPage() {
                     </Vertical>
                 </Vertical>
             </PageContainer>
-        </motion.div>
+        </Screen>
     );
 }

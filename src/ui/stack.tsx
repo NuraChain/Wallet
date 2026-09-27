@@ -39,13 +39,16 @@ export interface StackProps extends Placement {
     /** Every child takes an equal share of the row. */
     even?: boolean;
     textAlign?: 'start';
+    /** Clips what runs past its edge. */
+    clip?: boolean;
     children: ReactNode;
 }
 
 type StackAttributes = StackProps & Omit<ComponentPropsWithRef<'div'>, 'className' | 'children'>;
 
 const stack = (direction: string, props: StackAttributes) => {
-    const [place, { gap, align, justify, p, px, py, pt, pb, relative, fill, maxWidth, scroll, even, textAlign, children, ...rest }] = splitPlacement(props);
+    const [place, { gap, align, justify, p, px, py, pt, pb, relative, fill, maxWidth, scroll, even, textAlign, clip, children, ...rest }] =
+        splitPlacement(props);
 
     return (
         <div
@@ -55,6 +58,7 @@ const stack = (direction: string, props: StackAttributes) => {
                 fill !== undefined && fillMap[fill],
                 maxWidth === 'lg' && 'max-w-lg',
                 scroll !== undefined && scrollMap[scroll],
+                clip && 'overflow-hidden',
                 gap !== undefined && gapMap[gap],
                 align !== undefined && alignMap[align],
                 justify !== undefined && justifyMap[justify],

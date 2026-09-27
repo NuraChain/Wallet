@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash } from 'lucide-react';
 
-import TokenRow, { AssetAmount } from '../token.row';
+import TokenRow, { AssetAmount } from '../../ui/token.row';
 
 import Text from '../../ui/text';
 import StatusBlock from '../../ui/state';

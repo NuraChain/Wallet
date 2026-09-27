@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check, Plus, Trash } from 'lucide-react';
 
-import TokenIcon from '../token.icon';
+import TokenIcon from '../../ui/token.icon';
 
 import Alert from '../../ui/alert';
 import Button from '../../ui/button';

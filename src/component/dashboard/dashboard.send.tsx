@@ -6,7 +6,7 @@ import Text from '../../ui/text';
 import Alert from '../../ui/alert';
 import Button from '../../ui/button';
 import Spinner from '../../ui/spinner';
-import TokenIcon from '../token.icon';
+import TokenIcon from '../../ui/token.icon';
 import CopyButton from '../../ui/copy';
 import AddressBlock from '../../ui/address';
 import SectionHeader from '../../ui/section';

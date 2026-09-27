@@ -1,6 +1,5 @@
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
-import { TriangleAlert } from 'lucide-react';
 
 import Text from '../../ui/text';
 import Alert from '../../ui/alert';
@@ -11,6 +10,7 @@ import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
 import type { Network } from '../../type/network';
+import { QrFrame } from '../../ui/media';
 
 export default function DashboardReceive({ address, network, onClose }: { address: string; network: Network; onClose: () => void }) {
     const [qr, setQr] = useState('');
@@ -45,11 +45,7 @@ export default function DashboardReceive({ address, network, onClose }: { addres
         <Modal onClose={onClose} align='center'>
             <ModalHeader title={T('Dashboard.Receive.Title')} width='full' onClose={onClose} />
 
-            <div className='flex size-56 items-center justify-center rounded-dialog border border-badge-line bg-badge p-3'>
-                {qr.length > 0 && <img src={qr} alt='' className='size-full' />}
-
-                {failed && <TriangleAlert size={28} className='text-txt-error' />}
-            </div>
+            <QrFrame image={qr} failed={failed} />
 
             <Alert variant='error' text={failed ? T('Dashboard.Receive.QrFailed') : ''} />
 

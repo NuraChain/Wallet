@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { cn } from '../utility/cn';
-import { layer } from '../layout/container';
+import { layer } from './container';
 import { surfacePanel } from './panel';
 import { useDismiss } from './dialog';
 
@@ -48,4 +48,9 @@ export default function Popover({
             </div>
         </>
     );
+}
+
+/** The trigger's wrapper: the panel positions against it, and it lifts both above the page. */
+export function PopoverAnchor({ children }: { children: ReactNode }) {
+    return <div className={`relative ${layer.popover}`}>{children}</div>;
 }

@@ -5,7 +5,7 @@ import Logo from '../assets/image/logo.png';
 
 import { cn } from '../utility/cn';
 import { focusRing } from './token';
-import { layer } from '../layout/container';
+import { layer } from './container';
 import { useMouseOpacity } from '../hook/mouse';
 
 import type { MouseAction } from '../type/app';

@@ -17,6 +17,7 @@ import { vaultAddress, vaultDerivable } from '../../core/vault';
 import { accountFirst, accountLimit, defaultAccountName } from '../../utility/account';
 import { Horizontal, Vertical } from '../../ui/stack';
 import type { Account, Vault } from '../../type/wallet';
+import { Block, Grid } from '../../ui/wrap';
 
 const emojiList = [
     '🦊',
@@ -214,7 +215,7 @@ export default function DashboardAccount({
                                         <Vertical key={item.index} gap={2}>
                                             <Text text={T('Dashboard.Accounts.Emoji')} />
 
-                                            <div className='grid grid-cols-5 gap-1'>
+                                            <Grid look='emoji'>
                                                 {emojiList.map((emoji) => (
                                                     <Button
                                                         key={emoji}
@@ -226,7 +227,7 @@ export default function DashboardAccount({
                                                         text={emoji}
                                                     />
                                                 ))}
-                                            </div>
+                                            </Grid>
 
                                             <Button
                                                 variant='normal'
@@ -243,9 +244,9 @@ export default function DashboardAccount({
                                 if (editing === item.index) {
                                     return (
                                         <Horizontal key={item.index} gap={2}>
-                                            <div className='flex-1'>
+                                            <Block grow>
                                                 <TextField autoFocus value={draft} placeholder={name} onValue={setDraft} onEnter={onSave} />
-                                            </div>
+                                            </Block>
 
                                             <Button variant='primary' size='actionFit' onClick={onSave} text={T('Dashboard.Accounts.Save')} />
                                         </Horizontal>

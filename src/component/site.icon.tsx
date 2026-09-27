@@ -1,4 +1,4 @@
-import TokenIcon from './token.icon';
+import TokenIcon from '../ui/token.icon';
 
 import { useSiteIcon } from '../hook/image';
 

@@ -94,6 +94,8 @@ export default function Button(
         variant?: ButtonVariant;
         size?: keyof typeof sizeMap;
         text?: string;
+        /** A label that is cut to one line when the row squeezes the button, where `text` would wrap. */
+        label?: string;
         loading?: boolean;
         dim?: boolean;
         fullWidth?: boolean;
@@ -114,6 +116,7 @@ export default function Button(
             variant = 'bare',
             size = 'none',
             text,
+            label,
             loading = false,
             dim = false,
             fullWidth = false,
@@ -153,6 +156,8 @@ export default function Button(
             {icon}
 
             {text ?? children}
+
+            {label !== undefined && <span className='truncate'>{label}</span>}
 
             {loading && <Spinner size={16} shrink={false} />}
 

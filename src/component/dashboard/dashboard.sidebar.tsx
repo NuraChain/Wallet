@@ -1,32 +1,23 @@
-import Logo from '../../assets/image/logo.png';
+import { Logo } from '../../ui/media';
 
 import Text from '../../ui/text';
 import Button from '../../ui/button';
 import MenuRow from '../../ui/menu';
 
 import { platform } from '../../platform';
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
-import { inset } from '../../layout/container';
-import { useIsWindows } from '../../hook/platform';
 import { Horizontal, Vertical } from '../../ui/stack';
 import type { SidebarItem } from '../../type/app';
+import { SidebarPanel } from '../../ui/screen';
+import { Block } from '../../ui/wrap';
 
 /* The product page, handed to the host browser rather than the wallet's own. It is a brand site,
    not a dApp — nothing on it wants a provider, and it has no business in a tab that carries one. */
 const site = 'https://nurawallet.app';
 
 export default function DashboardSidebar({ items, actions, footer }: { items: SidebarItem[]; actions: SidebarItem[]; footer: SidebarItem[] }) {
-    const isWindows = useIsWindows();
-
     return (
-        <div
-            className={cn(
-                'flex flex-col',
-                'hidden w-60 shrink-0 gap-1 border-e border-line bg-base-2 p-3 pb-[calc(1.5rem+var(--inset-bottom))] lg:flex',
-                inset.tabTop[isWindows ? 'windows' : 'device']
-            )}
-        >
+        <SidebarPanel>
             <Vertical align='center' gap={2} px={3} py={5}>
                 <Button
                     variant='logo'
@@ -35,11 +26,10 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
                     onClick={() => {
                         void platform.openUrl(site).catch(() => undefined);
                     }}
-                >
-                    {/* Decorative: the button carries the name, and a labelled image inside a
-                        labelled control is read out twice. */}
-                    <img src={Logo} alt='' className='size-24' />
-                </Button>
+                    // Decorative: the button carries the name, and a labelled image inside a
+                    // labelled control is read out twice.
+                    icon={<Logo size={24} />}
+                />
 
                 <Text align='center' text={T('App.Tagline')} />
             </Vertical>
@@ -54,7 +44,7 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
                 />
             ))}
 
-            <div className='flex-1' />
+            <Block grow />
 
             <Horizontal gap={2} pb={1}>
                 {actions.map((item) => (
@@ -66,9 +56,8 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
                         leftIcon={<item.icon size={16} className='shrink-0' />}
                         squeeze='x'
                         grow
-                    >
-                        <span className='truncate'>{item.label}</span>
-                    </Button>
+                        label={item.label}
+                    />
                 ))}
             </Horizontal>
 
@@ -81,6 +70,6 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
                     onClick={item.onClick}
                 />
             ))}
-        </div>
+        </SidebarPanel>
     );
 }

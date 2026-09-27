@@ -8,7 +8,7 @@ import Button from './button';
 
 import { cn } from '../utility/cn';
 import { T } from '../utility/language';
-import { inset, layer } from '../layout/container';
+import { inset, layer } from './container';
 import { DialogTitleContext, useDialog, useDialogTitleId } from './dialog';
 import { surfacePanel } from './panel';
 import { Vertical } from './stack';

@@ -1,11 +1,11 @@
 import { Navigate, useNavigate } from 'react-router';
 import { platform } from '../platform';
-import { motion, AnimatePresence } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, LogOut, Settings, Globe, Lock, Wallet } from 'lucide-react';
 
-import ScrollArea from '../layout/scroll';
-import PageContainer, { ScrollFrame } from '../layout/container';
+import ScrollArea from '../ui/scroll';
+import PageContainer, { ScrollFrame } from '../ui/container';
 import DashboardSidebar from '../component/dashboard/dashboard.sidebar';
 import DashboardWallet from '../component/dashboard/dashboard.wallet';
 import DashboardSend from '../component/dashboard/dashboard.send';
@@ -46,6 +46,9 @@ import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiv
 import type { MouseAction, SidebarItem } from '../type/app';
 import type { Account, Vault } from '../type/wallet';
 import type { HiddenMap, TokenMap } from '../type/token';
+import { Screen, Track } from '../ui/screen';
+import { Horizontal } from '../ui/stack';
+import { Block } from '../ui/wrap';
 
 type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse';
 
@@ -424,7 +427,7 @@ function DashboardView({ vault }: { vault: Vault }) {
     };
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ type: 'tween' }} className='relative size-full bg-base-1'>
+        <Screen enter='fade' backdrop>
             <AnimatePresence>
                 {modal === 'send' && (
                     <DashboardSend
@@ -499,7 +502,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 
             {hasBrowser && <Mouse onAction={onMouse} />}
 
-            <div dir={getDirection()} className='flex size-full overflow-hidden'>
+            <Horizontal dir={getDirection()} fill='both' clip>
                 {/* Full screen is the browser's own mode, so the rail only steps aside while that
                     tab is the one on screen — no reset to forget on the way out. */}
                 {!(browserFull && tabMap[active].key === 'Browser') && (
@@ -547,13 +550,10 @@ function DashboardView({ vault }: { vault: Vault }) {
                     />
                 )}
 
-                <div className='min-w-0 flex-1 overflow-hidden'>
-                    <div
-                        className='flex size-full transition-transform duration-(--duration-surface) ease-out'
-                        style={{ transform: `translateX(${getDirection() === 'rtl' ? active * 100 : active * -100}%)` }}
-                    >
+                <Block squeeze='x' grow clip>
+                    <Track index={active}>
                         {tabMap.map((item, index) => (
-                            <div key={item.key} className='size-full shrink-0'>
+                            <Block key={item.key} fill shrink={false}>
                                 {item.key === 'Browser' ? (
                                     <PageContainer
                                         variant='browser'
@@ -573,7 +573,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                     </PageContainer>
                                 ) : (
                                     <ScrollFrame>
-                                        <ScrollArea className='size-full' onRefresh={onRefresh}>
+                                        <ScrollArea fill onRefresh={onRefresh}>
                                             <PageContainer
                                                 variant='tab'
                                                 aria-hidden={index === active ? undefined : true}
@@ -652,12 +652,12 @@ function DashboardView({ vault }: { vault: Vault }) {
                                         </ScrollArea>
                                     </ScrollFrame>
                                 )}
-                            </div>
+                            </Block>
                         ))}
-                    </div>
-                </div>
-            </div>
-        </motion.div>
+                    </Track>
+                </Block>
+            </Horizontal>
+        </Screen>
     );
 }
 
