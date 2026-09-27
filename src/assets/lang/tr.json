@@ -105,8 +105,7 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Cüzdan",
-            "Browser": "Tarayıcı",
-            "Settings": "Ayarlar"
+            "Browser": "Tarayıcı"
         },
         "Offline": {
             "Title": "İnternet bağlantısı yok",

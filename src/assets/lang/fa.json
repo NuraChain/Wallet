@@ -105,8 +105,7 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "کیف پول",
-            "Browser": "مرورگر",
-            "Settings": "تنظیمات"
+            "Browser": "مرورگر"
         },
         "Offline": {
             "Title": "اتصال اینترنت وجود ندارد",

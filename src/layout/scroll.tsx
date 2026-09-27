@@ -1,5 +1,5 @@
 import { Loader } from 'lucide-react';
-import { useEffect, useRef, useState, type ReactNode, type UIEvent } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 import Spinner from '../components/ui/spinner';
 import ScrollBar from '../components/ui/scrollbar';
@@ -37,15 +37,12 @@ const painted = (element: HTMLElement) => {
 export default function ScrollArea({
     className = '',
     children,
-    onScrollChange,
     onRefresh
 }: {
     className?: string;
     children: ReactNode;
-    onScrollChange?: (top: number, delta: number, bottom: number) => void;
     onRefresh?: () => Promise<void> | void;
 }) {
-    const lastRef = useRef(0);
     const glyphRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const indicatorRef = useRef<HTMLDivElement>(null);
@@ -331,16 +328,6 @@ export default function ScrollArea({
         };
     }, []);
 
-    const onScroll = (event: UIEvent<HTMLDivElement>) => {
-        const element = event.currentTarget;
-        const top = element.scrollTop;
-        const delta = top - lastRef.current;
-
-        lastRef.current = top;
-
-        onScrollChange?.(top, delta, Math.max(element.scrollHeight - element.clientHeight - top, 0));
-    };
-
     return (
         <div className={`relative ${className}`}>
             <div
@@ -352,7 +339,7 @@ export default function ScrollArea({
                 </div>
             </div>
 
-            <div ref={viewportRef} onScroll={onScroll} className='size-full overflow-y-auto overscroll-contain'>
+            <div ref={viewportRef} className='size-full overflow-y-auto overscroll-contain'>
                 {children}
             </div>
 

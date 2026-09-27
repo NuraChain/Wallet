@@ -3,7 +3,7 @@ import type { TokenBalance } from '../../core/token';
 import type { Transaction } from '../../hook/history';
 
 import { useState } from 'react';
-import { ChevronDown, ArrowDownLeft, ArrowUpRight, Gift, Settings, List, LayoutGrid, User, type LucideIcon } from 'lucide-react';
+import { ChevronDown, ArrowDownLeft, ArrowUpRight, Gift, Globe, Settings, List, LayoutGrid, User, type LucideIcon } from 'lucide-react';
 
 import TokenIcon from '../token.icon';
 import CopyButton from '../ui/copy';
@@ -57,6 +57,7 @@ export default function DashboardWallet({
     onAccounts,
     onTokens,
     onSettings,
+    onBrowser,
     onTransaction,
     onOverview
 }: {
@@ -78,6 +79,8 @@ export default function DashboardWallet({
     onAccounts: () => void;
     onTokens: () => void;
     onSettings: () => void;
+    /** Left out where nothing can render a page in-app. */
+    onBrowser?: () => void;
     onTransaction: (hash: string) => void;
     onOverview: () => void;
 }) {
@@ -163,6 +166,12 @@ export default function DashboardWallet({
 
                     <ChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
+
+                {onBrowser !== undefined && (
+                    <Button variant='chip' size='iconChip' onClick={onBrowser} aria-label={T('Dashboard.Nav.Browser')} className='shrink-0 lg:hidden'>
+                        <Globe size={17} />
+                    </Button>
+                )}
 
                 <Button variant='chip' size='iconChip' onClick={onSettings} aria-label={T('Dashboard.Settings.Title')} className='shrink-0 lg:hidden'>
                     <Settings size={17} />

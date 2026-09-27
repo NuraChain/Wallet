@@ -107,7 +107,7 @@ The only icon source in the tree. `import { Check, Trash } from 'lucide-react'`.
   own scrim.
 - **`inset`** — safe-area formulas for surfaces that pad against device insets without
   being a page: `sheetTop`, `modalFrame`, `tabTop` (a `windows`/`device` pair),
-  `tabBottom` (clears the floating nav, and stops clearing it at `lg`), `edgeBottom`.
+  `tabBottom`, `edgeBottom`.
 - **`ScrollArea`** (`layout/scroll.tsx`) — scrolling region with an overlay thumb that takes
   no layout width, plus pull-to-refresh. **`ScrollBar`** (`ui/scrollbar.tsx`) is that thumb
   on its own, for a region that scrolls without being a page — it takes a `viewportRef`.

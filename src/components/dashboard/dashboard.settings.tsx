@@ -24,8 +24,7 @@ export default function DashboardSettings({
     onLogout
 }: {
     kind: VaultKind;
-    /** Only where there is no navigation bar to leave by. */
-    onBack?: () => void;
+    onBack: () => void;
     onLanguage: () => void;
     onPhrase: () => void;
     onLock: () => void;
@@ -44,11 +43,9 @@ export default function DashboardSettings({
     return (
         <Vertical className='mt-2 min-h-0 flex-1 gap-3'>
             <Horizontal className='items-center gap-3'>
-                {onBack !== undefined && (
-                    <Button variant='chip' size='iconChip' onClick={onBack} aria-label={T('Dashboard.Nav.Wallet')} className='shrink-0'>
-                        <ArrowLeft size={17} className='rtl:rotate-180' />
-                    </Button>
-                )}
+                <Button variant='chip' size='iconChip' onClick={onBack} aria-label={T('Dashboard.Nav.Wallet')} className='shrink-0 lg:hidden'>
+                    <ArrowLeft size={17} className='rtl:rotate-180' />
+                </Button>
 
                 <Text as='h1' variant='heading' className='py-2' text={T('Dashboard.Settings.Title')} />
             </Horizontal>

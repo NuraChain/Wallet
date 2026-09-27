@@ -8,7 +8,7 @@ export const inset = {
     modalFrame: 'pt-[calc(1rem+var(--inset-top))] pb-[calc(1rem+var(--inset-bottom))]',
     tabTop: { windows: 'pt-8', device: 'pt-[calc(0.375rem+var(--inset-top))]' },
 
-    tabBottom: 'pb-[calc(5.5rem+var(--inset-bottom))] lg:pb-[calc(1.5rem+var(--inset-bottom))]',
+    tabBottom: 'pb-[calc(1.5rem+var(--inset-bottom))]',
 
     /* The gutter a surface that runs all the way to the bottom of the screen keeps under itself —
        the sheet, the intro and unlock pages — with the navigation bar's inset beneath it. */

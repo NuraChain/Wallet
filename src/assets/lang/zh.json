@@ -105,8 +105,7 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "钱包",
-            "Browser": "浏览器",
-            "Settings": "设置"
+            "Browser": "浏览器"
         },
         "Offline": {
             "Title": "无网络连接",

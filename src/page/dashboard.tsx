@@ -2,11 +2,10 @@ import { Navigate, useNavigate } from 'react-router';
 import { platform } from '../platform';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, LogOut, Settings, Globe, Lock, Wallet, type LucideIcon } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, LogOut, Settings, Globe, Lock, Wallet } from 'lucide-react';
 
 import ScrollArea from '../layout/scroll';
 import PageContainer, { ScrollFrame } from '../layout/container';
-import DashboardNav from '../components/dashboard/dashboard.nav';
 import DashboardSidebar, { type SidebarItem } from '../components/dashboard/dashboard.sidebar';
 import DashboardWallet from '../components/dashboard/dashboard.wallet';
 import DashboardSend from '../components/dashboard/dashboard.send';
@@ -55,18 +54,13 @@ import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiv
 
 type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem';
 
-const navMap: { key: string; icon: LucideIcon }[] = [
-    { key: 'Wallet', icon: Wallet },
-    { key: 'Browser', icon: Globe },
-    { key: 'Settings', icon: Settings }
-];
+const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Settings' }];
 
 function DashboardView({ vault }: { vault: Vault }) {
     const navigate = useNavigate();
 
     const [active, setActive] = useState(0);
     const [account, setAccount] = useState(0);
-    const [navHidden, setNavHidden] = useState(false);
     const [modal, setModal] = useState<Modal>('none');
     const [browserFull, setBrowserFull] = useState(false);
     const [link, setLink] = useState({ url: '', ticket: 0 });
@@ -94,26 +88,15 @@ function DashboardView({ vault }: { vault: Vault }) {
     // below indexes into this, not into navMap.
     const tabMap = useMemo(() => (hasBrowser ? navMap : navMap.filter((item) => item.key !== 'Browser')), [hasBrowser]);
 
-    // A bar with one tab on it only ever points at the screen already open — the extension and iOS,
-    // where the browser tab is gone — so it is left out, and Settings carries its own way back.
-    const navItems = useMemo(() => tabMap.filter((item) => item.key !== 'Settings'), [tabMap]);
-
-    const hasNav = navItems.length > 1;
-
-    const goTab = useCallback((index: number) => {
-        setActive(index);
-        setNavHidden(false);
-    }, []);
-
     const goKey = useCallback(
         (key: string) => {
             const index = tabMap.findIndex((item) => item.key === key);
 
             if (index !== -1) {
-                goTab(index);
+                setActive(index);
             }
         },
-        [goTab, tabMap]
+        [tabMap]
     );
 
     const closeModal = useCallback(() => {
@@ -126,8 +109,6 @@ function DashboardView({ vault }: { vault: Vault }) {
     const emoji = current?.emoji ?? '';
 
     const tracked = useMemo(() => tokenMap[network.chainId] ?? [], [tokenMap, network.chainId]);
-
-    const barHidden = navHidden || tabMap[active].key === 'Browser';
 
     const online = useOnline();
 
@@ -400,24 +381,6 @@ function DashboardView({ vault }: { vault: Vault }) {
         }
     };
 
-    const onPanelScroll = (index: number) => (top: number, delta: number, bottom: number) => {
-        if (index !== active) {
-            return;
-        }
-
-        if (top <= 24 || bottom <= 24) {
-            setNavHidden(false);
-
-            return;
-        }
-
-        if (delta > 6) {
-            setNavHidden(true);
-        } else if (delta < -6) {
-            setNavHidden(false);
-        }
-    };
-
     const onBrowse = (url: string) => {
         // With no browser tab the link is handed to the host browser rather than dropped. The
         // wallet is no longer the provider for it, which an explorer link never needed.
@@ -581,11 +544,8 @@ function DashboardView({ vault }: { vault: Vault }) {
                                 {item.key === 'Browser' ? (
                                     <PageContainer
                                         variant='browser'
-                                        role='tabpanel'
-                                        id={`dashboard-panel-${item.key}`}
                                         aria-hidden={index === active ? undefined : true}
                                         inert={index === active ? undefined : true}
-                                        aria-labelledby={`dashboard-tab-${item.key}`}
                                     >
                                         <DashboardBrowser
                                             network={network}
@@ -600,25 +560,18 @@ function DashboardView({ vault }: { vault: Vault }) {
                                     </PageContainer>
                                 ) : (
                                     <ScrollFrame>
-                                        <ScrollArea className='size-full' onRefresh={onRefresh} onScrollChange={onPanelScroll(index)}>
+                                        <ScrollArea className='size-full' onRefresh={onRefresh}>
                                             <PageContainer
                                                 variant='tab'
-                                                role='tabpanel'
-                                                id={`dashboard-panel-${item.key}`}
                                                 aria-hidden={index === active ? undefined : true}
                                                 inert={index === active ? undefined : true}
-                                                aria-labelledby={`dashboard-tab-${item.key}`}
                                             >
                                                 {item.key === 'Settings' && (
                                                     <DashboardSettings
                                                         kind={vault.kind}
-                                                        onBack={
-                                                            hasNav
-                                                                ? undefined
-                                                                : () => {
-                                                                      goKey('Wallet');
-                                                                  }
-                                                        }
+                                                        onBack={() => {
+                                                            goKey('Wallet');
+                                                        }}
                                                         onLanguage={() => {
                                                             setModal('language');
                                                         }}
@@ -669,6 +622,13 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                         onSettings={() => {
                                                             goKey('Settings');
                                                         }}
+                                                        onBrowser={
+                                                            hasBrowser
+                                                                ? () => {
+                                                                      goKey('Browser');
+                                                                  }
+                                                                : undefined
+                                                        }
                                                         onTransaction={onTransaction}
                                                         onOverview={() => {
                                                             setModal('history');
@@ -684,8 +644,6 @@ function DashboardView({ vault }: { vault: Vault }) {
                     </div>
                 </div>
             </div>
-
-            {hasNav && <DashboardNav items={navItems} active={active} hidden={barHidden} onSelect={goTab} />}
         </motion.div>
     );
 }
