@@ -130,6 +130,12 @@ export default function Mouse({ onAction }: { onAction: (action: MouseAction) =>
             onPointerMove={onMove}
             onPointerUp={onUp}
             onPointerCancel={onUp}
+            // Enter or Space: a click with no pointer behind it, which the pointer handlers never see.
+            onClick={(event) => {
+                if (event.detail === 0) {
+                    onAction('click');
+                }
+            }}
             style={{ left: place.x, top: place.y, opacity }}
             className={cn(focusRing, 'absolute size-12 cursor-grab touch-none select-none active:cursor-grabbing', layer.mouse)}
         >
