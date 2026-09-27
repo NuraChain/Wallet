@@ -635,13 +635,6 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                         onSettings={() => {
                                                             goKey('Settings');
                                                         }}
-                                                        onBrowser={
-                                                            hasBrowser
-                                                                ? () => {
-                                                                      goKey('Browser');
-                                                                  }
-                                                                : undefined
-                                                        }
                                                         onTransaction={onTransaction}
                                                         onOverview={() => {
                                                             setModal('history');

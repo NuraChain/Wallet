@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ArrowDownLeft, ArrowUpRight, Gift, Globe, Settings, List, LayoutGrid, User, type LucideIcon } from 'lucide-react';
+import { ChevronDown, ArrowDownLeft, ArrowUpRight, Gift, Settings, List, LayoutGrid, User, type LucideIcon } from 'lucide-react';
 
 import TokenIcon from '../../ui/token.icon';
 import CopyButton from '../../ui/copy';
@@ -52,7 +52,6 @@ export default function DashboardWallet({
     onAccounts,
     onTokens,
     onSettings,
-    onBrowser,
     onTransaction,
     onOverview
 }: {
@@ -74,8 +73,6 @@ export default function DashboardWallet({
     onAccounts: () => void;
     onTokens: () => void;
     onSettings: () => void;
-    /** Left out where nothing can render a page in-app. */
-    onBrowser?: () => void;
     onTransaction: (hash: string) => void;
     onOverview: () => void;
 }) {
@@ -161,18 +158,6 @@ export default function DashboardWallet({
 
                     <ChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
-
-                {onBrowser !== undefined && (
-                    <Button
-                        variant='chip'
-                        size='iconChip'
-                        onClick={onBrowser}
-                        aria-label={T('Dashboard.Nav.Browser')}
-                        shrink={false}
-                        wide='hide'
-                        icon={<Globe size={17} />}
-                    />
-                )}
 
                 <Button
                     variant='chip'
