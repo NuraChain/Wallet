@@ -67,7 +67,7 @@ MSYS_NO_PATHCONV=1 node .claude/skills/run-wallet/driver.mjs unlock 'eval:import
 
 ```bash
 npm run extension
-node .claude/skills/run-wallet/driver.mjs --extension dist-extension/chrome 'press:Create New Wallet' 'fill:input[type=password]=correct-horse' 'click:[role=checkbox]' 'press:Create Wallet' wait:4000 shot:ext-dashboard
+node .claude/skills/run-wallet/driver.mjs --extension .dist-extension/chrome 'press:Create New Wallet' 'fill:input[type=password]=correct-horse' 'click:[role=checkbox]' 'press:Create Wallet' wait:4000 shot:ext-dashboard
 ```
 
 Loads the unpacked Chrome build into Playwright's Chromium and opens
@@ -105,7 +105,7 @@ and the app stays on its first screen — use the driver, which fakes them.
 npm test                      # vitest, 4 files / 63 tests (dApp provider + calldata)
 npx tsc --noEmit -p .         # app types
 npm run -s extension:types    # extension types (its own tsconfig)
-npm run extension             # all four stores into dist-extension/
+npm run extension             # all four stores into .dist-extension/
 npm run -s extension:lint     # web-ext over the Firefox build: 0 errors, 3 known innerHTML warnings
 ```
 
@@ -145,5 +145,5 @@ npm run -s extension:lint     # web-ext over the Firefox build: 0 errors, 3 know
 | Symptom | Fix |
 |---|---|
 | `Failed to fetch dynamically imported module: file:///C:/Program%20Files/Git/…` | `MSYS_NO_PATHCONV=1` |
-| `timed out waiting for the app to render` with `[page] state: chrome-error://…` in extension mode | `npm run extension` first; the driver loads `dist-extension/chrome` as built |
+| `timed out waiting for the app to render` with `[page] state: chrome-error://…` in extension mode | `npm run extension` first; the driver loads `.dist-extension/chrome` as built |
 | `unlock fakes a vault and is web-only` | you are attached to the real app; unlock it by hand |

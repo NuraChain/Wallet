@@ -10,7 +10,7 @@ decision, never a runtime sniff.
 
 ```
 npm run extension       # extension:types, then vite build --app -c vite.config.extension.ts
-npm run extension:lint  # web-ext lint over dist-extension/firefox
+npm run extension:lint  # web-ext lint over .dist-extension/firefox
 ```
 
 ## The platform seam — `src/platform/`
@@ -73,8 +73,8 @@ floor, so the other engines' real floor is lower.
 
 ## One build, four stores — `extension/emit.ts`, `extension/manifest.ts`
 
-Targets are `chrome | edge | firefox | safari`. Each gets a copy of `dist-extension/build`
-under `dist-extension/<target>/` with `buildManifest(target)` written into it. The HTML moves
+Targets are `chrome | edge | firefox | safari`. Each gets a copy of `.dist-extension/build`
+under `.dist-extension/<target>/` with `buildManifest(target)` written into it. The HTML moves
 up from the path Vite built it under to the root the manifest names; its asset URLs are
 absolute, so it does not care.
 

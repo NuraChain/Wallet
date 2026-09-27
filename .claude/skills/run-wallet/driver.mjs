@@ -8,7 +8,7 @@
  *    page (an in-memory store, a platform name) so every screen renders without Rust.
  *  - --attach <port>: the real Tauri window, started with WebView2's remote-debugging port. Real
  *    IPC, real storage — the profile on disk is the one the installed app uses.
- *  - --extension <dir>: an unpacked build (dist-extension/chrome) loaded into Playwright's Chromium,
+ *  - --extension <dir>: an unpacked build (.dist-extension/chrome) loaded into Playwright's Chromium,
  *    with --page picking the document (default sidepanel.html?window).
  *
  * Steps run in order in one page:

@@ -14,8 +14,8 @@ const icon = `data:image/png;base64,${readFileSync('src/assets/image/logo.png').
 
 const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
-const build = 'dist-extension/build';
-const out = 'dist-extension';
+const build = '.dist-extension/build';
+const out = '.dist-extension';
 
 // The floor for sidePanel.open, which only the Chromium targets are told about. The other two
 // engines get the sidebar or nothing at all, so their real floor is lower.

@@ -478,7 +478,7 @@ jobs:
         run: |
           mkdir -p release-files
           for target in chrome edge firefox safari; do
-            (cd "dist-extension/$target" && zip -qr "$GITHUB_WORKSPACE/release-files/Nura-Wallet-Extension-$target.zip" .)
+            (cd ".dist-extension/$target" && zip -qr "$GITHUB_WORKSPACE/release-files/Nura-Wallet-Extension-$target.zip" .)
           done
           ls -l release-files
 

@@ -13,7 +13,7 @@ reviews:
   path_filters:
     - "!**/node_modules/**"
     - "!**/.dist/**"
-    - "!**/dist-extension/**"
+    - "!**/.dist-extension/**"
     - "!**/target/**"
     - "!**/*.lock"
     - "!**/package-lock.json"
