@@ -62,6 +62,7 @@ export default function DashboardBrowser({
     enabled,
     request,
     ticket,
+    fullToggle,
     onExit,
     onFullscreen
 }: {
@@ -69,6 +70,8 @@ export default function DashboardBrowser({
     enabled: boolean;
     request: string;
     ticket: number;
+    /** Counts up once per double press of the floating mouse while this tab is showing. */
+    fullToggle: number;
     onExit: () => void;
     onFullscreen?: (on: boolean) => void;
 }) {
@@ -84,6 +87,7 @@ export default function DashboardBrowser({
     const mintRef = useRef(2);
 
     const [fullMode, setFullMode] = useState(false);
+    const [seenToggle, setSeenToggle] = useState(fullToggle);
 
     const [live, setLive] = useState<Map<number, BrowserState>>(new Map());
     const [notice, setNotice] = useState<Map<number, string>>(new Map());
@@ -103,6 +107,16 @@ export default function DashboardBrowser({
        no chrome and no way to bring it back, while still remembering the intent for when a site is
        opened again. */
     const full = fullMode && !start;
+
+    // Acted on once per count, during render rather than after it, and only over a site: on the
+    // home page there is nothing to hide.
+    if (fullToggle !== seenToggle) {
+        setSeenToggle(fullToggle);
+
+        if (!start) {
+            setFullMode(!full);
+        }
+    }
 
     useEffect(() => {
         onFullscreen?.(full);

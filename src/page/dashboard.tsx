@@ -61,6 +61,7 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [account, setAccount] = useState(0);
     const [modal, setModal] = useState<Modal>('none');
     const [browserFull, setBrowserFull] = useState(false);
+    const [fullToggle, setFullToggle] = useState(0);
     const [link, setLink] = useState({ url: '', ticket: 0 });
     const [network, setNetworkState] = useState(getNetwork());
     const [tokenMap, setTokenMap] = useState<TokenMap>({});
@@ -119,8 +120,14 @@ function DashboardView({ vault }: { vault: Vault }) {
             return;
         }
 
+        // On the browser a double press takes the page full screen and back; anywhere else it opens
+        // the mouse's own settings.
         if (action === 'double') {
-            setModal('mouse');
+            if (tabMap[active].key === 'Browser') {
+                setFullToggle((value) => value + 1);
+            } else {
+                setModal('mouse');
+            }
         } else {
             goKey('Browser');
         }
@@ -564,6 +571,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                             network={network}
                                             request={link.url}
                                             ticket={link.ticket}
+                                            fullToggle={fullToggle}
                                             onFullscreen={setBrowserFull}
                                             enabled={index === active && modal === 'none' && prompt === undefined}
                                             onExit={() => {
