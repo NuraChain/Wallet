@@ -16,7 +16,7 @@ failed build. Lint and format are separate commands, not build steps.
 | `src/page/` | Route-level screens | `dashboard.tsx` |
 | `src/layout/` | Shell: root, containers, error boundary, scroll, titlebar | `container.tsx` |
 | `src/ui/` | Design-system primitives (see the `design-system` skill) | `button.tsx` |
-| `src/components/dashboard/` | Screen-specific composites | `dashboard.tokens.tsx` |
+| `src/component/dashboard/` | Screen-specific composites | `dashboard.tokens.tsx` |
 | `src/core/` | Domain logic: wallet, vault, network, dapp, caches | `network.provider.ts` |
 | `src/hook/` | React bindings over `core`/`utility` singletons | `balance.ts` |
 | `src/utility/` | Framework-free helpers: `cn`, `format`, `storage`, `language`, `theme`, `event` | `format.ts` |

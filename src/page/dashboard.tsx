@@ -6,21 +6,21 @@ import { ArrowDownLeft, ArrowUpRight, LogOut, Settings, Globe, Lock, Wallet } fr
 
 import ScrollArea from '../layout/scroll';
 import PageContainer, { ScrollFrame } from '../layout/container';
-import DashboardSidebar, { type SidebarItem } from '../components/dashboard/dashboard.sidebar';
-import DashboardWallet from '../components/dashboard/dashboard.wallet';
-import DashboardSend from '../components/dashboard/dashboard.send';
-import IntroLanguage from '../components/intro/intro.language';
-import DashboardTokens from '../components/dashboard/dashboard.tokens';
-import DashboardLogout from '../components/dashboard/dashboard.logout';
-import DashboardPhrase from '../components/dashboard/dashboard.phrase';
-import DashboardRedeem from '../components/dashboard/dashboard.redeem';
-import DashboardAccount from '../components/dashboard/dashboard.account';
-import DashboardBrowser from '../components/dashboard/dashboard.browser';
-import DashboardHistory from '../components/dashboard/dashboard.history';
-import DashboardNetwork from '../components/dashboard/dashboard.network';
-import DashboardReceive from '../components/dashboard/dashboard.receive';
-import DashboardRequest from '../components/dashboard/dashboard.request';
-import DashboardSettings from '../components/dashboard/dashboard.settings';
+import DashboardSidebar, { type SidebarItem } from '../component/dashboard/dashboard.sidebar';
+import DashboardWallet from '../component/dashboard/dashboard.wallet';
+import DashboardSend from '../component/dashboard/dashboard.send';
+import IntroLanguage from '../component/intro/intro.language';
+import DashboardTokens from '../component/dashboard/dashboard.tokens';
+import DashboardLogout from '../component/dashboard/dashboard.logout';
+import DashboardPhrase from '../component/dashboard/dashboard.phrase';
+import DashboardRedeem from '../component/dashboard/dashboard.redeem';
+import DashboardAccount from '../component/dashboard/dashboard.account';
+import DashboardBrowser from '../component/dashboard/dashboard.browser';
+import DashboardHistory from '../component/dashboard/dashboard.history';
+import DashboardNetwork from '../component/dashboard/dashboard.network';
+import DashboardReceive from '../component/dashboard/dashboard.receive';
+import DashboardRequest from '../component/dashboard/dashboard.request';
+import DashboardSettings from '../component/dashboard/dashboard.settings';
 
 import { getNetwork } from '../core/network';
 import { loadConnections } from '../core/dapp';

@@ -9,15 +9,15 @@ import { useRef, useCallback, useState, type ReactNode } from 'react';
 import Text from '../ui/text';
 import Button from '../ui/button';
 import PageContainer from '../layout/container';
-import IntroImport from '../components/intro/intro.import';
-import IntroWallet from '../components/intro/intro.wallet';
-import IntroLanguage from '../components/intro/intro.language';
+import IntroImport from '../component/intro/intro.import';
+import IntroWallet from '../component/intro/intro.wallet';
+import IntroLanguage from '../component/intro/intro.language';
 
 import { Horizontal, Vertical } from '../ui/stack';
 
 import { getTheme, setTheme } from '../utility/theme';
 import { getDirection, getLanguage, T } from '../utility/language';
-import { IntroArtConnect, IntroArtDecentralized, IntroArtSecure } from '../components/intro/intro.art';
+import { IntroArtConnect, IntroArtDecentralized, IntroArtSecure } from '../component/intro/intro.art';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
