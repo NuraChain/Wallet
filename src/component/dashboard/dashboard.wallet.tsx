@@ -163,14 +163,26 @@ export default function DashboardWallet({
                 </Button>
 
                 {onBrowser !== undefined && (
-                    <Button variant='chip' size='iconChip' onClick={onBrowser} aria-label={T('Dashboard.Nav.Browser')} shrink={false} wide='hide'>
-                        <Globe size={17} />
-                    </Button>
+                    <Button
+                        variant='chip'
+                        size='iconChip'
+                        onClick={onBrowser}
+                        aria-label={T('Dashboard.Nav.Browser')}
+                        shrink={false}
+                        wide='hide'
+                        icon={<Globe size={17} />}
+                    />
                 )}
 
-                <Button variant='chip' size='iconChip' onClick={onSettings} aria-label={T('Dashboard.Settings.Title')} shrink={false} wide='hide'>
-                    <Settings size={17} />
-                </Button>
+                <Button
+                    variant='chip'
+                    size='iconChip'
+                    onClick={onSettings}
+                    aria-label={T('Dashboard.Settings.Title')}
+                    shrink={false}
+                    wide='hide'
+                    icon={<Settings size={17} />}
+                />
             </Horizontal>
 
             <DashboardOffline error={native.error} at={native.at} />
@@ -211,9 +223,15 @@ export default function DashboardWallet({
                     ))}
 
                     {trailing !== undefined && (
-                        <Button variant='muted' size='icon' aria-label={trailing.label} onClick={trailing.onClick} ms='auto' shrink={false}>
-                            <trailing.icon size={16} />
-                        </Button>
+                        <Button
+                            variant='muted'
+                            size='icon'
+                            aria-label={trailing.label}
+                            onClick={trailing.onClick}
+                            ms='auto'
+                            shrink={false}
+                            icon={<trailing.icon size={16} />}
+                        />
                     )}
                 </TabBar>
 

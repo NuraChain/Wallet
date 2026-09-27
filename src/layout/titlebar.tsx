@@ -73,9 +73,7 @@ export default function TitleBar() {
 
             <Horizontal fill='height'>
                 {controlMap.map((item) => (
-                    <Button key={item.key} aria-label={item.label} onClick={item.action} variant='window'>
-                        {item.icon}
-                    </Button>
+                    <Button key={item.key} aria-label={item.label} onClick={item.action} variant='window' icon={item.icon} />
                 ))}
             </Horizontal>
         </div>

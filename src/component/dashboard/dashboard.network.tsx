@@ -186,9 +186,8 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                                 onClick={() => {
                                                     setRemoving({ id: item.id, name: item.name });
                                                 }}
-                                            >
-                                                <Trash size={16} />
-                                            </Button>
+                                                icon={<Trash size={16} />}
+                                            />
                                         )}
                                     </Horizontal>
                                 );

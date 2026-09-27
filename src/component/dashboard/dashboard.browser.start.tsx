@@ -152,9 +152,8 @@ export default function DashboardBrowserStart({
                                             }}
                                             aria-label={T('Dashboard.Browser.FavoriteRemove')}
                                             shrink={false}
-                                        >
-                                            <Trash size={16} />
-                                        </Button>
+                                            icon={<Trash size={16} />}
+                                        />
                                     </Horizontal>
                                 ))}
 

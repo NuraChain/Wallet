@@ -371,9 +371,15 @@ export default function DashboardBrowser({
         <Vertical relative squeeze='y' grow>
             {!full && (
                 <Toolbar>
-                    <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} shrink={false} wide='hide'>
-                        <X size={16} />
-                    </Button>
+                    <Button
+                        variant='danger'
+                        size='iconChip'
+                        aria-label={T('Dashboard.Browser.Exit')}
+                        onClick={onExit}
+                        shrink={false}
+                        wide='hide'
+                        icon={<X size={16} />}
+                    />
 
                     <Button
                         dim
@@ -385,9 +391,8 @@ export default function DashboardBrowser({
                             onStep(-1);
                         }}
                         shrink={false}
-                    >
-                        <ArrowLeft size={16} className='rtl:rotate-180' />
-                    </Button>
+                        icon={<ArrowLeft size={16} className='rtl:rotate-180' />}
+                    />
 
                     <Button
                         dim
@@ -399,9 +404,8 @@ export default function DashboardBrowser({
                             onStep(1);
                         }}
                         shrink={false}
-                    >
-                        <ArrowRight size={16} className='rtl:rotate-180' />
-                    </Button>
+                        icon={<ArrowRight size={16} className='rtl:rotate-180' />}
+                    />
 
                     <div className='min-w-0 flex-1'>
                         <TextField
@@ -432,9 +436,8 @@ export default function DashboardBrowser({
                                     onClick={() => {
                                         patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false }));
                                     }}
-                                >
-                                    <RotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
-                                </Button>
+                                    icon={<RotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />}
+                                />
                             }
                         />
                     </div>
@@ -451,9 +454,8 @@ export default function DashboardBrowser({
                                 : onHome
                         }
                         shrink={false}
-                    >
-                        {start ? <Settings size={16} /> : <House size={16} />}
-                    </Button>
+                        icon={start ? <Settings size={16} /> : <House size={16} />}
+                    />
                 </Toolbar>
             )}
 

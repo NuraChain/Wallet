@@ -99,9 +99,8 @@ export default function UnlockPage() {
                                 setShowHint((value) => !value);
                             }}
                             shrink={false}
-                        >
-                            <CircleQuestionMark size={18} />
-                        </Button>
+                            icon={<CircleQuestionMark size={18} />}
+                        />
 
                         <Popover
                             open={showHint}

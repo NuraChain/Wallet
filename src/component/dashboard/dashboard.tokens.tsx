@@ -157,9 +157,8 @@ export default function DashboardTokens({
                                             }}
                                             aria-label={T('Dashboard.Tokens.Remove')}
                                             shrink={false}
-                                        >
-                                            <Trash size={16} />
-                                        </Button>
+                                            icon={<Trash size={16} />}
+                                        />
                                     </TokenRow>
                                 ))}
                             </ListCard>

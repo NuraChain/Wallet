@@ -101,6 +101,8 @@ export default function Button(
         selected?: boolean;
         /** Disabled because it is the current choice, not because it is unavailable. */
         current?: boolean;
+        /** The glyph of an icon button, or one set before its label. */
+        icon?: ReactNode;
         leftIcon?: ReactNode;
         rightIcon?: ReactNode;
     } & Placement &
@@ -117,6 +119,7 @@ export default function Button(
             fullWidth = false,
             selected = false,
             current = false,
+            icon,
             leftIcon,
             rightIcon,
             type = 'button',
@@ -146,6 +149,8 @@ export default function Button(
             {...rest}
         >
             {leftIcon}
+
+            {icon}
 
             {text ?? children}
 

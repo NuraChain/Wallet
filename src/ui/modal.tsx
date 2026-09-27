@@ -156,9 +156,8 @@ export function ModalHeader({
                     aria-label={closeLabel.length > 0 ? closeLabel : T('App.Close')}
                     onClick={onClose}
                     shrink={false}
-                >
-                    <X size={20} />
-                </Button>
+                    icon={<X size={20} />}
+                />
             )}
         </Horizontal>
     );

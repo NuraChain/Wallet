@@ -45,9 +45,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                     'sm:mx-auto sm:px-6'
                 )}
             >
-                <Button variant='muted' size='iconLarge' aria-label={T('App.Close')} onClick={onClose} mt={4} shrink={false}>
-                    <X size={24} />
-                </Button>
+                <Button variant='muted' size='iconLarge' aria-label={T('App.Close')} onClick={onClose} mt={4} shrink={false} icon={<X size={24} />} />
 
                 <DialogTitleContext value={titleId}>{children}</DialogTitleContext>
             </motion.div>

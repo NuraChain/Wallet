@@ -75,9 +75,7 @@ export default function DashboardBrowserTabs({
 
     return (
         <Toolbar>
-            <Button variant='chip' size='iconChipSmall' aria-label={T('Dashboard.Browser.TabNew')} onClick={onAdd} shrink={false}>
-                <Plus size={16} />
-            </Button>
+            <Button variant='chip' size='iconChipSmall' aria-label={T('Dashboard.Browser.TabNew')} onClick={onAdd} shrink={false} icon={<Plus size={16} />} />
 
             <div className='min-w-0 flex-1'>
                 <Swiper
@@ -129,9 +127,8 @@ export default function DashboardBrowserTabs({
                                         }}
                                         variant='tabClose'
                                         shrink={false}
-                                    >
-                                        <X size={14} />
-                                    </Button>
+                                        icon={<X size={14} />}
+                                    />
                                 </div>
                             </SwiperSlide>
                         );

@@ -91,9 +91,13 @@ export default function IntroPage() {
                             <ChevronDown size={16} className='shrink-0' />
                         </Button>
 
-                        <Button variant='normal' size='iconLarge' onClick={toggleTheme} shrink={false}>
-                            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-                        </Button>
+                        <Button
+                            variant='normal'
+                            size='iconLarge'
+                            onClick={toggleTheme}
+                            shrink={false}
+                            icon={theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+                        />
                     </div>
 
                     <Swiper

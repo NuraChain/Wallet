@@ -263,11 +263,12 @@ export default function DashboardAccount({
                                                 aria-label={T('Dashboard.Accounts.Emoji')}
                                                 variant='plain'
                                                 shrink={false}
-                                            >
-                                                <IconBox tone='badge' size={9} glyph={hasBadge ? 'medium' : 'small'}>
-                                                    {hasBadge ? item.emoji : item.index}
-                                                </IconBox>
-                                            </Button>
+                                                icon={
+                                                    <IconBox tone='badge' size={9} glyph={hasBadge ? 'medium' : 'small'}>
+                                                        {hasBadge ? item.emoji : item.index}
+                                                    </IconBox>
+                                                }
+                                            />
 
                                             <Button
                                                 onClick={() => {
@@ -295,9 +296,8 @@ export default function DashboardAccount({
                                                 onEdit(item.index, name);
                                             }}
                                             shrink={false}
-                                        >
-                                            <Pen size={14} />
-                                        </Button>
+                                            icon={<Pen size={14} />}
+                                        />
 
                                         {item.index >= accountFirst && (
                                             <Button
@@ -308,9 +308,8 @@ export default function DashboardAccount({
                                                     setRemoving({ index: item.index, name });
                                                 }}
                                                 shrink={false}
-                                            >
-                                                <Trash size={14} />
-                                            </Button>
+                                                icon={<Trash size={14} />}
+                                            />
                                         )}
                                     </ChoiceRow>
                                 );
