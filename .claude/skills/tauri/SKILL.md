@@ -102,9 +102,15 @@ Rust, so the command parks on a `tokio::sync::oneshot` with a `time` bound for t
 where no answer ever arrives. Desktop only — Android's browser is Kotlin's and never
 reaches Tauri IPC. `tokio` is in the tree for that and nothing else.
 
-The floating mouse (`src/ui/mouse.tsx`) is a plain element in the page's `#mouse`, not a view
-of its own: it sits over everything the wallet draws, and under an open tab, which is an OS
-view no z-index reaches.
+The floating mouse (`src/core/mouse.ts`) is the one wallet control drawn over a tab, and a tab
+is an OS view no z-index reaches, so the mouse is a view too. On desktop it is its own
+transparent child webview, `nura-mouse`, loading `index.html#mouse=<opacity>` into the `#mouse`
+div (`MouseView`). A child added later stacks above it, so `browser_open` re-parents the mouse
+to the same window after every tab, which puts it back on top. As a local webview of `main` it
+runs under `main-capability`, which is why that holds `core:event:allow-emit`,
+`core:webview:allow-webview-position` and `core:window:allow-inner-size`. On Android it is an
+`ImageView` in `BrowserBridge.kt` kept on top by `translationZ`. Where neither can be drawn,
+the page's own `Mouse` element stands in.
 
 ## Calling from the frontend
 

@@ -2,12 +2,14 @@ import { RouterProvider } from 'react-router';
 import { createRoot } from 'react-dom/client';
 
 import ErrorBoundary from './layout/boundary';
+import { MouseView } from './ui/mouse';
 
 import { router } from './router';
 import { initTheme } from './utility/theme';
 import { initInsets } from './utility/inset';
 import { startDeepLinks } from './core/deeplink';
 import { initNetwork } from './core/network';
+import { readMouseOpacity } from './core/mouse';
 import { initLanguage, preloadLanguageFlags } from './utility/language';
 
 import './assets/style.css';
@@ -50,8 +52,14 @@ const startup = async () => {
 };
 
 const rootElement = document.querySelector('#root');
+const mouseElement = document.querySelector('#mouse');
 
-if (rootElement) {
+// The desktop mouse's own webview loads this page for the logo alone: no router, no startup.
+const mouseHash = /^#mouse=(?<opacity>[\d.]+)$/u.exec(location.hash);
+
+if (mouseHash !== null && mouseElement !== null) {
+    createRoot(mouseElement).render(<MouseView opacity={readMouseOpacity(mouseHash.groups?.opacity)} />);
+} else if (rootElement) {
     await startup();
 
     startDeepLinks();

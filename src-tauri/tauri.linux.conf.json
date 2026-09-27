@@ -25,6 +25,9 @@
                     "permissions": [
                         "core:event:allow-listen",
                         "core:event:allow-unlisten",
+                        "core:event:allow-emit",
+                        "core:webview:allow-webview-position",
+                        "core:window:allow-inner-size",
                         "core:webview:allow-create-webview",
                         "core:webview:allow-webview-close",
                         "core:webview:allow-webview-hide",

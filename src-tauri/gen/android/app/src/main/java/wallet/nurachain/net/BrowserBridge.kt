@@ -3,7 +3,9 @@ package wallet.nurachain.net
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.graphics.Color
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
@@ -14,6 +16,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
+import android.widget.ImageView
 import androidx.webkit.ScriptHandler
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
@@ -28,6 +31,8 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     private var dappScript: String = ""
 
     private val scripts = LinkedHashMap<String, ScriptHandler>()
+
+    private var mouse: ImageView? = null
 
     companion object {
         private const val SOLE = "sole"
@@ -212,6 +217,120 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         return view
     }
 
+    private fun place(view: View, x: Float, y: Float) {
+        val parent = view.parent as? View ?: return
+
+        view.x = x.coerceIn(0f, (parent.width - view.width).coerceAtLeast(0).toFloat())
+        view.y = y.coerceIn(0f, (parent.height - view.height).coerceAtLeast(0).toFloat())
+    }
+
+    private fun report(action: String) {
+        host.post {
+            host.evaluateJavascript("window.__nuraMouse && window.__nuraMouse('$action')", null)
+        }
+    }
+
+    // The floating mouse: a view of its own above the wallet and every tab. A raised Z keeps it
+    // over tabs added after it, for drawing and for touches alike, so nothing has to re-stack it.
+    @SuppressLint("ClickableViewAccessibility")
+    private fun buildMouse(root: ViewGroup): ImageView {
+        val size = px(48.0)
+        val view = ImageView(activity)
+
+        view.setImageResource(R.drawable.nura_logo)
+        view.contentDescription = "Nura Wallet"
+        view.layoutParams = FrameLayout.LayoutParams(size, size)
+        view.translationZ = 1000f
+
+        val slop = ViewConfiguration.get(activity).scaledTouchSlop
+        val wait = ViewConfiguration.getDoubleTapTimeout().toLong()
+
+        var downX = 0f
+        var downY = 0f
+        var fromX = 0f
+        var fromY = 0f
+        var dragging = false
+        var pending: Runnable? = null
+
+        // Taps are told apart by hand: the view follows the finger, so its own coordinates never
+        // leave the tap region and a gesture detector would call every drag a tap.
+        view.setOnTouchListener { touched, event ->
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = event.rawX
+                    downY = event.rawY
+                    fromX = touched.x
+                    fromY = touched.y
+                    dragging = false
+                }
+
+                MotionEvent.ACTION_MOVE -> {
+                    val dx = event.rawX - downX
+                    val dy = event.rawY - downY
+
+                    if (!dragging && Math.hypot(dx.toDouble(), dy.toDouble()) > slop) {
+                        dragging = true
+                    }
+
+                    if (dragging) {
+                        place(touched, fromX + dx, fromY + dy)
+                    }
+                }
+
+                MotionEvent.ACTION_UP -> if (!dragging) {
+                    val waiting = pending
+
+                    if (waiting != null) {
+                        touched.removeCallbacks(waiting)
+                        pending = null
+                        report("double")
+                    } else {
+                        val single = Runnable {
+                            pending = null
+                            report("click")
+                        }
+
+                        pending = single
+                        touched.postDelayed(single, wait)
+                    }
+                }
+            }
+
+            true
+        }
+
+        // Only reached through accessibility services, since the touch listener takes the rest.
+        view.setOnClickListener { report("click") }
+
+        root.addView(view)
+
+        // Kept on screen through rotation and resizes: in full screen it is the only way back out.
+        root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> place(view, view.x, view.y) }
+
+        root.post { place(view, (root.width - size - px(16.0)).toFloat(), root.height * 0.7f) }
+
+        return view
+    }
+
+    @JavascriptInterface
+    fun showMouse(opacity: Double) {
+        activity.runOnUiThread {
+            val view = mouse ?: buildMouse(activity.findViewById(android.R.id.content)).also { mouse = it }
+
+            view.alpha = opacity.toFloat()
+            view.visibility = View.VISIBLE
+        }
+    }
+
+    @JavascriptInterface
+    fun hideMouse() {
+        activity.runOnUiThread { mouse?.visibility = View.GONE }
+    }
+
+    @JavascriptInterface
+    fun setMouseOpacity(opacity: Double) {
+        activity.runOnUiThread { mouse?.alpha = opacity.toFloat() }
+    }
 
     @JavascriptInterface
     fun open(url: String, x: Double, y: Double, width: Double, height: Double) = openTab(SOLE, url, true, x, y, width, height)
@@ -265,6 +384,8 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     @JavascriptInterface
     fun closeAll() {
         activity.runOnUiThread {
+            mouse?.visibility = View.GONE
+
             scripts.clear()
 
             for ((_, view) in pages) {

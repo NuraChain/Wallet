@@ -11,6 +11,8 @@ const BROWSER_PREFIX: &str = "nura-browser-";
 
 const WALLET_LABEL: &str = "main";
 
+const MOUSE_LABEL: &str = "nura-mouse";
+
 const REPLY_TIMEOUT: Duration = Duration::from_secs(600);
 
 #[derive(Default)]
@@ -221,6 +223,13 @@ pub async fn browser_open<R: Runtime>(
             tauri::LogicalPosition::new(x, y),
             tauri::LogicalSize::new(width, height),
         )
-        .map(|_| ())
-        .map_err(|cause| cause.to_string())
+        .map_err(|cause| cause.to_string())?;
+
+    // A child added later is drawn above the ones before it, which would bury the floating mouse
+    // under the new tab. Handing it back to the same window puts it on top again.
+    if let Some(mouse) = app.get_webview(MOUSE_LABEL) {
+        let _ = mouse.reparent(&window);
+    }
+
+    Ok(())
 }

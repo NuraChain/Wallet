@@ -218,7 +218,8 @@ icon, or of both edges), `mono`, `align`, `textSize` and `truncate`; `TextArea` 
 - **`Slider`**, **`Logo`**, **`Flag`**, **`QrFrame`** (`ui/media.tsx`), **`FieldLead`** (the glyph over a
   field's leading edge), and the recovery phrase's **`SecretKey` / `SecretWords` / `SecretWord`**
   (`ui/secret.tsx`), which stay blurred until revealed.
-- **`Mouse`** (`ui/mouse.tsx`) — the floating logo, one element in the page's `#mouse`.
+- **`Mouse`** (`ui/mouse.tsx`) — the floating logo in the page's `#mouse`, used only where no
+  native mouse can be drawn over the browser tabs; `MouseView` is the desktop webview's own.
 
 ## Money and destruction
 

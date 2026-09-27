@@ -1,7 +1,7 @@
 import { Navigate, useNavigate } from 'react-router';
 import { platform } from '../platform';
 import { AnimatePresence } from 'motion/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, LogOut, Settings, Globe, Lock, Wallet } from 'lucide-react';
 
 import ScrollArea from '../ui/scroll';
@@ -37,6 +37,7 @@ import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
+import { showMouse } from '../core/mouse';
 import Mouse from '../ui/mouse';
 
 import { getDirection, T } from '../utility/language';
@@ -132,6 +133,27 @@ function DashboardView({ vault }: { vault: Vault }) {
             goKey('Browser');
         }
     };
+
+    const onMouseEvent = useEffectEvent(onMouse);
+
+    // Drawn natively where a browser tab could cover it, so it stays above every page; the one in
+    // the wallet's own page only where that cannot be done.
+    const [pageMouse, setPageMouse] = useState(false);
+
+    useEffect(() => {
+        if (!hasBrowser) {
+            return undefined;
+        }
+
+        return showMouse(
+            (action) => {
+                onMouseEvent(action);
+            },
+            () => {
+                setPageMouse(true);
+            }
+        );
+    }, [hasBrowser]);
 
     const native = useBalance(address, network);
     const tokens = useTokens(address, network, tracked);
@@ -507,7 +529,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 )}
             </AnimatePresence>
 
-            {hasBrowser && <Mouse onAction={onMouse} />}
+            {pageMouse && <Mouse onAction={onMouse} />}
 
             <Horizontal dir={getDirection()} fill='both' clip>
                 {/* Full screen is the browser's own mode, so the rail only steps aside while that

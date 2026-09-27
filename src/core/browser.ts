@@ -8,6 +8,9 @@ export const atBrowserStart = (tab: BrowserTab) => tab.home || tab.index < 0;
 
 export const frameLabel = (id: number) => `nura-browser-${id}`;
 
+/** The floating mouse's own webview on desktop — not a page, so outside `nura-browser-*`. */
+export const mouseLabel = 'nura-mouse';
+
 const defaultFavorites: BrowserFavorite[] = [
     { id: 'nurachain', name: 'Nura Chain', url: 'https://nurachain.net' },
     { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
@@ -123,6 +126,10 @@ interface BrowserBridge {
     dappReply?: (id: string, payload: string) => void;
 
     dappEmit?: (id: string, payload: string) => void;
+
+    showMouse?: (opacity: number) => void;
+    hideMouse?: () => void;
+    setMouseOpacity?: (opacity: number) => void;
 }
 
 declare global {
@@ -159,7 +166,7 @@ export const closeBrowserLayers = () => {
 
             const views = await getAllWebviews();
 
-            await Promise.all(views.filter((view) => view.label.startsWith('nura-browser-')).map(async (view) => view.close()));
+            await Promise.all(views.filter((view) => view.label.startsWith('nura-browser-') || view.label === mouseLabel).map(async (view) => view.close()));
         } catch {
             // Outside Tauri there is nothing to close.
         }
