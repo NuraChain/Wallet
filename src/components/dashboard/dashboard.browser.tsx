@@ -1,6 +1,6 @@
 import type { Network } from '../../core/network';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, TriangleAlert } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -19,7 +19,7 @@ import { imageCache } from '../../core/image';
 import { clearSiteIcons } from '../../core/site.icon';
 import { getConnections } from '../../core/dapp';
 import { forgetDappPage } from '../../core/dapp.bridge';
-import { disconnectAllDapps, setDappGrip } from '../../core/dapp.rpc';
+import { disconnectAllDapps } from '../../core/dapp.rpc';
 import { dappIdentity, dappScript } from '../../core/dapp.script';
 import {
     addBrowserVisit,
@@ -88,14 +88,6 @@ export default function DashboardBrowser({
 
     const [fullMode, setFullMode] = useState(false);
 
-    /* The grip is drawn by the page, so its toggle arrives from outside React and reads the
-       current mode off a ref rather than a closure it would capture stale. */
-    const fullRef = useRef(false);
-
-    // Minted once per browser session and never put on `window`: it is what tells a real grip
-    // press apart from a page asking to hide the address bar on its own account.
-    const gripSecret = useMemo(() => crypto.randomUUID(), []);
-
     const [live, setLive] = useState<Map<number, BrowserState>>(new Map());
     const [notice, setNotice] = useState<Map<number, string>>(new Map());
 
@@ -109,35 +101,15 @@ export default function DashboardBrowser({
 
     const native = getNativeBrowser() !== undefined;
 
-    /* The home page is the wallet's own, so there is nothing to go full screen for and no grip
-       drawn over it. Deriving the mode rather than storing it keeps a tab that went full screen
-       from coming home to a page with no chrome and no way to bring it back, while still
-       remembering the intent for when a site is opened again. */
+    /* The home page is the wallet's own, so there is nothing to go full screen for. Deriving the
+       mode rather than storing it keeps a tab that went full screen from coming home to a page with
+       no chrome and no way to bring it back, while still remembering the intent for when a site is
+       opened again. */
     const full = fullMode && !start;
-
-    const onFull = useCallback((next: boolean) => {
-        fullRef.current = next;
-
-        setFullMode(next);
-    }, []);
 
     useEffect(() => {
         onFullscreen?.(full);
     }, [full, onFullscreen]);
-
-    useEffect(() => {
-        setDappGrip(gripSecret, () => {
-            const next = !fullRef.current;
-
-            onFull(next);
-
-            return next;
-        });
-
-        return () => {
-            setDappGrip('', undefined);
-        };
-    }, [gripSecret, onFull]);
 
     useEffect(() => {
         if (!full) {
@@ -146,7 +118,7 @@ export default function DashboardBrowser({
 
         const onKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                onFull(false);
+                setFullMode(false);
             }
         };
 
@@ -155,9 +127,9 @@ export default function DashboardBrowser({
         return () => {
             window.removeEventListener('keydown', onKey);
         };
-    }, [full, onFull]);
+    }, [full]);
 
-    const script = useMemo(() => dappScript(dappIdentity(network.chainId, 'native', gripSecret)), [network.chainId, gripSecret]);
+    const script = useMemo(() => dappScript(dappIdentity(network.chainId, 'native')), [network.chainId]);
 
     useEffect(() => {
         getNativeBrowser()?.setDappScript?.(script);
