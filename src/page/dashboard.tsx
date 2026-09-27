@@ -653,9 +653,10 @@ export default function DashboardPage() {
 
     // The loader only guards the way in. A lock that lands while the dashboard is open — the
     // extension's idle deadline, a second window's Lock — used to leave this on a spinner forever,
-    // since nothing moved the route; the unlock screen is where a locked wallet belongs.
+    // since nothing moved the route. The launch route decides where it goes: unlock for a wallet
+    // still in storage, intro for one a logout just wiped.
     if (vault === undefined) {
-        return <Navigate to='/unlock' replace />;
+        return <Navigate to='/' replace />;
     }
 
     return <DashboardView vault={vault} />;
