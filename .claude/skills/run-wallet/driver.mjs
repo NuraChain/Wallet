@@ -276,7 +276,7 @@ const main = async () => {
     const [width, height] = options.size.split('x').map(Number);
 
     if (options.attach === undefined) {
-        await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: false });
+        await cdp.send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: Number(options.scale ?? 1), mobile: false });
 
         // The extension has chrome.storage and no Tauri at all, so only the web target is faked.
         if (options.extension === undefined) {

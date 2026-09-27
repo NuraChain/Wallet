@@ -33,7 +33,7 @@ page's own exceptions/console errors plus its URL and first 300 chars of HTML.
 | `text:<css>` · `eval:<js>` | print an element's text · evaluate JS in the page (awaited, JSON printed) |
 | `wait:<ms>` | sleep |
 
-Options: `--size 360x640` (the Windows window size), `--theme`, `--lang`,
+Options: `--size 360x640` (the Windows window size), `--scale 3` (device pixel ratio, default 1), `--theme`, `--lang`,
 `--platform android|windows|…` (what plugin-os reports), `--seed <file.json>` (extra store keys),
 `--headed`, `--keep` (leave the dev server running).
 
