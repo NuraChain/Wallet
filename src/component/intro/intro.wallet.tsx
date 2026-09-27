@@ -41,9 +41,9 @@ export default function IntroWallet({ onClose }: { onClose: () => void }) {
         <Sheet onClose={onClose}>
             <SheetHeader title={T('Intro.CreateWallet.Title')} subtitle={T('Intro.CreateWallet.Subtitle')} />
 
-            <Alert className='mx-auto w-fit px-4 text-small' text={error} />
+            <Alert size='banner' mx='auto' width='fit' text={error} />
 
-            <IntroCredentials prefix='Intro.CreateWallet' submitKey='Submit' className='shrink-0' onError={setError} onSubmit={onCreateWallet} />
+            <IntroCredentials prefix='Intro.CreateWallet' submitKey='Submit' shrink={false} onError={setError} onSubmit={onCreateWallet} />
         </Sheet>
     );
 }

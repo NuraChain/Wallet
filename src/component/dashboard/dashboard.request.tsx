@@ -17,7 +17,6 @@ import TokenIcon from '../token.icon';
 import { Horizontal, Vertical } from '../../ui/stack';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../../ui/modal';
 
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
 import { getNativeLogo } from '../../core/price';
@@ -66,14 +65,14 @@ const siteOf = (origin: string) => {
  */
 function Stop({ icon, label, rail = false, children }: { icon: ReactNode; label: string; rail?: boolean; children: ReactNode }) {
     return (
-        <Horizontal className='gap-3'>
-            <Vertical className='shrink-0 items-center'>
+        <Horizontal gap={3}>
+            <Vertical shrink={false} align='center'>
                 {icon}
 
                 {rail && <div aria-hidden='true' className='my-1 w-px flex-1 bg-line' />}
             </Vertical>
 
-            <Vertical className={cn('min-w-0 flex-1 gap-0.5', rail && 'pb-4')}>
+            <Vertical squeeze='x' grow gap={0.5} pb={rail ? 4 : undefined}>
                 <Text text={label} />
 
                 {children}
@@ -258,22 +257,20 @@ export default function DashboardRequest({
     const route = () => {
         if (prompt.kind === 'chain' && prompt.chain !== undefined) {
             return (
-                <Panel className='flex flex-col'>
+                <Panel flow='column'>
                     <Stop
                         rail
-                        icon={
-                            <TokenIcon kind='network' src={getNativeLogo(prompt.chain.from.id)} symbol={prompt.chain.from.name} className='size-8 text-tiny' />
-                        }
+                        icon={<TokenIcon kind='network' src={getNativeLogo(prompt.chain.from.id)} symbol={prompt.chain.from.name} size={8} glyph='tiny' />}
                         label={T('Dashboard.Request.From')}
                     >
-                        <Text variant='body' className='truncate' text={prompt.chain.from.name} />
+                        <Text variant='body' truncate text={prompt.chain.from.name} />
                     </Stop>
 
                     <Stop
-                        icon={<TokenIcon kind='network' src={getNativeLogo(prompt.chain.id)} symbol={prompt.chain.name} className='size-8 text-tiny' />}
+                        icon={<TokenIcon kind='network' src={getNativeLogo(prompt.chain.id)} symbol={prompt.chain.name} size={8} glyph='tiny' />}
                         label={T('Dashboard.Request.To')}
                     >
-                        <Text variant='body' className='wrap-break-word' text={prompt.chain.name} />
+                        <Text variant='body' breaks='words' text={prompt.chain.name} />
                     </Stop>
                 </Panel>
             );
@@ -287,24 +284,24 @@ export default function DashboardRequest({
         const target = party.length > 0 ? party : (transaction?.to ?? '');
 
         return (
-            <Panel className='flex flex-col'>
+            <Panel flow='column'>
                 <Stop
                     rail={transaction !== undefined}
                     icon={
-                        <IconBox tone='badge' className={cn('size-8', emoji.length > 0 && 'text-small')}>
+                        <IconBox tone='badge' size={8} glyph={emoji.length > 0 ? 'small' : undefined}>
                             {emoji.length > 0 ? emoji : <User size={14} />}
                         </IconBox>
                     }
                     label={T(transaction === undefined ? 'Dashboard.Request.Account' : 'Dashboard.Request.From')}
                 >
-                    <Text variant='body' className='truncate' text={name} />
+                    <Text variant='body' truncate text={name} />
 
-                    <Text dir='ltr' className='truncate font-mono' text={shortAddress(address)} />
+                    <Text dir='ltr' truncate mono text={shortAddress(address)} />
                 </Stop>
 
                 {transaction !== undefined && (
                     <Stop
-                        icon={<IconBox className='size-8'>{spender.length > 0 ? <KeyRound size={14} /> : <ArrowDown size={14} />}</IconBox>}
+                        icon={<IconBox size={8}>{spender.length > 0 ? <KeyRound size={14} /> : <ArrowDown size={14} />}</IconBox>}
                         label={T(spender.length > 0 ? 'Dashboard.Request.Spender' : 'Dashboard.Request.To')}
                     >
                         {target.length > 0 ? <AddressBlock address={target} /> : <Text variant='body' text={T('Dashboard.Request.Deploy')} />}
@@ -334,30 +331,25 @@ export default function DashboardRequest({
 
     return (
         <Modal scroll onClose={onClose}>
-            <ModalHeader title={title} titleClass='text-large' onClose={onClose} />
+            <ModalHeader title={title} titleSize='large' onClose={onClose} />
 
-            <Horizontal className='items-center gap-3'>
+            <Horizontal align='center' gap={3}>
                 <SiteIcon url={prompt.origin} symbol={site.host} />
 
-                <Vertical className='min-w-0 flex-1'>
+                <Vertical squeeze='x' grow>
                     <Text text={T('Dashboard.Request.RequestedBy')} />
 
-                    <Text
-                        dir='ltr'
-                        variant='body'
-                        className={cn('font-mono break-all', !site.secure && 'text-txt-error')}
-                        text={site.secure ? site.host : prompt.origin}
-                    />
+                    <Text dir='ltr' variant='body' mono breaks='all' tone={site.secure ? undefined : 'error'} text={site.secure ? site.host : prompt.origin} />
                 </Vertical>
             </Horizontal>
 
             {note.length > 0 && <Text variant='bodyMuted' text={note} />}
 
-            <Alert variant='warning' className='text-start' text={site.secure ? '' : T('Dashboard.Request.InsecureNote')} />
+            <Alert variant='warning' textAlign='start' text={site.secure ? '' : T('Dashboard.Request.InsecureNote')} />
 
             {/* Red is the product's one warning colour, so it is spent on the call that can still
                 take tokens after this dialog is gone, not on every routine note. */}
-            <Alert variant='error' size='comfortable' className='text-start' text={warning()} />
+            <Alert variant='error' size='comfortable' textAlign='start' text={warning()} />
 
             <ModalBody>
                 {route()}
@@ -370,39 +362,34 @@ export default function DashboardRequest({
 
                 <ListCard>
                     {rows().map((item) => (
-                        <Horizontal key={`${item.label}:${item.value}`} className='items-center justify-between gap-3 p-3'>
-                            <Text className='shrink-0' text={item.label} />
+                        <Horizontal key={`${item.label}:${item.value}`} align='center' justify='between' gap={3} p={3}>
+                            <Text shrink={false} text={item.label} />
 
-                            <Text
-                                variant='captionStrong'
-                                dir={item.mono ? 'ltr' : undefined}
-                                className={cn('min-w-0 truncate', item.mono && 'font-mono')}
-                                text={item.value}
-                            />
+                            <Text variant='captionStrong' dir={item.mono ? 'ltr' : undefined} squeeze='x' truncate mono={item.mono} text={item.value} />
                         </Horizontal>
                     ))}
                 </ListCard>
 
                 {endpoint.length > 0 && (
-                    <Vertical className='gap-1'>
+                    <Vertical gap={1}>
                         <Text text={T('Dashboard.Request.ChainRpc')} />
 
                         <Panel>
-                            <Text variant='captionStrong' dir='ltr' className='font-mono wrap-break-word' text={endpoint} />
+                            <Text variant='captionStrong' dir='ltr' mono breaks='words' text={endpoint} />
                         </Panel>
                     </Vertical>
                 )}
 
                 {payload.length > 0 && (
-                    <Vertical className='gap-1'>
+                    <Vertical gap={1}>
                         <Text text={T('Dashboard.Request.Message')} />
 
-                        <Vertical className='relative'>
-                            <Panel ref={payloadRef} className='max-h-48 overflow-y-auto overscroll-contain'>
-                                <Text variant='captionStrong' dir='ltr' className='font-mono wrap-break-word whitespace-pre-wrap' text={payload} />
+                        <Vertical relative>
+                            <Panel ref={payloadRef} bounded>
+                                <Text variant='captionStrong' dir='ltr' mono breaks='words' pre text={payload} />
                             </Panel>
 
-                            <ScrollBar viewportRef={payloadRef} className='inset-e-2 top-2' />
+                            <ScrollBar viewportRef={payloadRef} edge='inset' />
                         </Vertical>
                     </Vertical>
                 )}

@@ -57,7 +57,7 @@ export default function DashboardBrowserSettings({
 
             <SectionHeader title={T('Dashboard.Browser.View')} />
 
-            <Horizontal className='gap-2 *:flex-1'>
+            <Horizontal gap={2} even>
                 {viewMap.map((item) => (
                     <Button
                         key={item.view}
@@ -67,7 +67,7 @@ export default function DashboardBrowserSettings({
                         onClick={() => {
                             onView(item.view);
                         }}
-                        className='disabled:cursor-default!'
+                        current
                     >
                         <item.icon size={16} className='shrink-0' />
 
@@ -84,7 +84,7 @@ export default function DashboardBrowserSettings({
 
             <Text text={T('Dashboard.Browser.ConnectedNote')} />
 
-            <Horizontal className='gap-2 *:flex-1'>
+            <Horizontal gap={2} even>
                 <Button dim variant='danger' size='action' disabled={connections === 0} onClick={onDisconnect}>
                     <Trash size={16} className='shrink-0' />
 
@@ -96,7 +96,7 @@ export default function DashboardBrowserSettings({
 
             <Text variant='body' text={T('Dashboard.Browser.HistoryCount', String(visits))} />
 
-            <Horizontal className='gap-2 *:flex-1'>
+            <Horizontal gap={2} even>
                 <Button dim variant='danger' size='action' disabled={visits === 0} onClick={onClear}>
                     <Trash size={16} className='shrink-0' />
 
@@ -110,7 +110,7 @@ export default function DashboardBrowserSettings({
 
             <Text text={T('Dashboard.Browser.CacheNote')} />
 
-            <Horizontal className='gap-2 *:flex-1'>
+            <Horizontal gap={2} even>
                 <Button dim variant='danger' size='action' disabled={icons === 0 && blocked === 0} onClick={onClearCache}>
                     <Trash size={16} className='shrink-0' />
 

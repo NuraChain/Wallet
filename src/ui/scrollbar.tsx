@@ -5,7 +5,10 @@ import { layer } from '../layout/container';
 
 const minSize = 32;
 
-export default function ScrollBar({ viewportRef, className = '' }: { viewportRef: RefObject<HTMLElement | null>; className?: string }) {
+// Where the thumb rides: against the edge of a dialog, or inset into a panel's padding.
+const edgeMap = { flush: '-inset-e-0.5', flushTop: '-inset-e-0.5 top-2', inset: 'inset-e-2 top-2' } as const;
+
+export default function ScrollBar({ viewportRef, edge }: { viewportRef: RefObject<HTMLElement | null>; edge?: keyof typeof edgeMap }) {
     const barRef = useRef<HTMLDivElement>(null);
     const dragRef = useRef<{ origin: number; top: number } | undefined>(undefined);
 
@@ -135,7 +138,7 @@ export default function ScrollBar({ viewportRef, className = '' }: { viewportRef
                 'absolute inset-e-1 top-0 w-1.5 cursor-pointer rounded-full bg-scrollbar opacity-50 transition-opacity duration-(--duration-base) hover:opacity-100',
                 layer.base,
                 dragging && 'opacity-100',
-                className
+                edge !== undefined && edgeMap[edge]
             )}
         />
     );

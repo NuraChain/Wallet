@@ -93,7 +93,7 @@ export default function DashboardTokens({
 
             {removing === undefined &&
                 (adding ? (
-                    <Vertical className='gap-2'>
+                    <Vertical gap={2}>
                         <Alert text={error} />
 
                         <Text text={T('Dashboard.Tokens.ContractHint')} />
@@ -106,7 +106,7 @@ export default function DashboardTokens({
                             label={T('Dashboard.Tokens.Contract')}
                             placeholder='0x…'
                             onValue={setContract}
-                            className='font-mono'
+                            mono
                         />
 
                         <ModalActions>
@@ -157,7 +157,7 @@ export default function DashboardTokens({
                                                 setRemoving(item);
                                             }}
                                             aria-label={T('Dashboard.Tokens.Remove')}
-                                            className='shrink-0'
+                                            shrink={false}
                                         >
                                             <Trash size={16} />
                                         </Button>
@@ -175,7 +175,7 @@ export default function DashboardTokens({
                                 setAdding(true);
                                 setError('');
                             }}
-                            className='mt-1'
+                            mt={1}
                             leftIcon={<Plus size={16} />}
                             text={T('Dashboard.Tokens.Add')}
                         />

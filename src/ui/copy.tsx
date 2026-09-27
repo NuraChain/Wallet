@@ -6,7 +6,6 @@ import { Check, Copy } from 'lucide-react';
 import Live from './live';
 import Button from './button';
 
-import { cn } from '../utility/cn';
 import { T } from '../utility/language';
 import { useClipboard } from '../hook/clipboard';
 
@@ -26,7 +25,8 @@ export default function CopyButton({
     variant = 'bare',
     size = 'none',
     trailing = false,
-    className = '',
+    subtle = false,
+    width,
     children
 }: {
     value: string;
@@ -36,7 +36,9 @@ export default function CopyButton({
     variant?: 'bare' | 'muted' | 'normal' | 'primary';
     size?: 'none' | 'action';
     trailing?: boolean;
-    className?: string;
+    /** The small muted form, set under a figure rather than beside it. */
+    subtle?: boolean;
+    width?: 'full';
     children?: ReactNode;
 }) {
     const clipboard = useClipboard();
@@ -85,15 +87,18 @@ export default function CopyButton({
         </span>
     );
 
+    const bare = subtle ? 'inlineSubtle' : 'inlineRow';
+
     return (
         <Button
-            variant={variant}
+            // A filled variant is already a centred row; a bare one is laid out as a row here.
+            variant={variant === 'bare' ? bare : variant}
             size={size}
+            width={width}
             aria-label={children === undefined ? label : undefined}
             onClick={() => {
                 void clipboard.copy(value);
             }}
-            className={cn('flex cursor-pointer items-center gap-2', className)}
         >
             <Live text={announced()} />
 

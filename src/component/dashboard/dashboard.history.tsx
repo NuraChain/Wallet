@@ -108,12 +108,12 @@ export default function DashboardHistory({
     }, [shown, results.length]);
 
     return (
-        <Modal scale={0.96} width='full' onClose={onClose} panelClass='p-0'>
-            <Vertical className='gap-3 px-5 pt-5'>
+        <Modal scale={0.96} width='full' onClose={onClose} padding='none'>
+            <Vertical gap={3} px={5} pt={5}>
                 <ModalHeader
                     title={T('Dashboard.Activity.Title')}
                     subtitle={T('Dashboard.Activity.Count', String(results.length))}
-                    groupClass='flex-1'
+                    titleGrow
                     close='chip'
                     closeLabel={T('Dashboard.Activity.Close')}
                     onClose={onClose}
@@ -127,11 +127,11 @@ export default function DashboardHistory({
                     placeholder={T('Dashboard.Activity.Search')}
                     size='compact'
                     onValue={setQuery}
-                    className='ps-9 pe-3'
+                    room='leading'
                     leading={<Search size={16} className='pointer-events-none absolute inset-s-3 text-txt-muted' />}
                 />
 
-                <Horizontal className='gap-2'>
+                <Horizontal gap={2}>
                     {filters.map((item) => (
                         <Button
                             key={item}
@@ -140,27 +140,28 @@ export default function DashboardHistory({
                                 setFilter(item);
                             }}
                             aria-pressed={filter === item}
-                            className='h-8 flex-1 rounded-control text-tiny transition-colors duration-(--duration-base)'
+                            size='segment'
+                            grow
                             text={T(`Dashboard.Activity.Filter${item}`)}
                         />
                     ))}
                 </Horizontal>
             </Vertical>
 
-            <Vertical className='relative min-h-0 flex-1 pb-4'>
-                <Vertical ref={listRef} className='flex-1 overflow-auto'>
-                    <Vertical className='gap-2'>
+            <Vertical relative squeeze='y' grow pb={4}>
+                <Vertical ref={listRef} grow scroll='both'>
+                    <Vertical gap={2}>
                         {visible.length > 0 && (
-                            <ListCard className='h-full rounded-none'>
+                            <ListCard flush>
                                 {visible.map((item) => (
                                     <TransactionRow key={item.id} item={item} canOpen={canOpen} onOpen={onOpen} />
                                 ))}
                             </ListCard>
                         )}
 
-                        {loading && items.length === 0 && <StatusBlock state='loading' className='px-5' text={T('Dashboard.Activity.Loading')} />}
+                        {loading && items.length === 0 && <StatusBlock state='loading' px={5} text={T('Dashboard.Activity.Loading')} />}
 
-                        {!loading && results.length === 0 && <StatusBlock className='px-5' text={emptyText()} />}
+                        {!loading && results.length === 0 && <StatusBlock px={5} text={emptyText()} />}
 
                         {shown < results.length && <div ref={endRef} aria-hidden='true' className='h-4 shrink-0' />}
                     </Vertical>

@@ -75,8 +75,10 @@ variables rather than baking a value in.
 
 `src/utility/cn.ts`. **Always** compose classes through it; never concatenate strings into a
 `className`. Browser precedence is decided by the order Tailwind wrote the stylesheet, not
-by attribute order — so without the merge a component's default can silently beat the
-caller's override. `cn` drops the losers so "last one wins" is actually true.
+by attribute order — so without the merge a component's default can silently beat the class
+a named prop adds on top of it. `cn` drops the losers so "last one wins" is actually true. A
+primitive in `src/ui` maps each prop value to a literal class in a lookup table, so Tailwind
+finds every one in source; never build a class name at runtime.
 
 It handles `clsx`-style shapes (`cond && 'class'`, arrays, records) plus Tailwind conflict
 resolution. Things worth knowing before you touch it:

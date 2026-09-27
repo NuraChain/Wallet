@@ -6,12 +6,11 @@ import Alert from '../../ui/alert';
 import Button from '../../ui/button';
 import IconBox from '../../ui/iconbox';
 
-import { selectedTint } from '../../ui/menu';
+import ChoiceRow from '../../ui/choice';
 import { ReadonlyField, TextField } from '../../ui/field';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../../ui/modal';
 import { ConfirmPanel } from '../../ui/confirm';
 
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { shortAddress } from '../../utility/format';
 import { vaultAddress, vaultDerivable, type Vault } from '../../core/vault';
@@ -168,7 +167,7 @@ export default function DashboardAccount({
 
             {removing === undefined &&
                 (adding ? (
-                    <Vertical className='gap-2'>
+                    <Vertical gap={2}>
                         <Alert text={error} />
 
                         <TextField
@@ -180,7 +179,7 @@ export default function DashboardAccount({
                             placeholder={T('Dashboard.Accounts.IndexHint')}
                             onValue={setDraftIndex}
                             onEnter={onCreate}
-                            className='font-mono'
+                            mono
                         />
 
                         <Text text={T('Dashboard.Accounts.IndexNote')} />
@@ -211,7 +210,7 @@ export default function DashboardAccount({
 
                                 if (picking === item.index) {
                                     return (
-                                        <Vertical key={item.index} className='gap-2'>
+                                        <Vertical key={item.index} gap={2}>
                                             <Text text={T('Dashboard.Accounts.Emoji')} />
 
                                             <div className='grid grid-cols-5 gap-1'>
@@ -222,7 +221,7 @@ export default function DashboardAccount({
                                                         onClick={() => {
                                                             onBadge(item.index, emoji);
                                                         }}
-                                                        className='h-10 w-full rounded-control text-medium'
+                                                        size='emoji'
                                                         text={emoji}
                                                     />
                                                 ))}
@@ -242,31 +241,29 @@ export default function DashboardAccount({
 
                                 if (editing === item.index) {
                                     return (
-                                        <Horizontal key={item.index} className='gap-2'>
+                                        <Horizontal key={item.index} gap={2}>
                                             <div className='flex-1'>
                                                 <TextField autoFocus value={draft} placeholder={name} onValue={setDraft} onEnter={onSave} />
                                             </div>
 
-                                            <Button variant='primary' size='action' onClick={onSave} className='px-4' text={T('Dashboard.Accounts.Save')} />
+                                            <Button variant='primary' size='actionFit' onClick={onSave} text={T('Dashboard.Accounts.Save')} />
                                         </Horizontal>
                                     );
                                 }
 
                                 return (
-                                    <Horizontal
-                                        key={item.index}
-                                        className={`items-center gap-2 rounded-surface border border-transparent p-2 transition-colors duration-(--duration-fast) ${isActive ? selectedTint : 'hover:bg-btn-muted-hover'}`}
-                                    >
-                                        <Horizontal className='min-w-0 flex-1 items-center gap-3'>
+                                    <ChoiceRow key={item.index} selected={isActive}>
+                                        <Horizontal squeeze='x' grow align='center' gap={3}>
                                             <Button
                                                 onClick={() => {
                                                     setEditing(-1);
                                                     setPicking(item.index);
                                                 }}
                                                 aria-label={T('Dashboard.Accounts.Emoji')}
-                                                className='shrink-0 cursor-pointer'
+                                                variant='plain'
+                                                shrink={false}
                                             >
-                                                <IconBox tone='badge' className={cn('size-9', hasBadge ? 'text-medium' : 'text-small')}>
+                                                <IconBox tone='badge' size={9} glyph={hasBadge ? 'medium' : 'small'}>
                                                     {hasBadge ? item.emoji : item.index}
                                                 </IconBox>
                                             </Button>
@@ -275,12 +272,14 @@ export default function DashboardAccount({
                                                 onClick={() => {
                                                     onSelect(item.index);
                                                 }}
-                                                className='flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-start'
+                                                variant='row'
+                                                squeeze='x'
+                                                grow
                                             >
-                                                <Vertical className='min-w-0 flex-1'>
-                                                    <Text variant='body' className='truncate' text={name} />
+                                                <Vertical squeeze='x' grow>
+                                                    <Text variant='body' truncate text={name} />
 
-                                                    <Text dir='ltr' className='truncate font-mono' text={shortAddress(addresses[item.index] ?? '')} />
+                                                    <Text dir='ltr' truncate mono text={shortAddress(addresses[item.index] ?? '')} />
                                                 </Vertical>
 
                                                 {isActive && <Check size={18} className='shrink-0 text-txt-normal' />}
@@ -294,7 +293,7 @@ export default function DashboardAccount({
                                             onClick={() => {
                                                 onEdit(item.index, name);
                                             }}
-                                            className='shrink-0'
+                                            shrink={false}
                                         >
                                             <Pen size={14} />
                                         </Button>
@@ -307,12 +306,12 @@ export default function DashboardAccount({
                                                 onClick={() => {
                                                     setRemoving({ index: item.index, name });
                                                 }}
-                                                className='shrink-0'
+                                                shrink={false}
                                             >
                                                 <Trash size={14} />
                                             </Button>
                                         )}
-                                    </Horizontal>
+                                    </ChoiceRow>
                                 );
                             })}
                         </ModalBody>
@@ -332,7 +331,7 @@ export default function DashboardAccount({
                                 />
                             </ModalActions>
                         ) : (
-                            <Text className='pt-1 text-center' text={T('Dashboard.Accounts.SingleNote')} />
+                            <Text pt={1} align='center' text={T('Dashboard.Accounts.SingleNote')} />
                         )}
                     </>
                 ))}

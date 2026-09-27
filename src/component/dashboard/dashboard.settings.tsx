@@ -41,13 +41,13 @@ export default function DashboardSettings({
     };
 
     return (
-        <Vertical className='mt-2 min-h-0 flex-1 gap-3'>
-            <Horizontal className='items-center gap-3'>
-                <Button variant='chip' size='iconChip' onClick={onBack} aria-label={T('Dashboard.Nav.Wallet')} className='shrink-0 lg:hidden'>
+        <Vertical mt={2} squeeze='y' grow gap={3}>
+            <Horizontal align='center' gap={3}>
+                <Button variant='chip' size='iconChip' onClick={onBack} aria-label={T('Dashboard.Nav.Wallet')} shrink={false} wide='hide'>
                     <ArrowLeft size={17} className='rtl:rotate-180' />
                 </Button>
 
-                <Text as='h1' variant='heading' className='py-2' text={T('Dashboard.Settings.Title')} />
+                <Text as='h1' variant='heading' py={2} text={T('Dashboard.Settings.Title')} />
             </Horizontal>
 
             <MenuRow
@@ -86,22 +86,16 @@ export default function DashboardSettings({
                 `destructive` is the only red button on the screen, and the password prompt behind
                 it is what actually stands between a mis-tap and a lost wallet. */}
             <ModalActions>
-                <Button variant='primary' size='action' onClick={onLock} leftIcon={<Lock size={16} className='shrink-0' />} className='min-w-0'>
+                <Button variant='primary' size='action' onClick={onLock} leftIcon={<Lock size={16} className='shrink-0' />} squeeze='x'>
                     <span className='truncate'>{T('Dashboard.Lock')}</span>
                 </Button>
 
-                <Button
-                    variant='destructive'
-                    size='action'
-                    onClick={onLogout}
-                    leftIcon={<LogOut size={16} className='shrink-0 rtl:rotate-180' />}
-                    className='min-w-0'
-                >
+                <Button variant='destructive' size='action' onClick={onLogout} leftIcon={<LogOut size={16} className='shrink-0 rtl:rotate-180' />} squeeze='x'>
                     <span className='truncate'>{T('Dashboard.Settings.Logout')}</span>
                 </Button>
             </ModalActions>
 
-            <Text dir='ltr' className='pt-1 text-center' text={T('Dashboard.Settings.Version', __APP_VERSION__)} />
+            <Text dir='ltr' pt={1} align='center' text={T('Dashboard.Settings.Version', __APP_VERSION__)} />
         </Vertical>
     );
 }

@@ -48,7 +48,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
         <Modal scroll onClose={onClose}>
             <ModalHeader
                 title={T('Dashboard.Redeem.Title')}
-                titleClass='truncate'
+                truncate
                 onClose={onClose}
                 leading={
                     <IconBox tone='primary'>
@@ -58,12 +58,12 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
             />
 
             {done.length > 0 ? (
-                <Vertical className='items-center gap-2 py-4'>
+                <Vertical align='center' gap={2} py={4}>
                     <CircleCheckBig size={36} className='text-txt-accent' />
 
-                    <Text variant='body' className='text-center' text={done} />
+                    <Text variant='body' align='center' text={done} />
 
-                    <Button variant='normal' size='action' fullWidth onClick={onClose} className='mt-2' text={T('Dashboard.Redeem.Close')} />
+                    <Button variant='normal' size='action' fullWidth onClick={onClose} mt={2} text={T('Dashboard.Redeem.Close')} />
                 </Vertical>
             ) : (
                 <>
@@ -82,7 +82,9 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                         autoCapitalize='none'
                         spellCheck={false}
                         placeholder={T('Dashboard.Redeem.CodeHint')}
-                        className='text-center font-mono text-tiny'
+                        align='center'
+                        mono
+                        textSize='tiny'
                     />
 
                     <Button
@@ -95,7 +97,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                             void onSubmit();
                         }}
                         aria-label={isLoading ? T('Dashboard.Redeem.Pending') : undefined}
-                        className='mt-1'
+                        mt={1}
                         text={isLoading ? '' : T('Dashboard.Redeem.Submit')}
                     />
                 </>

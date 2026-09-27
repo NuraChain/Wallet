@@ -5,7 +5,7 @@ import { Horizontal } from './stack';
 
 export default function SectionHeader({ title, children }: { title: string; children?: ReactNode }) {
     return (
-        <Horizontal className='items-center justify-between gap-2'>
+        <Horizontal align='center' justify='between' gap={2}>
             <Text text={title} />
 
             {children}

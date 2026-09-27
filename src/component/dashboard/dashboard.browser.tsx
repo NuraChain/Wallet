@@ -10,6 +10,7 @@ import DashboardBrowserStart from './dashboard.browser.start';
 import DashboardBrowserSettings from './dashboard.browser.settings';
 
 import Button from '../../ui/button';
+import Toolbar from '../../ui/toolbar';
 import ProgressBar from '../../ui/progress';
 import { TextField } from '../../ui/field';
 
@@ -40,7 +41,7 @@ import {
     type BrowserVisit,
     type BrowserView
 } from '../../core/browser';
-import { Horizontal, Vertical } from '../../ui/stack';
+import { Vertical } from '../../ui/stack';
 
 const toUrl = (value: string) => {
     const trimmed = value.trim();
@@ -372,10 +373,10 @@ export default function DashboardBrowser({
     };
 
     return (
-        <Vertical className='relative min-h-0 flex-1'>
+        <Vertical relative squeeze='y' grow>
             {!full && (
-                <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
-                    <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} className='shrink-0 lg:hidden'>
+                <Toolbar>
+                    <Button variant='danger' size='iconChip' aria-label={T('Dashboard.Browser.Exit')} onClick={onExit} shrink={false} wide='hide'>
                         <X size={16} />
                     </Button>
 
@@ -388,7 +389,7 @@ export default function DashboardBrowser({
                         onClick={() => {
                             onStep(-1);
                         }}
-                        className='shrink-0'
+                        shrink={false}
                     >
                         <ArrowLeft size={16} className='rtl:rotate-180' />
                     </Button>
@@ -402,7 +403,7 @@ export default function DashboardBrowser({
                         onClick={() => {
                             onStep(1);
                         }}
-                        className='shrink-0'
+                        shrink={false}
                     >
                         <ArrowRight size={16} className='rtl:rotate-180' />
                     </Button>
@@ -419,7 +420,9 @@ export default function DashboardBrowser({
                                 onOpen(tab.draft);
                             }}
                             size='compact'
-                            className='truncate ps-10 pe-10 text-tiny'
+                            truncate
+                            room='both'
+                            textSize='tiny'
                             leading={
                                 <span className='pointer-events-none absolute inset-s-3 flex items-center text-txt-muted'>
                                     {originGlyph()}
@@ -429,12 +432,11 @@ export default function DashboardBrowser({
                             }
                             trailing={
                                 <Button
-                                    size='icon'
+                                    variant='fieldAction'
                                     aria-label={T('Dashboard.Browser.Reload')}
                                     onClick={() => {
                                         patch(active, (item) => ({ ...item, reload: item.reload + 1, home: false }));
                                     }}
-                                    className='absolute -inset-e-0.5 cursor-pointer text-txt-muted hover:text-txt-normal'
                                 >
                                     <RotateCw size={16} className={state?.loading === true ? 'animate-spin' : ''} />
                                 </Button>
@@ -453,11 +455,11 @@ export default function DashboardBrowser({
                                   }
                                 : onHome
                         }
-                        className='shrink-0'
+                        shrink={false}
                     >
                         {start ? <Settings size={16} /> : <House size={16} />}
                     </Button>
-                </Horizontal>
+                </Toolbar>
             )}
 
             {start && <DashboardBrowserTabs tabs={tabs} active={active} onPick={onPickTab} onClose={onCloseTab} onAdd={onAddTab} />}
@@ -466,7 +468,7 @@ export default function DashboardBrowser({
                 <AnimatePresence>
                     {state !== undefined && state.loading && (
                         <motion.div key='progress' initial={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} className='absolute inset-0'>
-                            <ProgressBar value={state.progress} label={T('Dashboard.Browser.Loading')} className='size-full' />
+                            <ProgressBar value={state.progress} label={T('Dashboard.Browser.Loading')} look='strip' />
                         </motion.div>
                     )}
                 </AnimatePresence>

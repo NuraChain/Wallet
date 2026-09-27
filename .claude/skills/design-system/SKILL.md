@@ -10,12 +10,26 @@ primitives; it does not re-describe a surface.** Almost every primitive here exi
 the same class string had been retyped ten to thirty times and had drifted. Retyping it an
 eleventh time is the failure mode this catalog prevents.
 
-All of them take `className` and merge it through `cn`, so a caller's conflicting utility
-wins over the component's default. Override that way rather than forking a component.
+**No primitive takes a `className`.** A primitive says what it is through named props, and
+every value maps to one class written out in full in that component — Tailwind only generates
+a class it finds in source, so none is ever assembled at runtime. How an element sits in its
+parent is one shared set, `Placement` in `ui/place.ts`, taken by every primitive alike:
+`grow`, `shrink`, `squeeze='x' | 'y'`, `mt` / `mb` / `ms` / `mx`, `self`,
+`wide='hide' | 'only'` (the `lg` sidebar layout) and `width`.
+
+`src/ui/ui.test.ts` enforces it: a file in `src/ui` that declares a `className` or `…Class`
+prop, or spreads HTML attributes without omitting `className`, fails the suite. When a
+primitive nearly fits, give it the named prop or variant it lacks. A surface that is truly one
+of a kind is a plain element at its call site, built from the shared strings in
+`ui/token.ts` (`focusRing`, `tapArea`, `fieldSurface`, `selectedTint`) and `surfacePanel`.
 
 ## Typography — `ui/text.tsx`
 
-`<Text variant text as className />`. Never write a raw `text-tiny text-txt-muted` on a div.
+`<Text variant as text />`. Never write a raw `text-tiny text-txt-muted` on a div. Beyond the
+variant: `size` (`small` | `large`), `scaleUp` (one step up at `sm`), `tone` (`normal` | `accent`
+| `error` | `onPrimary`), `align`, `truncate`, `mono`, `weight`, `tabular`, `breaks` (`all` |
+`words`), `pre`, `selectable`, `leading`, `srOnly`, `inset` (a recessed box of its own),
+`maxWidth`, `pt` / `py`, and `Placement`.
 
 | variant | Is |
 |---|---|
@@ -34,7 +48,9 @@ have a title `aria-labelledby` can point at.
 
 ## Buttons — `ui/button.tsx`
 
-`<Button variant size text loading dim fullWidth leftIcon rightIcon />`. **Every**
+`<Button variant size text loading dim fullWidth selected current leftIcon rightIcon />` plus
+`Placement`. `selected` tints the choice already in effect; `current` marks a button disabled
+because it is the current choice rather than unavailable. **Every**
 interactive control routes through this, including ones with a complete look of their own —
 that is what `variant='bare'` is for (focus ring only, plus the `type='button'` default).
 
@@ -46,15 +62,28 @@ that is what `variant='bare'` is for (focus ring only, plus the `type='button'` 
 | `chip` | Hairline over the card tone — the account/network/settings row |
 | `danger` | Muted fill, error ink — small remove controls inside a list |
 | `destructive` | Filled red — an action that ends the session |
-| `bare` | No fill; nav tabs, window controls, inline icon toggles |
+| `bare` | No fill, focus ring only |
+
+The remaining variants are bare too — no fill and no built-in layout — each named for the one
+control it draws: `plain`, `logo`, `row` / `rowTight` (a pressable list row), `listRow`,
+`inlineRow` / `inlineSubtle` (`CopyButton`), `tab` / `tabOn`, `option` / `optionOn`,
+`fieldSelect`, `fieldAction` (an icon inside a field), `tabClose`, `veil` (a reveal overlay)
+and `window` (a title-bar control).
 
 | size | Is |
 |---|---|
 | `small` | h-8 — section-header actions (Manage, Overview, Add) |
 | `action` | h-11 — the standard control row |
-| `submit` | h-11 full width — every primary submit, on every screen |
-| `icon` / `iconChip` / `iconLarge` | 32 / 36 / 40px squares, all carrying `tap-44` |
-| `none` | Dimensions supplied by the caller |
+| `actionFit` | h-11, sized to its label |
+| `submit` | h-11 full width — a dialog's primary submit |
+| `cta` / `ctaWide` | A page's one submit: full width on a phone, its own width from `sm` |
+| `icon` / `iconChip` / `iconChipSmall` / `iconLarge` | 32 / 36 / 32 / 40px squares, all carrying `tap-44` |
+| `selector` | The wallet header's account and network chips |
+| `tile` | The wallet's send / receive / redeem tiles |
+| `segment` | One choice in a row of filter segments |
+| `menu` | A `MenuRow` |
+| `emoji`, `entry`, `picker`, `siteRow`, `siteCard`, `siteAdd` | The emoji grid, the intro's two entries, its language picker, and the browser start page's rows and cards |
+| `none` | No dimensions: a bare variant supplies its own |
 
 `loading` shows the spinner **and** disables the button — a busy control must not fire
 twice. `dim` is the opt-in disabled fade: `disabled` means "not available yet" on an action
@@ -89,14 +118,22 @@ The only icon source in the tree. `import { Check, Trash } from 'lucide-react'`.
   direct children and stay plain. Anything that is not a row — an empty state, an action —
   goes *outside* the group, because a divider into whitespace is a lie about structure.
 - **`IconBox`** (`ui/iconbox.tsx`) — the small filled square leading a row. `tone`:
-  `muted` | `primary` | `secondary` | `badge`. Size rides in through `className`
-  (default `size-8`).
+  `muted` | `primary` | `secondary` | `badge`; `size` 5 / 7 / 8 / 9 (default 8); `glyph` sizes the
+  letter or emoji standing in for an icon.
+- **`Panel`** also takes `flow='row' | 'column'`, `gap`, `align`, `textAlign`, and `bounded` (a
+  short scrolling box). **`ListCard`** takes `flush` for the body of a full-screen dialog.
+- **`ChoiceRow`** (`ui/choice.tsx`) — a row in a list of choices, tinted when it is the one in
+  effect, with its own controls inside it.
 
 ## Layout
 
 - **`Horizontal` / `Vertical`** (`ui/stack.tsx`) — a `flex` row and a `flex flex-col`
-  column. Use them instead of `<div className='flex'>`; everything else (gap, alignment,
-  padding) rides in through `className`.
+  column. Use them instead of `<div className='flex'>`. They take `gap`, `align`, `justify`,
+  `p` / `px` / `py` / `pt` / `pb`, `relative`, `fill` (`both` | `height`), `maxWidth`, `scroll`,
+  `even` (children share the row equally), `textAlign`, and `Placement` — only the steps in use,
+  so a new one is added to the map, not typed at the call site.
+- **`Toolbar`** (`ui/toolbar.tsx`) — the strip of controls across the top of the browser.
+- **`TabBar` / `Tab`** (`ui/tabs.tsx`) — underlined tabs, with room at the end for an action.
 - **`SectionHeader`** (`ui/section.tsx`) — muted title with an optional trailing control.
 - **`PageContainer`** (`layout/container.tsx`) — `variant='tab' | 'browser' | 'intro'`.
   Every top-level surface gets its top padding from here. It resolves the
@@ -119,10 +156,11 @@ name, no focus trap and no Escape — including the one that approves a transact
 
 - **`Modal`** + `ModalHeader` / `ModalBody` / `ModalActions` — the centred dialog.
   Props are `onClose`, `scroll` (cap against the viewport and hang a `ScrollBar` beside the
-  panel), `scale` (the enter/exit scale, default `0.9`), `width` and `panelClass`.
-  **`width` is a step, not a class** — `panel` (320 → 384 → 448 as the window grows), `narrow`,
-  `full`. Never pass a width through `panelClass`: it cannot out-specify the breakpoints here,
-  and a dialog frozen at 320px is what forced addresses to be truncated in the first place.
+  panel), `scale` (the enter/exit scale, default `0.9`), `width`, `padding='none'`, `gap={2}` and
+  `align='center'`. **`width` is a step, not a class** — `panel` (320 → 384 → 448 as the window
+  grows), `narrow`, `full`; a dialog frozen at 320px is what forced addresses to be truncated in
+  the first place. `ModalHeader` takes `truncate`, `titleSize`, `titleGrow` and `width`;
+  `ModalBody` takes `gap`, `mt` and `short`; `ModalActions` takes `flush`.
   `ModalHeader` also takes `close='none'`, for a step that must not be abandoned halfway. Wrapping the
   growing part in `ModalBody` is what holds the header and footer still. `ModalHeader` takes
   `close='icon' | 'chip'`, a `leading` slot, and claims the title id from context.
@@ -138,15 +176,18 @@ Put `titleId` on the title; `ModalHeader` claims it from context automatically.
 
 ## Forms — `ui/field.tsx`
 
-`TextField`, `PasswordField`, `TextArea`, `ReadonlyField`, plus the `fieldSurface` string.
-They take `onValue: (value: string) => void` rather than an event, plus `label`, `error`,
-`size`, and `leading`/`trailing` slots. `Checkbox` (`ui/checkbox.tsx`) takes
+`TextField`, `PasswordField`, `TextArea`, `ReadonlyField`; the `fieldSurface` string lives in
+`ui/token.ts`. They take `onValue: (value: string) => void` rather than an event, plus `label`,
+`error`, `size`, and `leading`/`trailing` slots. `TextField` adds `room` (text clear of a leading
+icon, or of both edges), `mono`, `align`, `textSize` and `truncate`; `TextArea` adds `tall` and
+`breaks`. `Checkbox` (`ui/checkbox.tsx`) takes
 `checked` + `onToggle`.
 
 ## Feedback
 
 - **`Alert`** (`ui/alert.tsx`) — `variant`: `error` | `warning` | `success`;
-  `size`: `compact` (dialogs) | `comfortable` (intro). **An empty message renders nothing**,
+  `size`: `compact` (dialogs) | `comfortable` (intro) | `dense` | `banner`, plus `textAlign`,
+  `mono` and `Placement`. **An empty message renders nothing**,
   so drop the `message.length > 0 &&` guard at the call site.
 - **`StatusBlock`** (`ui/state.tsx`) — `state`: `empty` | `loading`, with `aria-live`. What a
   list shows when it has nothing to show yet or nothing at all.
@@ -154,7 +195,9 @@ They take `onValue: (value: string) => void` rather than an event, plus `label`,
   message is announced when it changes rather than never. `Alert` already carries one; reach for
   it directly when feedback lands somewhere other than an alert. It is absolutely positioned, so
   it never adds a flex gap.
-- **`ProgressBar`**, **`Spinner`**, **`FailureScreen`**, **`MenuRow`** (+ `selectedTint`).
+- **`ProgressBar`** (`look='strip' | 'track'`), **`Spinner`** (`muted`), **`FailureScreen`**,
+  **`MenuRow`** (`selected`, `Placement`), **`ScrollBar`** (`edge`), and **`Popover`**
+  (`anchor='below' | 'corner'`, `look='list' | 'note'`). `StatusBlock` takes `fill` and `px`.
 
 ## Money and destruction
 
@@ -180,6 +223,7 @@ Three primitives exist because getting these wrong costs the user something real
 2. Is it a dialog? → `Modal` or `Sheet`, never a hand-rolled overlay.
 3. Am I about to write a bare `z-*`, a safe-area `calc()`, a `text-tiny text-txt-muted`, or
    `border border-line bg-base-2`? All four already have a name.
-4. Does the primitive nearly fit? Pass `className` — `cn` lets it win. Fork nothing.
+4. Does the primitive nearly fit? Add the named prop or variant it lacks — there is no
+   `className` to pass, and the test in `src/ui` keeps it that way. Fork nothing.
 5. Does a new recurring shape deserve its own primitive? If the same class string is about
    to exist in three places, yes — and document *why* in the JSDoc, the way the rest do.

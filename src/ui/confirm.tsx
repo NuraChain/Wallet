@@ -29,10 +29,10 @@ export function ConfirmPanel({
     onCancel: () => void;
 }) {
     return (
-        <Vertical className='gap-3'>
+        <Vertical gap={3}>
             <Text as='h3' variant='title' text={title} />
 
-            <Text variant='bodyMuted' className='leading-relaxed' text={message} />
+            <Text variant='bodyMuted' leading='relaxed' text={message} />
 
             <ModalActions>
                 <Button variant='muted' size='action' onClick={onCancel} text={T('App.Cancel')} />
@@ -60,7 +60,7 @@ export default function ConfirmDialog({
         <Modal onClose={onCancel}>
             <ModalHeader title={title} onClose={onCancel} />
 
-            <Text variant='bodyMuted' className='leading-relaxed' text={message} />
+            <Text variant='bodyMuted' leading='relaxed' text={message} />
 
             <ModalActions>
                 <Button variant='muted' size='action' onClick={onCancel} text={T('App.Cancel')} />

@@ -17,12 +17,12 @@ export default function DashboardOffline({ error, at }: { error: boolean; at: nu
     }
 
     return (
-        <Panel className='flex items-center gap-3'>
-            <IconBox className='size-9'>
+        <Panel flow='row' align='center' gap={3}>
+            <IconBox size={9}>
                 <WifiOff size={18} />
             </IconBox>
 
-            <Vertical className='min-w-0 flex-1 gap-0.5'>
+            <Vertical squeeze='x' grow gap={0.5}>
                 <Text variant='captionStrong' text={online ? T('Dashboard.Offline.Failed') : T('Dashboard.Offline.Title')} />
 
                 <Text text={at > 0 ? T('Dashboard.Offline.Updated', formatAge(at)) : T('Dashboard.Offline.Message')} />

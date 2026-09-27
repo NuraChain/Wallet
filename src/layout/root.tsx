@@ -15,9 +15,9 @@ import { Horizontal } from '../ui/stack';
 
 export function RouteFallback() {
     return (
-        <Horizontal className='size-full items-center justify-center bg-base-1'>
+        <div className='flex size-full items-center justify-center bg-base-1'>
             <Spinner />
-        </Horizontal>
+        </div>
     );
 }
 
@@ -67,7 +67,7 @@ export default function RootLayout() {
     }, [isWindows, language]);
 
     return (
-        <Horizontal className='relative size-full'>
+        <Horizontal relative fill='both'>
             <TitleBar />
 
             <Outlet />

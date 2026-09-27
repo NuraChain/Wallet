@@ -12,7 +12,6 @@ import AddressBlock from '../../ui/address';
 import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
-import { Horizontal } from '../../ui/stack';
 
 export default function DashboardReceive({ address, network, onClose }: { address: string; network: Network; onClose: () => void }) {
     const [qr, setQr] = useState('');
@@ -44,26 +43,26 @@ export default function DashboardReceive({ address, network, onClose }: { addres
     }, [address]);
 
     return (
-        <Modal onClose={onClose} panelClass='items-center'>
-            <ModalHeader title={T('Dashboard.Receive.Title')} className='w-full' onClose={onClose} />
+        <Modal onClose={onClose} align='center'>
+            <ModalHeader title={T('Dashboard.Receive.Title')} width='full' onClose={onClose} />
 
-            <Horizontal className='size-56 items-center justify-center rounded-dialog border border-badge-line bg-badge p-3'>
+            <div className='flex size-56 items-center justify-center rounded-dialog border border-badge-line bg-badge p-3'>
                 {qr.length > 0 && <img src={qr} alt='' className='size-full' />}
 
                 {failed && <TriangleAlert size={28} className='text-txt-error' />}
-            </Horizontal>
+            </div>
 
             <Alert variant='error' text={failed ? T('Dashboard.Receive.QrFailed') : ''} />
 
-            <Text className='text-center' text={T('Dashboard.Receive.Scan', network.symbol)} />
+            <Text align='center' text={T('Dashboard.Receive.Scan', network.symbol)} />
 
-            <Panel className='w-full text-center'>
+            <Panel width='full' textAlign='center'>
                 <AddressBlock address={address} />
             </Panel>
 
             {/* The result rides on the button rather than an alert underneath it, which used to
                 appear after the fact and grow the dialog out from under the user's finger. */}
-            <CopyButton variant='primary' size='action' value={address} label={T('Dashboard.Copy')} className='w-full'>
+            <CopyButton variant='primary' size='action' value={address} label={T('Dashboard.Copy')} width='full'>
                 {T('Dashboard.Copy')}
             </CopyButton>
         </Modal>

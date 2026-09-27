@@ -84,7 +84,7 @@ export default function UnlockPage() {
                 transition={{ type: 'tween' }}
                 className={cn(surfacePanel, 'flex w-full max-w-md flex-col gap-4 rounded-dialog p-6')}
             >
-                <Horizontal className='items-center justify-between gap-2'>
+                <Horizontal align='center' justify='between' gap={2}>
                     <div>
                         <Text as='h1' variant='heading' text={T('Unlock.Title')} />
 
@@ -98,25 +98,25 @@ export default function UnlockPage() {
                             onClick={() => {
                                 setShowHint((value) => !value);
                             }}
-                            className='shrink-0'
+                            shrink={false}
                         >
                             <CircleQuestionMark size={18} />
                         </Button>
 
                         <Popover
                             open={showHint}
-                            anchor='inset-e-0 top-12'
+                            anchor='corner'
                             onClose={() => {
                                 setShowHint(false);
                             }}
-                            className='w-56 p-3 text-start text-tiny text-txt-normal'
+                            look='note'
                         >
                             {T('Unlock.Recovery')}
                         </Popover>
                     </div>
                 </Horizontal>
 
-                <Alert size='comfortable' className='mt-2' text={error} />
+                <Alert size='comfortable' mt={2} text={error} />
 
                 <PasswordField
                     label={T('Unlock.Password')}
@@ -131,12 +131,11 @@ export default function UnlockPage() {
                 <Button
                     dim
                     variant='primary'
-                    size='submit'
+                    size='ctaWide'
                     loading={isLoading}
                     onClick={() => {
                         void onUnlock();
                     }}
-                    className='mx-auto sm:w-fit sm:min-w-40 sm:px-8'
                     text={T('Unlock.Submit')}
                 />
             </motion.div>

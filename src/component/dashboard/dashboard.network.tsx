@@ -90,7 +90,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
     };
 
     return (
-        <Modal scroll onClose={onClose} panelClass='gap-2'>
+        <Modal scroll onClose={onClose} gap={2}>
             <ModalHeader title={T('Dashboard.Network.Title')} onClose={onClose} />
 
             {removing !== undefined && (
@@ -109,7 +109,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
 
             {removing === undefined &&
                 (adding ? (
-                    <Vertical className='gap-2'>
+                    <Vertical gap={2}>
                         <Alert text={error} />
 
                         {fieldMap.map((item) => (
@@ -123,7 +123,7 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                                 onValue={(value) => {
                                     setDraft((current) => ({ ...current, [item.key]: value }));
                                 }}
-                                className='text-center'
+                                align='center'
                             />
                         ))}
 
@@ -150,23 +150,25 @@ export default function DashboardNetwork({ network, onChange, onClose }: { netwo
                     </Vertical>
                 ) : (
                     <>
-                        <ModalBody className='gap-2'>
+                        <ModalBody gap={2}>
                             {networks.map((item) => {
                                 const isActive = item.id === network.id;
 
                                 return (
-                                    <Horizontal key={item.id} className='items-center gap-1'>
+                                    <Horizontal key={item.id} align='center' gap={1}>
                                         <MenuRow
                                             selected={isActive}
                                             label={item.name}
-                                            className='min-w-0 flex-1'
+                                            squeeze='x'
+                                            grow
                                             leading={
                                                 <TokenIcon
                                                     primary
                                                     kind='network'
                                                     src={getNativeLogo(item.chainId)}
                                                     symbol={item.symbol}
-                                                    className='size-7 text-tiny'
+                                                    size={7}
+                                                    glyph='tiny'
                                                 />
                                             }
                                             trailing={isActive ? <Check size={18} /> : undefined}

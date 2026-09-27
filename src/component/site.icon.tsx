@@ -7,18 +7,8 @@ import { useSiteIcon } from '../hook/image';
  * held by the image cache like any other. TokenIcon draws the lettered box while the lookup runs
  * and for a host that has no icon to give.
  */
-export default function SiteIcon({
-    url,
-    symbol,
-    primary = false,
-    className = 'size-8 text-tiny'
-}: {
-    url: string;
-    symbol: string;
-    primary?: boolean;
-    className?: string;
-}) {
+export default function SiteIcon({ url, symbol, primary = false, size = 8 }: { url: string; symbol: string; primary?: boolean; size?: 5 | 8 | 9 }) {
     const icon = useSiteIcon(url);
 
-    return <TokenIcon kind='unknown' src={icon} symbol={symbol} primary={primary} className={className} />;
+    return <TokenIcon kind='unknown' src={icon} symbol={symbol} primary={primary} size={size} glyph='tiny' />;
 }

@@ -13,19 +13,15 @@ import DashboardOffline from './dashboard.offline';
 
 import Text from '../../ui/text';
 import Button from '../../ui/button';
+import { Tab, TabBar } from '../../ui/tabs';
 import IconBox from '../../ui/iconbox';
 import ListCard from '../../ui/list';
 import StatusBlock from '../../ui/state';
 
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { getNativeCoinId, getNativeLogo, getTokenCoinId, getTokenLogo, type PriceMap } from '../../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
 import { Horizontal, Vertical } from '../../ui/stack';
-
-const chipClass = 'h-9 min-w-0 flex-1 gap-1.5 rounded-surface ps-1 pe-2.5 text-tiny';
-
-const chipLabelClass = 'min-w-0 flex-1 truncate text-start font-medium';
 
 const unknownAmount = '—';
 
@@ -147,95 +143,82 @@ export default function DashboardWallet({
     };
 
     return (
-        <Vertical className='mt-2 min-h-0 flex-1 gap-4'>
-            <Horizontal className='items-center gap-2'>
-                <Button variant='chip' onClick={onAccounts} className={chipClass}>
-                    <IconBox tone='badge' className={cn('size-7', emoji.length > 0 && 'text-small')}>
+        <Vertical mt={2} squeeze='y' grow gap={4}>
+            <Horizontal align='center' gap={2}>
+                <Button variant='chip' size='selector' squeeze='x' grow onClick={onAccounts}>
+                    <IconBox tone='badge' size={7} glyph={emoji.length > 0 ? 'small' : undefined}>
                         {emoji.length > 0 ? emoji : <User size={14} />}
                     </IconBox>
 
-                    <Text variant='captionStrong' className={chipLabelClass} text={name} />
+                    <Text variant='captionStrong' squeeze='x' grow truncate align='start' weight='medium' text={name} />
 
                     <ChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
 
-                <Button variant='chip' onClick={onNetwork} className={chipClass}>
-                    <TokenIcon primary kind='network' src={getNativeLogo(network.chainId)} symbol={network.symbol} className='size-7 shrink-0 text-tiny' />
+                <Button variant='chip' size='selector' squeeze='x' grow onClick={onNetwork}>
+                    <TokenIcon primary kind='network' src={getNativeLogo(network.chainId)} symbol={network.symbol} size={7} glyph='tiny' />
 
-                    <Text variant='captionStrong' className={chipLabelClass} text={network.name} />
+                    <Text variant='captionStrong' squeeze='x' grow truncate align='start' weight='medium' text={network.name} />
 
                     <ChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
 
                 {onBrowser !== undefined && (
-                    <Button variant='chip' size='iconChip' onClick={onBrowser} aria-label={T('Dashboard.Nav.Browser')} className='shrink-0 lg:hidden'>
+                    <Button variant='chip' size='iconChip' onClick={onBrowser} aria-label={T('Dashboard.Nav.Browser')} shrink={false} wide='hide'>
                         <Globe size={17} />
                     </Button>
                 )}
 
-                <Button variant='chip' size='iconChip' onClick={onSettings} aria-label={T('Dashboard.Settings.Title')} className='shrink-0 lg:hidden'>
+                <Button variant='chip' size='iconChip' onClick={onSettings} aria-label={T('Dashboard.Settings.Title')} shrink={false} wide='hide'>
                     <Settings size={17} />
                 </Button>
             </Horizontal>
 
             <DashboardOffline error={native.error} at={native.at} />
 
-            <Vertical className='items-center gap-1.5 py-2'>
-                <Text dir='ltr' variant='display' className='text-center break-all' text={headline()} />
+            <Vertical align='center' gap={1.5} py={2}>
+                <Text dir='ltr' variant='display' align='center' breaks='all' text={headline()} />
 
-                <CopyButton trailing value={address} label={T('Dashboard.Copy')} className='gap-1 text-tiny text-txt-muted hover:text-txt-normal'>
+                <CopyButton trailing value={address} label={T('Dashboard.Copy')} subtle>
                     <span dir='ltr' className='font-mono'>
                         {shortAddress(address)}
                     </span>
                 </CopyButton>
             </Vertical>
 
-            <Horizontal className='justify-center gap-2'>
+            <Horizontal justify='center' gap={2}>
                 {actionMap.map((item) => (
-                    <Button
-                        key={item.key}
-                        variant={item.primary ? 'primary' : 'chip'}
-                        onClick={item.onClick}
-                        className='h-16 w-20 shrink-0 flex-col gap-1 rounded-surface'
-                    >
+                    <Button key={item.key} variant={item.primary ? 'primary' : 'chip'} onClick={item.onClick} size='tile' shrink={false}>
                         <item.icon size={18} className='shrink-0' />
 
-                        <Text variant='inherit' className='truncate font-medium' text={T(item.key)} />
+                        <Text variant='inherit' truncate weight='medium' text={T(item.key)} />
                     </Button>
                 ))}
             </Horizontal>
 
-            <Vertical className='min-h-0 flex-1 gap-3'>
-                <Horizontal role='tablist' className='items-center border-b border-line'>
+            <Vertical squeeze='y' grow gap={3}>
+                <TabBar>
                     {tabMap.map((item) => (
-                        <Button
+                        <Tab
                             key={item.key}
-                            role='tab'
                             id={`wallet-tab-${item.key}`}
-                            aria-selected={item.key === tab}
-                            aria-controls={`wallet-panel-${item.key}`}
-                            onClick={() => {
+                            panel={`wallet-panel-${item.key}`}
+                            label={item.label}
+                            selected={item.key === tab}
+                            onSelect={() => {
                                 setTab(item.key);
                             }}
-                            className={cn(
-                                'relative h-10 cursor-pointer px-3 text-small font-medium transition-colors duration-(--duration-fast)',
-                                item.key === tab ? 'text-txt-accent' : 'text-txt-muted hover:text-txt-normal'
-                            )}
-                        >
-                            {item.label}
-
-                            {item.key === tab && <span aria-hidden className='absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-txt-accent' />}
-                        </Button>
+                        />
                     ))}
 
                     {trailing !== undefined && (
-                        <Button variant='muted' size='icon' aria-label={trailing.label} onClick={trailing.onClick} className='ms-auto shrink-0'>
+                        <Button variant='muted' size='icon' aria-label={trailing.label} onClick={trailing.onClick} ms='auto' shrink={false}>
                             <trailing.icon size={16} />
                         </Button>
                     )}
-                </Horizontal>
+                </TabBar>
 
-                <Vertical className='min-h-0 flex-1' role='tabpanel' id={`wallet-panel-${tab}`} aria-labelledby={`wallet-tab-${tab}`}>
+                <Vertical squeeze='y' grow role='tabpanel' id={`wallet-panel-${tab}`} aria-labelledby={`wallet-tab-${tab}`}>
                     {tab === 'token' && (
                         <ListCard>
                             <TokenRow
@@ -272,7 +255,7 @@ export default function DashboardWallet({
                         </ListCard>
                     )}
 
-                    {tab === 'nft' && <StatusBlock panel className='min-h-full justify-center' text={T('Dashboard.Wallet.NftEmpty')} />}
+                    {tab === 'nft' && <StatusBlock panel fill text={T('Dashboard.Wallet.NftEmpty')} />}
 
                     {tab === 'activity' && (
                         <DashboardActivity

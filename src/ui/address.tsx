@@ -1,6 +1,4 @@
 import Text from './text';
-
-import { cn } from '../utility/cn';
 import { Vertical } from './stack';
 
 /**
@@ -10,15 +8,27 @@ import { Vertical } from './stack';
  * the user can check every character before money moves: address-poisoning works by matching the
  * first and last few, which is exactly what a truncation keeps and a middle ellipsis hides.
  */
-export default function AddressBlock({ address, label = '', className = '' }: { address: string; label?: string; className?: string }) {
-    const value = <Text dir='ltr' variant='captionStrong' className={cn('font-mono break-all select-text!', className)} text={address} />;
+export default function AddressBlock({ address, label = '', boxed = false }: { address: string; label?: string; boxed?: boolean }) {
+    const value = (
+        <Text
+            dir='ltr'
+            variant='captionStrong'
+            mono
+            breaks='all'
+            selectable
+            inset={boxed}
+            align={boxed ? 'center' : undefined}
+            width={boxed ? 'full' : undefined}
+            text={address}
+        />
+    );
 
     if (label.length === 0) {
         return value;
     }
 
     return (
-        <Vertical className='min-w-0 gap-1'>
+        <Vertical squeeze='x' gap={1}>
             <Text text={label} />
 
             {value}

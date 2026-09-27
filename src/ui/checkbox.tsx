@@ -5,7 +5,7 @@ import { Check } from 'lucide-react';
 import Text from './text';
 
 import { cn } from '../utility/cn';
-import { fieldSurface } from './field';
+import { fieldSurface } from './token';
 
 export default function Checkbox({ checked, text, onToggle, children }: { checked: boolean; text?: string; onToggle: () => void; children?: ReactNode }) {
     return (
@@ -20,7 +20,7 @@ export default function Checkbox({ checked, text, onToggle, children }: { checke
                 {checked && <Check size={16} className='text-txt-muted' />}
             </button>
 
-            <Text className='leading-snug' text={text}>
+            <Text leading='snug' text={text}>
                 {children}
             </Text>
         </label>

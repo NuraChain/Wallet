@@ -11,10 +11,10 @@ import { Vertical } from '../ui/stack';
 
 export function AssetAmount({ amount, value }: { amount: string; value?: string }) {
     return (
-        <Vertical dir='ltr' className='shrink-0 items-center'>
-            <Text variant='body' className='font-mono' text={amount} />
+        <Vertical dir='ltr' shrink={false} align='center'>
+            <Text variant='body' mono text={amount} />
 
-            {value !== undefined && <Text className='font-mono' text={value} />}
+            {value !== undefined && <Text mono text={value} />}
         </Vertical>
     );
 }
@@ -54,13 +54,13 @@ export default function TokenRow({
         >
             <TokenIcon src={src} kind={kind} symbol={symbol} primary={primary} />
 
-            <Vertical className='min-w-0 flex-1'>
-                <Text variant='body' className='truncate' text={symbol} />
+            <Vertical squeeze='x' grow>
+                <Text variant='body' truncate text={symbol} />
 
-                <Text className='truncate' text={subtitle} />
+                <Text truncate text={subtitle} />
             </Vertical>
 
-            {price !== undefined && <Text dir='ltr' className='hidden w-24 shrink-0 text-end font-mono lg:block' text={price} />}
+            {price !== undefined && <Text dir='ltr' wide='only' width={24} shrink={false} align='end' mono text={price} />}
 
             {children}
         </div>

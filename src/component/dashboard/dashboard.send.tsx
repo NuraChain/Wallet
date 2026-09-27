@@ -15,11 +15,9 @@ import SectionHeader from '../../ui/section';
 
 import Panel from '../../ui/panel';
 import Popover from '../../ui/popover';
-import { fieldSurface, TextField } from '../../ui/field';
+import { TextField } from '../../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../../ui/modal';
 
-import { selectedTint } from '../../ui/menu';
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { vaultManager, type Vault } from '../../core/vault';
 import { useOnline } from '../../hook/connection';
@@ -289,15 +287,15 @@ export default function DashboardSend({
 
     return (
         <Modal onClose={dismiss}>
-            <ModalHeader title={T('Dashboard.Send.Title')} close={pending ? 'none' : 'icon'} titleClass='truncate' onClose={onClose} />
+            <ModalHeader title={T('Dashboard.Send.Title')} close={pending ? 'none' : 'icon'} truncate onClose={onClose} />
 
             {step === 'form' && (
-                <Vertical className='gap-3'>
+                <Vertical gap={3}>
                     <Alert text={error} />
 
                     <Alert variant='warning' text={online ? '' : T('Dashboard.Send.Offline')} />
 
-                    <Vertical className='relative gap-1'>
+                    <Vertical relative gap={1}>
                         <Text text={T('Dashboard.Send.Asset')} />
 
                         <Button
@@ -306,17 +304,17 @@ export default function DashboardSend({
                             onClick={() => {
                                 setPicking(!picking);
                             }}
-                            className={cn(fieldSurface, 'flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3')}
+                            variant='fieldSelect'
                         >
-                            <TokenIcon primary={native} kind={native ? 'network' : 'token'} src={asset.logo} symbol={asset.symbol} className='size-9' />
+                            <TokenIcon primary={native} kind={native ? 'network' : 'token'} src={asset.logo} symbol={asset.symbol} />
 
-                            <Vertical className='min-w-0 flex-1 text-start'>
-                                <Text variant='body' className='truncate' text={asset.symbol} />
+                            <Vertical squeeze='x' grow textAlign='start'>
+                                <Text variant='body' truncate text={asset.symbol} />
 
-                                <Text className='truncate' text={asset.name} />
+                                <Text truncate text={asset.name} />
                             </Vertical>
 
-                            <Text dir='ltr' variant='captionStrong' className='shrink-0 font-mono' text={trimAmount(asset.formatted)} />
+                            <Text dir='ltr' variant='captionStrong' shrink={false} mono text={trimAmount(asset.formatted)} />
 
                             <ChevronDown
                                 size={12}
@@ -330,7 +328,7 @@ export default function DashboardSend({
                             onClose={() => {
                                 setPicking(false);
                             }}
-                            className='flex max-h-56 flex-col gap-1 overflow-y-auto'
+                            look='list'
                         >
                             {assets.map((item) => (
                                 <Button
@@ -340,31 +338,31 @@ export default function DashboardSend({
                                     onClick={() => {
                                         onAsset(item.key);
                                     }}
-                                    className={`flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2 transition-colors duration-(--duration-fast) ${item.key === asset.key ? selectedTint : 'hover:bg-btn-muted-hover'}`}
+                                    variant={item.key === asset.key ? 'optionOn' : 'option'}
                                 >
                                     <TokenIcon
                                         primary={item.token === undefined}
                                         kind={item.token === undefined ? 'network' : 'token'}
                                         src={item.logo}
                                         symbol={item.symbol}
-                                        className='size-8'
+                                        size={8}
                                     />
 
-                                    <Vertical className='min-w-0 flex-1 text-start'>
-                                        <Text variant='body' className='truncate' text={item.symbol} />
+                                    <Vertical squeeze='x' grow textAlign='start'>
+                                        <Text variant='body' truncate text={item.symbol} />
 
-                                        <Text className='truncate' text={item.name} />
+                                        <Text truncate text={item.name} />
                                     </Vertical>
 
-                                    <Text dir='ltr' variant='captionStrong' className='shrink-0 font-mono' text={trimAmount(item.formatted)} />
+                                    <Text dir='ltr' variant='captionStrong' shrink={false} mono text={trimAmount(item.formatted)} />
                                 </Button>
                             ))}
                         </Popover>
                     </Vertical>
 
-                    <TextField label={T('Dashboard.Send.Recipient')} value={to} dir='ltr' placeholder='0x…' onValue={setTo} className='font-mono' />
+                    <TextField label={T('Dashboard.Send.Recipient')} value={to} dir='ltr' placeholder='0x…' onValue={setTo} mono />
 
-                    <Vertical className='gap-1'>
+                    <Vertical gap={1}>
                         <SectionHeader title={T('Dashboard.Send.Amount')}>
                             <Button
                                 dim
@@ -389,7 +387,7 @@ export default function DashboardSend({
                                 setAmount(value);
                                 setReserved(false);
                             }}
-                            className='font-mono'
+                            mono
                         />
 
                         {reserved && <Text text={T('Dashboard.Send.Reserved')} />}
@@ -407,13 +405,13 @@ export default function DashboardSend({
             )}
 
             {step === 'review' && (
-                <Vertical className='gap-3'>
-                    <Panel className='flex flex-col gap-2'>
+                <Vertical gap={3}>
+                    <Panel flow='column' gap={2}>
                         {reviewMap.map((item) => (
-                            <Horizontal key={item.label} className='items-center justify-between gap-2'>
-                                <Text className='shrink-0' text={item.label} />
+                            <Horizontal key={item.label} align='center' justify='between' gap={2}>
+                                <Text shrink={false} text={item.label} />
 
-                                <Text dir='ltr' variant='captionStrong' className='min-w-0 truncate font-mono' text={item.value} />
+                                <Text dir='ltr' variant='captionStrong' squeeze='x' truncate mono text={item.value} />
                             </Horizontal>
                         ))}
                     </Panel>
@@ -422,7 +420,7 @@ export default function DashboardSend({
                         <AddressBlock label={T('Dashboard.Send.To')} address={to} />
                     </Panel>
 
-                    <ModalActions className='mt-0'>
+                    <ModalActions flush>
                         <Button
                             variant='muted'
                             size='action'
@@ -446,22 +444,22 @@ export default function DashboardSend({
             )}
 
             {pending && (
-                <Vertical className='items-center gap-3 py-6'>
-                    <Spinner size={32} className='text-txt-muted' />
+                <Vertical align='center' gap={3} py={6}>
+                    <Spinner size={32} muted />
 
                     <Text variant='bodyMuted' text={T('Dashboard.Send.Pending')} />
                 </Vertical>
             )}
 
             {step === 'success' && (
-                <Vertical className='items-center gap-3 py-4'>
+                <Vertical align='center' gap={3} py={4}>
                     <CircleCheckBig size={40} className='text-txt-normal' />
 
                     <Text variant='body' text={T('Dashboard.Send.Success')} />
 
-                    <AddressBlock address={hash} className='w-full rounded-surface bg-base-3 p-2 text-center' />
+                    <AddressBlock address={hash} boxed />
 
-                    <Horizontal className='w-full gap-2 *:flex-1'>
+                    <Horizontal width='full' gap={2} even>
                         <CopyButton
                             variant='muted'
                             size='action'
@@ -494,16 +492,16 @@ export default function DashboardSend({
             )}
 
             {step === 'error' && (
-                <Vertical className='gap-3 py-2'>
-                    <Alert size='comfortable' className='text-start' text={T('Dashboard.Send.Error')} />
+                <Vertical gap={3} py={2}>
+                    <Alert size='comfortable' textAlign='start' text={T('Dashboard.Send.Error')} />
 
                     {failure.length > 0 && (
                         <Panel>
-                            <Text dir='ltr' className='font-mono wrap-break-word select-text!' text={failure} />
+                            <Text dir='ltr' mono breaks='words' selectable text={failure} />
                         </Panel>
                     )}
 
-                    <ModalActions className='mt-0'>
+                    <ModalActions flush>
                         <Button
                             variant='muted'
                             size='action'

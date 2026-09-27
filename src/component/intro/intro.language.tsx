@@ -15,10 +15,10 @@ export default function IntroLanguage({ onClose }: { onClose: () => void }) {
     };
 
     return (
-        <Modal scroll width='narrow' onClose={onClose} panelClass='gap-2'>
+        <Modal scroll width='narrow' onClose={onClose} gap={2}>
             <ModalHeader title={T('Intro.Select')} onClose={onClose} />
 
-            <ModalBody className='mt-2 max-h-72 gap-2'>
+            <ModalBody mt={2} short gap={2}>
                 {languageRecord.map((lang) => {
                     const isActive = lang.code === current.code;
 

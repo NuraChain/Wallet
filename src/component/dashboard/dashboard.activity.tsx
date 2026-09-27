@@ -35,7 +35,7 @@ export default function DashboardActivity({
     };
 
     return (
-        <Vertical className='gap-2'>
+        <Vertical gap={2}>
             {items.length > 0 && (
                 <ListCard>
                     {items.slice(0, preview).map((item) => (

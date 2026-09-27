@@ -8,14 +8,14 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import Text from '../../ui/text';
 import Button from '../../ui/button';
+import Toolbar from '../../ui/toolbar';
 
-import { selectedTint } from '../../ui/menu';
+import { selectedTint } from '../../ui/token';
 import SiteIcon from '../site.icon';
 
 import { cn } from '../../utility/cn';
 import { getDirection, getLanguage, T } from '../../utility/language';
 import { getSiteHost, type BrowserTab } from '../../core/browser';
-import { Horizontal } from '../../ui/stack';
 
 import 'swiper/css';
 import 'swiper/css/free-mode';
@@ -73,8 +73,8 @@ export default function DashboardBrowserTabs({
     }
 
     return (
-        <Horizontal className='shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2'>
-            <Button variant='chip' size='iconChip' aria-label={T('Dashboard.Browser.TabNew')} onClick={onAdd} className='size-8 shrink-0'>
+        <Toolbar>
+            <Button variant='chip' size='iconChipSmall' aria-label={T('Dashboard.Browser.TabNew')} onClick={onAdd} shrink={false}>
                 <Plus size={16} />
             </Button>
 
@@ -104,14 +104,19 @@ export default function DashboardBrowserTabs({
                                         onClick={() => {
                                             onPick(item.id);
                                         }}
-                                        className='flex min-w-0 flex-1 cursor-pointer items-center gap-1.5'
+                                        variant='rowTight'
+                                        squeeze='x'
+                                        grow
                                     >
-                                        {url.length > 0 && <SiteIcon url={url} symbol={name.toUpperCase()} className='size-5 text-tiny' />}
+                                        {url.length > 0 && <SiteIcon url={url} symbol={name.toUpperCase()} size={5} />}
 
                                         <Text
                                             variant={item.id === active ? 'captionStrong' : 'caption'}
                                             dir='ltr'
-                                            className='min-w-0 flex-1 truncate text-start'
+                                            squeeze='x'
+                                            grow
+                                            truncate
+                                            align='start'
                                             text={name}
                                         />
                                     </Button>
@@ -121,7 +126,8 @@ export default function DashboardBrowserTabs({
                                         onClick={() => {
                                             onClose(item.id);
                                         }}
-                                        className='flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2'
+                                        variant='tabClose'
+                                        shrink={false}
                                     >
                                         <X size={14} />
                                     </Button>
@@ -131,6 +137,6 @@ export default function DashboardBrowserTabs({
                     })}
                 </Swiper>
             </div>
-        </Horizontal>
+        </Toolbar>
     );
 }

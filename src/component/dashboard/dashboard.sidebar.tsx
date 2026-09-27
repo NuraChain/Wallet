@@ -34,28 +34,28 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
     const isWindows = useIsWindows();
 
     return (
-        <Vertical
+        <div
             className={cn(
+                'flex flex-col',
                 'hidden w-60 shrink-0 gap-1 border-e border-line bg-base-2 p-3 pb-[calc(1.5rem+var(--inset-bottom))] lg:flex',
                 inset.tabTop[isWindows ? 'windows' : 'device']
             )}
         >
-            <Vertical className='items-center gap-2 px-3 py-5'>
+            <Vertical align='center' gap={2} px={3} py={5}>
                 <Button
-                    variant='bare'
+                    variant='logo'
                     title={site}
                     aria-label={T('App.Website')}
                     onClick={() => {
                         void platform.openUrl(site).catch(() => undefined);
                     }}
-                    className='cursor-pointer rounded-surface'
                 >
                     {/* Decorative: the button carries the name, and a labelled image inside a
                         labelled control is read out twice. */}
                     <img src={Logo} alt='' className='size-24' />
                 </Button>
 
-                <Text className='text-center' text={T('App.Tagline')} />
+                <Text align='center' text={T('App.Tagline')} />
             </Vertical>
 
             {items.map((item) => (
@@ -70,7 +70,7 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
 
             <div className='flex-1' />
 
-            <Horizontal className='gap-2 pb-1'>
+            <Horizontal gap={2} pb={1}>
                 {actions.map((item) => (
                     <Button
                         key={item.key}
@@ -78,7 +78,8 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
                         size='action'
                         onClick={item.onClick}
                         leftIcon={<item.icon size={16} className='shrink-0' />}
-                        className='min-w-0 flex-1'
+                        squeeze='x'
+                        grow
                     >
                         <span className='truncate'>{item.label}</span>
                     </Button>
@@ -94,6 +95,6 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
                     onClick={item.onClick}
                 />
             ))}
-        </Vertical>
+        </div>
     );
 }

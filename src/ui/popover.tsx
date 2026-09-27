@@ -5,19 +5,29 @@ import { layer } from '../layout/container';
 import { surfacePanel } from './panel';
 import { useDismiss } from './dialog';
 
+// Where it opens from: under its trigger, or tucked under the trigger's corner.
+const anchorMap = { below: 'inset-x-0 top-full mt-1', corner: 'inset-e-0 top-12' } as const;
+
+const lookMap = {
+    /** A short scrolling list of choices. */
+    list: 'flex max-h-56 flex-col gap-1 overflow-y-auto',
+    /** A few lines of help text. */
+    note: 'w-56 p-3 text-start text-tiny text-txt-normal'
+} as const;
+
 export default function Popover({
     open,
     onClose,
-    anchor = 'inset-x-0 top-full mt-1',
+    anchor = 'below',
+    look,
     role,
-    className = '',
     children
 }: {
     open: boolean;
     onClose: () => void;
-    anchor?: string;
+    anchor?: keyof typeof anchorMap;
+    look?: keyof typeof lookMap;
     role?: string;
-    className?: string;
     children: ReactNode;
 }) {
     useDismiss(open, onClose);
@@ -30,7 +40,10 @@ export default function Popover({
         <>
             <div aria-hidden='true' className={`fixed inset-0 ${layer.chrome}`} onClick={onClose} />
 
-            <div role={role} className={cn(surfacePanel, 'absolute rounded-surface p-1', anchor, layer.popover, className)}>
+            <div
+                role={role}
+                className={cn(surfacePanel, 'absolute rounded-surface p-1', anchorMap[anchor], layer.popover, look !== undefined && lookMap[look])}
+            >
                 {children}
             </div>
         </>

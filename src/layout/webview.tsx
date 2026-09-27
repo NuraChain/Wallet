@@ -9,7 +9,6 @@ import ProgressBar from '../ui/progress';
 
 import { T } from '../utility/language';
 import { getNativeBrowser, getNativeTab, nativeHoldsTabs } from '../core/browser';
-import { Vertical } from '../ui/stack';
 
 const mobileAgent = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36';
 
@@ -452,13 +451,13 @@ export default function WebFrame({
             )}
 
             {children === undefined && url.length > 0 && embedded && getNativeBrowser() === undefined && (
-                <Vertical className='size-full items-center justify-center gap-3 text-tiny text-txt-muted'>
+                <div className='flex size-full flex-col items-center justify-center gap-3 text-tiny text-txt-muted'>
                     <Spinner size={22} />
 
                     <Text text={T('Dashboard.Browser.Loading')} />
 
-                    <ProgressBar label={T('Dashboard.Browser.Loading')} className='w-32 rounded-full bg-base-3' />
-                </Vertical>
+                    <ProgressBar label={T('Dashboard.Browser.Loading')} look='track' />
+                </div>
             )}
         </div>
     );

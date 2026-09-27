@@ -30,14 +30,20 @@ export function Modal({
     scroll = false,
     scale = 0.9,
     width = 'panel',
-    panelClass = '',
+    padding,
+    gap,
+    align,
     children
 }: {
     onClose: () => void;
     scroll?: boolean;
     scale?: number;
     width?: keyof typeof widthMap;
-    panelClass?: string;
+    /** `none` for a full-screen dialog whose sections run to its edges. */
+    padding?: 'none';
+    /** A tighter rhythm than the default, for a dialog that is mostly a list. */
+    gap?: 2;
+    align?: 'center';
     children: ReactNode;
 }) {
     const { panelRef, titleId } = useDialog(onClose);
@@ -57,7 +63,9 @@ export function Modal({
                 'pointer-events-auto flex max-w-full flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',
                 widthMap[width],
                 scroll && 'max-h-full overflow-y-auto',
-                panelClass
+                padding === 'none' && 'p-0',
+                gap === 2 && 'gap-2',
+                align === 'center' && 'items-center'
             )}
         >
             <DialogTitleContext value={titleId}>{children}</DialogTitleContext>
@@ -83,7 +91,7 @@ export function Modal({
                     <div className='pointer-events-auto relative flex max-h-full min-h-0'>
                         {panel}
 
-                        <ScrollBar viewportRef={panelRef} className='-inset-e-0.5 top-2' />
+                        <ScrollBar viewportRef={panelRef} edge='flushTop' />
                     </div>
                 ) : (
                     panel
@@ -99,9 +107,10 @@ export function ModalHeader({
     leading,
     close = 'icon',
     closeLabel = '',
-    titleClass = '',
-    groupClass = '',
-    className = '',
+    truncate = false,
+    titleSize,
+    titleGrow = false,
+    width,
     onClose
 }: {
     title: string;
@@ -109,27 +118,33 @@ export function ModalHeader({
     leading?: ReactNode;
     close?: 'icon' | 'chip' | 'none';
     closeLabel?: string;
-    titleClass?: string;
-    groupClass?: string;
-    className?: string;
+    /** Cuts a long title to one line. */
+    truncate?: boolean;
+    titleSize?: 'large';
+    /** The title and subtitle take the width the close button leaves. */
+    titleGrow?: boolean;
+    width?: 'full';
     onClose: () => void;
 }) {
     const titleId = useDialogTitleId();
 
-    const heading = <Text as='h2' id={titleId} variant='title' className={cn('min-w-0', titleClass)} text={title} />;
+    // With nothing leading, the title and its subtitle stack; with an icon, they sit beside it.
+    const Group = leading === undefined ? Vertical : Horizontal;
+
+    const heading = <Text as='h2' id={titleId} variant='title' squeeze='x' size={titleSize} truncate={truncate} text={title} />;
 
     return (
-        <Horizontal className={cn('shrink-0 items-center justify-between gap-3', className)}>
+        <Horizontal shrink={false} align='center' justify='between' gap={3} width={width}>
             {subtitle.length === 0 && leading === undefined ? (
                 heading
             ) : (
-                <Horizontal className={cn(leading === undefined ? 'min-w-0 flex-col' : 'min-w-0 items-center gap-2', groupClass)}>
+                <Group squeeze='x' align={leading === undefined ? undefined : 'center'} gap={leading === undefined ? undefined : 2} grow={titleGrow}>
                     {leading}
 
                     {heading}
 
                     {subtitle.length > 0 && <Text text={subtitle} />}
-                </Horizontal>
+                </Group>
             )}
 
             {/* A step that must not be abandoned halfway — a transaction already in flight — asks
@@ -140,7 +155,7 @@ export function ModalHeader({
                     size={close === 'chip' ? 'iconChip' : 'icon'}
                     aria-label={closeLabel.length > 0 ? closeLabel : T('App.Close')}
                     onClick={onClose}
-                    className='shrink-0'
+                    shrink={false}
                 >
                     <X size={20} />
                 </Button>
@@ -149,20 +164,45 @@ export function ModalHeader({
     );
 }
 
-export function ModalBody({ className = '', children }: { className?: string; children: ReactNode }) {
+export function ModalBody({
+    gap = 3,
+    short = false,
+    mt,
+    children
+}: {
+    gap?: 2 | 3;
+    /** Held to a short height, for a list that should not fill the window. */
+    short?: boolean;
+    mt?: 2;
+    children: ReactNode;
+}) {
     const viewportRef = useRef<HTMLDivElement>(null);
 
+    // The frame pulls out by the viewport's padding, so the rows scroll edge to edge and a focus
+    // ring on the first or last of them is not clipped.
     return (
-        <Vertical className='relative -m-3 min-h-0 flex-1'>
-            <Vertical ref={viewportRef} className={cn('min-h-0 flex-1 gap-3 overflow-y-auto overscroll-contain p-3 *:shrink-0', className)}>
+        <div className='relative -m-3 flex min-h-0 flex-1 flex-col'>
+            <div
+                ref={viewportRef}
+                className={cn(
+                    'flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain p-3 *:shrink-0',
+                    gap === 2 ? 'gap-2' : 'gap-3',
+                    mt === 2 && 'mt-2',
+                    short && 'max-h-72'
+                )}
+            >
                 {children}
-            </Vertical>
+            </div>
 
-            <ScrollBar viewportRef={viewportRef} className='-inset-e-0.5' />
-        </Vertical>
+            <ScrollBar viewportRef={viewportRef} edge='flush' />
+        </div>
     );
 }
 
-export function ModalActions({ className = '', children }: { className?: string; children: ReactNode }) {
-    return <Horizontal className={cn('mt-1 shrink-0 gap-2 *:flex-1', className)}>{children}</Horizontal>;
+export function ModalActions({ flush = false, children }: { flush?: boolean; children: ReactNode }) {
+    return (
+        <Horizontal mt={flush ? 0 : 1} shrink={false} gap={2} even>
+            {children}
+        </Horizontal>
+    );
 }

@@ -33,6 +33,9 @@ Every component in the tree follows one shape. Copy it rather than inventing:
 import type { HTMLAttributes, ReactNode } from 'react';
 
 import { cn } from '../../utility/cn';
+import { placement, splitPlacement, type Placement } from './place';
+
+const toneMap = { muted: 'bg-btn-muted', primary: 'bg-btn-primary' } as const;
 
 /**
  * Thing - One line saying what it is.
@@ -40,14 +43,16 @@ import { cn } from '../../utility/cn';
  * A paragraph saying *why* it exists — what it replaced, what breaks without it. This repo
  * documents decisions, not mechanics; a comment restating the code is noise.
  * @param {object} props Component props.
- * @param {string} [props.className] Extra classes; conflicting utilities override the recipe's.
+ * @param {keyof typeof toneMap} [props.tone] What the thing is for, never a class string.
  * @param {ReactNode} props.children The content.
  * @returns {JSX.Element} The thing.
  */
-export default function Thing({ className = '', children, ...rest }: { className?: string; children: ReactNode } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
+export default function Thing(props: { tone?: keyof typeof toneMap; children: ReactNode } & Placement & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>)
 {
+    const [place, { tone = 'muted', children, ...rest }] = splitPlacement(props);
+
     return (
-        <div className={ cn('flex items-center', className) } { ...rest }>
+        <div className={ cn('flex items-center', toneMap[tone], placement(place)) } { ...rest }>
 
             { children }
 
@@ -59,9 +64,11 @@ export default function Thing({ className = '', children, ...rest }: { className
 Rules that shape falls out of:
 
 - **Props are an inline type literal**, intersected with the DOM attributes the element
-  accepts, with `className`/`children` `Omit`-ed so ours win. No separate `interface Props`.
-- **`className` always merges through `cn`**, never string concatenation — a caller's
-  override must beat the component's default. See the `tailwindcss` skill.
+  accepts, with `className`/`children` `Omit`-ed. No separate `interface Props`.
+- **A primitive in `src/ui` takes no `className`.** Its look is named props mapped to literal
+  classes, and where it sits in its parent is `Placement` (`ui/place.ts`); `src/ui/ui.test.ts`
+  enforces both. Classes still merge through `cn`, never string concatenation. See the
+  `design-system` and `tailwindcss` skills.
 - **One default export per component file**; multi-component modules (`stack.tsx`,
   `field.tsx`, `modal.tsx`) use named exports.
 - **JSDoc with `@param`/`@returns` on every exported function.** The lint config requires it.

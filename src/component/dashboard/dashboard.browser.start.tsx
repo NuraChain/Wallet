@@ -4,13 +4,13 @@ import { Check, PenLine, Plus, Trash } from 'lucide-react';
 import Text from '../../ui/text';
 import Alert from '../../ui/alert';
 import Button from '../../ui/button';
+import { Tab, TabBar } from '../../ui/tabs';
 import StatusBlock from '../../ui/state';
 import SiteIcon from '../site.icon';
 import SiteForm from '../site.form';
 import ScrollBar from '../../ui/scrollbar';
 import ConfirmDialog from '../../ui/confirm';
 
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { getSiteHost, type BrowserFavorite, type BrowserVisit } from '../../core/browser';
 import { Horizontal, Vertical } from '../../ui/stack';
@@ -25,11 +25,11 @@ function BrowserShortcut({ url, name, symbol, title, onPick }: { url: string; na
             onClick={() => {
                 onPick(url);
             }}
-            className='h-12 gap-2.5 rounded-surface px-2.5 text-start'
+            size='siteRow'
         >
             <SiteIcon url={url} symbol={symbol ?? name} />
 
-            <Text variant='body' dir='ltr' className='min-w-0 flex-1 truncate' text={name} />
+            <Text variant='body' dir='ltr' squeeze='x' grow truncate text={name} />
         </Button>
     );
 }
@@ -44,7 +44,7 @@ function BrowserShortcut({ url, name, symbol, title, onPick }: { url: string; na
  * The host is the description because it is the one fact about a bookmark worth checking before
  * tapping it — the name is whatever the user typed, and this is the browser a site signs through.
  */
-function FavoriteCard({ item, className = '', onPick }: { item: BrowserFavorite; className?: string; onPick: (item: BrowserFavorite) => void }) {
+function FavoriteCard({ item, grow = false, onPick }: { item: BrowserFavorite; grow?: boolean; onPick: (item: BrowserFavorite) => void }) {
     return (
         <Button
             dir='ltr'
@@ -53,14 +53,16 @@ function FavoriteCard({ item, className = '', onPick }: { item: BrowserFavorite;
             onClick={() => {
                 onPick(item);
             }}
-            className={cn('h-16 min-w-0 justify-start gap-2.5 rounded-surface px-3 text-start', className)}
+            size='siteCard'
+            squeeze='x'
+            grow={grow}
         >
-            <SiteIcon primary url={item.url} symbol={item.name} className='size-9 text-tiny' />
+            <SiteIcon primary url={item.url} symbol={item.name} size={9} />
 
-            <Vertical className='min-w-0 flex-1'>
-                <Text variant='body' className='truncate' text={item.name} />
+            <Vertical squeeze='x' grow>
+                <Text variant='body' truncate text={item.name} />
 
-                <Text dir='ltr' className='truncate' text={getSiteHost(item.url)} />
+                <Text dir='ltr' truncate text={getSiteHost(item.url)} />
             </Vertical>
         </Button>
     );
@@ -95,28 +97,20 @@ export default function DashboardBrowserStart({
     ];
 
     return (
-        <Vertical className='relative size-full'>
-            <Vertical ref={viewportRef} className='size-full gap-3 overflow-y-auto p-4'>
-                <Horizontal role='tablist' className='items-center border-b border-line'>
+        <Vertical relative fill='both'>
+            <Vertical ref={viewportRef} fill='both' gap={3} scroll='y' p={4}>
+                <TabBar>
                     {tabMap.map((item) => (
-                        <Button
+                        <Tab
                             key={item.key}
-                            role='tab'
                             id={`browser-tab-${item.key}`}
-                            aria-selected={item.key === tab}
-                            aria-controls={`browser-panel-${item.key}`}
-                            onClick={() => {
+                            panel={`browser-panel-${item.key}`}
+                            label={item.label}
+                            selected={item.key === tab}
+                            onSelect={() => {
                                 setTab(item.key);
                             }}
-                            className={cn(
-                                'relative h-10 cursor-pointer px-3 text-small font-medium transition-colors duration-(--duration-fast)',
-                                item.key === tab ? 'text-txt-accent' : 'text-txt-muted hover:text-txt-normal'
-                            )}
-                        >
-                            {item.label}
-
-                            {item.key === tab && <span aria-hidden className='absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-txt-accent' />}
-                        </Button>
+                        />
                     ))}
 
                     {tab === 'favorite' && (
@@ -128,20 +122,22 @@ export default function DashboardBrowserStart({
                             }}
                             leftIcon={editing ? <Check size={14} /> : <PenLine size={14} />}
                             text={editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage')}
-                            className='ms-auto mb-1 shrink-0'
+                            ms='auto'
+                            mb={1}
+                            shrink={false}
                         />
                     )}
-                </Horizontal>
+                </TabBar>
 
                 <div role='tabpanel' id={`browser-panel-${tab}`} aria-labelledby={`browser-tab-${tab}`}>
                     {tab === 'favorite' &&
                         (editing ? (
-                            <Vertical className='gap-2'>
+                            <Vertical gap={2}>
                                 {favorites.map((item) => (
-                                    <Horizontal key={item.id} className='items-center gap-2'>
+                                    <Horizontal key={item.id} align='center' gap={2}>
                                         <FavoriteCard
                                             item={item}
-                                            className='flex-1'
+                                            grow
                                             onPick={() => {
                                                 setEditor(item);
                                             }}
@@ -154,7 +150,7 @@ export default function DashboardBrowserStart({
                                                 setRemoving(item);
                                             }}
                                             aria-label={T('Dashboard.Browser.FavoriteRemove')}
-                                            className='shrink-0'
+                                            shrink={false}
                                         >
                                             <Trash size={16} />
                                         </Button>
@@ -189,11 +185,11 @@ export default function DashboardBrowserStart({
                                         setEditor(true);
                                     }}
                                     aria-label={T('Dashboard.Browser.FavoriteAdd')}
-                                    className='h-16 items-center justify-center gap-2 rounded-surface border-dashed px-3 text-txt-muted hover:text-txt-normal'
+                                    size='siteAdd'
                                 >
                                     <Plus size={16} className='shrink-0' />
 
-                                    <Text variant='inherit' className='min-w-0 truncate' text={T('Dashboard.Browser.FavoriteAdd')} />
+                                    <Text variant='inherit' squeeze='x' truncate text={T('Dashboard.Browser.FavoriteAdd')} />
                                 </Button>
                             </div>
                         ))}
@@ -218,10 +214,10 @@ export default function DashboardBrowserStart({
                 </div>
 
                 {notice.length > 0 && (
-                    <Vertical className='mt-auto gap-1'>
+                    <Vertical mt='auto' gap={1}>
                         <Text variant='caption' text={T('Dashboard.Browser.Hint')} />
 
-                        <Alert dir='ltr' className='px-2 py-1 text-start font-mono' text={notice} />
+                        <Alert dir='ltr' size='dense' textAlign='start' mono text={notice} />
                     </Vertical>
                 )}
             </Vertical>

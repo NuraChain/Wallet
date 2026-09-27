@@ -3,9 +3,7 @@ import type { ReactNode } from 'react';
 import Text from './text';
 import Button from './button';
 
-import { cn } from '../utility/cn';
-
-export const selectedTint = 'border-btn-primary-border bg-btn-primary/15';
+import type { Placement } from './place';
 
 export default function MenuRow({
     leading,
@@ -13,27 +11,21 @@ export default function MenuRow({
     trailing,
     selected = false,
     variant = 'muted',
-    className = '',
-    onClick
+    onClick,
+    ...place
 }: {
     leading?: ReactNode;
     label: string;
     trailing?: ReactNode;
     selected?: boolean;
     variant?: 'muted' | 'primary';
-    className?: string;
     onClick: () => void;
-}) {
+} & Placement) {
     return (
-        <Button
-            variant={variant}
-            aria-current={selected || undefined}
-            onClick={onClick}
-            className={cn('h-12 gap-3 rounded-surface px-3', selected && `${selectedTint} cursor-default`, className)}
-        >
+        <Button variant={variant} size='menu' selected={selected} aria-current={selected || undefined} onClick={onClick} {...place}>
             {leading}
 
-            <Text variant='body' className={cn('min-w-0 flex-1 truncate text-start', variant === 'primary' && 'text-txt-on-primary')} text={label} />
+            <Text variant='body' squeeze='x' grow truncate align='start' tone={variant === 'primary' ? 'onPrimary' : undefined} text={label} />
 
             {trailing}
         </Button>

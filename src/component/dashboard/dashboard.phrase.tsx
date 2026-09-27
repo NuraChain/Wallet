@@ -127,7 +127,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                             void onUnlock();
                         }}
                         aria-label={isLoading ? T('Dashboard.Phrase.Pending') : undefined}
-                        className='mt-1'
+                        mt={1}
                         text={isLoading ? '' : unlockLabel}
                     />
                 </>
@@ -138,7 +138,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                             dir='ltr'
                             className={`rounded-control bg-base-1 px-3 py-2.5 transition-all duration-(--duration-fast) ${revealed ? '' : 'pointer-events-none blur-sm select-none'}`}
                         >
-                            <Text variant='captionStrong' className='font-mono break-all' text={secret} />
+                            <Text variant='captionStrong' mono breaks='all' text={secret} />
                         </div>
                     ) : (
                         /* Two columns before `sm`, and no `truncate` on the word. Three columns in a
@@ -150,11 +150,11 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                             className={`grid grid-cols-2 gap-1.5 transition-all duration-(--duration-fast) sm:grid-cols-3 ${revealed ? '' : 'pointer-events-none blur-sm select-none'}`}
                         >
                             {words.map((word, index) => (
-                                <Horizontal key={`${index}-${word}`} className='items-baseline gap-1.5 rounded-control bg-base-1 px-2 py-1.5'>
-                                    <Text className='shrink-0 tabular-nums' text={String(index + 1)} />
+                                <div key={`${index}-${word}`} className='flex items-baseline gap-1.5 rounded-control bg-base-1 px-2 py-1.5'>
+                                    <Text shrink={false} tabular text={String(index + 1)} />
 
-                                    <Text variant='captionStrong' className='font-mono' text={word} />
-                                </Horizontal>
+                                    <Text variant='captionStrong' mono text={word} />
+                                </div>
                             ))}
                         </div>
                     )}
@@ -164,7 +164,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                             onClick={() => {
                                 setRevealed(true);
                             }}
-                            className='absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-surface bg-base-2/60 text-txt-normal hover:bg-base-2/70'
+                            variant='veil'
                         >
                             <Eye size={20} />
 
@@ -173,7 +173,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                     )}
 
                     {revealed && (
-                        <Vertical className='mt-3 gap-2'>
+                        <Vertical mt={3} gap={2}>
                             {/* There was no way back once the words were on screen but closing the
                                 dialog, which is the wrong thing to reach for when someone walks past. */}
                             <Button
@@ -183,13 +183,13 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                                     setRevealed(false);
                                 }}
                                 leftIcon={<EyeOff size={14} />}
-                                className='self-end'
+                                self='end'
                                 text={T('Dashboard.Phrase.Hide')}
                             />
 
-                            <Alert className='text-start' text={T('Dashboard.Phrase.ExportDanger')} />
+                            <Alert textAlign='start' text={T('Dashboard.Phrase.ExportDanger')} />
 
-                            <Horizontal className='gap-2'>
+                            <Horizontal gap={2}>
                                 {exportList.map((item) => (
                                     <Button
                                         key={item.kind}
@@ -199,7 +199,8 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                                             void onExport(item.kind);
                                         }}
                                         leftIcon={<item.icon size={14} className='shrink-0' />}
-                                        className='min-w-0 flex-1'
+                                        squeeze='x'
+                                        grow
                                     >
                                         <span className='truncate'>{T(item.label)}</span>
                                     </Button>

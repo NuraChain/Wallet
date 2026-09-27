@@ -45,7 +45,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                     'sm:mx-auto sm:px-6'
                 )}
             >
-                <Button variant='muted' size='iconLarge' aria-label={T('App.Close')} onClick={onClose} className='mt-4 shrink-0'>
+                <Button variant='muted' size='iconLarge' aria-label={T('App.Close')} onClick={onClose} mt={4} shrink={false}>
                     <X size={24} />
                 </Button>
 
@@ -60,9 +60,9 @@ export function SheetHeader({ title, subtitle }: { title: string; subtitle: stri
 
     return (
         <Vertical>
-            <Text as='h2' id={titleId} variant='title' className='text-center sm:text-large' text={title} />
+            <Text as='h2' id={titleId} variant='title' align='center' scaleUp text={title} />
 
-            <Text className='text-center sm:text-small' text={subtitle} />
+            <Text align='center' scaleUp text={subtitle} />
         </Vertical>
     );
 }

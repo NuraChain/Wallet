@@ -6,7 +6,6 @@ import Checkbox from '../../ui/checkbox';
 import { PasswordField } from '../../ui/field';
 import { Vertical } from '../../ui/stack';
 
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { passwordIssue } from '../../core/password';
 
@@ -18,15 +17,19 @@ const issueMap = {
 export default function IntroCredentials({
     prefix,
     submitKey,
-    className = '',
-    submitClass = '',
+    inset = false,
+    shrink,
+    submitGap = false,
     onError,
     onSubmit
 }: {
     prefix: string;
     submitKey: string;
-    className?: string;
-    submitClass?: string;
+    /** Pads the form in from the edges of the sheet it sits in. */
+    inset?: boolean;
+    shrink?: boolean;
+    /** Room under the submit button, where the sheet's own bottom padding is not enough. */
+    submitGap?: boolean;
     onError: (message: string) => void;
     onSubmit: (password: string) => Promise<void>;
 }) {
@@ -62,7 +65,7 @@ export default function IntroCredentials({
     };
 
     return (
-        <Vertical className={cn('gap-2', className)}>
+        <Vertical gap={2} px={inset ? 1 : undefined} shrink={shrink}>
             <PasswordField
                 label={T(`${prefix}.Password`)}
                 value={password}
@@ -94,14 +97,14 @@ export default function IntroCredentials({
             <Button
                 dim
                 variant='primary'
-                size='submit'
+                size='cta'
                 loading={loading}
                 disabled={!agree}
                 onClick={() => {
                     void onSend();
                 }}
                 text={T(`${prefix}.${submitKey}`)}
-                className={cn('mx-auto sm:w-fit sm:px-8', submitClass)}
+                mb={submitGap ? 2 : undefined}
             />
         </Vertical>
     );

@@ -4,6 +4,7 @@ import Live from './live';
 import { TriangleAlert, CircleCheckBig } from 'lucide-react';
 
 import { cn } from '../utility/cn';
+import { placement, splitPlacement, type Placement } from './place';
 
 const variantMap = {
     error: 'bg-txt-error/10 text-txt-error text-center',
@@ -13,20 +14,26 @@ const variantMap = {
 
 const sizeMap = {
     compact: 'text-tiny rounded-control px-3 py-2',
-    comfortable: 'text-small rounded-surface px-4 py-3'
+    comfortable: 'text-small rounded-surface px-4 py-3',
+    /** A one-line notice set in a tight space. */
+    dense: 'text-tiny rounded-control px-2 py-1',
+    /** A page's own message, as wide as its words. */
+    banner: 'text-small rounded-control px-4 py-2'
 } as const;
 
-export default function Alert({
-    variant = 'error',
-    size = 'compact',
-    text,
-    className = '',
-    children,
-    ...rest
-}: { variant?: keyof typeof variantMap; size?: keyof typeof sizeMap; text?: string; className?: string; children?: ReactNode } & Omit<
-    HTMLAttributes<HTMLDivElement>,
-    'className' | 'children'
->) {
+export default function Alert(
+    props: {
+        variant?: keyof typeof variantMap;
+        size?: keyof typeof sizeMap;
+        text?: string;
+        textAlign?: 'start';
+        mono?: boolean;
+        children?: ReactNode;
+    } & Placement &
+        Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
+) {
+    const [place, { variant = 'error', size = 'compact', text, textAlign, mono = false, children, ...rest }] = splitPlacement(props);
+
     const content = text ?? children;
 
     const success = variant === 'success';
@@ -41,7 +48,7 @@ export default function Alert({
             <Live text={spoken} assertive={!success} />
 
             {content !== undefined && content !== '' && (
-                <div className={cn(variantMap[variant], sizeMap[size], className)} {...rest}>
+                <div className={cn(variantMap[variant], sizeMap[size], textAlign === 'start' && 'text-start', mono && 'font-mono', placement(place))} {...rest}>
                     {variant === 'warning' && <TriangleAlert size={16} className='mt-0.5 shrink-0' />}
 
                     {success && <CircleCheckBig size={16} className='mt-0.5 shrink-0' />}

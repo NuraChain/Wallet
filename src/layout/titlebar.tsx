@@ -65,20 +65,15 @@ export default function TitleBar() {
             onDoubleClick={onToggleSize}
             className={`absolute inset-x-0 ${layer.chrome} flex h-8 cursor-pointer items-center justify-between`}
         >
-            <Horizontal className='items-center gap-2 px-2'>
+            <Horizontal align='center' gap={2} px={2}>
                 <img src={Logo} alt='' className='size-4' />
 
                 <Text variant='captionStrong' text={T('App.Name')} />
             </Horizontal>
 
-            <Horizontal className='h-full'>
+            <Horizontal fill='height'>
                 {controlMap.map((item) => (
-                    <Button
-                        key={item.key}
-                        aria-label={item.label}
-                        onClick={item.action}
-                        className='flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal transition-colors duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active'
-                    >
+                    <Button key={item.key} aria-label={item.label} onClick={item.action} variant='window'>
                         {item.icon}
                     </Button>
                 ))}

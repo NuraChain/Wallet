@@ -13,7 +13,6 @@ import IntroCredentials from './intro.credentials';
 import { TextArea } from '../../ui/field';
 import { Sheet, SheetHeader } from '../../ui/sheet';
 
-import { cn } from '../../utility/cn';
 import { T } from '../../utility/language';
 import { passwordHash } from '../../core/password';
 import { unlockSession } from '../../core/session';
@@ -115,15 +114,13 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
         <Sheet onClose={onClose}>
             <SheetHeader title={T('Intro.ImportWallet.Title')} subtitle={T('Intro.ImportWallet.Subtitle')} />
 
-            <Alert className='mx-auto w-fit px-4 text-small' text={error} />
+            <Alert size='banner' mx='auto' width='fit' text={error} />
 
-            {!proceed && (
-                <IntroCredentials prefix='Intro.ImportWallet' submitKey='Submit1' className='px-1' submitClass='mb-2' onError={setError} onSubmit={onSubmit1} />
-            )}
+            {!proceed && <IntroCredentials prefix='Intro.ImportWallet' submitKey='Submit1' inset submitGap onError={setError} onSubmit={onSubmit1} />}
 
             {proceed && (
-                <Vertical className='gap-4 px-1 py-2'>
-                    <Horizontal className='gap-2'>
+                <Vertical gap={4} px={1} py={2}>
+                    <Horizontal gap={2}>
                         {methodList.map((item) => (
                             <Button
                                 key={item.kind}
@@ -132,7 +129,8 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
                                     onMethod(item.kind);
                                 }}
                                 size='action'
-                                className='min-w-0 flex-1'
+                                squeeze='x'
+                                grow
                                 text={T(item.label)}
                             />
                         ))}
@@ -143,7 +141,8 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
                         label={method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message')}
                         dir={method === 'privateKey' ? 'ltr' : undefined}
                         onValue={setSecret}
-                        className={cn('min-h-28 sm:min-h-36', method === 'privateKey' && 'break-all')}
+                        tall
+                        breaks={method === 'privateKey' ? 'all' : undefined}
                         placeholder={method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message')}
                     />
 
@@ -151,12 +150,11 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
 
                     <Button
                         variant='primary'
-                        size='submit'
+                        size='cta'
                         loading={importing}
                         onClick={() => {
                             void onSubmit2();
                         }}
-                        className='mx-auto sm:w-fit sm:px-8'
                         text={T('Intro.ImportWallet.Submit2')}
                     />
                 </Vertical>

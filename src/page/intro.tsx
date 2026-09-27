@@ -13,7 +13,7 @@ import IntroImport from '../component/intro/intro.import';
 import IntroWallet from '../component/intro/intro.wallet';
 import IntroLanguage from '../component/intro/intro.language';
 
-import { Horizontal, Vertical } from '../ui/stack';
+import { Vertical } from '../ui/stack';
 
 import { getTheme, setTheme } from '../utility/theme';
 import { getDirection, getLanguage, T } from '../utility/language';
@@ -74,26 +74,27 @@ export default function IntroPage() {
             <AnimatePresence>{subPage}</AnimatePresence>
 
             <PageContainer variant='intro'>
-                <Vertical className='mx-auto size-full max-w-lg'>
-                    <Horizontal className='mt-3 shrink-0 items-center justify-between gap-2 sm:mt-4'>
+                <Vertical mx='auto' fill='both' maxWidth='lg'>
+                    <div className='mt-3 flex shrink-0 items-center justify-between gap-2 sm:mt-4'>
                         <Button
                             variant='normal'
                             onClick={() => {
                                 setSubPage(<IntroLanguage onClose={onCloseSub} />);
                             }}
-                            className='h-10 w-fit shrink justify-start rounded-control p-2'
+                            size='picker'
+                            shrink
                         >
                             <Globe size={16} className='shrink-0' />
 
-                            <Text variant='inherit' className='truncate text-small' text={T('Intro.Language')} />
+                            <Text variant='inherit' truncate size='small' text={T('Intro.Language')} />
 
                             <ChevronDown size={16} className='shrink-0' />
                         </Button>
 
-                        <Button variant='normal' size='iconLarge' onClick={toggleTheme} className='shrink-0 text-txt-normal'>
+                        <Button variant='normal' size='iconLarge' onClick={toggleTheme} shrink={false}>
                             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
                         </Button>
-                    </Horizontal>
+                    </div>
 
                     <Swiper
                         key={getLanguage().code}
@@ -107,18 +108,18 @@ export default function IntroPage() {
                     >
                         {slideMap.map((slide) => (
                             <SwiperSlide key={slide.header}>
-                                <Vertical className='h-full cursor-pointer items-center justify-center gap-2 px-2 pb-10'>
+                                <div className='flex h-full cursor-pointer flex-col items-center justify-center gap-2 px-2 pb-10'>
                                     <slide.art className='h-44 max-h-[52%] w-auto max-w-full sm:h-60 md:h-72' />
 
-                                    <Text as='h1' variant='title' className='text-center sm:text-large' text={T(slide.header)} />
+                                    <Text as='h1' variant='title' align='center' scaleUp text={T(slide.header)} />
 
-                                    <Text as='p' variant='caption' className='max-w-sm text-center sm:text-small' text={T(slide.message)} />
-                                </Vertical>
+                                    <Text as='p' variant='caption' maxWidth='sm' align='center' scaleUp text={T(slide.message)} />
+                                </div>
                             </SwiperSlide>
                         ))}
                     </Swiper>
 
-                    <Vertical className='shrink-0 gap-2'>
+                    <Vertical shrink={false} gap={2}>
                         {entryMap.map((item) => (
                             <Button
                                 key={item.key}
@@ -126,17 +127,17 @@ export default function IntroPage() {
                                 onClick={() => {
                                     setSubPage(item.page(onCloseSub));
                                 }}
-                                className='h-12 rounded-control p-2'
+                                size='entry'
                             >
                                 <item.icon size={32} className='shrink-0 p-1.5' />
 
-                                <Text variant='inherit' className='flex-1 truncate text-start text-small sm:text-medium' text={T(item.label)} />
+                                <Text variant='inherit' grow truncate align='start' size='small' scaleUp text={T(item.label)} />
 
                                 <ChevronRight size={16} className='shrink-0 rtl:rotate-180' />
                             </Button>
                         ))}
 
-                        <Text className='mt-2 text-center' text={T('Intro.Version', __APP_VERSION__)} />
+                        <Text mt={2} align='center' text={T('Intro.Version', __APP_VERSION__)} />
                     </Vertical>
                 </Vertical>
             </PageContainer>

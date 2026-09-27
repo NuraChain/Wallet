@@ -2,7 +2,14 @@ import { motion } from 'motion/react';
 
 import { cn } from '../utility/cn';
 
-export default function ProgressBar({ value, label = '', className = '' }: { value?: number; label?: string; className?: string }) {
+const lookMap = {
+    /** Fills the strip it sits in, under the address bar. */
+    strip: 'size-full',
+    /** A short rounded track standing on its own, under a loading message. */
+    track: 'w-32 rounded-full bg-base-3'
+} as const;
+
+export default function ProgressBar({ value, label = '', look }: { value?: number; label?: string; look?: keyof typeof lookMap }) {
     const determinate = value !== undefined;
 
     return (
@@ -12,7 +19,7 @@ export default function ProgressBar({ value, label = '', className = '' }: { val
             aria-valuemin={determinate ? 0 : undefined}
             aria-valuemax={determinate ? 100 : undefined}
             aria-valuenow={determinate ? Math.round(value) : undefined}
-            className={cn('relative h-0.5 overflow-hidden', className)}
+            className={cn('relative h-0.5 overflow-hidden', look !== undefined && lookMap[look])}
         >
             {determinate ? (
                 <div className='absolute inset-y-0 inset-s-0 min-w-1.5 bg-txt-accent' style={{ width: `${value}%` }} />

@@ -3,16 +3,14 @@ import { Eye, EyeOff, Lock } from 'lucide-react';
 
 import Text from './text';
 
-import { tapArea } from './button';
-
 import { cn } from '../utility/cn';
 import { T } from '../utility/language';
 import { Horizontal, Vertical } from './stack';
-
-export const fieldSurface =
-    'border border-input-normal bg-input-bg outline-2 outline-offset-2 outline-double outline-transparent transition-[background-color,border-color] duration-(--duration-fast) ease-initial focus-visible:outline-focus-ring';
+import { fieldSurface, tapArea } from './token';
 
 const fieldInvalid = 'border-input-error';
+
+const roomMap = { leading: 'ps-9 pe-3', both: 'ps-10 pe-10' } as const;
 
 const describedBy = (ids: (string | false | undefined)[]) => {
     const present = ids.filter((id): id is string => typeof id === 'string' && id.length > 0);
@@ -25,12 +23,12 @@ function FieldShell({ label, error, errorId, children }: { label: string; error:
         <>
             {children}
 
-            {error.length > 0 && <Text id={errorId} variant='caption' role='alert' className='text-txt-error' text={error} />}
+            {error.length > 0 && <Text id={errorId} variant='caption' role='alert' tone='error' text={error} />}
         </>
     );
 
     if (label.length === 0) {
-        return <Vertical className='gap-2'>{body}</Vertical>;
+        return <Vertical gap={2}>{body}</Vertical>;
     }
 
     return (
@@ -50,7 +48,11 @@ export function TextField({
     size = 'regular',
     leading,
     trailing,
-    className = '',
+    room,
+    mono = false,
+    align,
+    textSize,
+    truncate = false,
     'aria-describedby': describedById,
     ...rest
 }: {
@@ -61,7 +63,12 @@ export function TextField({
     size?: 'regular' | 'compact';
     leading?: ReactNode;
     trailing?: ReactNode;
-    className?: string;
+    /** Pads the text clear of an icon laid over the leading edge, or over both edges. */
+    room?: keyof typeof roomMap;
+    mono?: boolean;
+    align?: 'center';
+    textSize?: 'tiny';
+    truncate?: boolean;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'size'>) {
     const errorId = `${useId()}-error`;
 
@@ -69,7 +76,7 @@ export function TextField({
 
     return (
         <FieldShell label={label} error={error} errorId={errorId}>
-            <Horizontal className='relative items-center'>
+            <Horizontal relative align='center'>
                 {leading}
 
                 <input
@@ -92,7 +99,11 @@ export function TextField({
                         'w-full rounded-surface px-3 text-small',
                         size === 'regular' ? 'h-11' : 'h-9',
                         invalid && fieldInvalid,
-                        className
+                        truncate && 'truncate',
+                        room !== undefined && roomMap[room],
+                        textSize === 'tiny' && 'text-tiny',
+                        align === 'center' && 'text-center',
+                        mono && 'font-mono'
                     )}
                     {...rest}
                 />
@@ -111,7 +122,6 @@ export function PasswordField({
     onEnter,
     size = 'regular',
     lockSize = 0,
-    className = '',
     'aria-describedby': describedById,
     ...rest
 }: {
@@ -122,7 +132,6 @@ export function PasswordField({
     onEnter?: () => void;
     size?: 'regular' | 'compact';
     lockSize?: number;
-    className?: string;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'onChange' | 'value' | 'size' | 'type'>) {
     const [show, setShow] = useState(false);
 
@@ -134,7 +143,7 @@ export function PasswordField({
 
     return (
         <FieldShell label={label} error={error} errorId={errorId}>
-            <Horizontal className='relative items-center'>
+            <Horizontal relative align='center'>
                 <Lock size={lockSize > 0 ? lockSize : defaultLock} className={cn('absolute text-txt-muted', regular ? 'inset-s-4' : 'inset-s-3')} />
 
                 <input
@@ -155,7 +164,7 @@ export function PasswordField({
                                   }
                               }
                     }
-                    className={cn(fieldSurface, 'w-full rounded-surface text-small', regular ? 'h-11 px-12' : 'h-11 px-10', invalid && fieldInvalid, className)}
+                    className={cn(fieldSurface, 'w-full rounded-surface text-small', regular ? 'h-11 px-12' : 'h-11 px-10', invalid && fieldInvalid)}
                     {...rest}
                 />
 
@@ -183,13 +192,18 @@ export function TextArea({
     label = '',
     error = '',
     onValue,
-    className = '',
+    tall = false,
+    breaks,
     'aria-describedby': describedById,
     ...rest
-}: { label?: string; error?: string; onValue: (value: string) => void; className?: string } & Omit<
-    TextareaHTMLAttributes<HTMLTextAreaElement>,
-    'className' | 'onChange'
->) {
+}: {
+    label?: string;
+    error?: string;
+    onValue: (value: string) => void;
+    /** Room for a whole recovery phrase without scrolling. */
+    tall?: boolean;
+    breaks?: 'all';
+} & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'className' | 'onChange'>) {
     const errorId = `${useId()}-error`;
 
     const invalid = error.length > 0;
@@ -202,22 +216,24 @@ export function TextArea({
                 onChange={(event) => {
                     onValue(event.target.value);
                 }}
-                className={cn(fieldSurface, 'w-full resize-none rounded-surface p-3 text-small', invalid && fieldInvalid, className)}
+                className={cn(
+                    fieldSurface,
+                    'w-full resize-none rounded-surface p-3 text-small',
+                    invalid && fieldInvalid,
+                    tall && 'min-h-28 sm:min-h-36',
+                    breaks === 'all' && 'break-all'
+                )}
                 {...rest}
             />
         </FieldShell>
     );
 }
 
-export function ReadonlyField({ label = '', value, className = '' }: { label?: string; value: string; className?: string }) {
+export function ReadonlyField({ label = '', value }: { label?: string; value: string }) {
     const box = (
         <div
             dir='ltr'
-            className={cn(
-                fieldSurface,
-                'flex min-h-11 items-center rounded-surface px-3 py-2 font-mono text-tiny break-all text-txt-muted select-text!',
-                className
-            )}
+            className={cn(fieldSurface, 'flex min-h-11 items-center rounded-surface px-3 py-2 font-mono text-tiny break-all text-txt-muted select-text!')}
         >
             {value}
         </div>
@@ -228,7 +244,7 @@ export function ReadonlyField({ label = '', value, className = '' }: { label?: s
     }
 
     return (
-        <Vertical className='gap-2'>
+        <Vertical gap={2}>
             <Text text={label} />
 
             {box}
