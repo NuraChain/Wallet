@@ -1,6 +1,6 @@
 ---
 name: extension
-description: Use for the browser-extension target and the platform seam it hangs off — anything in extension/, vite.config.extension.ts, tsconfig.extension.json, the generated MV3 manifest, the worker/content/inpage bundles, the side panel, or src/platform/. Read before adding a capability that differs between a Tauri window and an extension, a permission or host to the manifest, or a fourth bundle.
+description: Use for the browser-extension target and the platform seam it hangs off — anything in src-extension/, vite.config.extension.ts, tsconfig.extension.json, the generated MV3 manifest, the worker/content/inpage bundles, the side panel, or src/platform/. Read before adding a capability that differs between a Tauri window and an extension, a permission or host to the manifest, or a fourth bundle.
 ---
 
 # The extension target
@@ -21,8 +21,8 @@ the alias decides the file:
 | Build | `#platform-impl` |
 |---|---|
 | `vite.config.ts` (Tauri) | `src/platform/tauri.ts` |
-| `vite.config.extension.ts` | `extension/platform.ts` |
-| `tsconfig.extension.json` `paths` | `extension/platform.ts` |
+| `vite.config.extension.ts` | `src-extension/platform.ts` |
+| `tsconfig.extension.json` `paths` | `src-extension/platform.ts` |
 
 Importing the module rather than the file is what keeps one build from pulling in the
 other's dependencies. **Nothing in `src/` may import either implementation directly**, and
@@ -40,7 +40,7 @@ A Tauri window is one long-lived process that asks a question and draws it. An e
 not:
 
 - **The worker is evicted after about thirty seconds idle.** The unlocked vault cannot live
-  in a module variable, so `extension/platform.ts` keeps it in `chrome.storage.session` —
+  in a module variable, so `src-extension/platform.ts` keeps it in `chrome.storage.session` —
   the one store held in memory, never written to disk, cleared when the browser closes, and
   hidden from content scripts at the default access level — under a deadline
   (`idleMinutes = 15`) rather than a process lifetime.
@@ -71,7 +71,7 @@ three append to. Then `emitTargets` fans the single build out.
 Browser floor is `['chrome116', 'firefox115', 'safari16.4']`; chrome116 is the `sidePanel.open`
 floor, so the other engines' real floor is lower.
 
-## One build, four stores — `extension/emit.ts`, `extension/manifest.ts`
+## One build, four stores — `src-extension/emit.ts`, `src-extension/manifest.ts`
 
 Targets are `chrome | edge | firefox | safari`. Each gets a copy of `.dist-extension/build`
 under `.dist-extension/<target>/` with `buildManifest(target)` written into it. The HTML moves
@@ -90,7 +90,7 @@ Things in `manifest.ts` that are load-bearing:
 - **`'wasm-unsafe-eval'` is not optional** — hash-wasm compiles the Argon2id that unlocks the
   vault. Without it the wallet cannot open at all. `default-src` stays exactly `'self'`.
 
-## The page ↔ worker path — `extension/message.ts`, `content.ts`, `background.ts`
+## The page ↔ worker path — `src-extension/message.ts`, `content.ts`, `background.ts`
 
 Page world → relay is `window.postMessage` tagged `__nura`. Relay → worker is a port named
 `nura:provider`, one per frame, opened on the frame's first call. Replies ride the port back;
@@ -106,7 +106,7 @@ loaded it spinning forever.
 
 1. Does the change belong in `Platform`, or is it host-specific detail that should stay
    behind it?
-2. Implemented in **both** `src/platform/tauri.ts` and `extension/platform.ts`?
+2. Implemented in **both** `src/platform/tauri.ts` and `src-extension/platform.ts`?
 3. Does anything now assume a process that outlives a request? The worker does not.
 4. New prompt or session data — does it survive `JSON.stringify`?
 5. New permission or host in the manifest: narrowest that works, and is it really needed on

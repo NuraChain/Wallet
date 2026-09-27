@@ -176,7 +176,7 @@ Verification for everything else is still `npm run build`, `npm run lint` and
 - Add a dependency. Check `package.json` first; this tree is deliberately small and `cn`
   exists because `clsx` + `tailwind-merge` were removed.
 - Reach past the platform seam. Nothing in `src/` imports `src/platform/tauri.ts` or
-  `extension/platform.ts` directly, and nothing branches on the host to decide behaviour —
+  `src-extension/platform.ts` directly, and nothing branches on the host to decide behaviour —
   see the `extension` skill.
 - Reach for `useMemo`/`useCallback` reflexively. They appear here only where a real
   identity problem exists.

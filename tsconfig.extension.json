@@ -4,8 +4,8 @@
         "lib": ["DOM", "DOM.Iterable", "ESNext", "WebWorker"],
         "types": ["chrome"],
         "paths": {
-            "#platform-impl": ["./extension/platform.ts"]
+            "#platform-impl": ["./src-extension/platform.ts"]
         }
     },
-    "include": ["extension", "src", "vite.config.extension.ts"]
+    "include": ["src-extension", "src", "vite.config.extension.ts"]
 }

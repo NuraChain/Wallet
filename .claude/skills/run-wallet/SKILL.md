@@ -133,7 +133,7 @@ npm run -s extension:lint     # web-ext over the Firefox build: 0 errors, 3 know
 - `plugin:os|platform` is not an IPC command — plugin-os reads the platform synchronously off
   `__TAURI_OS_PLUGIN_INTERNALS__`, which is why the fake sets that global.
 - **The extension's worker is evicted after ~30s without events.** While an approval is standing,
-  `extension/platform.ts` pings `chrome.runtime.getPlatformInfo()` every 20s to hold it; if you
+  `src-extension/platform.ts` pings `chrome.runtime.getPlatformInfo()` every 20s to hold it; if you
   change that path, re-test with a dApp tab on an `http://localhost` page (the content script
   injects there), `window.ethereum.request({ method: 'eth_requestAccounts' })`, and a 60s wait
   before answering — the worker target should still be in `/json/list`.

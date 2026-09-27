@@ -6,9 +6,9 @@ import tailwind from '@tailwindcss/vite';
 
 import { defineConfig, type EnvironmentOptions } from 'vite';
 
-import { emitTargets } from './extension/emit.ts';
-import { appVersion } from './extension/version.ts';
-import { inpageModule } from './extension/plugin.inpage.ts';
+import { emitTargets } from './src-extension/emit.ts';
+import { appVersion } from './src-extension/version.ts';
+import { inpageModule } from './src-extension/plugin.inpage.ts';
 
 const icon = `data:image/png;base64,${readFileSync('src/assets/image/logo.png').toString('base64')}`;
 
@@ -53,7 +53,7 @@ export default defineConfig({
 
     resolve: {
         alias: {
-            '#platform-impl': here('extension/platform.ts')
+            '#platform-impl': here('src-extension/platform.ts')
         }
     },
 
@@ -70,16 +70,16 @@ export default defineConfig({
                 outDir: build,
                 emptyOutDir: true,
                 chunkSizeWarningLimit: 1024,
-                rolldownOptions: { input: { popup: here('extension/popup.html'), sidepanel: here('extension/sidepanel.html') } }
+                rolldownOptions: { input: { popup: here('src-extension/popup.html'), sidepanel: here('src-extension/sidepanel.html') } }
             }
         },
 
         // An ES module, and not by preference: `ethers` and the storage graph put top-level await
         // in this bundle, which a classic script cannot hold.
-        background: single('background', here('extension/background.ts'), 'esm'),
+        background: single('background', here('src-extension/background.ts'), 'esm'),
 
         // Content scripts are classic scripts in every engine — `import` throws in them.
-        content: single('content', here('extension/content.ts'), 'iife'),
+        content: single('content', here('src-extension/content.ts'), 'iife'),
 
         // Same, and it is also read by pages whose own CSP forbids eval.
         inpage: single('inpage', 'virtual:nura-inpage', 'iife')

@@ -41,7 +41,7 @@ reviews:
         Review the Android bridges as the boundary between an untrusted webview and native code.
         - Anything reachable from @JavascriptInterface is reachable by any page the webview loads: check the origin, validate every argument, and do not widen what a bridge can do.
         - Flag file writes outside scoped storage, intents built from webview input, and secrets crossing into logs.
-    - path: "extension/**"
+    - path: "src-extension/**"
       instructions: |
         Review as an MV3 extension, where the manifest is a permission grant reviewed by four stores.
         - Question every added permission, host permission, and manifest key, and check that keys only one engine understands stay behind the target that understands them.
