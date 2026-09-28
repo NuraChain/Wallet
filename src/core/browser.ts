@@ -12,12 +12,11 @@ export const frameLabel = (id: number) => `nura-browser-${id}`;
 export const mouseLabel = 'nura-mouse';
 
 const defaultFavorites: BrowserFavorite[] = [
-    { id: 'nurachain', name: 'Nura Chain', url: 'https://nurachain.net' },
+    { id: 'goman', name: 'Goman', url: 'https://goman.online' },
     { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
-    { id: 'telegram', name: 'Telegram', url: 'https://t.me/nurachain' },
-    { id: 'google', name: 'Google', url: 'https://google.com' },
-    { id: 'github', name: 'GitHub', url: 'https://github.com/NuraChain' },
-    { id: 'discord', name: 'Discord', url: 'https://discord.gg/ykW3PU64h9' }
+    { id: 'nurachain', name: 'Nura Chain', url: 'https://nurachain.net' },
+    { id: 'discord', name: 'Discord', url: 'https://discord.gg/ykW3PU64h9' },
+    { id: 'telegram', name: 'Nura Telegram', url: 'https://t.me/nurachain' }
 ];
 
 const historyLimit = 40;
