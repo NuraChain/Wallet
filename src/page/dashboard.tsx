@@ -63,6 +63,7 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [modal, setModal] = useState<Modal>('none');
     const [browserFull, setBrowserFull] = useState(false);
     const [fullToggle, setFullToggle] = useState(0);
+    const [homePress, setHomePress] = useState(0);
     const [link, setLink] = useState({ url: '', ticket: 0 });
     const [network, setNetworkState] = useState(getNetwork());
     const [tokenMap, setTokenMap] = useState<TokenMap>({});
@@ -121,14 +122,16 @@ function DashboardView({ vault }: { vault: Vault }) {
             return;
         }
 
-        // On the browser a double press takes the page full screen and back; anywhere else it opens
-        // the mouse's own settings.
+        // On the browser a press goes home and a double press takes the page full screen and back;
+        // anywhere else a press opens the browser and a double press the mouse's own settings.
         if (action === 'double') {
             if (tabMap[active].key === 'Browser') {
                 setFullToggle((value) => value + 1);
             } else {
                 setModal('mouse');
             }
+        } else if (tabMap[active].key === 'Browser') {
+            setHomePress((value) => value + 1);
         } else {
             goKey('Browser');
         }
@@ -590,6 +593,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                             request={link.url}
                                             ticket={link.ticket}
                                             fullToggle={fullToggle}
+                                            homePress={homePress}
                                             onFullscreen={setBrowserFull}
                                             enabled={index === active && modal === 'none' && prompt === undefined}
                                             onExit={() => {

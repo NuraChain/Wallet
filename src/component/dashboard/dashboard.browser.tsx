@@ -63,6 +63,7 @@ export default function DashboardBrowser({
     request,
     ticket,
     fullToggle,
+    homePress,
     onExit,
     onFullscreen
 }: {
@@ -72,6 +73,8 @@ export default function DashboardBrowser({
     ticket: number;
     /** Counts up once per double press of the floating mouse while this tab is showing. */
     fullToggle: number;
+    /** Counts up once per press of the floating mouse while this tab is showing. */
+    homePress: number;
     onExit: () => void;
     onFullscreen?: (on: boolean) => void;
 }) {
@@ -88,6 +91,7 @@ export default function DashboardBrowser({
 
     const [fullMode, setFullMode] = useState(false);
     const [seenToggle, setSeenToggle] = useState(fullToggle);
+    const [seenHome, setSeenHome] = useState(homePress);
 
     const [live, setLive] = useState<Map<number, BrowserState>>(new Map());
     const [notice, setNotice] = useState<Map<number, string>>(new Map());
@@ -116,6 +120,13 @@ export default function DashboardBrowser({
         if (!start) {
             setFullMode(!full);
         }
+    }
+
+    // A press comes home the way the Home button does, which also lifts full screen off the page.
+    if (homePress !== seenHome) {
+        setSeenHome(homePress);
+
+        setTabs((list) => list.map((item) => (item.id === active ? { ...item, home: true } : item)));
     }
 
     useEffect(() => {
