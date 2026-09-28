@@ -234,7 +234,7 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     // over tabs added after it, for drawing and for touches alike, so nothing has to re-stack it.
     @SuppressLint("ClickableViewAccessibility")
     private fun buildMouse(root: ViewGroup): ImageView {
-        val size = px(48.0)
+        val size = px(40.0)
         val view = ImageView(activity)
 
         view.setImageResource(R.drawable.nura_logo)

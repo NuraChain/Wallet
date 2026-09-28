@@ -11,7 +11,7 @@ declare global {
     }
 }
 
-const mouseSize = 48;
+const mouseSize = 40;
 const mouseEdge = 16;
 
 export const defaultMouseOpacity = 0.25;

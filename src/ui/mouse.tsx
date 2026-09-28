@@ -15,7 +15,7 @@ import { readMouseOpacity } from '../core/mouse';
 
 import type { MouseAction } from '../type/app';
 
-const size = 48;
+const size = 40;
 const edge = 16;
 
 /** A second press inside this long is a double click, so a single one waits this long to be sure. */
@@ -177,7 +177,7 @@ export default function Mouse({ onAction }: { onAction: (action: MouseAction) =>
             type='button'
             {...press}
             style={{ left: place.x, top: place.y, opacity }}
-            className={cn(focusRing, 'absolute size-12 cursor-grab touch-none select-none active:cursor-grabbing', layer.mouse)}
+            className={cn(focusRing, 'absolute size-10 cursor-grab touch-none select-none active:cursor-grabbing', layer.mouse)}
         >
             <img src={Logo} alt='' draggable={false} className='pointer-events-none size-full' />
         </button>,
