@@ -56,7 +56,7 @@ export default function RootLayout() {
             }
         };
 
-        void windowsTray().catch((cause: unknown) => {
+        windowsTray().catch((cause: unknown) => {
             // oxlint-disable-next-line no-console
             console.error('[tray]', cause);
         });
