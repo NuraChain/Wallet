@@ -23,7 +23,12 @@ src-tauri/gen/android/tauri.settings.gradle
 src-tauri/gen/android/proguard-tauri.pro
 src-tauri/gen/android/local.properties
 
-src-tauri/gen/apple
+src-tauri/gen/apple/*
+!src-tauri/gen/apple/Sources
+src-tauri/gen/apple/Sources/*
+!src-tauri/gen/apple/Sources/NuraWallet
+src-tauri/gen/apple/Sources/NuraWallet/*
+!src-tauri/gen/apple/Sources/NuraWallet/BrowserBridge.mm
 
 src-tauri/gen/schemas
 src-tauri/target
