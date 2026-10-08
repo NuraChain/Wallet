@@ -242,6 +242,13 @@
        overwrites both variables there with the window insets the system does hand the view. */
     --inset-top: env(safe-area-inset-top);
     --inset-bottom: env(safe-area-inset-bottom);
+
+    /* How much of the bottom inset holds something the system takes taps on. A gesture bar is a
+       line drawn over the app and takes none, so a page may run on underneath it; three buttons do,
+       and a page that ran under them would have its own bottom controls answer to Android instead.
+       Only Android tells the two apart, through InsetBridge. Everywhere else the whole inset is
+       kept clear, as it always was. */
+    --inset-bar: var(--inset-bottom);
 }
 
 * {

@@ -14,7 +14,7 @@ import androidx.core.view.WindowInsetsCompat
  * insets the system does hand the view are published as the `--inset-top` and `--inset-bottom`
  * variables `style.css` seeds from `env()` on every other platform.
  *
- * Both routes write the same two variables. The push covers a change while the page is up — a
+ * Both routes write the same variables. The push covers a change while the page is up — a
  * rotation, the gesture bar swapping for buttons — and the getters cover the first paint, which
  * lands after the last push the listener made against a document that no longer exists.
  *
@@ -29,6 +29,13 @@ class InsetBridge(private val webView: WebView) {
 
     @Volatile
     private var bottomInset = 0.0
+
+    // The part of the bottom inset that takes taps: all of it under three buttons, none of it under
+    // a gesture bar, which is only a line drawn over the app. It is what a page in the browser has to
+    // stop short of — stopping short of the whole inset left a strip of the wallet's own colour under
+    // every site, and that strip is what made a transparent bar look like a solid one.
+    @Volatile
+    private var barInset = 0.0
 
     /** The system measures insets in physical pixels; CSS counts in density-independent ones. */
     private fun scale(view: View) = view.resources.displayMetrics.density.toDouble()
@@ -48,6 +55,7 @@ class InsetBridge(private val webView: WebView) {
         ViewCompat.setOnApplyWindowInsetsListener(webView) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
             val keyboard = insets.getInsets(WindowInsetsCompat.Type.ime()).bottom
+            val tappable = insets.getInsets(WindowInsetsCompat.Type.tappableElement()).bottom
             val density = scale(view)
 
             lift(view, keyboard)
@@ -57,10 +65,12 @@ class InsetBridge(private val webView: WebView) {
             // The keyboard is measured from the bottom of the window, navigation bar included, so a
             // view lifted clear of the one is clear of the other and has nothing left to pad for.
             bottomInset = (bars.bottom - keyboard).coerceAtLeast(0) / density
+            barInset = (tappable - keyboard).coerceAtLeast(0) / density
 
             webView.evaluateJavascript(
                 "document.documentElement.style.setProperty('--inset-top', '${topInset}px');" +
-                    "document.documentElement.style.setProperty('--inset-bottom', '${bottomInset}px');",
+                    "document.documentElement.style.setProperty('--inset-bottom', '${bottomInset}px');" +
+                    "document.documentElement.style.setProperty('--inset-bar', '${barInset}px');",
                 null
             )
 
@@ -77,4 +87,7 @@ class InsetBridge(private val webView: WebView) {
 
     @JavascriptInterface
     fun bottom(): Double = bottomInset
+
+    @JavascriptInterface
+    fun bar(): Double = barInset
 }

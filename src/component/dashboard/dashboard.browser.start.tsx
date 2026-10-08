@@ -116,7 +116,7 @@ export default function DashboardBrowserStart({
 
     return (
         <Vertical relative fill='both'>
-            <Vertical ref={viewportRef} fill='both' gap={3} scroll='y' p={4}>
+            <Vertical ref={viewportRef} fill='both' gap={3} scroll='y' p={4} pb='bar'>
                 <TabBar>
                     {tabMap.map((item) => (
                         <Tab

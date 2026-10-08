@@ -13,7 +13,12 @@ const pMap = { 2: 'p-2', 3: 'p-3', 4: 'p-4' } as const;
 const pxMap = { 1: 'px-1', 2: 'px-2', 3: 'px-3', 5: 'px-5' } as const;
 const pyMap = { 2: 'py-2', 4: 'py-4', 5: 'py-5', 6: 'py-6' } as const;
 const ptMap = { 5: 'pt-5' } as const;
-const pbMap = { 1: 'pb-1', 4: 'pb-4' } as const;
+const pbMap = {
+    1: 'pb-1',
+    4: 'pb-4',
+    /** A gutter, plus whatever of the system's bottom bar the surface runs on underneath. */
+    bar: 'pb-[calc(1rem+var(--inset-bottom)-var(--inset-bar))]'
+} as const;
 
 const fillMap = { both: 'size-full', height: 'h-full' } as const;
 
