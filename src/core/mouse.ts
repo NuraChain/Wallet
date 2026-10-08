@@ -1,7 +1,9 @@
+import { getPlatform } from '../utility/platform';
 import { getValue, setValue } from '../utility/storage';
 
 import { getNativeBrowser, mouseLabel } from './browser';
 
+import type { Webview } from '@tauri-apps/api/webview';
 import type { MouseAction } from '../type/app';
 
 declare global {
@@ -82,6 +84,42 @@ export const setMouseOpacity = async (value: number) => {
     await setValue('App.Mouse', String(value));
 };
 
+// Linux lays a child webview out itself: Tauri moves none there and reads each one back at the
+// window's corner, so the mouse is placed and found through the commands that do the laying out.
+const placeOnLinux = async (x: number, y: number) => {
+    const { invoke } = await import('@tauri-apps/api/core');
+
+    await invoke('browser_place', { label: mouseLabel, x, y, width: mouseSize, height: mouseSize });
+};
+
+/** Where the desktop mouse's webview sits in its window, in physical pixels. */
+export const getMousePosition = async (view: Webview): Promise<{ x: number; y: number }> => {
+    if (getPlatform() !== 'linux') {
+        const at = await view.position();
+
+        return { x: at.x, y: at.y };
+    }
+
+    const { invoke } = await import('@tauri-apps/api/core');
+
+    const at = await invoke<{ x: number; y: number }>('browser_position', { label: mouseLabel });
+
+    return { x: at.x * window.devicePixelRatio, y: at.y * window.devicePixelRatio };
+};
+
+/** Moves the desktop mouse's webview to a point in its window, in physical pixels. */
+export const setMousePosition = async (view: Webview, point: { x: number; y: number }) => {
+    if (getPlatform() === 'linux') {
+        await placeOnLinux(point.x / window.devicePixelRatio, point.y / window.devicePixelRatio);
+
+        return;
+    }
+
+    const { PhysicalPosition } = await import('@tauri-apps/api/dpi');
+
+    await view.setPosition(new PhysicalPosition(point.x, point.y));
+};
+
 // Where the desktop mouse was left, so a lock and unlock put it back rather than in the corner.
 let parked: { x: number; y: number } | undefined;
 
@@ -102,7 +140,7 @@ const closeDesktop = async () => {
         return;
     }
 
-    const at = await view.position().catch(() => undefined);
+    const at = await getMousePosition(view).catch(() => undefined);
 
     if (at !== undefined) {
         parked = { x: at.x / window.devicePixelRatio, y: at.y / window.devicePixelRatio };
@@ -122,12 +160,15 @@ const openDesktop = async () => {
 
     const clamp = (value: number, room: number) => Math.min(Math.max(value, 0), Math.max(room - mouseSize, 0));
 
+    const x = clamp(parked?.x ?? window.innerWidth - mouseSize - mouseEdge, window.innerWidth);
+    const y = clamp(parked?.y ?? window.innerHeight * 0.7, window.innerHeight);
+
     // The page is transparent, so the webview is only ever the logo; the fragment carries the
     // opacity because it never reaches the asset protocol the way a query would.
     const view = new Webview(getCurrentWindow(), mouseLabel, {
         url: `index.html#mouse=${await loadMouseOpacity()}`,
-        x: clamp(parked?.x ?? window.innerWidth - mouseSize - mouseEdge, window.innerWidth),
-        y: clamp(parked?.y ?? window.innerHeight * 0.7, window.innerHeight),
+        x,
+        y,
         width: mouseSize,
         height: mouseSize,
         transparent: true,
@@ -145,6 +186,11 @@ const openDesktop = async () => {
             reject(new Error(String(event.payload)));
         });
     });
+
+    // The place asked for above is one more thing Linux does not take.
+    if (getPlatform() === 'linux') {
+        await placeOnLinux(x, y);
+    }
 };
 
 /**

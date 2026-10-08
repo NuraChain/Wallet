@@ -9,6 +9,7 @@ import ProgressBar from './progress';
 
 import { cn } from '../utility/cn';
 import { T } from '../utility/language';
+import { getPlatform } from '../utility/platform';
 import { getNativeBrowser, getNativeTab, nativeHoldsTabs } from '../core/browser';
 
 const mobileAgent = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36';
@@ -59,6 +60,14 @@ const topOffset = async (view: Webview) => {
  * changes nothing.
  */
 const applyBounds = async (view: Webview, rect: { x: number; y: number; width: number; height: number }) => {
+    // Linux lays a child webview out itself and takes neither of the calls below, so the rect goes
+    // to the command that does the placing there, measured from the page's corner as it stands.
+    if (getPlatform() === 'linux') {
+        await invoke('browser_place', { label: view.label, x: rect.x, y: rect.y, width: rect.width, height: rect.height });
+
+        return;
+    }
+
     const top = rect.y + (await topOffset(view));
 
     await view.setSize(new LogicalSize(rect.width, rect.height));

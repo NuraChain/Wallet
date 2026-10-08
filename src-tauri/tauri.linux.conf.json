@@ -64,6 +64,8 @@
                         "fs:allow-picture-write-recursive",
                         "fs:allow-download-write-recursive",
                         "allow-browser-open",
+                        "allow-browser-place",
+                        "allow-browser-position",
                         "allow-dapp-respond",
                         "allow-dapp-emit",
                         "deep-link:default",

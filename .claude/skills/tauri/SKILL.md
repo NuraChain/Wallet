@@ -113,6 +113,16 @@ runs under `main-capability`, which is why that holds `core:event:allow-emit`,
 `ImageView` in `BrowserBridge.kt` kept on top by `translationZ`. Where neither can be drawn,
 the page's own `Mouse` element stands in.
 
+**Linux places child webviews itself.** Tauri packs every webview of a window into one vertical
+`gtk::Box`, so a child stacks under the wallet as a second row, and wry ignores `setPosition` /
+`setSize` for anything outside a `gtk::Fixed` and reads `position()` back as `0,0`. `src/stage.rs`
+(Linux only, the reason for the `gtk` dependency) swaps the box for a `gtk::Overlay` at setup: the
+wallet underneath, a `gtk::Fixed` for tabs, and another above it for the mouse — so there is no
+re-parenting on Linux. Bounds go through `browser_place` and are read with `browser_position`,
+both Linux-only and granted only in `tauri.linux.conf.json`; `applyBounds` in `ui/webview.tsx`
+and `getMousePosition` / `setMousePosition` in `core/mouse.ts` are the only callers. Any new
+child webview on Linux has to be placed the same way or it stays in the hidden box, unseen.
+
 ## Calling from the frontend
 
 - Import from `@tauri-apps/api` and the plugin packages, never from a global — the config

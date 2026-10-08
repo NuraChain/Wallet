@@ -28,6 +28,11 @@ tauri-plugin-fs = "2"
 
 tokio = { version = "1", features = [ "sync", "time" ] }
 
+# Tauri stacks a window's webviews in one vertical box on Linux and takes no position for them, so
+# src/stage.rs lays the browser's tabs out itself. The version is the one Tauri is built against.
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk = "0.18"
+
 [profile.release]
 lto = true
 strip = true

@@ -6,6 +6,7 @@ version = 4
 name = "NuraWallet"
 version = "1.6.0"
 dependencies = [
+ "gtk",
  "serde",
  "serde_json",
  "tauri",

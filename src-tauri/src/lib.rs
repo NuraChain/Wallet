@@ -1,6 +1,9 @@
 #[cfg(desktop)]
 mod dapp;
 
+#[cfg(target_os = "linux")]
+mod stage;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default();
@@ -36,10 +39,27 @@ pub fn run() {
             .manage(dapp::DappState::default())
             .invoke_handler(tauri::generate_handler![
                 dapp::browser_open,
+                #[cfg(target_os = "linux")]
+                dapp::browser_place,
+                #[cfg(target_os = "linux")]
+                dapp::browser_position,
                 dapp::dapp_request,
                 dapp::dapp_respond,
                 dapp::dapp_emit
             ]);
+
+        // The window exists by now and holds only the wallet, which is what the overlay is built
+        // around; a child webview comes later, from the page.
+        #[cfg(target_os = "linux")]
+        {
+            builder = builder.setup(|app| {
+                if let Some(wallet) = tauri::Manager::get_webview(app.handle(), "main") {
+                    let _ = stage::raise(&wallet);
+                }
+
+                Ok(())
+            });
+        }
     }
 
     builder = builder.plugin(tauri_plugin_deep_link::init());

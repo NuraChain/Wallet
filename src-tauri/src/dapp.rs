@@ -39,6 +39,14 @@ struct DappLink {
     url: String,
 }
 
+/// Where a child webview sits in the wallet's page, in CSS pixels.
+#[cfg(target_os = "linux")]
+#[derive(Clone, Serialize)]
+pub struct Spot {
+    x: i32,
+    y: i32,
+}
+
 fn is_page_scheme(scheme: &str) -> bool {
     matches!(scheme, "http" | "https" | "about" | "blob" | "data" | "javascript")
 }
@@ -225,11 +233,77 @@ pub async fn browser_open<R: Runtime>(
         )
         .map_err(|cause| cause.to_string())?;
 
+    // Linux takes neither the position nor the size above, and keeps the mouse on a layer over
+    // every tab, so there the page is placed and the mouse is left where it is. The wallet places
+    // the page again as soon as it finds it, which is why a miss here is not a failure to open.
+    #[cfg(target_os = "linux")]
+    if let Some(page) = app.get_webview(&label) {
+        let _ = crate::stage::place(&page, false, x, y, width, height);
+    }
+
     // A child added later is drawn above the ones before it, which would bury the floating mouse
     // under the new tab. Handing it back to the same window puts it on top again.
+    #[cfg(not(target_os = "linux"))]
     if let Some(mouse) = app.get_webview(MOUSE_LABEL) {
         let _ = mouse.reparent(&window);
     }
 
     Ok(())
+}
+
+/// The webview a caller may place: the wallet any tab or the mouse, and the mouse itself.
+#[cfg(target_os = "linux")]
+fn placed<R: Runtime>(
+    app: &AppHandle<R>,
+    caller: &Webview<R>,
+    label: &str,
+) -> Result<Webview<R>, String> {
+    let floating = label == MOUSE_LABEL;
+
+    if !floating && !is_page(label) {
+        return Err("that webview is not one the wallet places".into());
+    }
+
+    if caller.label() != WALLET_LABEL && !(floating && caller.label() == MOUSE_LABEL) {
+        return Err("only the wallet may place a webview".into());
+    }
+
+    app.get_webview(label)
+        .ok_or_else(|| "that webview is gone".to_string())
+}
+
+/// Linux only, where Tauri's own position and size calls do nothing to a child webview. The
+/// numbers are the wallet's own: CSS pixels from the corner of its page.
+#[cfg(target_os = "linux")]
+#[tauri::command]
+pub async fn browser_place<R: Runtime>(
+    app: AppHandle<R>,
+    webview: Webview<R>,
+    label: String,
+    x: f64,
+    y: f64,
+    width: f64,
+    height: f64,
+) -> Result<(), String> {
+    let target = placed(&app, &webview, &label)?;
+
+    crate::stage::place(&target, label == MOUSE_LABEL, x, y, width, height)
+        .map_err(|cause| cause.to_string())
+}
+
+/// Linux only, where Tauri reads every child webview back as sitting at the window's corner.
+#[cfg(target_os = "linux")]
+#[tauri::command]
+pub async fn browser_position<R: Runtime>(
+    app: AppHandle<R>,
+    webview: Webview<R>,
+    label: String,
+) -> Result<Spot, String> {
+    let target = placed(&app, &webview, &label)?;
+
+    let (x, y) = crate::stage::position(&target)
+        .await
+        .ok_or_else(|| "that webview has not been placed".to_string())?;
+
+    Ok(Spot { x, y })
 }

@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { emit, listen } from '@tauri-apps/api/event';
-import { PhysicalPosition } from '@tauri-apps/api/dpi';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 
@@ -11,7 +10,7 @@ import { cn } from '../utility/cn';
 import { focusRing } from './token';
 import { layer } from './container';
 import { useMouseOpacity } from '../hook/mouse';
-import { readMouseOpacity } from '../core/mouse';
+import { getMousePosition, readMouseOpacity, setMousePosition } from '../core/mouse';
 
 import type { MouseAction } from '../type/app';
 
@@ -225,12 +224,12 @@ export function MouseView({ opacity: initial }: { opacity: number }) {
 
         // Kept inside the window when it shrinks: in full screen this is the only way back out.
         const refit = async () => {
-            const [at, limit] = await Promise.all([webview.position(), room()]);
+            const [at, limit] = await Promise.all([getMousePosition(webview), room()]);
 
             const next = clampPhysical(at, limit);
 
             if (next.x !== at.x || next.y !== at.y) {
-                await webview.setPosition(new PhysicalPosition(next.x, next.y));
+                await setMousePosition(webview, next);
             }
         };
 
@@ -257,7 +256,7 @@ export function MouseView({ opacity: initial }: { opacity: number }) {
             void emit('nura://mouse', action);
         },
         onGrab: (event) => {
-            const start = Promise.all([getCurrentWebview().position(), room()]);
+            const start = Promise.all([getMousePosition(getCurrentWebview()), room()]);
 
             start.catch(() => undefined);
 
@@ -286,7 +285,7 @@ export function MouseView({ opacity: initial }: { opacity: number }) {
                             const target = targetRef.current;
 
                             if (target !== undefined) {
-                                void getCurrentWebview().setPosition(new PhysicalPosition(target.x, target.y));
+                                void setMousePosition(getCurrentWebview(), target).catch(() => undefined);
                             }
                         });
                     }
