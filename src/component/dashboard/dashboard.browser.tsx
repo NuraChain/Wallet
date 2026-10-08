@@ -71,9 +71,9 @@ export default function DashboardBrowser({
     enabled: boolean;
     request: string;
     ticket: number;
-    /** Counts up once per double press of the floating mouse while this tab is showing. */
-    fullToggle: number;
     /** Counts up once per press of the floating mouse while this tab is showing. */
+    fullToggle: number;
+    /** Counts up once per double press of the floating mouse while this tab is showing. */
     homePress: number;
     onExit: () => void;
     onFullscreen?: (on: boolean) => void;
@@ -122,7 +122,7 @@ export default function DashboardBrowser({
         }
     }
 
-    // A press comes home the way the Home button does, which also lifts full screen off the page.
+    // A double press comes home the way the Home button does, which also lifts full screen off the page.
     if (homePress !== seenHome) {
         setSeenHome(homePress);
 

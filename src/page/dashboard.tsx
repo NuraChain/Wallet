@@ -122,16 +122,16 @@ function DashboardView({ vault }: { vault: Vault }) {
             return;
         }
 
-        // On the browser a press goes home and a double press takes the page full screen and back;
+        // On the browser a press takes the page full screen and back and a double press goes home;
         // anywhere else a press opens the browser and a double press the mouse's own settings.
         if (action === 'double') {
             if (tabMap[active].key === 'Browser') {
-                setFullToggle((value) => value + 1);
+                setHomePress((value) => value + 1);
             } else {
                 setModal('mouse');
             }
         } else if (tabMap[active].key === 'Browser') {
-            setHomePress((value) => value + 1);
+            setFullToggle((value) => value + 1);
         } else {
             goKey('Browser');
         }
