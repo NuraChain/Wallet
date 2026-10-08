@@ -42,7 +42,9 @@ const gridMap = {
     /** The browser's favourite cards, more of them as the window widens. */
     favorites: 'grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4',
     /** The browser's recently visited sites. */
-    recent: 'grid grid-cols-2 gap-2 lg:grid-cols-4'
+    recent: 'grid grid-cols-2 gap-2 lg:grid-cols-4',
+    /** The browser's open tabs, two cards across on a phone as its own tab overview has them. */
+    tabs: 'grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4'
 } as const;
 
 export function Grid({ look, children }: { look: keyof typeof gridMap; children: ReactNode }) {

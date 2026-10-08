@@ -76,7 +76,8 @@ that is what `variant='bare'` is for (focus ring only, plus the `type='button'` 
 The remaining variants are bare too — no fill and no built-in layout — each named for the one
 control it draws: `plain`, `logo`, `row` / `rowTight` (a pressable list row), `listRow`,
 `inlineRow` / `inlineSubtle` (`CopyButton`), `tab` / `tabOn`, `option` / `optionOn`,
-`fieldSelect`, `fieldAction` (an icon inside a field), `tabClose`, `veil` (a reveal overlay)
+`fieldSelect`, `fieldAction` (an icon inside a field), `tabCard` / `tabClose` (the body of a
+`TabCard` and the close over its corner), `veil` (a reveal overlay)
 and `window` (a title-bar control).
 
 | size | Is |
@@ -91,7 +92,7 @@ and `window` (a title-bar control).
 | `tile` | The wallet's send / receive / redeem tiles |
 | `segment` | One choice in a row of filter segments |
 | `menu` | A `MenuRow` |
-| `emoji`, `entry`, `picker`, `siteRow`, `siteCard`, `siteAdd` | The emoji grid, the intro's two entries, its language picker, and the browser start page's rows and cards |
+| `emoji`, `entry`, `picker`, `siteRow`, `siteCard`, `siteAdd`, `tabAdd` | The emoji grid, the intro's two entries, its language picker, and the browser start page's rows and cards |
 | `none` | No dimensions: a bare variant supplies its own |
 
 `loading` shows the spinner **and** disables the button — a busy control must not fire
@@ -144,13 +145,15 @@ The only icon source in the tree. `import { Check, Trash } from 'lucide-react'`.
 - **`Block`** (`ui/wrap.tsx`) — a plain `div` for a wrapper that only has to sit in its parent,
   hold a `ref` or carry a role: `Placement`, `relative`, `fill`, `clip`, `height`. It stops there;
   a box that wants a look is a primitive named for that look. **`Grid`** (`look='emoji' |
-  'favorites' | 'recent'`) and **`Rail`** live beside it.
+  'favorites' | 'recent' | 'tabs'`) and **`Rail`** live beside it.
 - **`Screen`** (`enter='fade' | 'grow'`, `backdrop`), **`EntryCard`**, **`Track`** (the dashboard's
   tabs side by side), **`SidebarPanel`**, **`Splash`**, **`IntroBar`** and **`IntroSlide`**
   (`ui/screen.tsx`) — the scaffolding a route is built from.
 - **`Toolbar`** (`ui/toolbar.tsx`) — the strip of controls across the top of the browser.
 - **`TabBar` / `Tab`** (`ui/tabs.tsx`) — underlined tabs, with room at the end for an action;
-  **`TabChip`** is one tab in the browser's tab list.
+  **`TabCard`** is one open tab on the browser's start page, a card as a phone's tab overview
+  draws it (`name`, `title`, `art`, `onPick`, `onClose`), and **`TabAdd`** the empty card after
+  the last one. Both sit in `Grid look='tabs'` and slide when a card leaves.
 - **`SectionHeader`** (`ui/section.tsx`) — muted title with an optional trailing control.
 - **`PageContainer`** (`ui/container.tsx`) — `variant='tab' | 'browser' | 'intro'`.
   Every top-level surface gets its top padding from here. It resolves the

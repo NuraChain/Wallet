@@ -51,7 +51,8 @@ const bareMap = {
     optionOn: `${focusRing} ${optionBase} ${selectedTint}`,
     fieldSelect: `${focusRing} ${fieldSurface} flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3`,
     fieldAction: `${focusRing} ${tapArea} absolute -inset-e-0.5 size-8 cursor-pointer rounded-control text-txt-muted hover:text-txt-normal`,
-    tabClose: `${focusRing} flex size-8 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-base-2`,
+    tabCard: `${focusRing} flex size-full cursor-pointer flex-col rounded-surface text-start`,
+    tabClose: `${focusRing} ${tapArea} absolute inset-e-1 top-1 flex size-8 cursor-pointer items-center justify-center rounded-control text-txt-muted hover:bg-btn-muted-hover hover:text-txt-normal`,
     veil: `${focusRing} absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-surface bg-base-2/60 text-txt-normal hover:bg-base-2/70`,
     window: `${focusRing} flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal transition-colors duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active`
 } as const;
@@ -82,7 +83,9 @@ const sizeMap = {
     picker: 'h-10 w-fit justify-start rounded-control p-2',
     siteRow: 'h-12 gap-2.5 rounded-surface px-2.5 text-start',
     siteCard: 'h-16 justify-start gap-2.5 rounded-surface px-3 text-start',
-    siteAdd: 'h-16 items-center justify-center gap-2 rounded-surface border-dashed px-3 text-txt-muted hover:text-txt-normal'
+    siteAdd: 'h-16 items-center justify-center gap-2 rounded-surface border-dashed px-3 text-txt-muted hover:text-txt-normal',
+    /** The empty card at the end of the browser's open tabs, as tall as the cards beside it. */
+    tabAdd: 'h-36 flex-col gap-1.5 rounded-surface border-dashed px-3 text-tiny text-txt-muted hover:text-txt-normal'
 } as const;
 
 export type ButtonVariant = keyof typeof fillMap | keyof typeof bareMap;

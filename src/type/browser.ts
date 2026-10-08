@@ -12,6 +12,9 @@ export interface BrowserState {
 
 export type BrowserView = 'mobile' | 'desktop';
 
+/** What the browser's start page is showing. */
+export type BrowserSection = 'favorite' | 'tabs' | 'history';
+
 export interface BrowserVisit {
     url: string;
     time: number;

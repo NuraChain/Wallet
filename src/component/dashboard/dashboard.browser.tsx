@@ -3,7 +3,6 @@ import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, Tria
 import { AnimatePresence } from 'motion/react';
 
 import WebFrame from '../../ui/webview';
-import DashboardBrowserTabs from './dashboard.browser.tabs';
 import DashboardBrowserStart from './dashboard.browser.start';
 import DashboardBrowserSettings from './dashboard.browser.settings';
 
@@ -34,7 +33,7 @@ import {
 } from '../../core/browser';
 import { Vertical } from '../../ui/stack';
 import type { Network } from '../../type/network';
-import type { BrowserFavorite, BrowserState, BrowserTab, BrowserView, BrowserVisit } from '../../type/browser';
+import type { BrowserFavorite, BrowserSection, BrowserState, BrowserTab, BrowserView, BrowserVisit } from '../../type/browser';
 import { Block } from '../../ui/wrap';
 import Text from '../../ui/text';
 import { LoadStrip } from '../../ui/progress';
@@ -86,6 +85,10 @@ export default function DashboardBrowser({
     const [connections, setConnections] = useState(0);
     const [active, setActive] = useState(1);
     const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 1, entries: [], index: -1, draft: '', reload: 0, home: false }]);
+
+    // Which part of the start page is on show. Kept here because every tab draws its own copy of
+    // that page: one held there would fall back to the favourites each time a tab was closed.
+    const [section, setSection] = useState<BrowserSection>('favorite');
 
     const mintRef = useRef(2);
 
@@ -243,6 +246,8 @@ export default function DashboardBrowser({
 
         setNotice((map) => new Map(map).set(id, ''));
 
+        setSection('favorite');
+
         void addBrowserVisit(url).then(setVisits);
     };
 
@@ -284,10 +289,14 @@ export default function DashboardBrowser({
         patch(active, (item) => ({ ...item, home: true }));
     };
 
+    // Leaving the start page for a site, or for a new tab's own start page, puts it back on the
+    // favourites for the next time it is opened.
     const onPickTab = (id: number) => {
         setActive(id);
 
         patch(id, (item) => ({ ...item, home: false }));
+
+        setSection('favorite');
     };
 
     const onAddTab = () => {
@@ -298,6 +307,8 @@ export default function DashboardBrowser({
         setTabs([...tabs, { id, entries: [], index: -1, draft: '', reload: 0, home: false }]);
 
         setActive(id);
+
+        setSection('favorite');
     };
 
     const onCloseTab = (id: number) => {
@@ -317,12 +328,16 @@ export default function DashboardBrowser({
             setTabs([{ id: fresh, entries: [], index: -1, draft: '', reload: 0, home: false }]);
 
             setActive(fresh);
+        } else if (id === active) {
+            // Closed from the list on the start page, so the tab that takes over is left on that
+            // page too: the list stays where it was instead of giving way to a site.
+            const next = rest[Math.max(0, at - 1)].id;
+
+            setTabs(rest.map((item) => (item.id === next && item.index >= 0 ? { ...item, home: true } : item)));
+
+            setActive(next);
         } else {
             setTabs(rest);
-
-            if (id === active) {
-                setActive(rest[Math.max(0, at - 1)].id);
-            }
         }
 
         setLive((map) => {
@@ -477,8 +492,6 @@ export default function DashboardBrowser({
                 </Toolbar>
             )}
 
-            {start && <DashboardBrowserTabs tabs={tabs} active={active} onPick={onPickTab} onClose={onCloseTab} onAdd={onAddTab} />}
-
             <LoadStrip hidden={full} loading={state !== undefined && state.loading} progress={state?.progress ?? 0} />
 
             <Block relative squeeze='y' grow>
@@ -504,10 +517,18 @@ export default function DashboardBrowser({
                         >
                             {front && !shown ? (
                                 <DashboardBrowserStart
+                                    section={section}
                                     favorites={favorites}
+                                    tabs={tabs}
+                                    active={active}
+                                    states={live}
                                     visits={visits}
                                     notice={notice.get(item.id) ?? ''}
+                                    onSection={setSection}
                                     onOpen={onOpen}
+                                    onPickTab={onPickTab}
+                                    onCloseTab={onCloseTab}
+                                    onAddTab={onAddTab}
                                     onFavoriteSave={onFavoriteSave}
                                     onFavoriteRemove={onFavoriteRemove}
                                 />

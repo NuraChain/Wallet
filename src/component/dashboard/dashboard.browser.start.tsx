@@ -10,14 +10,13 @@ import SiteIcon from '../site.icon';
 import SiteForm from '../site.form';
 import ScrollBar from '../../ui/scrollbar';
 import ConfirmDialog from '../../ui/confirm';
+import DashboardBrowserTabs from './dashboard.browser.tabs';
 
 import { T } from '../../utility/language';
 import { getSiteHost } from '../../core/browser';
 import { Horizontal, Vertical } from '../../ui/stack';
-import type { BrowserFavorite, BrowserVisit } from '../../type/browser';
+import type { BrowserFavorite, BrowserSection, BrowserState, BrowserTab, BrowserVisit } from '../../type/browser';
 import { Block, Grid } from '../../ui/wrap';
-
-type TabKey = 'favorite' | 'history';
 
 function BrowserShortcut({ url, name, symbol, title, onPick }: { url: string; name: string; symbol?: string; title?: string; onPick: (url: string) => void }) {
     return (
@@ -71,30 +70,47 @@ function FavoriteCard({ item, grow = false, onPick }: { item: BrowserFavorite; g
 }
 
 export default function DashboardBrowserStart({
+    section,
     favorites,
+    tabs,
+    active,
+    states,
     visits,
     notice,
+    onSection,
     onOpen,
+    onPickTab,
+    onCloseTab,
+    onAddTab,
     onFavoriteSave,
     onFavoriteRemove
 }: {
+    /** Held by the browser, since closing the tab on show brings up another copy of this page. */
+    section: BrowserSection;
     favorites: BrowserFavorite[];
+    tabs: BrowserTab[];
+    active: number;
+    states: Map<number, BrowserState>;
     visits: BrowserVisit[];
     notice: string;
+    onSection: (section: BrowserSection) => void;
     onOpen: (url: string) => void;
+    onPickTab: (id: number) => void;
+    onCloseTab: (id: number) => void;
+    onAddTab: () => void;
     onFavoriteSave: (item: BrowserFavorite) => void;
     onFavoriteRemove: (id: string) => void;
 }) {
     const viewportRef = useRef<HTMLDivElement>(null);
 
-    const [tab, setTab] = useState<TabKey>('favorite');
     const [editing, setEditing] = useState(false);
 
     const [editor, setEditor] = useState<BrowserFavorite | boolean>(false);
     const [removing, setRemoving] = useState<BrowserFavorite | undefined>(undefined);
 
-    const tabMap: { key: TabKey; label: string }[] = [
+    const tabMap: { key: BrowserSection; label: string }[] = [
         { key: 'favorite', label: T('Dashboard.Browser.Favorite') },
+        { key: 'tabs', label: T('Dashboard.Browser.Tabs') },
         { key: 'history', label: T('Dashboard.Browser.Recent') }
     ];
 
@@ -106,31 +122,32 @@ export default function DashboardBrowserStart({
                         <Tab
                             key={item.key}
                             label={item.label}
-                            selected={item.key === tab}
+                            selected={item.key === section}
                             onSelect={() => {
-                                setTab(item.key);
+                                onSection(item.key);
                             }}
                         />
                     ))}
 
-                    {tab === 'favorite' && (
+                    {/* A glyph alone, as the wallet's own tab bar ends: with three sections ahead of
+                        it, the label ran past the edge of a phone in the longer languages. */}
+                    {section === 'favorite' && (
                         <Button
+                            title={editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage')}
                             variant='muted'
-                            size='small'
+                            size='icon'
                             onClick={() => {
                                 setEditing(!editing);
                             }}
-                            leftIcon={editing ? <Check size={14} /> : <PenLine size={14} />}
-                            text={editing ? T('Dashboard.Browser.FavoriteDone') : T('Dashboard.Browser.FavoriteManage')}
                             ms='auto'
-                            mb={1}
                             shrink={false}
+                            icon={editing ? <Check size={16} /> : <PenLine size={16} />}
                         />
                     )}
                 </TabBar>
 
                 <Block role='tabpanel'>
-                    {tab === 'favorite' &&
+                    {section === 'favorite' &&
                         (editing ? (
                             <Vertical gap={2}>
                                 {favorites.map((item) => (
@@ -191,7 +208,11 @@ export default function DashboardBrowserStart({
                             </Grid>
                         ))}
 
-                    {tab === 'history' &&
+                    {section === 'tabs' && (
+                        <DashboardBrowserTabs tabs={tabs} active={active} states={states} onPick={onPickTab} onClose={onCloseTab} onAdd={onAddTab} />
+                    )}
+
+                    {section === 'history' &&
                         (visits.length === 0 ? (
                             <StatusBlock panel text={T('Dashboard.Browser.RecentEmpty')} />
                         ) : (
