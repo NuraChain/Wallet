@@ -31,10 +31,10 @@ second copy of the runtime and its own `AnimatePresence` context, so exits stop 
 Animating `width`, `height`, `top`, `margin` or anything else that reflows is how a
 transition starts dropping frames on a phone.
 
-The one exception in the tree is `ui/progress.tsx`, which animates `insetInlineStart` for
-its indeterminate bar because the track has to run right-to-left in Farsi and Arabic and
-`x` has no logical counterpart. That is the reason it is allowed there. Do not copy the
-shape somewhere it is not needed.
+A transform has no logical direction, and that is not a reason to animate layout instead.
+`ui/progress.tsx` fills its waiting bar with `scaleX` and lets the origin carry the direction —
+`origin-left rtl:origin-right` — so it runs right-to-left in Farsi and Arabic without reflowing
+anything. Nothing in the tree animates a property that reflows.
 
 ### `AnimatePresence`
 
@@ -125,7 +125,7 @@ that is when `virtual` and `virtualIndex` become the answer — not before.
 
 - [ ] Could a Tailwind transition or scroll-snap have done this? Then it should have.
 - [ ] Imported from `motion/react`, not `framer-motion`.
-- [ ] Only transforms and opacity animate, or there is a stated reason like `progress.tsx`.
+- [ ] Only transforms and opacity animate. `layout` is switched off under `useReducedMotion()`.
 - [ ] Every `AnimatePresence` child has a stable `key`; `mode`/`initial` chosen deliberately.
 - [ ] Looping or auto-advancing motion is gated on `useReducedMotion()`.
 - [ ] Swiper: every feature prop has its module **and** its stylesheet.

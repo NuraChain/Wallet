@@ -467,7 +467,9 @@ export default function WebFrame({
 
                     <Text text={T('Dashboard.Browser.Loading')} />
 
-                    <ProgressBar look='track' />
+                    {/* Keyed by the load, so each page fills its own bar rather than finding the
+                        last one's already full. */}
+                    <ProgressBar key={`${url}-${reload}`} look='track' />
                 </div>
             )}
         </div>

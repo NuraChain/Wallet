@@ -492,7 +492,8 @@ export default function DashboardBrowser({
                 </Toolbar>
             )}
 
-            <LoadStrip hidden={full} loading={state !== undefined && state.loading} progress={state?.progress ?? 0} />
+            {/* One per tab, since it remembers how far the load it is showing has got. */}
+            <LoadStrip key={tab.id} hidden={full} loading={state !== undefined && state.loading} progress={state?.progress ?? 0} />
 
             <Block relative squeeze='y' grow>
                 {tabs.map((item) => {
