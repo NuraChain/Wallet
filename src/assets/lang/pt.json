@@ -221,6 +221,7 @@
             "Address": "A recompensa vai para",
             "Code": "Código de resgate",
             "CodeHint": "00000000-0000-0000-0000-000000000000",
+            "Info": "Você pode obter um código de resgate em ashbringer.org.",
             "Submit": "Resgatar",
             "Pending": "Resgatando…",
             "Close": "Concluído",

@@ -181,7 +181,8 @@ name, no focus trap and no Escape — including the one that approves a transact
   `ModalBody` takes `gap`, `mt` and `short`; `ModalActions` takes `flush`.
   `ModalHeader` also takes `close='none'`, for a step that must not be abandoned halfway. Wrapping the
   growing part in `ModalBody` is what holds the header and footer still. `ModalHeader` takes
-  `close='icon' | 'chip'`, a `leading` slot, and claims the title id from context.
+  `close='icon' | 'chip'`, a `leading` slot, an `action` slot for a control of the dialog's own
+  beside the close button, and claims the title id from context.
 - **`Sheet`** + `SheetHeader` — the sheet that drops from the top (intro flows).
 - **`Popover`** (`ui/popover.tsx`) — opens *within* a page and must not escape it. It uses
   `useDismiss` only: Escape and focus return, but **no** focus trap. A dropdown the keyboard

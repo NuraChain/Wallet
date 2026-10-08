@@ -221,6 +221,7 @@
             "Address": "Ödül şuraya gidecek",
             "Code": "Kullanım kodu",
             "CodeHint": "00000000-0000-0000-0000-000000000000",
+            "Info": "Kullanım kodunu ashbringer.org sitesinden alabilirsiniz.",
             "Submit": "Kullan",
             "Pending": "Kullanılıyor…",
             "Close": "Tamam",

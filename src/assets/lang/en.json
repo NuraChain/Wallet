@@ -221,6 +221,7 @@
             "Address": "Reward goes to",
             "Code": "Redeem code",
             "CodeHint": "00000000-0000-0000-0000-000000000000",
+            "Info": "You can get a redeem code from ashbringer.org.",
             "Submit": "Redeem",
             "Pending": "Redeeming…",
             "Close": "Done",

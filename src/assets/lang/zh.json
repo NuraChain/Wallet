@@ -221,6 +221,7 @@
             "Address": "奖励将发送至",
             "Code": "兑换码",
             "CodeHint": "00000000-0000-0000-0000-000000000000",
+            "Info": "你可以在 ashbringer.org 获取兑换码。",
             "Submit": "兑换",
             "Pending": "正在兑换…",
             "Close": "完成",

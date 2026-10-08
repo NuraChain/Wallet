@@ -6,7 +6,7 @@ import { surfacePanel } from './panel';
 import { useDismiss } from './dialog';
 
 // Where it opens from: under its trigger, or tucked under the trigger's corner.
-const anchorMap = { below: 'inset-x-0 top-full mt-1', corner: 'inset-e-0 top-12' } as const;
+const anchorMap = { below: 'inset-x-0 top-full mt-1', corner: 'inset-e-0 top-full mt-2' } as const;
 
 const lookMap = {
     /** A short scrolling list of choices. */

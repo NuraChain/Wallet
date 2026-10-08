@@ -101,6 +101,7 @@ export function ModalHeader({
     title,
     subtitle = '',
     leading,
+    action,
     close = 'icon',
     truncate = false,
     titleSize,
@@ -111,6 +112,8 @@ export function ModalHeader({
     title: string;
     subtitle?: string;
     leading?: ReactNode;
+    /** A control of the dialog's own, set beside the close button. */
+    action?: ReactNode;
     close?: 'icon' | 'chip' | 'none';
     /** Cuts a long title to one line. */
     truncate?: boolean;
@@ -124,6 +127,18 @@ export function ModalHeader({
     const Group = leading === undefined ? Vertical : Horizontal;
 
     const heading = <Text as='h2' variant='title' squeeze='x' size={titleSize} truncate={truncate} text={title} />;
+
+    // A step that must not be abandoned halfway — a transaction already in flight — asks for
+    // `none`, so the header offers no way out that the surface itself refuses.
+    const closer = close !== 'none' && (
+        <Button
+            variant={close === 'chip' ? 'chip' : 'muted'}
+            size={close === 'chip' ? 'iconChip' : 'icon'}
+            onClick={onClose}
+            shrink={false}
+            icon={<X size={20} />}
+        />
+    );
 
     return (
         <Horizontal shrink={false} align='center' justify='between' gap={3} width={width}>
@@ -139,16 +154,16 @@ export function ModalHeader({
                 </Group>
             )}
 
-            {/* A step that must not be abandoned halfway — a transaction already in flight — asks
-                for `none`, so the header offers no way out that the surface itself refuses. */}
-            {close !== 'none' && (
-                <Button
-                    variant={close === 'chip' ? 'chip' : 'muted'}
-                    size={close === 'chip' ? 'iconChip' : 'icon'}
-                    onClick={onClose}
-                    shrink={false}
-                    icon={<X size={20} />}
-                />
+            {/* Held together, so the row still has two ends to push apart, and far enough apart
+                that neither one's tap area reaches over the other. */}
+            {action === undefined ? (
+                closer
+            ) : (
+                <Horizontal shrink={false} align='center' gap={2}>
+                    {action}
+
+                    {closer}
+                </Horizontal>
             )}
         </Horizontal>
     );

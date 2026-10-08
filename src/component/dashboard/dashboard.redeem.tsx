@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { CircleCheckBig, Gift } from 'lucide-react';
+import { CircleCheckBig, Gift, Info } from 'lucide-react';
 
 import Text from '../../ui/text';
 import Alert from '../../ui/alert';
 import Button from '../../ui/button';
 import IconBox from '../../ui/iconbox';
+import Popover, { PopoverAnchor } from '../../ui/popover';
 import { ReadonlyField, TextField } from '../../ui/field';
 import { Modal, ModalHeader } from '../../ui/modal';
 
@@ -16,6 +17,7 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
     const [done, setDone] = useState('');
+    const [showInfo, setShowInfo] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const onSubmit = async () => {
@@ -54,6 +56,30 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                     <IconBox tone='primary'>
                         <Gift size={16} />
                     </IconBox>
+                }
+                action={
+                    <PopoverAnchor>
+                        <Button
+                            variant='muted'
+                            size='icon'
+                            onClick={() => {
+                                setShowInfo((value) => !value);
+                            }}
+                            shrink={false}
+                            icon={<Info size={18} />}
+                        />
+
+                        <Popover
+                            open={showInfo}
+                            anchor='corner'
+                            onClose={() => {
+                                setShowInfo(false);
+                            }}
+                            look='note'
+                        >
+                            {T('Dashboard.Redeem.Info')}
+                        </Popover>
+                    </PopoverAnchor>
                 }
             />
 

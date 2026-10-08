@@ -221,6 +221,7 @@
             "Address": "La récompense ira à",
             "Code": "Code",
             "CodeHint": "00000000-0000-0000-0000-000000000000",
+            "Info": "Vous pouvez obtenir un code sur ashbringer.org.",
             "Submit": "Valider",
             "Pending": "Validation…",
             "Close": "Terminé",
