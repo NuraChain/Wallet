@@ -310,6 +310,8 @@
             "TransactionNote": "Ceci envoie une transaction depuis votre compte. C'est irréversible.",
             "ChainNote": "Ce site demande au portefeuille de changer de réseau. Les soldes et l'historique suivront.",
             "AssetNote": "Ce site demande au portefeuille de suivre un jeton. Les détails sont lus dans le contrat, pas sur le site.",
+            "MicrophoneTitle": "Utiliser votre microphone",
+            "MicrophoneNote": "Ce site demande à écouter via le microphone de cet appareil. L'autorisation reste valable pour ce site jusqu'au verrouillage du portefeuille.",
             "Account": "Compte",
             "From": "De",
             "To": "À",

@@ -91,6 +91,46 @@ const approve = async (detail: Omit<DappPrompt, 'id'>) => {
     }
 };
 
+/* A site's microphone is not the wallet's to give, but the question is the wallet's to ask: where
+   the webview has no prompt of its own, a request nobody answers is simply refused, and the site
+   only ever sees "blocked". A yes holds for that site until the wallet locks; a no is for the one
+   request it answered. Requests from a site while its question is still up share that question. */
+const listening = new Set<string>();
+
+const hearing = new Map<string, Promise<boolean>>();
+
+export const allowMicrophone = async (origin: string): Promise<boolean> => {
+    if (origin.length === 0 || getVault() === undefined) {
+        return false;
+    }
+
+    if (listening.has(origin)) {
+        return true;
+    }
+
+    let asking = hearing.get(origin);
+
+    if (asking === undefined) {
+        asking = askDappPrompt({ kind: 'microphone', origin, summary: origin }).then((allowed) => {
+            hearing.delete(origin);
+
+            if (allowed) {
+                listening.add(origin);
+            }
+
+            return allowed;
+        });
+
+        hearing.set(origin, asking);
+    }
+
+    return asking;
+};
+
+export const forgetMicrophones = () => {
+    listening.clear();
+};
+
 const rpc = async (method: string, params: unknown[]): Promise<unknown> => {
     const network = getNetwork();
 

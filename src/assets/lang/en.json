@@ -310,6 +310,8 @@
             "TransactionNote": "This sends a transaction from your account. It cannot be undone.",
             "ChainNote": "This site is asking the wallet to change network. Balances and history will change with it.",
             "AssetNote": "This site is asking the wallet to track a token. The details are read from the contract, not from the site.",
+            "MicrophoneTitle": "Use your microphone",
+            "MicrophoneNote": "This site is asking to listen through this device's microphone. It stays allowed for this site until you lock the wallet.",
             "Account": "Account",
             "From": "From",
             "To": "To",

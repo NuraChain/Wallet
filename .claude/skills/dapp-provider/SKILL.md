@@ -89,6 +89,26 @@ resolvers (a resolver cannot be serialised), publishes the list through
 the same code runs with the platform hooks inert. Keep new prompt data inside `DappPrompt`
 and serialisable — a callback in there works on desktop and silently breaks the extension.
 
+## A site asking for the microphone
+
+Not a provider call, but it rides the same rails for the same reason: the page asks, and something
+it cannot influence says who it is. On Android a WebView refuses any device request its client
+does not answer, so `BrowserBridge.kt` holds the `PermissionRequest`, takes the origin from the
+request itself, and calls `window.__nuraPermission`. That reaches the bridge as the third argument
+of `platform.dapp.serve`, goes through `siteOrigin()`, and lands on `allowMicrophone(origin)` in
+`dapp.rpc.ts`, which raises a `microphone` prompt on the same queue.
+
+- The hook answers `true` or `false` **synchronously**, and Kotlin refuses on anything but `true`.
+  That is what makes a locked wallet a refusal rather than a page left waiting; do not make it async.
+- A yes is kept per origin in memory until the dashboard unmounts (`forgetMicrophones`). A no is
+  kept nowhere. Nothing is written to storage.
+- Only a request for the microphone alone is asked about. A WebView takes a grant for exactly what
+  was requested, so audio-plus-camera cannot be answered in part and is refused.
+- Nothing else comes through here yet. Windows leaves it to WebView2's own prompt. On macOS wry
+  answers every site's request with a grant, and only the missing `NSMicrophoneUsageDescription`
+  stands in the way — adding that key without a per-site question would hand every page the
+  microphone. Linux has media capture switched off in WebKitGTK, and iOS lacks the same key.
+
 ## `dapp.log.ts`
 
 `dappLog(scope, message, detail?)`, off unless `import.meta.env.DEV` or

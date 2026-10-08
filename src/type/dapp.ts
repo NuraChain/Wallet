@@ -34,7 +34,7 @@ export interface DappPage {
  */
 export type DappLinkHandler = (url: string) => void;
 
-export type DappPromptKind = 'connect' | 'signature' | 'typed' | 'transaction' | 'chain' | 'asset';
+export type DappPromptKind = 'connect' | 'signature' | 'typed' | 'transaction' | 'chain' | 'asset' | 'microphone';
 
 export interface DappPrompt {
     id: string;

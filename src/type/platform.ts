@@ -53,9 +53,21 @@ export interface PlatformDappCall {
     respond: (reply: DappReply) => void;
 }
 
+/**
+ * A page asking for a device — its microphone — rather than for the wallet. It comes the way a
+ * provider call does, and under the same rule: `origin` is the frame the webview says is asking,
+ * never a name the page gave.
+ */
+export interface PlatformSiteAsk {
+    label: string;
+    origin: string;
+    kind: string;
+    respond: (allowed: boolean) => void;
+}
+
 /** How provider calls reach the wallet, and how unsolicited events reach a page. */
 export interface PlatformDapp {
-    serve: (accept: (call: PlatformDappCall) => void, onLink?: (url: string) => void) => () => void;
+    serve: (accept: (call: PlatformDappCall) => void, onLink?: (url: string) => void, onAsk?: (ask: PlatformSiteAsk) => void) => () => void;
     emit: (label: string, body: string) => void;
 }
 

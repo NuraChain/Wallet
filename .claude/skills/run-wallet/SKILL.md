@@ -26,7 +26,7 @@ page's own exceptions/console errors plus its URL and first 300 chars of HTML.
 |---|---|
 | `shot:<name>` | screenshot |
 | `unlock` | web target only: unlocks a test vault (Hardhat's public `test … junk` mnemonic) and routes to the dashboard |
-| `prompt:<fixture>` | raises a dApp approval: `send approve revoke transfer insecure sign typed connect chain-add chain-switch asset`, or a raw `DappPrompt` JSON |
+| `prompt:<fixture>` | raises a dApp approval: `send approve revoke transfer insecure sign typed connect microphone chain-add chain-switch asset`, or a raw `DappPrompt` JSON |
 | `clear` | rejects whatever prompt is up |
 | `route:/path` · `lang:<code>` · `theme:<light\|dark>` | navigate · switch language (`fa`/`ar` are RTL) · switch theme |
 | `press:<button label>` · `click:<css>` · `fill:<css>=<value>` | press a button by its text (icon-only buttons: `click:` their `svg.lucide-<name>`) · click · type into every match (React-safe) |

@@ -48,7 +48,8 @@ const { clearConnections, grantConnection } = await import('./dapp');
 const { getNetwork, setNetwork } = await import('./network');
 const { lockSession, unlockSession } = await import('./session');
 
-const { answerDapp, getDappAccount, getDappPrompt, rejectDappPrompts, resolveDappPrompt, setDappAccount } = await import('./dapp.rpc');
+const { allowMicrophone, answerDapp, forgetMicrophones, getDappAccount, getDappPrompt, rejectDappPrompts, resolveDappPrompt, setDappAccount } =
+    await import('./dapp.rpc');
 
 const wallet = ethers.Wallet.createRandom();
 
@@ -107,6 +108,8 @@ beforeEach(async () => {
 
 afterEach(() => {
     rejectDappPrompts();
+
+    forgetMicrophones();
 });
 
 describe('what the wallet answers without being asked twice', () => {
@@ -349,6 +352,79 @@ describe('reads and everything else', () => {
         const reply = await answerDapp(call('eth_getFilterChanges', []));
 
         expect(reply.error?.code).toBe(4200);
+    });
+});
+
+describe('a site asking for the microphone', () => {
+    it('is asked about by name, and a yes holds until the wallet forgets it', async () => {
+        const first = allowMicrophone(origin);
+
+        const prompt = await settle(true);
+
+        expect(prompt).toMatchObject({ kind: 'microphone', origin });
+        expect(await first).toBe(true);
+
+        // The second time there is nothing to ask.
+        expect(await allowMicrophone(origin)).toBe(true);
+        expect(getDappPrompt()).toBeUndefined();
+
+        // Locking is what forgets: the dashboard lets every site go on its way out.
+        forgetMicrophones();
+
+        const again = allowMicrophone(origin);
+
+        await settle(false);
+
+        expect(await again).toBe(false);
+    });
+
+    it('does not carry a no over to the next request', async () => {
+        const refused = allowMicrophone(origin);
+
+        await settle(false);
+
+        expect(await refused).toBe(false);
+
+        const second = allowMicrophone(origin);
+
+        await settle(true);
+
+        expect(await second).toBe(true);
+    });
+
+    it('keeps one site’s yes from every other site', async () => {
+        const first = allowMicrophone(origin);
+
+        await settle(true);
+
+        expect(await first).toBe(true);
+
+        const other = allowMicrophone('https://other.example');
+
+        const prompt = await settle(false);
+
+        expect(prompt.origin).toBe('https://other.example');
+        expect(await other).toBe(false);
+    });
+
+    it('asks once for requests that arrive while the question is still up', async () => {
+        const pair = Promise.all([allowMicrophone(origin), allowMicrophone(origin)]);
+
+        await settle(true);
+
+        expect(await pair).toEqual([true, true]);
+        expect(getDappPrompt()).toBeUndefined();
+    });
+
+    it('is refused unasked while the wallet is locked, or with no site behind it', async () => {
+        expect(await allowMicrophone('')).toBe(false);
+
+        lockSession();
+
+        expect(await allowMicrophone(origin)).toBe(false);
+        expect(getDappPrompt()).toBeUndefined();
+
+        unlockSession({ kind: 'privateKey', secret: wallet.privateKey });
     });
 });
 

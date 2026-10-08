@@ -45,7 +45,11 @@ const readEnvelope = (raw: unknown, label: string, origin: string): DappEnvelope
 // page's business, and the log has no use for it.
 const linkScheme = (url: string) => url.slice(0, Math.max(0, url.indexOf(':')));
 
-export const startDappBridge = (handler: (envelope: DappEnvelope) => Promise<DappReply>, onLink?: DappLinkHandler) => {
+export const startDappBridge = (
+    handler: (envelope: DappEnvelope) => Promise<DappReply>,
+    onLink?: DappLinkHandler,
+    onMicrophone?: (origin: string) => Promise<boolean>
+) => {
     stopBridge?.();
 
     dappLog('Bridge', 'started');
@@ -89,6 +93,24 @@ export const startDappBridge = (handler: (envelope: DappEnvelope) => Promise<Dap
             dappLog('Bridge', 'link offered by a page', { scheme: linkScheme(url) });
 
             onLink?.(url);
+        },
+
+        (ask) => {
+            const origin = siteOrigin(ask.origin);
+
+            dappLog('Bridge', 'device asked for by a page', { origin, kind: ask.kind });
+
+            // The microphone is the one device the wallet has a question for. Any other, an origin
+            // that is not a site, or nobody here to ask, is refused without one.
+            if (origin.length === 0 || ask.kind !== 'microphone' || onMicrophone === undefined) {
+                ask.respond(false);
+
+                return;
+            }
+
+            void onMicrophone(origin).then(ask.respond, () => {
+                ask.respond(false);
+            });
         }
     );
 

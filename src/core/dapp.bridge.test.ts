@@ -18,6 +18,8 @@ vi.mock('@tauri-apps/api/event', () => ({ listen: async () => () => undefined })
 
 const replies: { label: string; payload: string }[] = [];
 
+const verdicts: { ticket: string; allowed: boolean }[] = [];
+
 const nativeBrowser = {
     open: () => undefined,
     setBounds: () => undefined,
@@ -28,6 +30,10 @@ const nativeBrowser = {
 
     dappReply: (label: string, payload: string) => {
         replies.push({ label, payload });
+    },
+
+    permissionReply: (ticket: string, allowed: boolean) => {
+        verdicts.push({ ticket, allowed });
     }
 };
 
@@ -47,8 +53,13 @@ const settled = async () => {
     });
 };
 
+/** A page asking for a device, the way the native layer hands it over: who, and what for. */
+const wants = (kind: string, origin = 'https://voice.example', ticket = 'seven') =>
+    window.__nuraPermission?.(JSON.stringify({ ticket, label: 'nura-browser-1', origin, kind }));
+
 afterEach(() => {
     replies.length = 0;
+    verdicts.length = 0;
 
     forgetDappPages();
 });
@@ -187,5 +198,106 @@ describe('links a page cannot open itself', () => {
         stop();
 
         expect(window.__nuraDappLink).toBeUndefined();
+    });
+});
+
+describe('a page asking for the microphone', () => {
+    const quiet = async (envelope: DappEnvelope): Promise<DappReply> => ({ id: envelope.id, result: null });
+
+    it('is put to the wallet under the origin the transport gave, and answered by ticket', async () => {
+        const asked: string[] = [];
+
+        const stop = startDappBridge(quiet, undefined, async (origin) => {
+            asked.push(origin);
+
+            return true;
+        });
+
+        // Taken there and then: the native side refuses a request nobody says they took.
+        expect(wants('microphone')).toBe(true);
+
+        await settled();
+
+        expect(asked).toEqual(['https://voice.example']);
+        expect(verdicts).toEqual([{ ticket: 'seven', allowed: true }]);
+
+        stop();
+    });
+
+    it('is refused without a question when the page is not a site', async () => {
+        const asked: string[] = [];
+
+        const stop = startDappBridge(quiet, undefined, async (origin) => {
+            asked.push(origin);
+
+            return true;
+        });
+
+        wants('microphone', 'file:///home/someone/page.html');
+
+        await settled();
+
+        expect(asked).toHaveLength(0);
+        expect(verdicts).toEqual([{ ticket: 'seven', allowed: false }]);
+
+        stop();
+    });
+
+    it('is the only device there is a question for', async () => {
+        const asked: string[] = [];
+
+        const stop = startDappBridge(quiet, undefined, async (origin) => {
+            asked.push(origin);
+
+            return true;
+        });
+
+        wants('camera');
+
+        await settled();
+
+        expect(asked).toHaveLength(0);
+        expect(verdicts).toEqual([{ ticket: 'seven', allowed: false }]);
+
+        stop();
+    });
+
+    it('is refused when nobody answers for it, or the asking fails', async () => {
+        const silent = startDappBridge(quiet);
+
+        wants('microphone', 'https://voice.example', 'eight');
+
+        await settled();
+
+        silent();
+
+        const broken = startDappBridge(quiet, undefined, async () => {
+            throw new Error('nothing to ask with');
+        });
+
+        wants('microphone', 'https://voice.example', 'nine');
+
+        await settled();
+
+        expect(verdicts).toEqual([
+            { ticket: 'eight', allowed: false },
+            { ticket: 'nine', allowed: false }
+        ]);
+
+        broken();
+    });
+
+    it('is not taken at all once the bridge has stopped, or when it is not a request', () => {
+        const stop = startDappBridge(quiet, undefined, async () => true);
+
+        expect(window.__nuraPermission?.('not json at all')).toBe(false);
+        expect(window.__nuraPermission?.(JSON.stringify({ ticket: 7, label: 'nura-browser-1', origin: 'https://voice.example', kind: 'microphone' }))).toBe(
+            false
+        );
+
+        stop();
+
+        // No dashboard, no handler: the native side reads that as a refusal on the spot.
+        expect(window.__nuraPermission).toBeUndefined();
     });
 });

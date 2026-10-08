@@ -1,7 +1,9 @@
 package wallet.nurachain.net
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.view.MotionEvent
 import android.view.View
@@ -9,6 +11,7 @@ import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
+import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -17,14 +20,27 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.webkit.ScriptHandler
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import org.json.JSONObject
 
-class BrowserBridge(private val activity: Activity, private val host: WebView) {
+class BrowserBridge(
+    private val activity: Activity,
+    private val host: WebView,
+    /** Asks Android for the microphone on the app's behalf, and reports what it said. */
+    private val askMicrophone: ((Boolean) -> Unit) -> Unit
+) {
 
     private val pages = LinkedHashMap<String, WebView>()
+
+    // What a page has asked for and the wallet has not answered yet, by the ticket it was handed.
+    private class Ask(val tab: String, val request: PermissionRequest)
+
+    private val asks = LinkedHashMap<String, Ask>()
+
+    private var askCount = 0
 
     private var desktop: Boolean = false
 
@@ -112,6 +128,61 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
         host.post {
             host.evaluateJavascript("window.__nuraBrowserState && window.__nuraBrowserState($state)", null)
+        }
+    }
+
+    /**
+     * A page asking for the microphone.
+     *
+     * A WebView refuses whatever its client does not answer, which is how every one of these used
+     * to end: the site was told "blocked" and nobody was ever asked. The wallet is asked instead,
+     * and told who is asking from the request itself — the frame the WebView says wants it — never
+     * from anything the page could say.
+     *
+     * Only a request for the microphone alone is put to the user. The WebView takes a grant for
+     * exactly what was asked or not at all, so a request that wants the camera too cannot be
+     * answered in part, and is refused whole.
+     */
+    private fun ask(tab: String, request: PermissionRequest) {
+        val origin = originOf(request.origin?.toString())
+        val wanted = request.resources ?: emptyArray()
+
+        if (origin.isEmpty() || wanted.size != 1 || wanted[0] != PermissionRequest.RESOURCE_AUDIO_CAPTURE) {
+            request.deny()
+
+            return
+        }
+
+        askCount += 1
+
+        val ticket = askCount.toString()
+
+        asks[ticket] = Ask(tab, request)
+
+        val message = JSONObject()
+            .put("ticket", ticket)
+            .put("label", tab)
+            .put("origin", origin)
+            .put("kind", "microphone")
+
+        val literal = JSONObject.quote(message.toString())
+
+        // Nobody there to ask — a locked wallet has no dashboard listening — is a refusal, given
+        // now rather than left for the page to wait on.
+        host.evaluateJavascript("window.__nuraPermission ? window.__nuraPermission($literal) === true : false") { taken ->
+            if (taken != "true") {
+                asks.remove(ticket)?.request?.deny()
+            }
+        }
+    }
+
+    private fun dropAsks(keep: (Ask) -> Boolean) {
+        val gone = asks.filterValues { !keep(it) }
+
+        for ((ticket, ask) in gone) {
+            asks.remove(ticket)
+
+            ask.request.deny()
         }
     }
 
@@ -214,6 +285,16 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         view.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView, newProgress: Int) {
                 publish(id, view, newProgress < 100, newProgress)
+            }
+
+            override fun onPermissionRequest(request: PermissionRequest) {
+                ask(id, request)
+            }
+
+            // The page gave up on it, by leaving or by being closed. An answer that comes for the
+            // ticket later finds nothing to give it to.
+            override fun onPermissionRequestCanceled(request: PermissionRequest) {
+                asks.entries.removeAll { it.value.request === request }
             }
         }
 
@@ -395,12 +476,39 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         activity.runOnUiThread { pages[id]?.let { layout(it, x, y, width, height) } }
     }
 
+    /**
+     * The wallet's answer to a page's request for the microphone. A yes from the user covers the
+     * site; Android has its own say over the app, asked the first time and remembered by it after.
+     */
+    @JavascriptInterface
+    fun permissionReply(ticket: String, allowed: Boolean) {
+        activity.runOnUiThread {
+            val request = asks.remove(ticket)?.request ?: return@runOnUiThread
+
+            if (!allowed) {
+                request.deny()
+
+                return@runOnUiThread
+            }
+
+            val grant = { request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) }
+
+            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                grant()
+            } else {
+                askMicrophone { granted -> if (granted) grant() else request.deny() }
+            }
+        }
+    }
+
     @JavascriptInterface
     fun closeAll() {
         activity.runOnUiThread {
             mouse?.visibility = View.GONE
 
             scripts.clear()
+
+            dropAsks { false }
 
             for ((_, view) in pages) {
                 (view.parent as? ViewGroup)?.removeView(view)
@@ -417,6 +525,8 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     fun closeTab(id: String) {
         activity.runOnUiThread {
             scripts.remove(id)
+
+            dropAsks { it.tab != id }
 
             pages.remove(id)?.let { view ->
                 (view.parent as? ViewGroup)?.removeView(view)

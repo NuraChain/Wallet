@@ -4,6 +4,16 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- For a site in the browser that the user has let use the microphone, and for nothing the
+         wallet does itself. The first is asked for at that moment; the second is what lets a call
+         route its audio, and Android grants it without asking. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />

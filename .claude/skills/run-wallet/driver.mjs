@@ -53,6 +53,7 @@ const fixtures = {
     sign: { kind: 'signature', origin: 'https://app.aave.com', summary: 'Sign in to app.aave.com\nNonce: 42' },
     typed: { kind: 'typed', origin: 'https://opensea.io', summary: JSON.stringify({ offerer: payee, startTime: '1727000000', counter: '0' }, null, 2) },
     connect: { kind: 'connect', origin: 'https://app.aave.com', summary: 'https://app.aave.com' },
+    microphone: { kind: 'microphone', origin: 'https://discord.com', summary: 'https://discord.com' },
     'chain-add': { kind: 'chain', origin: 'https://bridge.arbitrum.io', summary: 'Arbitrum One', chain: { name: 'Arbitrum One', id: 42161, rpc: 'https://arb1.arbitrum.io/rpc', added: true, from: { name: 'Nura Chain', id: 1020 } } },
     'chain-switch': { kind: 'chain', origin: 'https://pancakeswap.finance', summary: 'BNB Smart Chain', chain: { name: 'BNB Smart Chain', id: 56, rpc: 'https://bsc-dataseed.binance.org', added: false, from: { name: 'Nura Chain', id: 1020 } } },
     asset: { kind: 'asset', origin: 'https://pancakeswap.finance', summary: 'CAKE', asset: { address: '0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82', symbol: 'CAKE', decimals: 18 } }

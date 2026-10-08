@@ -29,7 +29,16 @@ import { forgetDappPages, startDappBridge } from '../core/dapp.bridge';
 import { flushDeepLinks } from '../core/deeplink';
 import { lockSession } from '../core/session';
 import { useVault } from '../hook/vault';
-import { answerDapp, rejectDappPrompts, setDappAccount, setDappWatchAsset, subscribeDappChange, syncDappState } from '../core/dapp.rpc';
+import {
+    allowMicrophone,
+    answerDapp,
+    forgetMicrophones,
+    rejectDappPrompts,
+    setDappAccount,
+    setDappWatchAsset,
+    subscribeDappChange,
+    syncDappState
+} from '../core/dapp.rpc';
 import { useDappPrompt } from '../hook/dapp';
 import { vaultAddress, vaultDerivable } from '../core/vault';
 import { usePrices } from '../hook/price';
@@ -314,7 +323,7 @@ function DashboardView({ vault }: { vault: Vault }) {
     useEffect(() => {
         void loadConnections();
 
-        const stop = startDappBridge(answerDapp);
+        const stop = startDappBridge(answerDapp, undefined, allowMicrophone);
 
         flushDeepLinks();
 
@@ -326,6 +335,8 @@ function DashboardView({ vault }: { vault: Vault }) {
             setDappAccount('', 0);
 
             forgetDappPages();
+
+            forgetMicrophones();
         };
     }, []);
 

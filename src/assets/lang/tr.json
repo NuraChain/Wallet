@@ -310,6 +310,8 @@
             "TransactionNote": "Bu, hesabınızdan bir işlem gönderir ve geri alınamaz.",
             "ChainNote": "Bu site cüzdandan ağı değiştirmesini istiyor. Bakiyeler ve geçmiş de değişecek.",
             "AssetNote": "Bu site cüzdandan bir tokenı takip etmesini istiyor. Bilgiler siteden değil, sözleşmeden okunur.",
+            "MicrophoneTitle": "Mikrofonunuzu kullan",
+            "MicrophoneNote": "Bu site bu cihazın mikrofonunu dinlemek istiyor. Cüzdanı kilitleyene kadar bu site için izin geçerli kalır.",
             "Account": "Hesap",
             "From": "Kaynak",
             "To": "Hedef",

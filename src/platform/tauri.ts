@@ -18,6 +18,9 @@ declare global {
         __nuraExport?: AndroidBridge;
         __nuraDappRequest?: (payload: string) => void;
         __nuraDappLink?: (url: string) => void;
+
+        /** Answers whether the question was taken: `false` leaves the asker to refuse it itself. */
+        __nuraPermission?: (payload: string) => boolean;
     }
 }
 
@@ -112,8 +115,50 @@ const nativeDapp: PlatformDapp = {
         void invoke('dapp_emit', { label, payload: body }).catch(() => undefined);
     },
 
-    serve: (accept, onLink) => {
+    serve: (accept, onLink, onAsk) => {
         if (window.__nuraBrowser !== undefined) {
+            /* A page asking for the microphone. Kotlin holds the request and refuses it unless this
+               says, there and then, that somebody took the question — which is what keeps a wallet
+               that is locked, or has no dashboard up, from leaving a page waiting on an answer. */
+            window.__nuraPermission = (incoming: string) => {
+                let parsed: unknown;
+
+                try {
+                    parsed = JSON.parse(incoming);
+                } catch {
+                    return false;
+                }
+
+                if (
+                    onAsk === undefined ||
+                    typeof parsed !== 'object' ||
+                    parsed === null ||
+                    !('ticket' in parsed) ||
+                    !('label' in parsed) ||
+                    !('origin' in parsed) ||
+                    !('kind' in parsed)
+                ) {
+                    return false;
+                }
+
+                const { ticket, label, origin, kind } = parsed;
+
+                if (typeof ticket !== 'string' || typeof label !== 'string' || typeof origin !== 'string' || typeof kind !== 'string') {
+                    return false;
+                }
+
+                onAsk({
+                    label,
+                    origin,
+                    kind,
+                    respond: (allowed) => {
+                        window.__nuraBrowser?.permissionReply?.(ticket, allowed);
+                    }
+                });
+
+                return true;
+            };
+
             window.__nuraDappRequest = (incoming: string) => {
                 let parsed: unknown;
 
@@ -152,6 +197,7 @@ const nativeDapp: PlatformDapp = {
             return () => {
                 window.__nuraDappRequest = undefined;
                 window.__nuraDappLink = undefined;
+                window.__nuraPermission = undefined;
             };
         }
 

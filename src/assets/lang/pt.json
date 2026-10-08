@@ -310,6 +310,8 @@
             "TransactionNote": "Isto envia uma transação da sua conta e não pode ser desfeito.",
             "ChainNote": "Este site pede que a carteira mude de rede. Saldos e histórico mudam junto.",
             "AssetNote": "Este site pede que a carteira acompanhe um token. Os dados vêm do contrato, não do site.",
+            "MicrophoneTitle": "Usar seu microfone",
+            "MicrophoneNote": "Este site pede para ouvir pelo microfone deste dispositivo. Continua permitido para este site até você bloquear a carteira.",
             "Account": "Conta",
             "From": "De",
             "To": "Para",

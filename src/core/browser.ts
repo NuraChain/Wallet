@@ -126,6 +126,8 @@ interface BrowserBridge {
 
     dappEmit?: (id: string, payload: string) => void;
 
+    permissionReply?: (ticket: string, allowed: boolean) => void;
+
     showMouse?: (opacity: number) => void;
     hideMouse?: () => void;
     setMouseOpacity?: (opacity: number) => void;

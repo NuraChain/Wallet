@@ -310,6 +310,8 @@
             "TransactionNote": "Esto envía una transacción desde tu cuenta. No se puede deshacer.",
             "ChainNote": "Este sitio pide a la billetera que cambie de red. Los saldos y el historial cambiarán con ella.",
             "AssetNote": "Este sitio pide a la billetera que siga un token. Los datos se leen del contrato, no del sitio.",
+            "MicrophoneTitle": "Usar tu micrófono",
+            "MicrophoneNote": "Este sitio pide escuchar por el micrófono de este dispositivo. Seguirá permitido para este sitio hasta que bloquees la billetera.",
             "Account": "Cuenta",
             "From": "De",
             "To": "Para",

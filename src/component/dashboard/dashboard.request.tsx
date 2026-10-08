@@ -36,7 +36,8 @@ const noteMap: Record<DappPrompt['kind'], string> = {
     typed: 'Dashboard.Request.TypedNote',
     transaction: 'Dashboard.Request.TransactionNote',
     chain: 'Dashboard.Request.ChainNote',
-    asset: 'Dashboard.Request.AssetNote'
+    asset: 'Dashboard.Request.AssetNote',
+    microphone: 'Dashboard.Request.MicrophoneNote'
 };
 
 /* A value dropped into a translated sentence keeps its own direction, or "0.25 ETH" is reordered
@@ -168,6 +169,10 @@ export default function DashboardRequest({
 
         if (prompt.kind === 'asset') {
             return { title: T('Dashboard.Request.AssetTitle'), verb: T('Dashboard.Request.AssetAction') };
+        }
+
+        if (prompt.kind === 'microphone') {
+            return { title: T('Dashboard.Request.MicrophoneTitle'), verb: T('Dashboard.Request.AllowAction') };
         }
 
         if (call?.revoke === true) {
@@ -352,49 +357,53 @@ export default function DashboardRequest({
                 take tokens after this dialog is gone, not on every routine note. */}
             <Alert variant='error' size='comfortable' textAlign='start' text={warning()} />
 
-            <ModalBody>
-                {route()}
+            {/* A site asking for the microphone moves nothing and names no account or network: who
+                is asking and what it means, above, is all there is to weigh. */}
+            {prompt.kind !== 'microphone' && (
+                <ModalBody>
+                    {route()}
 
-                {contract.length > 0 && (
-                    <Panel>
-                        <AddressBlock label={T('Dashboard.Request.AssetAddress')} address={contract} />
-                    </Panel>
-                )}
-
-                <ListCard>
-                    {rows().map((item) => (
-                        <Horizontal key={`${item.label}:${item.value}`} align='center' justify='between' gap={3} p={3}>
-                            <Text shrink={false} text={item.label} />
-
-                            <Text variant='captionStrong' dir={item.mono ? 'ltr' : undefined} squeeze='x' truncate mono={item.mono} text={item.value} />
-                        </Horizontal>
-                    ))}
-                </ListCard>
-
-                {endpoint.length > 0 && (
-                    <Vertical gap={1}>
-                        <Text text={T('Dashboard.Request.ChainRpc')} />
-
+                    {contract.length > 0 && (
                         <Panel>
-                            <Text variant='captionStrong' dir='ltr' mono breaks='words' text={endpoint} />
+                            <AddressBlock label={T('Dashboard.Request.AssetAddress')} address={contract} />
                         </Panel>
-                    </Vertical>
-                )}
+                    )}
 
-                {payload.length > 0 && (
-                    <Vertical gap={1}>
-                        <Text text={T('Dashboard.Request.Message')} />
+                    <ListCard>
+                        {rows().map((item) => (
+                            <Horizontal key={`${item.label}:${item.value}`} align='center' justify='between' gap={3} p={3}>
+                                <Text shrink={false} text={item.label} />
 
-                        <Vertical relative>
-                            <Panel ref={payloadRef} bounded>
-                                <Text variant='captionStrong' dir='ltr' mono breaks='words' pre text={payload} />
+                                <Text variant='captionStrong' dir={item.mono ? 'ltr' : undefined} squeeze='x' truncate mono={item.mono} text={item.value} />
+                            </Horizontal>
+                        ))}
+                    </ListCard>
+
+                    {endpoint.length > 0 && (
+                        <Vertical gap={1}>
+                            <Text text={T('Dashboard.Request.ChainRpc')} />
+
+                            <Panel>
+                                <Text variant='captionStrong' dir='ltr' mono breaks='words' text={endpoint} />
                             </Panel>
-
-                            <ScrollBar viewportRef={payloadRef} edge='inset' />
                         </Vertical>
-                    </Vertical>
-                )}
-            </ModalBody>
+                    )}
+
+                    {payload.length > 0 && (
+                        <Vertical gap={1}>
+                            <Text text={T('Dashboard.Request.Message')} />
+
+                            <Vertical relative>
+                                <Panel ref={payloadRef} bounded>
+                                    <Text variant='captionStrong' dir='ltr' mono breaks='words' pre text={payload} />
+                                </Panel>
+
+                                <ScrollBar viewportRef={payloadRef} edge='inset' />
+                            </Vertical>
+                        </Vertical>
+                    )}
+                </ModalBody>
+            )}
 
             {/* On an allowance the safe answer carries the weight: the expensive mistake here is the
                 reflex tap on whatever looks like the primary button. */}
