@@ -37,14 +37,14 @@ import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
-import { showMouse } from '../core/mouse';
+import { setMouseIcon, showMouse } from '../core/mouse';
 import Mouse from '../ui/mouse';
 
 import { getDirection, T } from '../utility/language';
 import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount } from '../utility/account';
-import type { MouseAction, SidebarItem } from '../type/app';
+import type { MouseAction, MouseIcon, SidebarItem } from '../type/app';
 import type { Account, Vault } from '../type/wallet';
 import type { HiddenMap, TokenMap } from '../type/token';
 import { Screen, Track } from '../ui/screen';
@@ -138,6 +138,16 @@ function DashboardView({ vault }: { vault: Vault }) {
     };
 
     const onMouseEvent = useEffectEvent(onMouse);
+
+    // On the wallet the mouse wears the browser's icon, since that is where a press there leads.
+    const mouseIcon: MouseIcon = tabMap[active].key === 'Wallet' ? 'browser' : 'logo';
+
+    // Told before the mouse is shown below, so one drawn natively starts out wearing it.
+    useEffect(() => {
+        if (hasBrowser) {
+            void setMouseIcon(mouseIcon);
+        }
+    }, [hasBrowser, mouseIcon]);
 
     // Drawn natively where a browser tab could cover it, so it stays above every page; the one in
     // the wallet's own page only where that cannot be done.
@@ -532,7 +542,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 )}
             </AnimatePresence>
 
-            {pageMouse && <Mouse onAction={onMouse} />}
+            {pageMouse && <Mouse icon={mouseIcon} onAction={onMouse} />}
 
             <Horizontal dir={getDirection()} fill='both' clip>
                 {/* Full screen is the browser's own mode, so the rail only steps aside while that

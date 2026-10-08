@@ -43,6 +43,11 @@
     --color-badge-line: var(--badge-border);
     --color-badge-text: var(--badge-text);
 
+    /* The logo's own two colours, for what is drawn to sit beside it. Fixed in both themes, as the
+       image is. */
+    --color-logo-tile: oklch(0% 0 0);
+    --color-logo-ink: oklch(73.7% 0.144 232.5);
+
     --color-btn-muted: var(--btn-muted);
     --color-btn-muted-hover: var(--btn-muted-hover);
     --color-btn-muted-active: var(--btn-muted-active);

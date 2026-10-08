@@ -105,13 +105,20 @@ reaches Tauri IPC. `tokio` is in the tree for that and nothing else.
 
 The floating mouse (`src/core/mouse.ts`) is the one wallet control drawn over a tab, and a tab
 is an OS view no z-index reaches, so the mouse is a view too. On desktop it is its own
-transparent child webview, `nura-mouse`, loading `index.html#mouse=<opacity>` into the `#mouse`
-div (`MouseView`). A child added later stacks above it, so `browser_open` re-parents the mouse
+transparent child webview, `nura-mouse`, loading `index.html#mouse=<opacity>&icon=<icon>` into the
+`#mouse` div (`MouseView`). A child added later stacks above it, so `browser_open` re-parents the mouse
 to the same window after every tab, which puts it back on top. As a local webview of `main` it
 runs under `main-capability`, which is why that holds `core:event:allow-emit`,
 `core:webview:allow-webview-position` and `core:window:allow-inner-size`. On Android it is an
 `ImageView` in `BrowserBridge.kt` kept on top by `translationZ`. Where neither can be drawn,
 the page's own `Mouse` element stands in.
+
+What the mouse wears follows the tab — the browser's icon on the wallet, where a press opens the
+browser, and the logo everywhere else — and all three have to be told. The page's `Mouse` takes it
+as a prop; `setMouseIcon` in `core/mouse.ts` reaches the other two. The desktop webview starts from
+its fragment and then follows `nura://mouse-icon`, asking for it with `nura://mouse-ready` once it
+is listening, since a change sent while it loads reaches nobody. Android takes `setMouseIcon` on
+the bridge and draws `res/drawable/nura_browser.xml`, a copy of `MouseFace` in `ui/mouse.tsx`.
 
 **Linux places child webviews itself.** Tauri packs every webview of a window into one vertical
 `gtk::Box`, so a child stacks under the wallet as a second row, and wry ignores `setPosition` /

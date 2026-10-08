@@ -220,7 +220,8 @@ icon, or of both edges), `mono`, `align`, `textSize` and `truncate`; `TextArea` 
   field's leading edge), and the recovery phrase's **`SecretKey` / `SecretWords` / `SecretWord`**
   (`ui/secret.tsx`), which stay blurred until revealed.
 - **`Mouse`** (`ui/mouse.tsx`) — the floating logo in the page's `#mouse`, used only where no
-  native mouse can be drawn over the browser tabs; `MouseView` is the desktop webview's own.
+  native mouse can be drawn over the browser tabs; `MouseView` is the desktop webview's own. `icon`
+  swaps the logo for the browser's icon on the logo's own tile (`bg-logo-tile`, `text-logo-ink`).
 
 ## Money and destruction
 

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
+import { Globe } from 'lucide-react';
 import { emit, listen } from '@tauri-apps/api/event';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -10,9 +11,9 @@ import { cn } from '../utility/cn';
 import { focusRing } from './token';
 import { layer } from './container';
 import { useMouseOpacity } from '../hook/mouse';
-import { getMousePosition, readMouseOpacity, setMousePosition } from '../core/mouse';
+import { getMousePosition, readMouseIcon, readMouseOpacity, setMousePosition } from '../core/mouse';
 
-import type { MouseAction } from '../type/app';
+import type { MouseAction, MouseIcon } from '../type/app';
 
 const size = 40;
 const edge = 16;
@@ -112,6 +113,23 @@ const usePress = ({
     };
 };
 
+/**
+ * What the mouse wears. The browser's icon sits on a tile cut to the logo's shape and colours, so
+ * the mouse stays one object that changes its emblem — and a bare glyph would be lost at the
+ * opacity the mouse is usually left at.
+ */
+function MouseFace({ icon }: { icon: MouseIcon }) {
+    if (icon === 'browser') {
+        return (
+            <span className='pointer-events-none flex size-full items-center justify-center rounded-lg bg-logo-tile text-logo-ink'>
+                <Globe size={24} />
+            </span>
+        );
+    }
+
+    return <img src={Logo} alt='' draggable={false} className='pointer-events-none size-full' />;
+}
+
 // Where it was left, so a lock and unlock put it back rather than in the corner.
 let parked: Point | undefined;
 
@@ -122,13 +140,14 @@ const clamp = ({ x, y }: Point): Point => ({
 });
 
 /**
- * The floating mouse drawn in the page itself: the app's logo, dragged anywhere across the window
- * and pressed to move around the wallet. One element in the page's own `#mouse`, above everything
+ * The floating mouse drawn in the page itself: the app's logo, or the browser's icon where a press
+ * opens it, dragged anywhere across the window and pressed to move around the wallet. One element
+ * in the page's own `#mouse`, above everything
  * the wallet draws — but not above a browser tab, which is why desktop and Android draw
  * `MouseView` or a native view instead where they can. It only reports what happened; the
  * dashboard decides what a press means.
  */
-export default function Mouse({ onAction }: { onAction: (action: MouseAction) => void }) {
+export default function Mouse({ icon, onAction }: { icon: MouseIcon; onAction: (action: MouseAction) => void }) {
     const opacity = useMouseOpacity();
 
     const [place, setPlace] = useState(() => clamp(parked ?? { x: window.innerWidth - size - edge, y: window.innerHeight * 0.7 }));
@@ -178,7 +197,7 @@ export default function Mouse({ onAction }: { onAction: (action: MouseAction) =>
             style={{ left: place.x, top: place.y, opacity }}
             className={cn(focusRing, 'absolute size-10 cursor-grab touch-none select-none active:cursor-grabbing', layer.mouse)}
         >
-            <img src={Logo} alt='' draggable={false} className='pointer-events-none size-full' />
+            <MouseFace icon={icon} />
         </button>,
         target
     );
@@ -203,8 +222,9 @@ const clampPhysical = (point: Point, limit: Point): Point => ({
  * The desktop mouse: the whole of a small transparent webview stacked over the wallet and its
  * browser tabs, so it moves by moving that webview, and says what happened by event.
  */
-export function MouseView({ opacity: initial }: { opacity: number }) {
+export function MouseView({ opacity: initial, icon: worn }: { opacity: number; icon: MouseIcon }) {
     const [opacity, setOpacity] = useState(initial);
+    const [icon, setIcon] = useState(worn);
 
     const grabRef = useRef<{ screen: Point; start: Promise<[Point, Point]> } | undefined>(undefined);
     const targetRef = useRef<Point | undefined>(undefined);
@@ -237,10 +257,19 @@ export function MouseView({ opacity: initial }: { opacity: number }) {
             listen<unknown>('nura://mouse-opacity', (event) => {
                 setOpacity(readMouseOpacity(event.payload));
             }),
+            listen<unknown>('nura://mouse-icon', (event) => {
+                setIcon(readMouseIcon(event.payload));
+            }),
             getCurrentWindow().onResized(() => {
                 void refit().catch(() => undefined);
             })
         ];
+
+        // Said once the listeners are in place: whatever the wallet sent while this page was still
+        // loading reached nobody, and it answers with what the mouse should be wearing now.
+        void Promise.all(stops)
+            .then(async () => emit('nura://mouse-ready'))
+            .catch(() => undefined);
 
         return () => {
             for (const stop of stops) {
@@ -297,7 +326,7 @@ export function MouseView({ opacity: initial }: { opacity: number }) {
 
     return (
         <button type='button' {...press} style={{ opacity }} className='fixed inset-0 cursor-grab touch-none select-none active:cursor-grabbing'>
-            <img src={Logo} alt='' draggable={false} className='pointer-events-none size-full' />
+            <MouseFace icon={icon} />
         </button>
     );
 }

@@ -4,7 +4,7 @@ import { getValue, setValue } from '../utility/storage';
 import { getNativeBrowser, mouseLabel } from './browser';
 
 import type { Webview } from '@tauri-apps/api/webview';
-import type { MouseAction } from '../type/app';
+import type { MouseAction, MouseIcon } from '../type/app';
 
 declare global {
     interface Window {
@@ -24,7 +24,10 @@ export const readMouseOpacity = (value: unknown) => {
     return Number.isFinite(opacity) && opacity >= 0.1 && opacity <= 1 ? opacity : defaultMouseOpacity;
 };
 
+export const readMouseIcon = (value: unknown): MouseIcon => (value === 'browser' ? 'browser' : 'logo');
+
 let opacity = defaultMouseOpacity;
+let icon: MouseIcon = 'logo';
 let loading: Promise<void> | undefined;
 
 const listeners = new Set<() => void>();
@@ -60,6 +63,30 @@ export const subscribeMouseOpacity = (listener: () => void) => {
     return () => {
         listeners.delete(listener);
     };
+};
+
+/**
+ * Changes what a native mouse wears. It is kept here as well, so a mouse drawn later starts out
+ * right; the one in the page takes it as a prop and never comes through this.
+ */
+export const setMouseIcon = async (value: MouseIcon) => {
+    icon = value;
+
+    const bridge = getNativeBrowser();
+
+    if (bridge !== undefined) {
+        bridge.setMouseIcon?.(value);
+
+        return;
+    }
+
+    try {
+        const { emit } = await import('@tauri-apps/api/event');
+
+        await emit('nura://mouse-icon', value);
+    } catch {
+        // No desktop mouse to tell.
+    }
 };
 
 export const setMouseOpacity = async (value: number) => {
@@ -163,10 +190,10 @@ const openDesktop = async () => {
     const x = clamp(parked?.x ?? window.innerWidth - mouseSize - mouseEdge, window.innerWidth);
     const y = clamp(parked?.y ?? window.innerHeight * 0.7, window.innerHeight);
 
-    // The page is transparent, so the webview is only ever the logo; the fragment carries the
-    // opacity because it never reaches the asset protocol the way a query would.
+    // The page is transparent, so the webview is only ever the mouse; the fragment carries how it
+    // starts out because it never reaches the asset protocol the way a query would.
     const view = new Webview(getCurrentWindow(), mouseLabel, {
-        url: `index.html#mouse=${await loadMouseOpacity()}`,
+        url: `index.html#mouse=${await loadMouseOpacity()}&icon=${icon}`,
         x,
         y,
         width: mouseSize,
@@ -216,6 +243,7 @@ export const showMouse = (onAction: (action: MouseAction) => void, onFallback: (
 
         void loadMouseOpacity().then((value) => {
             if (live) {
+                bridge.setMouseIcon?.(icon);
                 bridge.showMouse?.(value);
             }
         });
@@ -233,13 +261,26 @@ export const showMouse = (onAction: (action: MouseAction) => void, onFallback: (
 
     queue(async () => {
         try {
-            const { listen } = await import('@tauri-apps/api/event');
+            const { emit, listen } = await import('@tauri-apps/api/event');
 
-            const unlisten = await listen<unknown>('nura://mouse', (event) => {
-                if (event.payload === 'click' || event.payload === 'double') {
-                    onAction(event.payload);
+            const stops = await Promise.all([
+                listen<unknown>('nura://mouse', (event) => {
+                    if (event.payload === 'click' || event.payload === 'double') {
+                        onAction(event.payload);
+                    }
+                }),
+                // The mouse's webview says when it has started listening, and is told then what to
+                // wear: a change made while it was still loading reached nobody.
+                listen('nura://mouse-ready', () => {
+                    void emit('nura://mouse-icon', icon).catch(() => undefined);
+                })
+            ]);
+
+            const unlisten = () => {
+                for (const item of stops) {
+                    item();
                 }
-            });
+            };
 
             if (!live) {
                 unlisten();

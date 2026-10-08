@@ -34,6 +34,9 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
 
     private var mouse: ImageView? = null
 
+    // What the mouse wears. Kept apart from the view, which the first request for it comes ahead of.
+    private var mouseIcon: String = "logo"
+
     companion object {
         private const val SOLE = "sole"
 
@@ -230,6 +233,8 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         }
     }
 
+    private fun mouseImage() = if (mouseIcon == "browser") R.drawable.nura_browser else R.drawable.nura_logo
+
     // The floating mouse: a view of its own above the wallet and every tab. A raised Z keeps it
     // over tabs added after it, for drawing and for touches alike, so nothing has to re-stack it.
     @SuppressLint("ClickableViewAccessibility")
@@ -237,7 +242,7 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
         val size = px(40.0)
         val view = ImageView(activity)
 
-        view.setImageResource(R.drawable.nura_logo)
+        view.setImageResource(mouseImage())
         view.contentDescription = "Nura Wallet"
         view.layoutParams = FrameLayout.LayoutParams(size, size)
         view.translationZ = 1000f
@@ -330,6 +335,15 @@ class BrowserBridge(private val activity: Activity, private val host: WebView) {
     @JavascriptInterface
     fun setMouseOpacity(opacity: Double) {
         activity.runOnUiThread { mouse?.alpha = opacity.toFloat() }
+    }
+
+    @JavascriptInterface
+    fun setMouseIcon(icon: String) {
+        activity.runOnUiThread {
+            mouseIcon = icon
+
+            mouse?.setImageResource(mouseImage())
+        }
     }
 
     @JavascriptInterface

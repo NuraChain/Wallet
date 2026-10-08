@@ -17,4 +17,7 @@ export interface SidebarItem {
 
 export type MouseAction = 'click' | 'double';
 
+/** What the floating mouse wears: the app's logo, or the browser's icon where a press opens it. */
+export type MouseIcon = 'logo' | 'browser';
+
 export type LanguageType = 'en' | 'fa' | 'ar' | 'es' | 'pt' | 'hi' | 'zh' | 'ru' | 'fr' | 'tr';

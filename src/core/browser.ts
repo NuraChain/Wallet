@@ -129,6 +129,7 @@ interface BrowserBridge {
     showMouse?: (opacity: number) => void;
     hideMouse?: () => void;
     setMouseOpacity?: (opacity: number) => void;
+    setMouseIcon?: (icon: string) => void;
 }
 
 declare global {

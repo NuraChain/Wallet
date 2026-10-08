@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- What the floating mouse wears on the wallet, where a press opens the browser: lucide's globe on a
+     tile cut to the logo's shape and colours. Drawn to match MouseFace in src/ui/mouse.tsx, so a
+     change to either belongs in both. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="40dp"
+    android:height="40dp"
+    android:viewportWidth="40"
+    android:viewportHeight="40">
+
+    <path
+        android:fillColor="#000000"
+        android:pathData="M8,0h24a8,8 0 0 1 8,8v24a8,8 0 0 1 -8,8h-24a8,8 0 0 1 -8,-8v-24a8,8 0 0 1 8,-8z" />
+
+    <group
+        android:translateX="8"
+        android:translateY="8">
+
+        <path
+            android:pathData="M12,2a10,10 0 1 0 0,20a10,10 0 1 0 0,-20z"
+            android:strokeColor="#22B8F5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="2" />
+
+        <path
+            android:pathData="M12,2a14.5,14.5 0 0 0 0,20a14.5,14.5 0 0 0 0,-20"
+            android:strokeColor="#22B8F5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="2" />
+
+        <path
+            android:pathData="M2,12h20"
+            android:strokeColor="#22B8F5"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:strokeWidth="2" />
+
+    </group>
+
+</vector>
