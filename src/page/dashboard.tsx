@@ -2,7 +2,7 @@ import { Navigate, useNavigate } from 'react-router';
 import { platform } from '../platform';
 import { AnimatePresence } from 'motion/react';
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, LogOut, Settings, Globe, Lock, Wallet } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Settings, Globe, Lock, Trash2, Wallet } from 'lucide-react';
 
 import ScrollArea from '../ui/scroll';
 import PageContainer, { ScrollFrame } from '../ui/container';
@@ -11,7 +11,7 @@ import DashboardWallet from '../component/dashboard/dashboard.wallet';
 import DashboardSend from '../component/dashboard/dashboard.send';
 import IntroLanguage from '../component/intro/intro.language';
 import DashboardTokens from '../component/dashboard/dashboard.tokens';
-import DashboardLogout from '../component/dashboard/dashboard.logout';
+import DashboardDelete from '../component/dashboard/dashboard.delete';
 import DashboardPhrase from '../component/dashboard/dashboard.phrase';
 import DashboardRedeem from '../component/dashboard/dashboard.redeem';
 import DashboardAccount from '../component/dashboard/dashboard.account';
@@ -60,7 +60,7 @@ import { Screen, Track } from '../ui/screen';
 import { Horizontal } from '../ui/stack';
 import { Block } from '../ui/wrap';
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'logout' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse';
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'delete' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse';
 
 const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Settings' }];
 
@@ -546,7 +546,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                 {modal === 'phrase' && <DashboardPhrase key='phrase' kind={vault.kind} onClose={closeModal} />}
 
-                {modal === 'logout' && <DashboardLogout key='logout' kind={vault.kind} onClose={closeModal} />}
+                {modal === 'delete' && <DashboardDelete key='delete' kind={vault.kind} onClose={closeModal} />}
 
                 {prompt !== undefined && (
                     <DashboardRequest key={prompt.id} prompt={prompt} name={name} emoji={emoji} address={address} network={network.name} tokens={tracked} />
@@ -591,12 +591,12 @@ function DashboardView({ vault }: { vault: Vault }) {
                                 }
                             },
                             {
-                                key: 'Logout',
-                                label: T('Dashboard.Logout.Title'),
-                                icon: LogOut,
+                                key: 'Delete',
+                                label: T('Dashboard.Delete.Title'),
+                                icon: Trash2,
                                 destructive: true,
                                 onClick: () => {
-                                    setModal('logout');
+                                    setModal('delete');
                                 }
                             }
                         ]}
@@ -642,8 +642,8 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                         onPhrase={() => {
                                                             setModal('phrase');
                                                         }}
-                                                        onLogout={() => {
-                                                            setModal('logout');
+                                                        onDelete={() => {
+                                                            setModal('delete');
                                                         }}
                                                     />
                                                 )}
@@ -707,7 +707,7 @@ export default function DashboardPage() {
     // The loader only guards the way in. A lock that lands while the dashboard is open — the
     // extension's idle deadline, a second window's Lock — used to leave this on a spinner forever,
     // since nothing moved the route. The launch route decides where it goes: unlock for a wallet
-    // still in storage, intro for one a logout just wiped.
+    // still in storage, intro for one just deleted.
     if (vault === undefined) {
         return <Navigate to='/' replace />;
     }

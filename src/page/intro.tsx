@@ -7,6 +7,7 @@ import { Download, Globe, Moon, CirclePlus, Sun, ChevronDown, ChevronRight, type
 import { useRef, useCallback, useState, type ReactNode } from 'react';
 
 import Text from '../ui/text';
+import Alert from '../ui/alert';
 import Button from '../ui/button';
 import PageContainer from '../ui/container';
 import IntroImport from '../component/intro/intro.import';
@@ -15,6 +16,7 @@ import IntroLanguage from '../component/intro/intro.language';
 
 import { Vertical } from '../ui/stack';
 
+import { takeErased } from '../core/erase';
 import { getTheme, setTheme } from '../utility/theme';
 import { getDirection, getLanguage, T } from '../utility/language';
 import { IntroArtConnect, IntroArtDecentralized, IntroArtSecure } from '../ui/intro.art';
@@ -53,6 +55,9 @@ export default function IntroPage() {
 
     const [subPage, setSubPage] = useState<ReactNode>();
     const [theme, setThemeState] = useState(getTheme());
+
+    // Said once, on the screen a deleted wallet lands on, so the person who asked for it sees it done.
+    const [deleted] = useState(takeErased);
 
     const onCloseSub = useCallback(() => {
         setSubPage(undefined);
@@ -125,6 +130,8 @@ export default function IntroPage() {
                     </Swiper>
 
                     <Vertical shrink={false} gap={2}>
+                        <Alert variant='success' size='banner' mx='auto' width='fit' text={deleted ? T('Intro.Deleted') : ''} />
+
                         {entryMap.map((item) => (
                             <Button
                                 key={item.key}

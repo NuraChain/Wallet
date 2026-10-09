@@ -59,6 +59,7 @@
         },
         "Create": "Crear una cartera nueva",
         "Import": "Importar una cartera existente",
+        "Deleted": "Cartera eliminada de este dispositivo.",
         "Version": "Versión %s",
         "ImportWallet": {
             "Title": "Importar una cartera existente",
@@ -349,7 +350,7 @@
             "ThemeDark": "Oscuro",
             "SidePanel": "Abrir en el panel lateral",
             "Version": "Versión %s",
-            "Logout": "Cerrar sesión"
+            "Delete": "Eliminar cartera"
         },
         "Phrase": {
             "Title": "Frase de recuperación",
@@ -376,12 +377,12 @@
             "ExportImageWarning": "Quien tenga estas palabras es dueño de la cartera. Guárdalas sin conexión.",
             "Hide": "Ocultar"
         },
-        "Logout": {
-            "Title": "Cerrar sesión",
-            "Message": "Esto elimina la cartera de este dispositivo. Solo podrás restaurarla con tu frase de recuperación.",
-            "MessageKey": "Esto elimina la cartera de este dispositivo. Solo podrás restaurarla con tu clave privada.",
+        "Delete": {
+            "Title": "Eliminar cartera",
+            "Message": "Esto elimina la cartera de este dispositivo, junto con sus cuentas, tokens, sitios conectados e historial de navegación. Tus fondos siguen en la blockchain y solo tu frase de recuperación puede restaurarlos. Sin ella, se pierden para siempre.",
+            "MessageKey": "Esto elimina la cartera de este dispositivo, junto con sus cuentas, tokens, sitios conectados e historial de navegación. Tus fondos siguen en la blockchain y solo tu clave privada puede restaurarlos. Sin ella, se pierden para siempre.",
             "Password": "Contraseña",
-            "Confirm": "Cerrar sesión",
+            "Confirm": "Eliminar cartera",
             "Cancel": "Cancelar",
             "ErrorRequired": "Introduce tu contraseña",
             "ErrorInvalid": "La contraseña es incorrecta"

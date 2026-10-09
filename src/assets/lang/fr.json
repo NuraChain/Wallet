@@ -59,6 +59,7 @@
         },
         "Create": "Créer un nouveau portefeuille",
         "Import": "Importer un portefeuille existant",
+        "Deleted": "Portefeuille supprimé de cet appareil.",
         "Version": "Version %s",
         "ImportWallet": {
             "Title": "Importer un portefeuille existant",
@@ -349,7 +350,7 @@
             "ThemeDark": "Sombre",
             "SidePanel": "Ouvrir dans le panneau latéral",
             "Version": "Version %s",
-            "Logout": "Se déconnecter"
+            "Delete": "Supprimer le portefeuille"
         },
         "Phrase": {
             "Title": "Phrase de récupération",
@@ -376,12 +377,12 @@
             "ExportImageWarning": "Quiconque détient ces mots possède le portefeuille. À garder hors ligne.",
             "Hide": "Masquer"
         },
-        "Logout": {
-            "Title": "Se déconnecter",
-            "Message": "Cela supprime le portefeuille de cet appareil. Vous ne pourrez le restaurer qu'avec votre phrase de récupération.",
-            "MessageKey": "Cela supprime le portefeuille de cet appareil. Vous ne pourrez le restaurer qu'avec votre clé privée.",
+        "Delete": {
+            "Title": "Supprimer le portefeuille",
+            "Message": "Cela supprime le portefeuille de cet appareil, avec ses comptes, ses jetons, ses sites connectés et son historique de navigation. Vos fonds restent sur la blockchain et seule votre phrase de récupération permet de les restaurer. Sans elle, ils sont perdus pour toujours.",
+            "MessageKey": "Cela supprime le portefeuille de cet appareil, avec ses comptes, ses jetons, ses sites connectés et son historique de navigation. Vos fonds restent sur la blockchain et seule votre clé privée permet de les restaurer. Sans elle, ils sont perdus pour toujours.",
             "Password": "Mot de passe",
-            "Confirm": "Se déconnecter",
+            "Confirm": "Supprimer le portefeuille",
             "Cancel": "Annuler",
             "ErrorRequired": "Veuillez saisir votre mot de passe",
             "ErrorInvalid": "Mot de passe incorrect"
