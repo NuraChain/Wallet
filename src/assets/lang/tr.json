@@ -59,6 +59,7 @@
         },
         "Create": "Yeni cüzdan oluştur",
         "Import": "Mevcut cüzdanı içe aktar",
+        "Deleted": "Cüzdan bu cihazdan silindi.",
         "Version": "Sürüm %s",
         "ImportWallet": {
             "Title": "Mevcut cüzdanı içe aktar",
@@ -349,7 +350,7 @@
             "ThemeDark": "Koyu",
             "SidePanel": "Yan panelde aç",
             "Version": "Sürüm %s",
-            "Logout": "Çıkış yap"
+            "Delete": "Cüzdanı sil"
         },
         "Phrase": {
             "Title": "Kurtarma ifadesi",
@@ -376,12 +377,12 @@
             "ExportImageWarning": "Bu kelimelere sahip olan cüzdana sahiptir. Çevrimdışı saklayın.",
             "Hide": "Gizle"
         },
-        "Logout": {
-            "Title": "Çıkış yap",
-            "Message": "Bu işlem cüzdanı bu cihazdan kaldırır. Yalnızca kurtarma ifadenizle geri yükleyebilirsiniz.",
-            "MessageKey": "Bu işlem cüzdanı bu cihazdan kaldırır. Yalnızca özel anahtarınızla geri yükleyebilirsiniz.",
+        "Delete": {
+            "Title": "Cüzdanı sil",
+            "Message": "Bu işlem cüzdanı hesapları, tokenleri, bağlı siteleri ve tarama geçmişiyle birlikte bu cihazdan siler. Varlıklarınız blokzincirde kalır ve yalnızca kurtarma ifadenizle geri yüklenebilir. O olmadan sonsuza dek kaybolur.",
+            "MessageKey": "Bu işlem cüzdanı hesapları, tokenleri, bağlı siteleri ve tarama geçmişiyle birlikte bu cihazdan siler. Varlıklarınız blokzincirde kalır ve yalnızca özel anahtarınızla geri yüklenebilir. O olmadan sonsuza dek kaybolur.",
             "Password": "Parola",
-            "Confirm": "Çıkış yap",
+            "Confirm": "Cüzdanı sil",
             "Cancel": "İptal",
             "ErrorRequired": "Lütfen parolanızı girin",
             "ErrorInvalid": "Parola yanlış"

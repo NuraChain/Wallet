@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronRight, Globe, LogOut, Moon, Sun, FileText, Lock } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Globe, Moon, Sun, FileText, Lock, Trash2 } from 'lucide-react';
 
 import Text from '../../ui/text';
 import Button from '../../ui/button';
@@ -21,14 +21,14 @@ export default function DashboardSettings({
     onLanguage,
     onPhrase,
     onLock,
-    onLogout
+    onDelete
 }: {
     kind: VaultKind;
     onBack: () => void;
     onLanguage: () => void;
     onPhrase: () => void;
     onLock: () => void;
-    onLogout: () => void;
+    onDelete: () => void;
 }) {
     const [theme, setThemeState] = useState(getTheme());
 
@@ -79,7 +79,7 @@ export default function DashboardSettings({
 
             <Block grow />
 
-            {/* One row, one metric, by request. Logout erases the wallet from this device and sits
+            {/* One row, one metric, by request. Delete erases the wallet from this device and sits
                 a target width from the everyday action, so the weight it carries is the fill:
                 `destructive` is the only red button on the screen, and the password prompt behind
                 it is what actually stands between a mis-tap and a lost wallet. */}
@@ -96,10 +96,10 @@ export default function DashboardSettings({
                 <Button
                     variant='destructive'
                     size='action'
-                    onClick={onLogout}
-                    leftIcon={<LogOut size={16} className='shrink-0 rtl:rotate-180' />}
+                    onClick={onDelete}
+                    leftIcon={<Trash2 size={16} className='shrink-0' />}
                     squeeze='x'
-                    label={T('Dashboard.Settings.Logout')}
+                    label={T('Dashboard.Settings.Delete')}
                 />
             </ModalActions>
 

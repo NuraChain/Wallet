@@ -7,16 +7,13 @@ import { PasswordField } from '../../ui/field';
 import { Modal, ModalActions, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
+import { eraseWallet } from '../../core/erase';
 import { passwordCheck } from '../../core/password';
 import { lockSession } from '../../core/session';
-import { removeValues } from '../../utility/storage';
-import { invalidateHistory } from '../../core/history.cache';
-import { invalidateTokenCache } from '../../core/token.cache';
+import { closeBrowserLayers } from '../../core/browser';
 import type { VaultKind } from '../../type/wallet';
 
-const clearList = ['Wallet.Mnemonic', 'Wallet.Password', 'Wallet.Name', 'Wallet.Accounts', 'Wallet.Active'] as const;
-
-export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; onClose: () => void }) {
+export default function DashboardDelete({ kind, onClose }: { kind: VaultKind; onClose: () => void }) {
     const navigate = useNavigate();
 
     const [error, setError] = useState('');
@@ -27,7 +24,7 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
         setError('');
 
         if (password.trim().length === 0) {
-            setError(T('Dashboard.Logout.ErrorRequired'));
+            setError(T('Dashboard.Delete.ErrorRequired'));
 
             return;
         }
@@ -46,17 +43,14 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
             }
 
             if (outcome === 'invalid') {
-                setError(T('Dashboard.Logout.ErrorInvalid'));
+                setError(T('Dashboard.Delete.ErrorInvalid'));
 
                 return;
             }
 
-            await removeValues(...clearList);
+            closeBrowserLayers();
 
-            invalidateHistory();
-            invalidateTokenCache();
-
-            lockSession();
+            await eraseWallet();
 
             await navigate('/intro', { replace: true });
         } finally {
@@ -66,15 +60,15 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
 
     return (
         <Modal scroll onClose={onClose}>
-            <ModalHeader title={T('Dashboard.Logout.Title')} onClose={onClose} />
+            <ModalHeader title={T('Dashboard.Delete.Title')} onClose={onClose} />
 
-            <Alert variant='warning' text={kind === 'privateKey' ? T('Dashboard.Logout.MessageKey') : T('Dashboard.Logout.Message')} />
+            <Alert variant='warning' text={kind === 'privateKey' ? T('Dashboard.Delete.MessageKey') : T('Dashboard.Delete.Message')} />
 
             <Alert text={error} />
 
             <PasswordField
                 size='compact'
-                label={T('Dashboard.Logout.Password')}
+                label={T('Dashboard.Delete.Password')}
                 value={password}
                 onValue={setPassword}
                 onEnter={() => {
@@ -83,7 +77,7 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
             />
 
             <ModalActions>
-                <Button variant='primary' size='action' onClick={onClose} text={T('Dashboard.Logout.Cancel')} />
+                <Button variant='primary' size='action' onClick={onClose} text={T('Dashboard.Delete.Cancel')} />
 
                 <Button
                     dim
@@ -93,7 +87,7 @@ export default function DashboardLogout({ kind, onClose }: { kind: VaultKind; on
                     onClick={() => {
                         void onConfirm();
                     }}
-                    text={T('Dashboard.Logout.Confirm')}
+                    text={T('Dashboard.Delete.Confirm')}
                 />
             </ModalActions>
         </Modal>
