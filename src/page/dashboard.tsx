@@ -30,7 +30,7 @@ import { flushDeepLinks } from '../core/deeplink';
 import { lockSession } from '../core/session';
 import { useVault } from '../hook/vault';
 import {
-    allowMicrophone,
+    allowDevices,
     answerDapp,
     forgetMicrophones,
     rejectDappPrompts,
@@ -46,6 +46,7 @@ import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
+import { getSiteDevices } from '../core/browser';
 import { setMouseIcon, showMouse } from '../core/mouse';
 import Mouse from '../ui/mouse';
 
@@ -323,7 +324,8 @@ function DashboardView({ vault }: { vault: Vault }) {
     useEffect(() => {
         void loadConnections();
 
-        const stop = startDappBridge(answerDapp, undefined, allowMicrophone);
+        // What a favourite at the site's address has been switched on for goes in with the question.
+        const stop = startDappBridge(answerDapp, undefined, async (origin, wanted) => allowDevices(origin, wanted, await getSiteDevices(origin)));
 
         flushDeepLinks();
 

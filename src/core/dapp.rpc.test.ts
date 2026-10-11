@@ -48,7 +48,7 @@ const { clearConnections, grantConnection } = await import('./dapp');
 const { getNetwork, setNetwork } = await import('./network');
 const { lockSession, unlockSession } = await import('./session');
 
-const { allowMicrophone, answerDapp, forgetMicrophones, getDappAccount, getDappPrompt, rejectDappPrompts, resolveDappPrompt, setDappAccount } =
+const { allowDevices, answerDapp, forgetMicrophones, getDappAccount, getDappPrompt, rejectDappPrompts, resolveDappPrompt, setDappAccount } =
     await import('./dapp.rpc');
 
 const wallet = ethers.Wallet.createRandom();
@@ -355,9 +355,9 @@ describe('reads and everything else', () => {
     });
 });
 
-describe('a site asking for the microphone', () => {
-    it('is asked about by name, and a yes holds until the wallet forgets it', async () => {
-        const first = allowMicrophone(origin);
+describe('a site asking for the microphone or the camera', () => {
+    it('is asked about the microphone by name, and a yes holds until the wallet forgets it', async () => {
+        const first = allowDevices(origin, ['microphone']);
 
         const prompt = await settle(true);
 
@@ -365,13 +365,13 @@ describe('a site asking for the microphone', () => {
         expect(await first).toBe(true);
 
         // The second time there is nothing to ask.
-        expect(await allowMicrophone(origin)).toBe(true);
+        expect(await allowDevices(origin, ['microphone'])).toBe(true);
         expect(getDappPrompt()).toBeUndefined();
 
         // Locking is what forgets: the dashboard lets every site go on its way out.
         forgetMicrophones();
 
-        const again = allowMicrophone(origin);
+        const again = allowDevices(origin, ['microphone']);
 
         await settle(false);
 
@@ -379,13 +379,13 @@ describe('a site asking for the microphone', () => {
     });
 
     it('does not carry a no over to the next request', async () => {
-        const refused = allowMicrophone(origin);
+        const refused = allowDevices(origin, ['microphone']);
 
         await settle(false);
 
         expect(await refused).toBe(false);
 
-        const second = allowMicrophone(origin);
+        const second = allowDevices(origin, ['microphone']);
 
         await settle(true);
 
@@ -393,13 +393,13 @@ describe('a site asking for the microphone', () => {
     });
 
     it('keeps one site’s yes from every other site', async () => {
-        const first = allowMicrophone(origin);
+        const first = allowDevices(origin, ['microphone']);
 
         await settle(true);
 
         expect(await first).toBe(true);
 
-        const other = allowMicrophone('https://other.example');
+        const other = allowDevices('https://other.example', ['microphone']);
 
         const prompt = await settle(false);
 
@@ -408,7 +408,7 @@ describe('a site asking for the microphone', () => {
     });
 
     it('asks once for requests that arrive while the question is still up', async () => {
-        const pair = Promise.all([allowMicrophone(origin), allowMicrophone(origin)]);
+        const pair = Promise.all([allowDevices(origin, ['microphone']), allowDevices(origin, ['microphone'])]);
 
         await settle(true);
 
@@ -416,12 +416,45 @@ describe('a site asking for the microphone', () => {
         expect(getDappPrompt()).toBeUndefined();
     });
 
-    it('is refused unasked while the wallet is locked, or with no site behind it', async () => {
-        expect(await allowMicrophone('')).toBe(false);
+    it('gives what a favourite was switched on for without a question', async () => {
+        expect(await allowDevices(origin, ['microphone'], ['microphone'])).toBe(true);
+        expect(await allowDevices(origin, ['camera'], ['camera'])).toBe(true);
+        expect(await allowDevices(origin, ['microphone', 'camera'], ['microphone', 'camera'])).toBe(true);
+
+        expect(getDappPrompt()).toBeUndefined();
+
+        // And remembers none of it: the favourite is read again each time, so switching it off counts.
+        const later = allowDevices(origin, ['microphone']);
+
+        await settle(false);
+
+        expect(await later).toBe(false);
+    });
+
+    it('never asks for the camera: a favourite gives it, or the whole request is refused', async () => {
+        expect(await allowDevices(origin, ['camera'])).toBe(false);
+        expect(await allowDevices(origin, ['microphone', 'camera'])).toBe(false);
+        expect(await allowDevices(origin, ['microphone', 'camera'], ['microphone'])).toBe(false);
+
+        expect(getDappPrompt()).toBeUndefined();
+    });
+
+    it('asks for the microphone alone when a favourite gave only the camera', async () => {
+        const both = allowDevices(origin, ['microphone', 'camera'], ['camera']);
+
+        const prompt = await settle(true);
+
+        expect(prompt.kind).toBe('microphone');
+        expect(await both).toBe(true);
+    });
+
+    it('is refused unasked while the wallet is locked, or with nothing behind it', async () => {
+        expect(await allowDevices('', ['microphone'])).toBe(false);
+        expect(await allowDevices(origin, [])).toBe(false);
 
         lockSession();
 
-        expect(await allowMicrophone(origin)).toBe(false);
+        expect(await allowDevices(origin, ['microphone'], ['microphone'])).toBe(false);
         expect(getDappPrompt()).toBeUndefined();
 
         unlockSession({ kind: 'privateKey', secret: wallet.privateKey });

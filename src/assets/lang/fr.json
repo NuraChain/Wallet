@@ -391,6 +391,9 @@
             "Save": "Enregistrer",
             "Cancel": "Annuler",
             "Invalid": "Saisissez une adresse web.",
+            "Devices": "Autoriser sans demander",
+            "Microphone": "Microphone",
+            "Camera": "Caméra",
             "Url": "Adresse web"
         }
     }

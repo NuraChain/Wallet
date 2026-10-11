@@ -117,7 +117,7 @@ const nativeDapp: PlatformDapp = {
 
     serve: (accept, onLink, onAsk) => {
         if (window.__nuraBrowser !== undefined) {
-            /* A page asking for the microphone. Kotlin holds the request and refuses it unless this
+            /* A page asking for the microphone or the camera. Kotlin holds the request and refuses it unless this
                says, there and then, that somebody took the question — which is what keeps a wallet
                that is locked, or has no dashboard up, from leaving a page waiting on an answer. */
             window.__nuraPermission = (incoming: string) => {
@@ -136,21 +136,27 @@ const nativeDapp: PlatformDapp = {
                     !('ticket' in parsed) ||
                     !('label' in parsed) ||
                     !('origin' in parsed) ||
-                    !('kind' in parsed)
+                    !('kinds' in parsed)
                 ) {
                     return false;
                 }
 
-                const { ticket, label, origin, kind } = parsed;
+                const { ticket, label, origin, kinds } = parsed;
 
-                if (typeof ticket !== 'string' || typeof label !== 'string' || typeof origin !== 'string' || typeof kind !== 'string') {
+                if (typeof ticket !== 'string' || typeof label !== 'string' || typeof origin !== 'string' || !Array.isArray(kinds)) {
+                    return false;
+                }
+
+                const wanted = kinds.filter((item): item is string => typeof item === 'string');
+
+                if (wanted.length === 0 || wanted.length !== kinds.length) {
                     return false;
                 }
 
                 onAsk({
                     label,
                     origin,
-                    kind,
+                    kinds: wanted,
                     respond: (allowed) => {
                         window.__nuraBrowser?.permissionReply?.(ticket, allowed);
                     }

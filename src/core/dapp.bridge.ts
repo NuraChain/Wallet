@@ -3,6 +3,7 @@ import { platform } from '../platform';
 import { dappLog } from './dapp.log';
 
 import { siteOrigin } from './dapp';
+import type { SiteDevice } from '../type/browser';
 import type { DappEnvelope, DappLinkHandler, DappPage, DappReply } from '../type/dapp';
 
 const pages = new Map<string, string>();
@@ -41,6 +42,8 @@ const readEnvelope = (raw: unknown, label: string, origin: string): DappEnvelope
     return { id, label, origin: siteOrigin(origin), method, params: list };
 };
 
+const isDevice = (kind: string): kind is SiteDevice => kind === 'microphone' || kind === 'camera';
+
 // A link is logged by its scheme alone: what a foreign scheme carries in its query string is the
 // page's business, and the log has no use for it.
 const linkScheme = (url: string) => url.slice(0, Math.max(0, url.indexOf(':')));
@@ -48,7 +51,7 @@ const linkScheme = (url: string) => url.slice(0, Math.max(0, url.indexOf(':')));
 export const startDappBridge = (
     handler: (envelope: DappEnvelope) => Promise<DappReply>,
     onLink?: DappLinkHandler,
-    onMicrophone?: (origin: string) => Promise<boolean>
+    onDevices?: (origin: string, wanted: SiteDevice[]) => Promise<boolean>
 ) => {
     stopBridge?.();
 
@@ -98,17 +101,19 @@ export const startDappBridge = (
         (ask) => {
             const origin = siteOrigin(ask.origin);
 
-            dappLog('Bridge', 'device asked for by a page', { origin, kind: ask.kind });
+            const wanted = ask.kinds.filter(isDevice);
 
-            // The microphone is the one device the wallet has a question for. Any other, an origin
-            // that is not a site, or nobody here to ask, is refused without one.
-            if (origin.length === 0 || ask.kind !== 'microphone' || onMicrophone === undefined) {
+            dappLog('Bridge', 'devices asked for by a page', { origin, kinds: ask.kinds.join(',') });
+
+            // One answer covers everything asked for, so a device the wallet does not know is a
+            // refusal of the lot — as is an origin that is not a site, or nobody here to decide.
+            if (origin.length === 0 || wanted.length === 0 || wanted.length !== ask.kinds.length || onDevices === undefined) {
                 ask.respond(false);
 
                 return;
             }
 
-            void onMicrophone(origin).then(ask.respond, () => {
+            void onDevices(origin, wanted).then(ask.respond, () => {
                 ask.respond(false);
             });
         }

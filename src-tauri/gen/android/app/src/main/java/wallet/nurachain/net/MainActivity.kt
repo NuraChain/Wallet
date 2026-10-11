@@ -1,6 +1,5 @@
 package wallet.nurachain.net
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
@@ -10,25 +9,29 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 
 class MainActivity : TauriActivity() {
-  // Whoever is waiting to hear whether Android let the app use the microphone. A page in the browser
-  // asks through BrowserBridge, but the launcher is registered here: an activity takes one only
-  // before it has started, and the bridge is built later than that.
-  private val microphoneWaiting = ArrayList<(Boolean) -> Unit>()
+  // Whoever is waiting to hear whether Android let the app use a device, in the order they asked. A
+  // page in the browser asks through BrowserBridge, but the launcher is registered here: an
+  // activity takes one only before it has started, and the bridge is built later than that.
+  private val deviceAsks = ArrayDeque<Pair<Array<String>, (Boolean) -> Unit>>()
 
-  private val microphone = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-    val waiting = microphoneWaiting.toList()
+  private val devices = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+    val asked = deviceAsks.removeFirstOrNull()
 
-    microphoneWaiting.clear()
+    asked?.second?.invoke(asked.first.all { result[it] == true })
 
-    waiting.forEach { it(granted) }
+    launchNext()
   }
 
-  // One system dialog at a time: a second page asking while it is up waits on the same answer.
-  private fun askMicrophone(answer: (Boolean) -> Unit) {
-    microphoneWaiting.add(answer)
+  private fun launchNext() {
+    deviceAsks.firstOrNull()?.let { devices.launch(it.first) }
+  }
 
-    if (microphoneWaiting.size == 1) {
-      microphone.launch(Manifest.permission.RECORD_AUDIO)
+  // One system dialog at a time: a page asking while one is up waits its turn.
+  private fun askAndroid(names: Array<String>, answer: (Boolean) -> Unit) {
+    deviceAsks.addLast(names to answer)
+
+    if (deviceAsks.size == 1) {
+      launchNext()
     }
   }
 
@@ -45,7 +48,7 @@ class MainActivity : TauriActivity() {
   override fun onWebViewCreate(webView: WebView) {
     val insets = InsetBridge(webView)
 
-    webView.addJavascriptInterface(BrowserBridge(this, webView, ::askMicrophone), "__nuraBrowser")
+    webView.addJavascriptInterface(BrowserBridge(this, webView, ::askAndroid), "__nuraBrowser")
     webView.addJavascriptInterface(ExportBridge(this), "__nuraExport")
     webView.addJavascriptInterface(insets, "__nuraInset")
 

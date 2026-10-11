@@ -24,13 +24,14 @@ import androidx.core.content.ContextCompat
 import androidx.webkit.ScriptHandler
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import org.json.JSONArray
 import org.json.JSONObject
 
 class BrowserBridge(
     private val activity: Activity,
     private val host: WebView,
-    /** Asks Android for the microphone on the app's behalf, and reports what it said. */
-    private val askMicrophone: ((Boolean) -> Unit) -> Unit
+    /** Asks Android for permissions on the app's behalf, and reports whether it gave them all. */
+    private val askAndroid: (Array<String>, (Boolean) -> Unit) -> Unit
 ) {
 
     private val pages = LinkedHashMap<String, WebView>()
@@ -131,23 +132,36 @@ class BrowserBridge(
         }
     }
 
+    private fun deviceOf(resource: String) = when (resource) {
+        PermissionRequest.RESOURCE_AUDIO_CAPTURE -> "microphone"
+        PermissionRequest.RESOURCE_VIDEO_CAPTURE -> "camera"
+        else -> null
+    }
+
+    private fun permissionOf(resource: String) = when (resource) {
+        PermissionRequest.RESOURCE_AUDIO_CAPTURE -> Manifest.permission.RECORD_AUDIO
+        PermissionRequest.RESOURCE_VIDEO_CAPTURE -> Manifest.permission.CAMERA
+        else -> null
+    }
+
     /**
-     * A page asking for the microphone.
+     * A page asking for the microphone, the camera, or both.
      *
      * A WebView refuses whatever its client does not answer, which is how every one of these used
      * to end: the site was told "blocked" and nobody was ever asked. The wallet is asked instead,
      * and told who is asking from the request itself — the frame the WebView says wants it — never
      * from anything the page could say.
      *
-     * Only a request for the microphone alone is put to the user. The WebView takes a grant for
-     * exactly what was asked or not at all, so a request that wants the camera too cannot be
-     * answered in part, and is refused whole.
+     * It is told everything the page wants in one go, because the WebView takes a grant for exactly
+     * what was asked or not at all. Anything else in the request — a MIDI device, protected media —
+     * is something the wallet has no answer for, and refuses the lot.
      */
     private fun ask(tab: String, request: PermissionRequest) {
         val origin = originOf(request.origin?.toString())
         val wanted = request.resources ?: emptyArray()
+        val kinds = wanted.mapNotNull { deviceOf(it) }
 
-        if (origin.isEmpty() || wanted.size != 1 || wanted[0] != PermissionRequest.RESOURCE_AUDIO_CAPTURE) {
+        if (origin.isEmpty() || kinds.isEmpty() || kinds.size != wanted.size) {
             request.deny()
 
             return
@@ -163,7 +177,7 @@ class BrowserBridge(
             .put("ticket", ticket)
             .put("label", tab)
             .put("origin", origin)
-            .put("kind", "microphone")
+            .put("kinds", JSONArray(kinds))
 
         val literal = JSONObject.quote(message.toString())
 
@@ -477,8 +491,8 @@ class BrowserBridge(
     }
 
     /**
-     * The wallet's answer to a page's request for the microphone. A yes from the user covers the
-     * site; Android has its own say over the app, asked the first time and remembered by it after.
+     * The wallet's answer to what a page asked for. A yes covers the site; Android has its own say
+     * over the app, asked the first time each device is wanted and remembered by it after.
      */
     @JavascriptInterface
     fun permissionReply(ticket: String, allowed: Boolean) {
@@ -491,12 +505,16 @@ class BrowserBridge(
                 return@runOnUiThread
             }
 
-            val grant = { request.grant(arrayOf(PermissionRequest.RESOURCE_AUDIO_CAPTURE)) }
+            val grant = { request.grant(request.resources) }
 
-            if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            val missing = request.resources
+                .mapNotNull { permissionOf(it) }
+                .filter { ContextCompat.checkSelfPermission(activity, it) != PackageManager.PERMISSION_GRANTED }
+
+            if (missing.isEmpty()) {
                 grant()
             } else {
-                askMicrophone { granted -> if (granted) grant() else request.deny() }
+                askAndroid(missing.toTypedArray()) { granted -> if (granted) grant() else request.deny() }
             }
         }
     }

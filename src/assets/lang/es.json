@@ -391,6 +391,9 @@
             "Save": "Guardar",
             "Cancel": "Cancelar",
             "Invalid": "Introduce una dirección web.",
+            "Devices": "Permitir sin preguntar",
+            "Microphone": "Micrófono",
+            "Camera": "Cámara",
             "Url": "Dirección web"
         }
     }

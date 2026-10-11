@@ -54,14 +54,15 @@ export interface PlatformDappCall {
 }
 
 /**
- * A page asking for a device — its microphone — rather than for the wallet. It comes the way a
- * provider call does, and under the same rule: `origin` is the frame the webview says is asking,
- * never a name the page gave.
+ * A page asking for devices — its microphone, its camera — rather than for the wallet. It comes the
+ * way a provider call does, and under the same rule: `origin` is the frame the webview says is
+ * asking, never a name the page gave. Everything it wants arrives in one request, because the
+ * webview takes one answer for all of it.
  */
 export interface PlatformSiteAsk {
     label: string;
     origin: string;
-    kind: string;
+    kinds: string[];
     respond: (allowed: boolean) => void;
 }
 

@@ -89,25 +89,33 @@ resolvers (a resolver cannot be serialised), publishes the list through
 the same code runs with the platform hooks inert. Keep new prompt data inside `DappPrompt`
 and serialisable — a callback in there works on desktop and silently breaks the extension.
 
-## A site asking for the microphone
+## A site asking for the microphone or the camera
 
 Not a provider call, but it rides the same rails for the same reason: the page asks, and something
 it cannot influence says who it is. On Android a WebView refuses any device request its client
 does not answer, so `BrowserBridge.kt` holds the `PermissionRequest`, takes the origin from the
-request itself, and calls `window.__nuraPermission`. That reaches the bridge as the third argument
-of `platform.dapp.serve`, goes through `siteOrigin()`, and lands on `allowMicrophone(origin)` in
-`dapp.rpc.ts`, which raises a `microphone` prompt on the same queue.
+request itself, and calls `window.__nuraPermission` with everything the page wants. That reaches
+the bridge as the third argument of `platform.dapp.serve`, goes through `siteOrigin()`, and lands
+on `allowDevices(origin, wanted, standing)` in `dapp.rpc.ts`.
 
 - The hook answers `true` or `false` **synchronously**, and Kotlin refuses on anything but `true`.
   That is what makes a locked wallet a refusal rather than a page left waiting; do not make it async.
-- A yes is kept per origin in memory until the dashboard unmounts (`forgetMicrophones`). A no is
-  kept nowhere. Nothing is written to storage.
-- Only a request for the microphone alone is asked about. A WebView takes a grant for exactly what
-  was requested, so audio-plus-camera cannot be answered in part and is refused.
-- Nothing else comes through here yet. Windows leaves it to WebView2's own prompt. On macOS wry
-  answers every site's request with a grant, and only the missing `NSMicrophoneUsageDescription`
-  stands in the way — adding that key without a per-site question would hand every page the
-  microphone. Linux has media capture switched off in WebKitGTK, and iOS lacks the same key.
+- **One answer covers the whole request.** A WebView takes a grant for exactly what was asked or
+  not at all, so nothing here ever allows part of one. A device the wallet does not know refuses
+  the lot.
+- `standing` is what a favourite at that origin has been switched on for (`microphone`, `camera` on
+  `BrowserFavorite`, set in `site.form.tsx`, read by `getSiteDevices` in `core/browser.ts`). It is
+  handed in by the dashboard, so `dapp.rpc.ts` never imports the browser module, and read fresh on
+  every request. The match is the favourite's exact origin: one that only forwards elsewhere gives
+  the site it lands on nothing.
+- Past that, the microphone can be asked for with a `microphone` prompt on the same queue. A yes is
+  kept per origin in memory until the dashboard unmounts (`forgetMicrophones`); a no is kept
+  nowhere. **The camera is never asked for** — a favourite gives it or the request is refused.
+- The switches are offered only where `managesSiteDevices()` is true, which is Android. Nothing
+  else comes through here yet: Windows leaves it to WebView2's own prompt; on macOS wry answers
+  every site's request with a grant, and only the missing `NSMicrophoneUsageDescription` stands in
+  the way — adding that key without a per-site answer would hand every page the microphone; Linux
+  has media capture switched off in WebKitGTK, and iOS lacks the same key.
 
 ## `dapp.log.ts`
 

@@ -9,6 +9,7 @@ import { getProvider } from './network.provider';
 import { emitDappEvent, getDappPages } from './dapp.bridge';
 import { addNetwork, getNetwork, getNetworks, setNetwork } from './network';
 import { DappError, clearConnections, dappError, failure, getConnections, grantConnection, isConnected, revokeConnection } from './dapp';
+import type { SiteDevice } from '../type/browser';
 import type { DappEnvelope, DappFailure, DappPrompt, DappReply } from '../type/dapp';
 
 export { getDappPrompt, rejectDappPrompts, resolveDappPrompt } from './dapp.prompt';
@@ -91,23 +92,21 @@ const approve = async (detail: Omit<DappPrompt, 'id'>) => {
     }
 };
 
-/* A site's microphone is not the wallet's to give, but the question is the wallet's to ask: where
-   the webview has no prompt of its own, a request nobody answers is simply refused, and the site
-   only ever sees "blocked". A yes holds for that site until the wallet locks; a no is for the one
-   request it answered. Requests from a site while its question is still up share that question. */
+/* A site's microphone and camera are not the wallet's to give, but the decision is the wallet's to
+   make: where the webview has no prompt of its own, a request nobody answers is simply refused, and
+   the site only ever sees "blocked".
+
+   A site gets what a favourite at its address has been switched on for — `standing`, handed in by
+   whoever holds the favourites — without a word. Beyond that the microphone can be asked for: a yes
+   holds for that site until the wallet locks, a no is for the one request it answered, and requests
+   that arrive while the question is up share it. The camera is never asked for. It comes from a
+   favourite or not at all, and since a page is answered for everything it wants at once, a request
+   that needs it and does not have it is refused whole. */
 const listening = new Set<string>();
 
 const hearing = new Map<string, Promise<boolean>>();
 
-export const allowMicrophone = async (origin: string): Promise<boolean> => {
-    if (origin.length === 0 || getVault() === undefined) {
-        return false;
-    }
-
-    if (listening.has(origin)) {
-        return true;
-    }
-
+const askMicrophone = async (origin: string) => {
     let asking = hearing.get(origin);
 
     if (asking === undefined) {
@@ -125,6 +124,24 @@ export const allowMicrophone = async (origin: string): Promise<boolean> => {
     }
 
     return asking;
+};
+
+export const allowDevices = async (origin: string, wanted: SiteDevice[], standing: SiteDevice[] = []): Promise<boolean> => {
+    if (origin.length === 0 || wanted.length === 0 || getVault() === undefined) {
+        return false;
+    }
+
+    const lacking = wanted.filter((device) => !standing.includes(device) && !(device === 'microphone' && listening.has(origin)));
+
+    if (lacking.length === 0) {
+        return true;
+    }
+
+    if (lacking.includes('camera')) {
+        return false;
+    }
+
+    return askMicrophone(origin);
 };
 
 export const forgetMicrophones = () => {

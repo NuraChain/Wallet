@@ -53,9 +53,9 @@ const settled = async () => {
     });
 };
 
-/** A page asking for a device, the way the native layer hands it over: who, and what for. */
-const wants = (kind: string, origin = 'https://voice.example', ticket = 'seven') =>
-    window.__nuraPermission?.(JSON.stringify({ ticket, label: 'nura-browser-1', origin, kind }));
+/** A page asking for devices, the way the native layer hands it over: who, and what for. */
+const wants = (kinds: unknown[], origin = 'https://voice.example', ticket = 'seven') =>
+    window.__nuraPermission?.(JSON.stringify({ ticket, label: 'nura-browser-1', origin, kinds }));
 
 afterEach(() => {
     replies.length = 0;
@@ -201,24 +201,24 @@ describe('links a page cannot open itself', () => {
     });
 });
 
-describe('a page asking for the microphone', () => {
+describe('a page asking for a device', () => {
     const quiet = async (envelope: DappEnvelope): Promise<DappReply> => ({ id: envelope.id, result: null });
 
     it('is put to the wallet under the origin the transport gave, and answered by ticket', async () => {
-        const asked: string[] = [];
+        const asked: { origin: string; wanted: string[] }[] = [];
 
-        const stop = startDappBridge(quiet, undefined, async (origin) => {
-            asked.push(origin);
+        const stop = startDappBridge(quiet, undefined, async (origin, wanted) => {
+            asked.push({ origin, wanted });
 
             return true;
         });
 
         // Taken there and then: the native side refuses a request nobody says they took.
-        expect(wants('microphone')).toBe(true);
+        expect(wants(['microphone', 'camera'])).toBe(true);
 
         await settled();
 
-        expect(asked).toEqual(['https://voice.example']);
+        expect(asked).toEqual([{ origin: 'https://voice.example', wanted: ['microphone', 'camera'] }]);
         expect(verdicts).toEqual([{ ticket: 'seven', allowed: true }]);
 
         stop();
@@ -233,7 +233,7 @@ describe('a page asking for the microphone', () => {
             return true;
         });
 
-        wants('microphone', 'file:///home/someone/page.html');
+        wants(['microphone'], 'file:///home/someone/page.html');
 
         await settled();
 
@@ -243,7 +243,7 @@ describe('a page asking for the microphone', () => {
         stop();
     });
 
-    it('is the only device there is a question for', async () => {
+    it('is refused whole when any of what it wants is not a device the wallet knows', async () => {
         const asked: string[] = [];
 
         const stop = startDappBridge(quiet, undefined, async (origin) => {
@@ -252,7 +252,8 @@ describe('a page asking for the microphone', () => {
             return true;
         });
 
-        wants('camera');
+        // One answer covers the lot, so the microphone cannot be let through beside the rest.
+        wants(['microphone', 'midi']);
 
         await settled();
 
@@ -265,7 +266,7 @@ describe('a page asking for the microphone', () => {
     it('is refused when nobody answers for it, or the asking fails', async () => {
         const silent = startDappBridge(quiet);
 
-        wants('microphone', 'https://voice.example', 'eight');
+        wants(['microphone'], 'https://voice.example', 'eight');
 
         await settled();
 
@@ -275,7 +276,7 @@ describe('a page asking for the microphone', () => {
             throw new Error('nothing to ask with');
         });
 
-        wants('microphone', 'https://voice.example', 'nine');
+        wants(['microphone'], 'https://voice.example', 'nine');
 
         await settled();
 
@@ -291,7 +292,9 @@ describe('a page asking for the microphone', () => {
         const stop = startDappBridge(quiet, undefined, async () => true);
 
         expect(window.__nuraPermission?.('not json at all')).toBe(false);
-        expect(window.__nuraPermission?.(JSON.stringify({ ticket: 7, label: 'nura-browser-1', origin: 'https://voice.example', kind: 'microphone' }))).toBe(
+        expect(wants([])).toBe(false);
+        expect(wants(['microphone', 7])).toBe(false);
+        expect(window.__nuraPermission?.(JSON.stringify({ ticket: 7, label: 'nura-browser-1', origin: 'https://voice.example', kinds: ['microphone'] }))).toBe(
             false
         );
 

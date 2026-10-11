@@ -12,7 +12,7 @@ import ScrollBar from '../../ui/scrollbar';
 import ConfirmDialog from '../../ui/confirm';
 
 import { T } from '../../utility/language';
-import { getSiteHost } from '../../core/browser';
+import { getSiteHost, managesSiteDevices } from '../../core/browser';
 import { Horizontal, Vertical } from '../../ui/stack';
 import type { BrowserFavorite, BrowserVisit } from '../../type/browser';
 import { Block, Grid } from '../../ui/wrap';
@@ -225,6 +225,7 @@ export default function DashboardBrowserStart({
                 <SiteForm
                     item={editor === true ? undefined : editor}
                     title={editor === true ? T('Dashboard.Browser.FavoriteAdd') : T('Dashboard.Browser.FavoriteEdit')}
+                    devices={managesSiteDevices()}
                     onSave={(item) => {
                         onFavoriteSave(item);
                         setEditor(false);

@@ -1,8 +1,11 @@
 import { useState } from 'react';
 
+import Text from '../ui/text';
 import Alert from '../ui/alert';
 import Button from '../ui/button';
+import Checkbox from '../ui/checkbox';
 import { TextField } from '../ui/field';
+import { Vertical } from '../ui/stack';
 import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../utility/language';
@@ -12,21 +15,28 @@ interface SiteEntry {
     id: string;
     name: string;
     url: string;
+    microphone?: boolean;
+    camera?: boolean;
 }
 
 export default function SiteForm({
     title,
     item,
+    devices = false,
     onSave,
     onClose
 }: {
     title: string;
     item?: SiteEntry;
+    /** Offers the two device switches. Left off where the wallet is not the one a site's request comes to. */
+    devices?: boolean;
     onSave: (item: SiteEntry) => void;
     onClose: () => void;
 }) {
     const [name, setName] = useState(item?.name ?? '');
     const [url, setUrl] = useState(item?.url ?? '');
+    const [microphone, setMicrophone] = useState(item?.microphone === true);
+    const [camera, setCamera] = useState(item?.camera === true);
     const [error, setError] = useState('');
 
     const onConfirm = () => {
@@ -50,7 +60,15 @@ export default function SiteForm({
 
         const label = name.trim();
 
-        onSave({ id: item?.id ?? crypto.randomUUID(), name: label.length > 0 ? label : getSiteHost(full), url: full });
+        // A switch left off is not written at all, so a favourite saved before there were any reads
+        // the same as one saved with both off.
+        onSave({
+            id: item?.id ?? crypto.randomUUID(),
+            name: label.length > 0 ? label : getSiteHost(full),
+            url: full,
+            ...(microphone ? { microphone: true } : {}),
+            ...(camera ? { camera: true } : {})
+        });
     };
 
     return (
@@ -75,6 +93,28 @@ export default function SiteForm({
                 placeholder='https://…'
                 onValue={setUrl}
             />
+
+            {devices && (
+                <Vertical>
+                    <Text text={T('Dashboard.Site.Devices')} />
+
+                    <Checkbox
+                        checked={microphone}
+                        text={T('Dashboard.Site.Microphone')}
+                        onToggle={() => {
+                            setMicrophone(!microphone);
+                        }}
+                    />
+
+                    <Checkbox
+                        checked={camera}
+                        text={T('Dashboard.Site.Camera')}
+                        onToggle={() => {
+                            setCamera(!camera);
+                        }}
+                    />
+                </Vertical>
+            )}
 
             <ModalActions>
                 <Button variant='muted' size='action' onClick={onClose} text={T('Dashboard.Site.Cancel')} />

@@ -391,6 +391,9 @@
             "Save": "Kaydet",
             "Cancel": "İptal",
             "Invalid": "Bir web adresi girin.",
+            "Devices": "Sormadan izin ver",
+            "Microphone": "Mikrofon",
+            "Camera": "Kamera",
             "Url": "Web adresi"
         }
     }

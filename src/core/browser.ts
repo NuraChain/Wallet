@@ -2,7 +2,7 @@ import { getValue, removeValue, setValue } from '../utility/storage';
 
 import { imageCache } from './image';
 import { clearSiteIcons } from './site.icon';
-import type { BrowserFavorite, BrowserState, BrowserTab, BrowserView, BrowserVisit, NativeTab } from '../type/browser';
+import type { BrowserFavorite, BrowserState, BrowserTab, BrowserView, BrowserVisit, NativeTab, SiteDevice } from '../type/browser';
 
 export const atBrowserStart = (tab: BrowserTab) => tab.home || tab.index < 0;
 
@@ -98,6 +98,45 @@ export const getBrowserFavorites = async (): Promise<BrowserFavorite[]> => {
 };
 
 export const setBrowserFavorites = async (list: BrowserFavorite[]) => setValue('Browser.Favorites', JSON.stringify(list));
+
+const originOf = (url: string) => {
+    try {
+        return new URL(url).origin;
+    } catch {
+        return '';
+    }
+};
+
+/**
+ * The devices a site has been given through a favourite, read fresh each time so a switch thrown
+ * in the form counts from the next request on.
+ *
+ * It is the favourite's own origin that holds them, and nothing wider. A favourite that only
+ * forwards — an invite link, a short address — hands them to the address it was saved under, not
+ * to wherever that leads, since the page asking is then a different site.
+ */
+export const getSiteDevices = async (origin: string): Promise<SiteDevice[]> => {
+    if (origin.length === 0) {
+        return [];
+    }
+
+    const held = (await getBrowserFavorites().catch(() => [])).filter((item) => originOf(item.url) === origin);
+
+    const devices: SiteDevice[] = [];
+
+    if (held.some((item) => item.microphone === true)) {
+        devices.push('microphone');
+    }
+
+    if (held.some((item) => item.camera === true)) {
+        devices.push('camera');
+    }
+
+    return devices;
+};
+
+/** Whether the wallet is the one a page's device requests come to: only Android's bridge brings them. */
+export const managesSiteDevices = () => window.__nuraBrowser?.permissionReply !== undefined;
 
 interface BrowserBridge {
     open: (url: string, x: number, y: number, width: number, height: number) => void;
