@@ -8,7 +8,7 @@ import type { MouseAction, MouseIcon } from '../type/app';
 
 declare global {
     interface Window {
-        /** Where Android's native mouse reports a press. */
+        /** Where a native mouse, Android's or iOS's, reports a press. */
         __nuraMouse?: (action: MouseAction) => void;
     }
 }
@@ -223,9 +223,10 @@ const openDesktop = async () => {
 /**
  * Put the mouse above every layer — the wallet and any browser tab — until the returned cleanup
  * runs. A tab is an OS-level view no z-index reaches over, so the mouse is one too: a view Kotlin
- * keeps on top on Android, and its own transparent webview on desktop, re-raised by Rust whenever
- * a tab is added. Neither is reachable from a page: tabs hold no event permission, so nothing they
- * run can pose as a press. Where neither can be drawn, `onFallback` asks for the in-page mouse.
+ * keeps on top on Android, one BrowserBridge.mm keeps on top on iOS, and its own transparent
+ * webview on desktop, re-raised by Rust whenever a tab is added. None is reachable from a page:
+ * tabs hold no event permission, so nothing they run can pose as a press. Where none can be
+ * drawn, `onFallback` asks for the in-page mouse.
  */
 export const showMouse = (onAction: (action: MouseAction) => void, onFallback: () => void) => {
     let live = true;

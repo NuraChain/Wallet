@@ -110,15 +110,20 @@ transparent child webview, `nura-mouse`, loading `index.html#mouse=<opacity>&ico
 to the same window after every tab, which puts it back on top. As a local webview of `main` it
 runs under `main-capability`, which is why that holds `core:event:allow-emit`,
 `core:webview:allow-webview-position` and `core:window:allow-inner-size`. On Android it is an
-`ImageView` in `BrowserBridge.kt` kept on top by `translationZ`. Where neither can be drawn,
-the page's own `Mouse` element stands in.
+`ImageView` in `BrowserBridge.kt` kept on top by `translationZ`. On iOS it is a `UIImageView` on the
+window in `BrowserBridge.mm`; UIKit sends a touch to whichever view was added last, so `openTab`
+brings the mouse back to the front after every page it adds. Where none can be drawn, the page's
+own `Mouse` element stands in.
 
 What the mouse wears follows the tab — the browser's icon on the wallet, where a press opens the
-browser, and the logo everywhere else — and all three have to be told. The page's `Mouse` takes it
-as a prop; `setMouseIcon` in `core/mouse.ts` reaches the other two. The desktop webview starts from
+browser, and the logo everywhere else — and every one of them has to be told. The page's `Mouse` takes it
+as a prop; `setMouseIcon` in `core/mouse.ts` reaches the rest. The desktop webview starts from
 its fragment and then follows `nura://mouse-icon`, asking for it with `nura://mouse-ready` once it
 is listening, since a change sent while it loads reaches nobody. Android takes `setMouseIcon` on
 the bridge and draws `res/drawable/nura_browser.xml`, a copy of `MouseFace` in `ui/mouse.tsx`.
+iOS takes the same call and draws its own copy in code (`browserFace`), with the logo carried
+inside `BrowserBridge.mm` as base64: `gen/apple` is generated, and that file is the only part of
+it the tree keeps, so there is nowhere to put an image beside it.
 
 **Linux places child webviews itself.** Tauri packs every webview of a window into one vertical
 `gtk::Box`, so a child stacks under the wallet as a second row, and wry ignores `setPosition` /

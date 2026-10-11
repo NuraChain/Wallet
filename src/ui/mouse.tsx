@@ -143,7 +143,7 @@ const clamp = ({ x, y }: Point): Point => ({
  * The floating mouse drawn in the page itself: the app's logo, or the browser's icon where a press
  * opens it, dragged anywhere across the window and pressed to move around the wallet. One element
  * in the page's own `#mouse`, above everything
- * the wallet draws — but not above a browser tab, which is why desktop and Android draw
+ * the wallet draws — but not above a browser tab, which is why desktop, Android and iOS draw
  * `MouseView` or a native view instead where they can. It only reports what happened; the
  * dashboard decides what a press means.
  */
