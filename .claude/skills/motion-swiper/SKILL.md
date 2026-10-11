@@ -14,8 +14,7 @@ touches it.
 Before reaching for either, check the rung above it: a CSS transition on a class, then
 `transition-[…] duration-(--duration-fast)` as `ui/button.tsx` writes it, then
 scroll-snap for a horizontal row. Motion is what you use where CSS has nothing — an element
-that is not in the DOM before or after the animation, which is what a browser tab's card is
-when it is closed (`TabCard` in `ui/tabs.tsx`).
+that is not in the DOM before or after the animation.
 
 ## Motion
 
@@ -125,7 +124,7 @@ that is when `virtual` and `virtualIndex` become the answer — not before.
 
 - [ ] Could a Tailwind transition or scroll-snap have done this? Then it should have.
 - [ ] Imported from `motion/react`, not `framer-motion`.
-- [ ] Only transforms and opacity animate. `layout` is switched off under `useReducedMotion()`.
+- [ ] Only transforms and opacity animate.
 - [ ] Every `AnimatePresence` child has a stable `key`; `mode`/`initial` chosen deliberately.
 - [ ] Looping or auto-advancing motion is gated on `useReducedMotion()`.
 - [ ] Swiper: every feature prop has its module **and** its stylesheet.
