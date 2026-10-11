@@ -95,7 +95,7 @@ export default function DashboardBrowserStart({
 
     const tabMap: { key: TabKey; label: string }[] = [
         { key: 'favorite', label: T('Dashboard.Browser.Favorite') },
-        { key: 'history', label: T('Dashboard.Browser.Tabs') }
+        { key: 'history', label: T('Dashboard.Browser.Recent') }
     ];
 
     return (
