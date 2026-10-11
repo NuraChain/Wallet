@@ -61,7 +61,20 @@ export default function SiteForm({
 
             <TextField label={T('Dashboard.Site.Name')} value={name} autoComplete='off' placeholder={T('Dashboard.Site.Name')} onValue={setName} />
 
-            <TextField dir='ltr' label={T('Dashboard.Site.Url')} value={url} spellCheck={false} autoComplete='off' placeholder='https://…' onValue={setUrl} />
+            {/* `url` is what brings up a phone's address keyboard, with its slash and dot to hand. The
+                field still takes a bare host: nothing here is a form for the browser to validate. */}
+            <TextField
+                type='url'
+                inputMode='url'
+                dir='ltr'
+                label={T('Dashboard.Site.Url')}
+                value={url}
+                spellCheck={false}
+                autoCapitalize='none'
+                autoComplete='off'
+                placeholder='https://…'
+                onValue={setUrl}
+            />
 
             <ModalActions>
                 <Button variant='muted' size='action' onClick={onClose} text={T('Dashboard.Site.Cancel')} />
