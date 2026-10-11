@@ -7,9 +7,15 @@ reviews:
   review_status: true
   review_details: true
   poem: false
+  # Every pull request, whatever it targets and draft or not, and every push to it: nobody has to
+  # ask for a review, and it never pauses to wait for one.
   auto_review:
     enabled: true
-    drafts: false
+    auto_incremental_review: true
+    auto_pause_after_reviewed_commits: 0
+    drafts: true
+    base_branches:
+      - ".*"
   path_filters:
     - "!**/node_modules/**"
     - "!**/.dist/**"
