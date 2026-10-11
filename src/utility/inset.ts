@@ -1,3 +1,5 @@
+import { getPlatform } from './platform';
+
 interface AndroidBridge {
     top: () => number;
     bottom: () => number;
@@ -21,15 +23,23 @@ declare global {
  * The Kotlin side pushes the same variables whenever the insets change — a rotation, the gesture
  * bar swapping for buttons. This covers the first paint, which comes after the last push it made,
  * and that one landed on the document this one replaced.
+ *
+ * iOS fills `env()` itself and needs none of that. What it cannot say in CSS is that its bottom
+ * inset is only ever the home indicator: a line drawn over the app, as Android's gesture bar is,
+ * with nothing in it to tap. So a page in the browser has no bar to stop short of there.
  */
 export const initInsets = () => {
+    const { style } = document.documentElement;
+
     const bridge = window.__nuraInset;
 
     if (bridge === undefined) {
+        if (getPlatform() === 'ios') {
+            style.setProperty('--inset-bar', '0px');
+        }
+
         return;
     }
-
-    const { style } = document.documentElement;
 
     style.setProperty('--inset-top', `${bridge.top()}px`);
     style.setProperty('--inset-bottom', `${bridge.bottom()}px`);

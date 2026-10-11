@@ -34,9 +34,10 @@ const topMap = {
 
 const bodyMap = {
     tab: `mx-auto flex min-h-full w-full max-w-lg flex-col px-4 sm:px-6 lg:max-w-4xl ${inset.tabBottom}`,
-    /* A page keeps clear only of what takes taps at the bottom of the screen. Under a gesture bar
-       it runs to the edge, which is what makes that bar read as transparent over a site: stopping
-       short left a strip of the wallet's own colour beneath every page. */
+    /* A page keeps clear only of what takes taps at the bottom of the screen. Under a gesture bar,
+       or the home indicator on iOS, it runs to the edge, which is what makes that bar read as
+       transparent over a site: stopping short left a strip of the wallet's own colour beneath
+       every page. */
     browser: 'flex size-full flex-col pb-[var(--inset-bar)]',
     intro: `bg-base-1 flex size-full flex-col px-4 sm:px-6 ${inset.edgeBottom}`
 } as const;
