@@ -59,6 +59,7 @@
         },
         "Create": "Criar nova carteira",
         "Import": "Importar carteira existente",
+        "Deleted": "Carteira excluída deste dispositivo.",
         "Version": "Versão %s",
         "ImportWallet": {
             "Title": "Importar carteira existente",
@@ -349,7 +350,7 @@
             "ThemeDark": "Escuro",
             "SidePanel": "Abrir no painel lateral",
             "Version": "Versão %s",
-            "Logout": "Sair"
+            "Delete": "Excluir carteira"
         },
         "Phrase": {
             "Title": "Frase de recuperação",
@@ -376,12 +377,12 @@
             "ExportImageWarning": "Quem tiver estas palavras é dono da carteira. Mantenha offline.",
             "Hide": "Ocultar"
         },
-        "Logout": {
-            "Title": "Sair",
-            "Message": "Isso remove a carteira deste dispositivo. Você só poderá restaurá-la com sua frase de recuperação.",
-            "MessageKey": "Isso remove a carteira deste dispositivo. Você só poderá restaurá-la com sua chave privada.",
+        "Delete": {
+            "Title": "Excluir carteira",
+            "Message": "Isso exclui a carteira deste dispositivo, junto com suas contas, tokens, sites conectados e histórico de navegação. Seus fundos continuam na blockchain e só sua frase de recuperação pode restaurá-los. Sem ela, eles se perdem para sempre.",
+            "MessageKey": "Isso exclui a carteira deste dispositivo, junto com suas contas, tokens, sites conectados e histórico de navegação. Seus fundos continuam na blockchain e só sua chave privada pode restaurá-los. Sem ela, eles se perdem para sempre.",
             "Password": "Senha",
-            "Confirm": "Sair",
+            "Confirm": "Excluir carteira",
             "Cancel": "Cancelar",
             "ErrorRequired": "Digite sua senha",
             "ErrorInvalid": "A senha está incorreta"

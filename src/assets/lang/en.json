@@ -59,6 +59,7 @@
         },
         "Create": "Create New Wallet",
         "Import": "Import Existing Wallet",
+        "Deleted": "Wallet deleted from this device.",
         "Version": "Version %s",
         "ImportWallet": {
             "Title": "Import Existing Wallet",
@@ -349,7 +350,7 @@
             "ThemeDark": "Dark",
             "SidePanel": "Open in side panel",
             "Version": "Version %s",
-            "Logout": "Log out"
+            "Delete": "Delete wallet"
         },
         "Phrase": {
             "Title": "Recovery Phrase",
@@ -376,12 +377,12 @@
             "ExportImageWarning": "Anyone with these words owns the wallet. Keep offline.",
             "Hide": "Hide"
         },
-        "Logout": {
-            "Title": "Log out",
-            "Message": "This removes the wallet from this device. You can only restore it with your seed phrase.",
-            "MessageKey": "This removes the wallet from this device. You can only restore it with your private key.",
+        "Delete": {
+            "Title": "Delete wallet",
+            "Message": "This deletes the wallet from this device, along with its accounts, tokens, connected sites and browsing history. Your funds stay on the blockchain, and only your recovery phrase can restore them. Without it, they are lost for good.",
+            "MessageKey": "This deletes the wallet from this device, along with its accounts, tokens, connected sites and browsing history. Your funds stay on the blockchain, and only your private key can restore them. Without it, they are lost for good.",
             "Password": "Password",
-            "Confirm": "Log out",
+            "Confirm": "Delete wallet",
             "Cancel": "Cancel",
             "ErrorRequired": "Please enter your password",
             "ErrorInvalid": "Password is incorrect"

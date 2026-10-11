@@ -92,9 +92,12 @@ WebView can reach it. Both answers are `''` on success and a reason on failure.
    this once" shortcut is the bug.
 4. **Never weaken a KDF parameter** to make a test or a slow device faster. They are the
    product.
-5. **Logout is a list, so keep it honest.** `dashboard.logout.tsx` removes exactly
-   `Wallet.Mnemonic`, `Wallet.Password`, `Wallet.Name`, `Wallet.Accounts`, `Wallet.Active`
-   and then invalidates the history and token caches. `Wallet.Tokens` and
-   `Wallet.TokensHidden` survive it. A new `Wallet.*` key is a decision in that file the
-   same commit it is introduced — listed, or deliberately left — not an omission.
+5. **Deleting the wallet is a decision per key.** Settings → Delete wallet
+   (`dashboard.delete.tsx`) runs `eraseWallet` in `core/erase.ts`, whose `fate` record names
+   every `StorageKey` as `erase` or `keep`. Only `App.Language`, `App.Theme` and `App.Mouse`
+   are kept; everything else goes, then every cache that holds an address, a balance or a
+   visited site is cleared, and the network and connection state is read back from the
+   emptied store so nothing carries into the next wallet. A new key fails the type check
+   there until it is given a fate — that is the point, not an obstacle. `erase.test.ts`
+   holds the behaviour.
 6. A change in this directory says why in the commit body.

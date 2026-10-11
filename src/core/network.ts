@@ -112,9 +112,19 @@ export const removeNetwork = async (id: string) => {
 };
 
 export const initNetwork = async () => {
-    const storedNetworks = await getValue('App.Networks').catch(() => undefined);
+    const unreadable = Symbol('unreadable');
 
-    if (storedNetworks !== undefined) {
+    const storedNetworks = await getValue('App.Networks').catch(() => unreadable);
+
+    // Nothing stored is the built-in networks alone. Read again after the wallet is deleted, this
+    // is what lets go of the ones it added; a read that failed leaves what is held alone.
+    if (storedNetworks === undefined && customNetworks.length > 0) {
+        customNetworks = [];
+
+        networkRevision += 1;
+    }
+
+    if (typeof storedNetworks === 'string') {
         try {
             // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
             const parsed = JSON.parse(storedNetworks) as Network[];
@@ -134,9 +144,11 @@ export const initNetwork = async () => {
         }
     }
 
-    const storedCurrent = await getValue('App.Network').catch(() => undefined);
+    const storedCurrent = await getValue('App.Network').catch(() => unreadable);
 
-    if (storedCurrent !== undefined && getNetworks().some((item) => item.id === storedCurrent)) {
+    if (typeof storedCurrent === 'string' && getNetworks().some((item) => item.id === storedCurrent)) {
         networkCurrentId = storedCurrent;
+    } else if (storedCurrent === undefined) {
+        networkCurrentId = defaultNetworks[0].id;
     }
 };

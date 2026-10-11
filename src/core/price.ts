@@ -1,7 +1,7 @@
 import { isOnline } from './connection';
 import { nuraChainId } from './network';
 import { httpRequest } from './request';
-import { prune, readRaw, writeRaw } from './cache.store';
+import { clearUnder, prune, readRaw, writeRaw } from './cache.store';
 import type { PriceMap, PriceRead } from '../type/token';
 
 const marketPrefix = 'nura:';
@@ -226,4 +226,9 @@ export const readPrices = async (ids: string[]): Promise<PriceRead> => {
     prune('local', pricePrefix, priceEntries, (raw) => parsePrice(raw)?.at ?? 0);
 
     return collect(held);
+};
+
+/** Forget every price read, along with which coins they were read for. */
+export const clearPrices = () => {
+    clearUnder('local', pricePrefix);
 };

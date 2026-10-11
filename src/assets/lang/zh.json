@@ -59,6 +59,7 @@
         },
         "Create": "创建新钱包",
         "Import": "导入已有钱包",
+        "Deleted": "钱包已从本设备删除。",
         "Version": "版本 %s",
         "ImportWallet": {
             "Title": "导入已有钱包",
@@ -349,7 +350,7 @@
             "ThemeDark": "深色",
             "SidePanel": "在侧边栏中打开",
             "Version": "版本 %s",
-            "Logout": "退出登录"
+            "Delete": "删除钱包"
         },
         "Phrase": {
             "Title": "助记词",
@@ -376,12 +377,12 @@
             "ExportImageWarning": "拥有这些词的人就拥有这个钱包。请离线保管。",
             "Hide": "隐藏"
         },
-        "Logout": {
-            "Title": "退出登录",
-            "Message": "这会从本设备移除钱包。之后只能用助记词恢复。",
-            "MessageKey": "这会从本设备移除钱包。之后只能用私钥恢复。",
+        "Delete": {
+            "Title": "删除钱包",
+            "Message": "这会从本设备删除钱包及其账户、代币、已连接网站和浏览记录。你的资产仍在区块链上，但只能用助记词恢复。没有助记词，资产将永久丢失。",
+            "MessageKey": "这会从本设备删除钱包及其账户、代币、已连接网站和浏览记录。你的资产仍在区块链上，但只能用私钥恢复。没有私钥，资产将永久丢失。",
             "Password": "密码",
-            "Confirm": "退出登录",
+            "Confirm": "删除钱包",
             "Cancel": "取消",
             "ErrorRequired": "请输入密码",
             "ErrorInvalid": "密码不正确"
