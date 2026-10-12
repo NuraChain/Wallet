@@ -163,8 +163,11 @@ function DashboardView({ vault }: { vault: Vault }) {
     // the wallet's own page only where that cannot be done.
     const [pageMouse, setPageMouse] = useState(false);
 
+    // Taken away on the settings tab, and put back on the way out of it.
+    const mouseOn = hasBrowser && tabMap[active].key !== 'Settings';
+
     useEffect(() => {
-        if (!hasBrowser) {
+        if (!mouseOn) {
             return undefined;
         }
 
@@ -176,7 +179,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 setPageMouse(true);
             }
         );
-    }, [hasBrowser]);
+    }, [mouseOn]);
 
     const native = useBalance(address, network);
     const tokens = useTokens(address, network, tracked);
@@ -555,7 +558,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 )}
             </AnimatePresence>
 
-            {pageMouse && <Mouse icon={mouseIcon} onAction={onMouse} />}
+            {pageMouse && mouseOn && <Mouse icon={mouseIcon} onAction={onMouse} />}
 
             <Horizontal dir={getDirection()} fill='both' clip>
                 {/* Full screen is the browser's own mode, so the rail only steps aside while that
