@@ -148,7 +148,8 @@ The only icon source in the tree. `import { Check, Trash } from 'lucide-react'`.
 - **`Screen`** (`enter='fade' | 'grow'`, `backdrop`), **`EntryCard`**, **`Track`** (the dashboard's
   tabs side by side), **`SidebarPanel`**, **`Splash`**, **`IntroBar`** and **`IntroSlide`**
   (`ui/screen.tsx`) — the scaffolding a route is built from.
-- **`Toolbar`** (`ui/toolbar.tsx`) — the strip of controls across the top of the browser.
+- **`Toolbar`** (`ui/toolbar.tsx`) — the strip of controls across the top of the browser. Over a
+  site it wears that site's colour, so whatever is put on it needs an opaque fill of its own.
 - **`TabBar` / `Tab`** (`ui/tabs.tsx`) — underlined tabs, with room at the end for an action.
 - **`SectionHeader`** (`ui/section.tsx`) — muted title with an optional trailing control.
 - **`PageContainer`** (`ui/container.tsx`) — `variant='tab' | 'browser' | 'intro'`.

@@ -127,9 +127,10 @@ on `allowDevices(origin, wanted, standing)` in `dapp.rpc.ts`.
 
 ## A page naming the colour of the chrome around it
 
-A site's `<meta name="theme-color">` colours the wallet's title bar on Windows and the strip under
-a phone's status bar, for as long as that site is what the browser tab shows. It is the one thing a
-page gets to change about the wallet's own surface, so every step of it is narrow.
+A site's `<meta name="theme-color">` colours the wallet's title bar on Windows, the strip under a
+phone's status bar, and the browser's own header beneath them — the toolbar and the load strip — for
+as long as that site is what the browser tab shows. It is the one thing a page gets to change about
+the wallet's own surface, so every step of it is narrow.
 
 - **In the page** (`dapp.script.ts`, `watchTheme`): the HTML algorithm, to the letter — the meta
   elements named `theme-color` in tree order, skipping one whose `media` does not apply, taking the
@@ -148,9 +149,13 @@ page gets to change about the wallet's own surface, so every step of it is narro
   its own colour — and `setSiteTheme` in `core/browser.ts` lets the chrome change at most once in
   300ms, so it cannot be made to flash.
 - **What it reaches** is a background and nothing else. The ink over it is one of two fixed tokens,
-  picked by `inkOn` in `utility/color.ts` for 4.5:1 on any colour. The toolbar with the address and
-  the lock glyph keeps the wallet's colours: it is what tells the user where they are, and a site
-  does not get to restyle that.
+  picked by `inkOn` in `utility/color.ts` for 4.5:1 on any colour.
+- **On the toolbar it is the bar, and nothing on the bar.** The address field, with the lock or the
+  warning in it, and the buttons either side stay the wallet's own opaque surfaces in the wallet's
+  own ink: they are what tells the user where they are, and a site does not get to restyle that or
+  wash it out. So a new control on the toolbar needs an opaque fill of its own — a bare or
+  translucent one would be drawn in a colour the site picked. The one thing the bar hands down is
+  `--focus-ring`, set to its ink, since the wallet's ring is a blue a site may have chosen too.
 - **Where the system draws over the colour** — a phone's status bar — its ink is turned through
   `setBarInk` on the native bridge, present on Android and iOS and absent on desktop. macOS and
   Linux draw their own title bars and take no colour at all.

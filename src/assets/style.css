@@ -51,8 +51,8 @@
     /* The ink set over a colour a visited site chose for the title bar: whichever of the two reads
        on it. Fixed in both themes, since what lies under them is the site's and not the theme's,
        and nothing softer than these two clears 4.5:1 on every colour a site could pick. */
-    --color-tint-dark: oklch(0% 0 0);
-    --color-tint-light: oklch(100% 0 0);
+    --color-tint-dark: var(--tint-dark);
+    --color-tint-light: var(--tint-light);
 
     --color-btn-muted: var(--btn-muted);
     --color-btn-muted-hover: var(--btn-muted-hover);
@@ -241,6 +241,11 @@
     --duration-fast: 150ms;
     --duration-base: 200ms;
     --duration-surface: 300ms;
+
+    /* The two inks over a site's colour. Variables of their own, like the themed colours, so the
+       browser's toolbar can hand one to `--focus-ring` for everything that sits on it. */
+    --tint-dark: oklch(0% 0 0);
+    --tint-light: oklch(100% 0 0);
 
     /* Every layout that reaches a screen edge measures from these, never from env() itself. Android's
        WebView fills env(safe-area-inset-*) from a display cutout and from nothing else, so the status

@@ -2,6 +2,16 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 
 import { cn } from '../utility/cn';
+import { inkOn } from '../utility/color';
+import { useTint } from '../hook/tint';
+
+const inkMap = { dark: 'text-tint-dark', light: 'text-tint-light' } as const;
+
+const toneMap = {
+    accent: 'bg-txt-accent',
+    /** The colour of the text around it, for a bar drawn over a colour that is not the theme's. */
+    ink: 'bg-current'
+} as const;
 
 const lookMap = {
     /** Fills the strip it sits in, under the address bar. */
@@ -18,19 +28,19 @@ const lookMap = {
  * It is scaled rather than widened, so nothing reflows while it runs, and from the side reading
  * starts on: a transform has no logical direction of its own, so the origin is what flips.
  */
-export default function ProgressBar({ value, look }: { value?: number; look?: keyof typeof lookMap }) {
+export default function ProgressBar({ value, look, tone = 'accent' }: { value?: number; look?: keyof typeof lookMap; tone?: keyof typeof toneMap }) {
     const determinate = value !== undefined;
 
     return (
         <div role='progressbar' className={cn('relative h-0.5 overflow-hidden', look !== undefined && lookMap[look])}>
             {determinate ? (
-                <div className='absolute inset-y-0 inset-s-0 min-w-1.5 bg-txt-accent' style={{ width: `${value}%` }} />
+                <div className={cn('absolute inset-y-0 inset-s-0 min-w-1.5', toneMap[tone])} style={{ width: `${value}%` }} />
             ) : (
                 <motion.span
                     initial={{ transform: 'scaleX(0)' }}
                     animate={{ transform: 'scaleX(1)' }}
                     transition={{ duration: 1.1, ease: 'easeOut' }}
-                    className='absolute inset-0 origin-left rounded-full bg-txt-accent rtl:origin-right'
+                    className={cn('absolute inset-0 origin-left rounded-full rtl:origin-right', toneMap[tone])}
                 />
             )}
         </div>
@@ -45,8 +55,16 @@ export default function ProgressBar({ value, look }: { value?: number; look?: ke
  * nothing — and a bar that followed all of that filled, vanished and started over. So it only ever
  * moves forward; a finished load stands full for a moment before it fades; and a load that begins
  * while that bar is still up is the same one going on, which leaves it full until that ends too.
+ *
+ * It is the last two pixels of the toolbar, so over a page it wears the page's colour as the
+ * toolbar does, and draws the load in that colour's ink: the theme's accent is a blue, and on a
+ * site that chose a blue of its own the load would not be seen at all.
  */
 export function LoadStrip({ loading, progress, hidden = false }: { loading: boolean; progress: number; hidden?: boolean }) {
+    const tint = useTint();
+
+    const tinted = tint.length > 0;
+
     const [shown, setShown] = useState(loading);
     const [peak, setPeak] = useState(loading ? progress : 0);
 
@@ -60,7 +78,14 @@ export function LoadStrip({ loading, progress, hidden = false }: { loading: bool
     }
 
     return (
-        <div className={cn('relative h-0.5 shrink-0 overflow-hidden', hidden && 'hidden')}>
+        <div
+            style={tinted ? { backgroundColor: tint } : undefined}
+            className={cn(
+                'relative h-0.5 shrink-0 overflow-hidden transition-[background-color] duration-(--duration-base)',
+                tinted && inkMap[inkOn(tint)],
+                hidden && 'hidden'
+            )}
+        >
             {shown && (
                 <motion.div
                     initial={false}
@@ -73,7 +98,7 @@ export function LoadStrip({ loading, progress, hidden = false }: { loading: bool
                     }}
                     className='absolute inset-0'
                 >
-                    <ProgressBar value={peak} look='strip' />
+                    <ProgressBar value={peak} look='strip' tone={tinted ? 'ink' : 'accent'} />
                 </motion.div>
             )}
         </div>
