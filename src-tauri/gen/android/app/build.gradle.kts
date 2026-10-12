@@ -27,10 +27,10 @@ val keystoreProperties = Properties().apply {
 
 val keystorePath: String? = keystoreProperties.getProperty("storeFile")
 
-// The version, from the one file that declares it. `tauri.properties` above is written by the Tauri
-// CLI during its own build and is git-ignored, so it is absent on a fresh clone and whenever Gradle is
-// driven directly — and the literals that used to stand in for it then were `1` and `1.0`, which is
-// what the installed app actually reported however many times Cargo.toml was bumped.
+// The version, from the file the release is checked against. `tauri.properties` above is written by
+// the Tauri CLI during its own build and is git-ignored, so it is absent on a fresh clone and whenever
+// Gradle is driven directly — and the literals that used to stand in for it then were `1` and `1.0`,
+// which is what the installed app actually reported however many times Cargo.toml was bumped.
 //
 // Only the first `version` line is taken: dependencies declare theirs as `name = { version = ... }`,
 // which does not start the line.

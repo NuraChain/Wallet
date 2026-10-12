@@ -3,8 +3,9 @@ import { readFileSync } from 'node:fs';
 const declared = /^version\s*=\s*"(?<semver>[^"]+)"/mu.exec(readFileSync('src-tauri/Cargo.toml', 'utf8'))?.groups?.semver;
 
 /**
- * What `__APP_VERSION__` carries: the whole string, prerelease and all. Cargo.toml stays the one
- * place a version is written, because the release workflow already checks the tag against it.
+ * What `__APP_VERSION__` carries: the whole string, prerelease and all. Cargo.toml is where it is
+ * read from, because the release workflow checks the tag against it and holds the copy that
+ * tauri.conf.json keeps for iOS to it as well.
  */
 export const appVersion = declared ?? '0.0.0';
 

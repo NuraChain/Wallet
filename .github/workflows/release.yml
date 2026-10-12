@@ -22,6 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
 
+      # The version is written twice. Cargo.toml is the one the tag is held to and everything in the
+      # tree reads; tauri.conf.json repeats it because the Tauri CLI stamps an iOS build from its own
+      # config and from nowhere else, and with no version there every .ipa reported 1.0.0. A bump
+      # that reaches only one of them is stopped here.
       - name: Check the version against the tag
         env:
           TAGGED: ${{ startsWith(github.ref, 'refs/tags/v') }}
@@ -35,8 +39,15 @@ jobs:
 
           echo "Cargo.toml declares $NUMBER."
 
+          CONFIG=$(jq -r '.version // empty' src-tauri/tauri.conf.json)
+
+          if [ "$CONFIG" != "$NUMBER" ]; then
+            echo "::error::src-tauri/tauri.conf.json declares ${CONFIG:-no version} but Cargo.toml declares $NUMBER, so the iOS build, which is stamped from the config alone, would report a version the rest of this release does not. Make the two match and retag."
+            exit 1
+          fi
+
           if [ "$TAGGED" = "true" ] && [ "$GITHUB_REF_NAME" != "v$NUMBER" ]; then
-            echo "::error::The tag is $GITHUB_REF_NAME but Cargo.toml declares $NUMBER, so this release would ship an app reporting a version the release is not. Bump Cargo.toml and retag."
+            echo "::error::The tag is $GITHUB_REF_NAME but Cargo.toml declares $NUMBER, so this release would ship an app reporting a version the release is not. Bump Cargo.toml and tauri.conf.json and retag."
             exit 1
           fi
 

@@ -26,9 +26,22 @@ npm run ios-build      # tauri ios build
 `beforeDevCommand` / `beforeBuildCommand` in `tauri.conf.json` chain to `npm run dev` /
 `npm run build`, so a frontend type error stops the Tauri build too. Dev URL is `http://localhost:1420`.
 
+## The version
+
+It is written twice, and a bump edits both along with `Cargo.lock`: `version` in
+`src-tauri/Cargo.toml` and `version` in `src-tauri/tauri.conf.json`. The release workflow fails
+when the two differ, and when the tag is not that number.
+
+`Cargo.toml` is the one the tree reads: Vite through `src-extension/version.ts`
+(`__APP_VERSION__` and the extension manifests), Android in `gen/android/app/build.gradle.kts`,
+and the release check. The copy in the config is there for iOS. The Tauri CLI stamps an iOS
+bundle from the config's `version` and from nowhere else — it does not fall back to `Cargo.toml`
+the way the desktop bundler does — so with none there every `.ipa` reported `1.0.0` however
+many times the version was bumped. Do not remove it.
+
 ## Configuration is split per platform
 
-`tauri.conf.json` is the base and holds almost nothing — product name, identifier, build.
+`tauri.conf.json` is the base and holds almost nothing — product name, version, identifier, build.
 Everything real lives in the platform overlays, which Tauri merges over the base:
 
 - `tauri.windows.conf.json` — frameless window (`decorations: false`, 360×640), CSP, capabilities
