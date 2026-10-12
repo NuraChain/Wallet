@@ -1,7 +1,8 @@
 import { formatEther } from 'ethers';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useOnline } from './connection';
+import { useRefresh } from './refresh';
 import { isOnline } from '../core/connection';
 
 import { getProvider } from '../core/network.provider';
@@ -14,7 +15,7 @@ export const useBalance = (address: string, network: Network) => {
     const [held, setHeld] = useState({ key: '', value: 0n, at: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
-    const [nonce, setNonce] = useState(0);
+    const { nonce, refresh, claim } = useRefresh();
 
     const online = useOnline();
 
@@ -24,12 +25,10 @@ export const useBalance = (address: string, network: Network) => {
 
     const lastNonce = useRef(nonce);
 
-    const refresh = useCallback(() => {
-        setNonce((current) => current + 1);
-    }, []);
-
     useEffect(() => {
         let active = true;
+
+        const done = claim();
 
         const hit = readNative(key);
         const forced = nonce !== lastNonce.current;
@@ -42,6 +41,8 @@ export const useBalance = (address: string, network: Network) => {
             setError(false);
 
             if (hit.fresh && !forced) {
+                done();
+
                 return () => {
                     active = false;
                 };
@@ -91,12 +92,14 @@ export const useBalance = (address: string, network: Network) => {
             }
         };
 
-        void run();
+        void run().finally(done);
 
         return () => {
             active = false;
+
+            done();
         };
-    }, [key, nonce, online]);
+    }, [key, nonce, online, claim]);
 
     const value = fresh ? held.value : 0n;
 
@@ -107,7 +110,7 @@ export const useTokens = (address: string, network: Network, list: Token[]) => {
     const [held, setHeld] = useState<{ key: string; tokens: TokenBalance[]; at: number }>({ key: '', tokens: [], at: 0 });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
-    const [nonce, setNonce] = useState(0);
+    const { nonce, refresh, claim } = useRefresh();
 
     const online = useOnline();
 
@@ -121,12 +124,10 @@ export const useTokens = (address: string, network: Network, list: Token[]) => {
 
     const lastNonce = useRef(nonce);
 
-    const refresh = useCallback(() => {
-        setNonce((current) => current + 1);
-    }, []);
-
     useEffect(() => {
         let active = true;
+
+        const done = claim();
 
         const hit = readBalances(cacheKey, list);
         const forced = nonce !== lastNonce.current;
@@ -139,6 +140,8 @@ export const useTokens = (address: string, network: Network, list: Token[]) => {
             setError(false);
 
             if (hit.fresh && !forced) {
+                done();
+
                 return () => {
                     active = false;
                 };
@@ -184,12 +187,14 @@ export const useTokens = (address: string, network: Network, list: Token[]) => {
             }
         };
 
-        void run();
+        void run().finally(done);
 
         return () => {
             active = false;
+
+            done();
         };
-    }, [key, listKey, nonce, cacheKey, online]);
+    }, [key, listKey, nonce, cacheKey, online, claim]);
 
     return { tokens: fresh ? held.tokens : [], loading: loading || !fresh, error, at: fresh ? held.at : 0, refresh };
 };

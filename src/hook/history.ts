@@ -1,7 +1,8 @@
 import { formatUnits } from 'ethers';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useOnline } from './connection';
+import { useRefresh } from './refresh';
 import { isOnline } from '../core/connection';
 import { httpRequest } from '../core/request';
 import { getExplorerApi } from '../core/network';
@@ -133,15 +134,11 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
     const [items, setItems] = useState<Transaction[]>([]);
     const [notice, setNotice] = useState('');
     const [loading, setLoading] = useState(true);
-    const [nonce, setNonce] = useState(0);
+    const { nonce, refresh, claim } = useRefresh();
 
     const online = useOnline();
 
     const lastNonce = useRef(nonce);
-
-    const refresh = useCallback(() => {
-        setNonce((current) => current + 1);
-    }, []);
 
     const api = getExplorerApi(network);
 
@@ -157,6 +154,8 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
     useEffect(() => {
         let active = true;
 
+        const done = claim();
+
         const hit = readHistory(key);
         const forced = nonce !== lastNonce.current;
 
@@ -170,6 +169,8 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
             setLoading(false);
 
             if (hit.fresh && !forced) {
+                done();
+
                 return () => {
                     active = false;
                 };
@@ -205,12 +206,14 @@ export const useHistory = (address: string, network: Network, tokens: Token[]) =
             setLoading(false);
         };
 
-        void run();
+        void run().finally(done);
 
         return () => {
             active = false;
+
+            done();
         };
-    }, [address, network.id, api, tokenKey, nonce, key, online]);
+    }, [address, network.id, api, tokenKey, nonce, key, online, claim]);
 
     return { items, loading, notice, refresh };
 };

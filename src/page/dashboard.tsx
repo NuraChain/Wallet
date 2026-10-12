@@ -65,6 +65,8 @@ type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'delete' | '
 
 const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Settings' }];
 
+const refreshLimit = 15_000;
+
 function DashboardView({ vault }: { vault: Vault }) {
     const navigate = useNavigate();
 
@@ -369,14 +371,19 @@ function DashboardView({ vault }: { vault: Vault }) {
         });
     }, [tracked, tokenMap, hidden, network.chainId]);
 
+    // Held until the three reads the pull started have answered, which is what keeps the indicator
+    // up. The token sweep is not waited for: it walks the explorer behind the page and can outlast
+    // them by far. Nothing times a request out sooner than ethers' five minutes, and no second pull
+    // is taken while one is held, so the wait has a limit of its own.
     const onRefresh = async () => {
-        native.refresh();
-        tokens.refresh();
-        history.refresh();
-
         setScan((value) => value + 1);
 
-        await Promise.resolve();
+        await Promise.race([
+            Promise.all([native.refresh(), tokens.refresh(), history.refresh()]),
+            new Promise((resolve) => {
+                setTimeout(resolve, refreshLimit);
+            })
+        ]);
     };
 
     const onSelectAccount = (index: number) => {
@@ -480,8 +487,8 @@ function DashboardView({ vault }: { vault: Vault }) {
     };
 
     const onSent = () => {
-        native.refresh();
-        tokens.refresh();
+        void native.refresh();
+        void tokens.refresh();
     };
 
     return (
