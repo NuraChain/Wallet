@@ -3,6 +3,8 @@ import { CameraOff } from 'lucide-react';
 
 import Spinner from './spinner';
 
+import { cn } from '../utility/cn';
+
 /** Why there is no picture: the camera was refused, there is none to open, or it would not start. */
 export type ScanFailure = 'denied' | 'missing' | 'unavailable';
 
@@ -11,6 +13,15 @@ export type ScanFailure = 'denied' | 'missing' | 'unavailable';
    thread the page draws on. */
 const frameSide = 480;
 const frameGap = 150;
+
+/* The four corners of the viewfinder. They sit over the picture as well as over the empty frame, so
+   the frame reads as somewhere to aim before the camera has shown anything at all. */
+const cornerMap = [
+    'top-0 inset-s-0 rounded-ss-surface border-t-3 border-s-3',
+    'top-0 inset-e-0 rounded-se-surface border-t-3 border-e-3',
+    'bottom-0 inset-s-0 rounded-es-surface border-b-3 border-s-3',
+    'bottom-0 inset-e-0 rounded-ee-surface border-b-3 border-e-3'
+] as const;
 
 const reasonOf = (cause: unknown): ScanFailure => {
     const name = cause instanceof Error ? cause.name : '';
@@ -141,9 +152,15 @@ export default function Scanner({ onScan, onFailure }: { onScan: (text: string) 
         <div className='relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-dialog border border-line bg-base-3'>
             <video ref={videoRef} muted playsInline className='absolute inset-0 size-full object-cover' />
 
-            {state === 'starting' && <Spinner size={24} muted />}
+            <div className='pointer-events-none absolute inset-10'>
+                {cornerMap.map((corner) => (
+                    <span key={corner} className={cn('absolute size-8 border-txt-accent', corner)} />
+                ))}
+            </div>
 
-            {state === 'failed' && <CameraOff size={28} className='text-txt-muted' />}
+            {state === 'starting' && <Spinner size={32} muted />}
+
+            {state === 'failed' && <CameraOff size={56} strokeWidth={1.5} className='text-txt-muted' />}
         </div>
     );
 }
