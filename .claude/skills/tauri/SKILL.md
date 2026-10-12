@@ -148,6 +148,23 @@ both Linux-only and granted only in `tauri.linux.conf.json`; `applyBounds` in `u
 and `getMousePosition` / `setMousePosition` in `core/mouse.ts` are the only callers. Any new
 child webview on Linux has to be placed the same way or it stays in the hidden box, unseen.
 
+## The camera
+
+The wallet's own page opens the camera to read a recipient's QR code — `Scanner` in `src/ui`,
+offered where `useCanScan` in `hook/platform.ts` says the host has one to give. Each host gives
+it a different way, and only Linux needs Rust for it:
+
+| Host | What lets the wallet's page have the camera |
+|---|---|
+| Windows | Nothing here: WebView2 puts its own question to the user. |
+| Android | `CAMERA` in `AndroidManifest.xml`, which wry's own client asks the user for. The client `BrowserBridge.kt` sets is on the tabs only. |
+| macOS | `NSCameraUsageDescription` in `src-tauri/Info.plist`, and `com.apple.security.device.camera` in `src-tauri/Entitlements.plist` (`bundle.macOS.entitlements`): a signed build runs under the hardened runtime, which keeps the camera from an app without it. |
+| iOS | `NSCameraUsageDescription` in `src-tauri/Info.ios.plist`. The CLI merges `Info.plist` and then `Info.ios.plist` into the generated project, so the iOS wording is the one that ships there. |
+| Linux | `src/camera.rs`. WebKitGTK ships with capture off and refuses a request nothing answers, so both are put right for the `main` webview alone. |
+
+What a *site* in the browser tab can then do is a separate question, answered in the
+`dapp-provider` skill. On macOS the answer is "use the camera", and that is a known cost.
+
 ## Calling from the frontend
 
 - Import from `@tauri-apps/api` and the plugin packages, never from a global — the config

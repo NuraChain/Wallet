@@ -736,6 +736,18 @@ static NSString *NuraLogo(void);
     return nil;
 }
 
+/// A page asking for the camera or the microphone is refused, here and without a question. The
+/// bundle names a use for the camera because the wallet's own scanner needs one, and with that in
+/// place WebKit would put a question of its own to the user for any site that asked. Android lets a
+/// site through only where a favourite was switched on for it; there is no such switch here yet.
+- (void)webView:(WKWebView *)view
+    requestMediaCapturePermissionForOrigin:(WKSecurityOrigin *)origin
+                          initiatedByFrame:(WKFrameInfo *)frame
+                                      type:(WKMediaCaptureType)type
+                           decisionHandler:(void (^)(WKPermissionDecision))decisionHandler {
+    decisionHandler(WKPermissionDecisionDeny);
+}
+
 - (void)observeValueForKeyPath:(NSString *)path
                       ofObject:(id)object
                         change:(NSDictionary *)change

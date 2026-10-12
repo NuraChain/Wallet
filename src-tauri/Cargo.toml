@@ -33,6 +33,10 @@ tokio = { version = "1", features = [ "sync", "time" ] }
 [target.'cfg(target_os = "linux")'.dependencies]
 gtk = "0.18"
 
+# WebKitGTK keeps the camera from every page until it is switched on and answered for, which
+# src/camera.rs does for the wallet's own webview. Again the version Tauri is built against.
+webkit2gtk = "2.0"
+
 [profile.release]
 lto = true
 strip = true

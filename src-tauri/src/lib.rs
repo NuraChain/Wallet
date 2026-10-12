@@ -2,6 +2,9 @@
 mod dapp;
 
 #[cfg(target_os = "linux")]
+mod camera;
+
+#[cfg(target_os = "linux")]
 mod stage;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -55,6 +58,7 @@ pub fn run() {
             builder = builder.setup(|app| {
                 if let Some(wallet) = tauri::Manager::get_webview(app.handle(), "main") {
                     let _ = stage::raise(&wallet);
+                    let _ = camera::allow(&wallet);
                 }
 
                 Ok(())

@@ -112,10 +112,18 @@ on `allowDevices(origin, wanted, standing)` in `dapp.rpc.ts`.
   kept per origin in memory until the dashboard unmounts (`forgetMicrophones`); a no is kept
   nowhere. **The camera is never asked for** — a favourite gives it or the request is refused.
 - The switches are offered only where `managesSiteDevices()` is true, which is Android. Nothing
-  else comes through here yet: Windows leaves it to WebView2's own prompt; on macOS wry answers
-  every site's request with a grant, and only the missing `NSMicrophoneUsageDescription` stands in
-  the way — adding that key without a per-site answer would hand every page the microphone; Linux
-  has media capture switched off in WebKitGTK, and iOS lacks the same key.
+  else comes through here yet, and each host stands differently:
+  - **Windows** leaves it to WebView2's own prompt.
+  - **macOS**: wry answers every webview's request with a grant, so a site can reach whatever the
+    bundle names a use for. The camera is named, in `src-tauri/Info.plist`, for the wallet's own
+    recipient scanner — **so a site in the browser tab is given the camera with no question from
+    the wallet.** Only macOS's one question to the app itself stands in front of it. That was
+    accepted in order to ship the scanner; closing it means answering per site in native code.
+    The microphone still has no key, and adding one would open it the same way.
+  - **iOS**: `BrowserBridge.mm` refuses every site's request outright, so the key in
+    `src-tauri/Info.ios.plist` reaches the wallet's own page and nothing else.
+  - **Linux**: capture is switched off in WebKitGTK for every webview but the wallet's own
+    (`src-tauri/src/camera.rs`), so a site finds no devices at all.
 
 ## `dapp.log.ts`
 
