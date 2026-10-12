@@ -154,8 +154,11 @@ the wallet's own surface, so every step of it is narrow.
   warning in it, and the buttons either side stay the wallet's own opaque surfaces in the wallet's
   own ink: they are what tells the user where they are, and a site does not get to restyle that or
   wash it out. So a new control on the toolbar needs an opaque fill of its own — a bare or
-  translucent one would be drawn in a colour the site picked. The one thing the bar hands down is
-  `--focus-ring`, set to its ink, since the wallet's ring is a blue a site may have chosen too.
+  translucent one would be drawn in a colour the site picked. A disabled Back or Forward is the
+  exception that is there today: `dim` fades the whole button, so the bar's colour shows through
+  it. That is a control with nothing to say; the field is never dimmed. The one thing the bar
+  hands down is `--focus-ring`, set to its ink, since the wallet's ring is a blue a site may have
+  chosen too.
 - **Where the system draws over the colour** — a phone's status bar — its ink is turned through
   `setBarInk` on the native bridge, present on Android and iOS and absent on desktop. macOS and
   Linux draw their own title bars and take no colour at all.

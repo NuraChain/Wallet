@@ -16,8 +16,10 @@ const ringMap = { dark: '[--focus-ring:var(--tint-dark)]', light: '[--focus-ring
  * it, so the three read as one. That is the bar and nothing on it: the address field, with the
  * lock or the warning in it, and the buttons either side stay the wallet's own opaque surfaces in
  * the wallet's own ink. They are what tells the user where they are, and a site does not get to
- * restyle that or to wash it out. The colour is the site's and known only at runtime, which is why
- * it is a style here and not a class.
+ * restyle that or to wash it out. A button that is switched off is the one exception: it is
+ * faded as a whole, so the bar's colour shows through it, which is all a Back with nowhere to go
+ * has to say. The colour is the site's and known only at runtime, which is why it is a style here
+ * and not a class.
  */
 export default function Toolbar({ children }: { children: ReactNode }) {
     const tint = useTint();
