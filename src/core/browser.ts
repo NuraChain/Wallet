@@ -1,3 +1,4 @@
+import { inkOn } from '../utility/color';
 import { getValue, removeValue, setValue } from '../utility/storage';
 
 import { imageCache } from './image';
@@ -171,6 +172,9 @@ interface BrowserBridge {
     hideMouse?: () => void;
     setMouseOpacity?: (opacity: number) => void;
     setMouseIcon?: (icon: string) => void;
+
+    /** The ink the system draws its status bar in: `dark`, `light`, or empty for its own choice. */
+    setBarInk?: (ink: string) => void;
 }
 
 declare global {
@@ -287,6 +291,97 @@ export const getNativeTab = (id: string): NativeTab | undefined => {
             bridge.forward();
         },
         hides: setVisible !== undefined
+    };
+};
+
+/* What each open page has asked the wallet's chrome to wear, by the page's label, and which page
+   is the one on show. A page says its colour once and is taken at its word until it says another,
+   so the colour is still there after a trip to the start page and back; it is worn only while its
+   page is the one in view. */
+const themes = new Map<string, string>();
+
+let shownPage = '';
+let tint = '';
+
+let tintAt = 0;
+let tintTimer: ReturnType<typeof setTimeout> | undefined;
+
+const tintListeners = new Set<() => void>();
+
+/* The least time between two colours a page can put on the chrome. A page may change its mind as
+   often as it likes, and one that did so on every frame would have the wallet's title bar flashing
+   in time with it. */
+const tintGap = 300;
+
+const wear = () => {
+    if (tintTimer !== undefined) {
+        clearTimeout(tintTimer);
+
+        tintTimer = undefined;
+    }
+
+    const next = themes.get(shownPage) ?? '';
+
+    if (next === tint) {
+        return;
+    }
+
+    tint = next;
+    tintAt = Date.now();
+
+    // Where the system draws over the colour — a phone's status bar — its ink has to turn with it.
+    window.__nuraBrowser?.setBarInk?.(next.length > 0 ? inkOn(next) : '');
+
+    for (const listener of tintListeners) {
+        listener();
+    }
+};
+
+/** A page's colour for the wallet's chrome, as the bridge read it; the empty string for none. */
+export const setSiteTheme = (label: string, color: string) => {
+    if (color.length > 0) {
+        themes.set(label, color);
+    } else {
+        themes.delete(label);
+    }
+
+    if (label !== shownPage || tintTimer !== undefined) {
+        return;
+    }
+
+    const wait = tintAt + tintGap - Date.now();
+
+    if (wait > 0) {
+        tintTimer = setTimeout(wear, wait);
+    } else {
+        wear();
+    }
+};
+
+/** Which page's colour the chrome wears: the one in view, or the empty string while none is. */
+export const showSiteTheme = (label: string) => {
+    shownPage = label;
+
+    wear();
+};
+
+/** Every page is gone, and the chrome goes back to the wallet's own colours. */
+export const forgetSiteThemes = () => {
+    themes.clear();
+
+    shownPage = '';
+
+    wear();
+};
+
+/** The colour the wallet's chrome wears now, as `#rrggbb`, or the empty string for its own. */
+export const getTint = () => tint;
+
+export const subscribeTint = (listener: () => void) => {
+    tintListeners.add(listener);
+
+    return () => {
+        tintListeners.delete(listener);
     };
 };
 

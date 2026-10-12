@@ -33,6 +33,10 @@ static const CGFloat kMouseEdge = 16;
 /// The wallet's logo as the mouse wears it, kept at the foot of this file.
 static NSString *NuraLogo(void);
 
+/// The ink the status bar is drawn in, as the wallet last asked for it. `inkBars:` writes it, and
+/// the answer it gives the root view controller reads it.
+static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
+
 @interface NuraBrowserBridge : NSObject <WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate>
 
 @property (nonatomic, weak) WKWebView *host;
@@ -566,6 +570,45 @@ static NSString *NuraLogo(void);
     });
 }
 
+#pragma mark - status bar
+
+/// The status bar is drawn by the system over whatever the wallet paints beneath it, in dark ink or
+/// in light. Over a colour a site chose, the system's own pick may be the one that cannot be read,
+/// so the wallet says which: "dark", "light", or anything else to hand the choice back.
+///
+/// UIKit puts the question to the window's root view controller, and the one tao builds has no
+/// answer of its own to give. It is given one, once: a `preferredStatusBarStyle` added to that
+/// class by name and to no other, which a class that already had one would keep.
+- (void)inkBars:(NSString *)ink {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIViewController *root = self.host.window.rootViewController;
+
+        if (root == nil || ![NSStringFromClass(root.class) isEqualToString:@"TaoUIViewController"]) {
+            return;
+        }
+
+        static dispatch_once_t once;
+
+        dispatch_once(&once, ^{
+            IMP answer = imp_implementationWithBlock(^UIStatusBarStyle(id controller) {
+                return NuraBarStyle;
+            });
+
+            class_addMethod(root.class, @selector(preferredStatusBarStyle), answer, "q@:");
+        });
+
+        if ([ink isEqualToString:@"dark"]) {
+            NuraBarStyle = UIStatusBarStyleDarkContent;
+        } else if ([ink isEqualToString:@"light"]) {
+            NuraBarStyle = UIStatusBarStyleLightContent;
+        } else {
+            NuraBarStyle = UIStatusBarStyleDefault;
+        }
+
+        [root setNeedsStatusBarAppearanceUpdate];
+    });
+}
+
 #pragma mark - messages
 
 - (void)userContentController:(WKUserContentController *)controller
@@ -681,6 +724,8 @@ static NSString *NuraLogo(void);
         [self fadeMouse:num(0)];
     } else if ([method isEqualToString:@"setMouseIcon"]) {
         [self dressMouse:str(0)];
+    } else if ([method isEqualToString:@"setBarInk"]) {
+        [self inkBars:str(0)];
     }
 }
 
@@ -779,7 +824,7 @@ static NSString *NuraLogo(void);
     @"  var names = ['open','setBounds','close','closeAll','reload','back','forward',"
     @"               'setVisible','setDesktop','openTab','boundsTab','closeTab','visibleTab',"
     @"               'reloadTab','backTab','forwardTab','setDappScript','dappReply','dappEmit',"
-    @"               'showMouse','hideMouse','setMouseOpacity','setMouseIcon'];"
+    @"               'showMouse','hideMouse','setMouseOpacity','setMouseIcon','setBarInk'];"
     @"  var bridge = {};"
     @"  names.forEach(function(name){ bridge[name] = post(name); });"
     @"  window.__nuraBrowser = bridge;"

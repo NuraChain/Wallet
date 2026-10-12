@@ -513,6 +513,168 @@ export const dappScript = (identity: DappIdentity) => `
 
     window.dispatchEvent(new Event('ethereum#initialized'));
 
+    // The colour a page asks the browser around it to wear, read the way HTML says to: of the meta
+    // elements named theme-color, in tree order, the first whose media applies and whose content is
+    // a colour. The wallet is told once, and again only when the answer changes.
+    var watchTheme = function ()
+    {
+        var probe;
+        var told;
+        var queued = false;
+
+        var strip = function (text)
+        {
+            var blank = ' \\t\\n\\f\\r';
+            var from = 0;
+            var to = text.length;
+
+            while (from < to && blank.indexOf(text.charAt(from)) !== -1) { from += 1; }
+            while (to > from && blank.indexOf(text.charAt(to - 1)) !== -1) { to -= 1; }
+
+            return text.slice(from, to);
+        };
+
+        // Whatever way CSS has of writing a colour, it comes out as #rrggbb by being painted and
+        // read back. A canvas leaves its fill alone when handed something that is not a colour, so
+        // the text is offered over two different fills: only a colour ends the same both times.
+        var parse = function (text)
+        {
+            if (probe === undefined)
+            {
+                var canvas = document.createElement('canvas');
+
+                canvas.width = 1;
+                canvas.height = 1;
+
+                probe = canvas.getContext('2d') || null;
+            }
+
+            if (probe === null || text.length === 0) { return null; }
+
+            probe.fillStyle = '#000001';
+            probe.fillStyle = text;
+
+            var first = probe.fillStyle;
+
+            probe.fillStyle = '#000002';
+            probe.fillStyle = text;
+
+            if (probe.fillStyle !== first) { return null; }
+
+            probe.clearRect(0, 0, 1, 1);
+            probe.fillRect(0, 0, 1, 1);
+
+            var dot = probe.getImageData(0, 0, 1, 1).data;
+
+            if (dot[3] === 0) { return null; }
+
+            return '#' + ((1 << 24) + (dot[0] << 16) + (dot[1] << 8) + dot[2]).toString(16).slice(1);
+        };
+
+        var read = function ()
+        {
+            var list = document.getElementsByTagName('meta');
+
+            for (var index = 0; index < list.length; index += 1)
+            {
+                var name = list[index].getAttribute('name');
+                var content = list[index].getAttribute('content');
+
+                if (name === null || content === null || name.toLowerCase() !== 'theme-color') { continue; }
+
+                var media = list[index].getAttribute('media');
+
+                if (media !== null && !window.matchMedia(media).matches) { continue; }
+
+                var color = parse(strip(content));
+
+                if (color !== null) { return color; }
+            }
+
+            return null;
+        };
+
+        var tell = function ()
+        {
+            queued = false;
+
+            var color;
+
+            try { color = read(); } catch (ignored) { color = null; }
+
+            if (color === told) { return; }
+
+            told = color;
+
+            // Not through send(): nothing waits on the answer, so nothing is kept for it to find.
+            try { transport(JSON.stringify({ id: 'nura-theme-' + newId(), method: 'nura_themeColor', params: [color] }), ''); }
+            catch (ignored) {  }
+        };
+
+        var look = function ()
+        {
+            if (queued) { return; }
+
+            queued = true;
+
+            setTimeout(tell, 50);
+        };
+
+        var watcher = typeof MutationObserver === 'function' ? new MutationObserver(look) : null;
+
+        // While the page is still being read the tag may turn up anywhere. After that only the
+        // head is watched: a page that rewrites its body all day would otherwise have this looked
+        // up again beside every change it makes.
+        var settle = function ()
+        {
+            look();
+
+            if (watcher === null) { return; }
+
+            watcher.disconnect();
+
+            watcher.observe(document.head || document.documentElement, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['name', 'content', 'media']
+            });
+        };
+
+        if (document.readyState === 'loading')
+        {
+            if (watcher !== null) { watcher.observe(document, { childList: true, subtree: true }); }
+
+            document.addEventListener('DOMContentLoaded', settle);
+        }
+        else
+        {
+            settle();
+        }
+
+        // What a media attribute is measured against can change under a page that changes nothing.
+        var scheme = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+        if (scheme !== null && typeof scheme.addEventListener === 'function') { scheme.addEventListener('change', look); }
+        else if (scheme !== null && typeof scheme.addListener === 'function') { scheme.addListener(look); }
+
+        window.addEventListener('resize', look);
+
+        // A page brought back whole from the history runs nothing over again, and the wallet has
+        // by then been told the colour of whatever stood in its place.
+        window.addEventListener('pageshow', function (event)
+        {
+            if (event && event.persisted) { told = undefined; look(); }
+        });
+    };
+
+    // Asked of the page itself and never of a frame inside it, and only in the wallet's own
+    // browser: an extension draws nothing around a page that it could colour.
+    if (IDENTITY.channel === 'native' && typeof document !== 'undefined' && window.top === window)
+    {
+        try { watchTheme(); } catch (ignored) {  }
+    }
+
     setTimeout(function ()
     {
         connected = true;

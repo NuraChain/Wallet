@@ -46,7 +46,7 @@ import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
-import { getSiteDevices } from '../core/browser';
+import { forgetSiteThemes, getSiteDevices, setSiteTheme } from '../core/browser';
 import { setMouseIcon, showMouse } from '../core/mouse';
 import Mouse from '../ui/mouse';
 
@@ -330,7 +330,7 @@ function DashboardView({ vault }: { vault: Vault }) {
         void loadConnections();
 
         // What a favourite at the site's address has been switched on for goes in with the question.
-        const stop = startDappBridge(answerDapp, undefined, async (origin, wanted) => allowDevices(origin, wanted, await getSiteDevices(origin)));
+        const stop = startDappBridge(answerDapp, undefined, async (origin, wanted) => allowDevices(origin, wanted, await getSiteDevices(origin)), setSiteTheme);
 
         flushDeepLinks();
 
@@ -344,6 +344,9 @@ function DashboardView({ vault }: { vault: Vault }) {
             forgetDappPages();
 
             forgetMicrophones();
+
+            // The title bar outlives the dashboard, and would carry a site's colour onto the lock screen.
+            forgetSiteThemes();
         };
     }, []);
 
@@ -628,6 +631,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                             fullToggle={fullToggle}
                                             homePress={homePress}
                                             onFullscreen={setBrowserFull}
+                                            inView={index === active}
                                             enabled={index === active && modal === 'none' && prompt === undefined}
                                             onExit={() => {
                                                 goKey('Wallet');

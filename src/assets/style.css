@@ -48,6 +48,12 @@
     --color-logo-tile: oklch(0% 0 0);
     --color-logo-ink: oklch(73.7% 0.144 232.5);
 
+    /* The ink set over a colour a visited site chose for the title bar: whichever of the two reads
+       on it. Fixed in both themes, since what lies under them is the site's and not the theme's,
+       and nothing softer than these two clears 4.5:1 on every colour a site could pick. */
+    --color-tint-dark: oklch(0% 0 0);
+    --color-tint-light: oklch(100% 0 0);
+
     --color-btn-muted: var(--btn-muted);
     --color-btn-muted-hover: var(--btn-muted-hover);
     --color-btn-muted-active: var(--btn-muted-active);

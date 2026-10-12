@@ -42,6 +42,10 @@ so those are Tailwind's stock steps and the only utility family that is.
 
 **Ink** — `txt-normal`, `txt-muted`, `txt-reverse`, `txt-error`, `txt-success`.
 
+**Ink over a site's colour** — `tint-dark`, `tint-light`. Pure black and pure white, the same in
+both themes, for the title bar while it wears a visited site's `theme-color`. That colour itself is
+the one fill in the app that is an inline style: it is the site's, and known only at runtime.
+
 Used as any Tailwind colour utility: `bg-base-2`, `text-txt-muted`, `border-line`.
 
 **Type** — `text-tiny` 12, `text-small` 14, `text-medium` 16, `text-large` 18,

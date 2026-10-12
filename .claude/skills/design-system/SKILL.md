@@ -77,7 +77,7 @@ The remaining variants are bare too — no fill and no built-in layout — each 
 control it draws: `plain`, `logo`, `row` / `rowTight` (a pressable list row), `listRow`,
 `inlineRow` / `inlineSubtle` (`CopyButton`), `tab` / `tabOn`, `option` / `optionOn`,
 `fieldSelect`, `fieldAction` (an icon inside a field), `veil` (a reveal overlay)
-and `window` (a title-bar control).
+and `window` (a title-bar control; `windowTint` while the bar wears a site's colour).
 
 | size | Is |
 |---|---|

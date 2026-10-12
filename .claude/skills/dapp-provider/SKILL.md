@@ -125,6 +125,34 @@ on `allowDevices(origin, wanted, standing)` in `dapp.rpc.ts`.
   - **Linux**: capture is switched off in WebKitGTK for every webview but the wallet's own
     (`src-tauri/src/camera.rs`), so a site finds no devices at all.
 
+## A page naming the colour of the chrome around it
+
+A site's `<meta name="theme-color">` colours the wallet's title bar on Windows and the strip under
+a phone's status bar, for as long as that site is what the browser tab shows. It is the one thing a
+page gets to change about the wallet's own surface, so every step of it is narrow.
+
+- **In the page** (`dapp.script.ts`, `watchTheme`): the HTML algorithm, to the letter — the meta
+  elements named `theme-color` in tree order, skipping one whose `media` does not apply, taking the
+  first whose content is a colour. The colour is painted on a canvas and read back, so whatever CSS
+  can write arrives as `#rrggbb`. It runs only on the `native` channel and only in the top frame,
+  and speaks when the answer changes, `null` included: a page with no colour has to say so, or the
+  last page's would stay on.
+- **On the wire** it is `nura_themeColor` over the provider's transport, because that is the rail a
+  page has. **It is not a provider call.** `dapp.bridge.ts` reads it before anything is routed: no
+  grant, no entry in `getDappPages()`, never as far as `dapp.rpc.ts`. It is always answered, since
+  an unanswered call is held open in Rust for ten minutes.
+- **What is believed** is `#` and six hex digits, or `null`. Anything else is answered and dropped.
+  A page can forge this message as easily as write the tag, so the worst a page can do is choose
+  its own colour — and `setSiteTheme` in `core/browser.ts` lets the chrome change at most once in
+  300ms, so it cannot be made to flash.
+- **What it reaches** is a background and nothing else. The ink over it is one of two fixed tokens,
+  picked by `inkOn` in `utility/color.ts` for 4.5:1 on any colour. The toolbar with the address and
+  the lock glyph keeps the wallet's colours: it is what tells the user where they are, and a site
+  does not get to restyle that.
+- **Where the system draws over the colour** — a phone's status bar — its ink is turned through
+  `setBarInk` on the native bridge, present on Android and iOS and absent on desktop. macOS and
+  Linux draw their own title bars and take no colour at all.
+
 ## `dapp.log.ts`
 
 `dappLog(scope, message, detail?)`, off unless `import.meta.env.DEV` or

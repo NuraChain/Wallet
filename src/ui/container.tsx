@@ -2,6 +2,7 @@ import type { HTMLAttributes, ReactNode } from 'react';
 
 import { cn } from '../utility/cn';
 import { useIsWindows } from '../hook/platform';
+import { useTint } from '../hook/tint';
 
 export const inset = {
     sheetTop: 'pt-[var(--inset-top)]',
@@ -38,9 +39,26 @@ const bodyMap = {
        or the home indicator on iOS, it runs to the edge, which is what makes that bar read as
        transparent over a site: stopping short left a strip of the wallet's own colour beneath
        every page. */
-    browser: 'flex size-full flex-col pb-[var(--inset-bar)]',
+    browser: 'relative flex size-full flex-col pb-[var(--inset-bar)]',
     intro: `bg-base-1 flex size-full flex-col px-4 sm:px-6 ${inset.edgeBottom}`
 } as const;
+
+/**
+ * The strip a phone's status bar is drawn over, above a page in the browser. It wears the colour
+ * that page asks for, as the bar of a browser does, and is as tall as the inset — so nothing at all
+ * where no system bar lies over the app. The colour is the site's and arrives at runtime, which is
+ * why it is a style here and not a class.
+ */
+function BarTint() {
+    const tint = useTint();
+
+    return (
+        <div
+            style={tint.length > 0 ? { backgroundColor: tint } : undefined}
+            className='pointer-events-none absolute inset-x-0 top-0 h-[var(--inset-top)] transition-[background-color] duration-(--duration-base)'
+        />
+    );
+}
 
 export default function PageContainer({
     variant,
@@ -59,6 +77,8 @@ export default function PageContainer({
 
     return (
         <div className={cn(bodyMap[variant], top, center && 'items-center justify-center')} {...rest}>
+            {variant === 'browser' && <BarTint />}
+
             {children}
         </div>
     );

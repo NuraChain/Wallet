@@ -44,6 +44,35 @@ const readEnvelope = (raw: unknown, label: string, origin: string): DappEnvelope
 
 const isDevice = (kind: string): kind is SiteDevice => kind === 'microphone' || kind === 'camera';
 
+const themeMethod = 'nura_themeColor';
+
+const themeColor = /^#[0-9a-f]{6}$/iu;
+
+/**
+ * A page saying what colour it would have the browser around it wear. It comes over the provider's
+ * rails because those are the rails a page has, but it is not a provider call: it is read here and
+ * goes no further, so it needs no grant and is never routed.
+ *
+ * What is taken from it is a colour in one fixed shape, or word that the page has none. The page
+ * can write anything it likes in that place, and whatever else it writes is `undefined`: answered
+ * like the rest and otherwise dropped.
+ */
+const readTheme = (raw: unknown): { id: string; color: string | undefined } | undefined => {
+    if (typeof raw !== 'object' || raw === null || !('method' in raw) || raw.method !== themeMethod) {
+        return undefined;
+    }
+
+    const id = 'id' in raw && typeof raw.id === 'string' ? raw.id : '';
+
+    const [value]: unknown[] = 'params' in raw && Array.isArray(raw.params) ? raw.params : [];
+
+    if (value === null) {
+        return { id, color: '' };
+    }
+
+    return { id, color: typeof value === 'string' && themeColor.test(value) ? value.toLowerCase() : undefined };
+};
+
 // A link is logged by its scheme alone: what a foreign scheme carries in its query string is the
 // page's business, and the log has no use for it.
 const linkScheme = (url: string) => url.slice(0, Math.max(0, url.indexOf(':')));
@@ -51,7 +80,9 @@ const linkScheme = (url: string) => url.slice(0, Math.max(0, url.indexOf(':')));
 export const startDappBridge = (
     handler: (envelope: DappEnvelope) => Promise<DappReply>,
     onLink?: DappLinkHandler,
-    onDevices?: (origin: string, wanted: SiteDevice[]) => Promise<boolean>
+    onDevices?: (origin: string, wanted: SiteDevice[]) => Promise<boolean>,
+    /** A page's colour for the wallet's chrome, by the page's label; the empty string for none. */
+    onTheme?: (label: string, color: string) => void
 ) => {
     stopBridge?.();
 
@@ -77,6 +108,20 @@ export const startDappBridge = (
                 parsed = JSON.parse(call.payload);
             } catch {
                 call.respond({ id: '', error: { code: -32700, message: 'The request was not valid JSON' } });
+
+                return;
+            }
+
+            const theme = readTheme(parsed);
+
+            if (theme !== undefined) {
+                // Answered whatever it said: on desktop a call nobody answers is held open in Rust
+                // for ten minutes, and a page can send as many of these as it likes.
+                call.respond({ id: theme.id });
+
+                if (theme.color !== undefined && siteOrigin(call.origin).length > 0) {
+                    onTheme?.(call.label, theme.color);
+                }
 
                 return;
             }

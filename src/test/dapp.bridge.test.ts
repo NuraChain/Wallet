@@ -304,3 +304,113 @@ describe('a page asking for a device', () => {
         expect(window.__nuraPermission).toBeUndefined();
     });
 });
+
+describe('a page naming the colour of the chrome around it', () => {
+    const themed = () => {
+        const routed: DappEnvelope[] = [];
+        const worn: { label: string; color: string }[] = [];
+
+        const stop = startDappBridge(
+            async (envelope): Promise<DappReply> => {
+                routed.push(envelope);
+
+                return { id: envelope.id, result: null };
+            },
+            undefined,
+            undefined,
+            (label, color) => {
+                worn.push({ label, color });
+            }
+        );
+
+        return { routed, worn, stop };
+    };
+
+    it('is read here and goes no further: no route, no page on the list, and an answer all the same', async () => {
+        const { routed, worn, stop } = themed();
+
+        send({ id: 'theme-1', method: 'nura_themeColor', params: ['#1A73E8'] });
+
+        await settled();
+
+        expect(worn).toEqual([{ label: 'nura-browser-1', color: '#1a73e8' }]);
+        expect(routed).toEqual([]);
+        expect(getDappPages()).toEqual([]);
+
+        // Unanswered, the call would be held open on desktop until it timed out.
+        expect(replies).toEqual([{ label: 'nura-browser-1', payload: JSON.stringify({ id: 'theme-1' }) }]);
+
+        stop();
+    });
+
+    it('takes word that the page has none', async () => {
+        const { worn, stop } = themed();
+
+        send({ id: 'theme-2', method: 'nura_themeColor', params: [null] });
+
+        await settled();
+
+        expect(worn).toEqual([{ label: 'nura-browser-1', color: '' }]);
+
+        stop();
+    });
+
+    it('takes a colour in one shape only, and answers the rest without acting on them', async () => {
+        const { routed, worn, stop } = themed();
+
+        const offered: unknown[] = [
+            'red',
+            '#fff',
+            '#12345g',
+            '#1234567',
+            'rgb(1, 2, 3)',
+            '#112233; background: url(https://evil.example)',
+            'url(javascript:alert(1))',
+            '',
+            7,
+            { color: '#112233' },
+            ['#112233']
+        ];
+
+        for (const value of offered) {
+            send({ id: 'theme-3', method: 'nura_themeColor', params: [value] });
+        }
+
+        send({ id: 'theme-3', method: 'nura_themeColor' });
+        send({ method: 'nura_themeColor', params: 'nothing like a list' });
+
+        await settled();
+
+        expect(worn).toEqual([]);
+        expect(routed).toEqual([]);
+        expect(replies).toHaveLength(offered.length + 2);
+
+        stop();
+    });
+
+    it('is not taken from a page that is not a site', async () => {
+        const { worn, stop } = themed();
+
+        send({ id: 'theme-4', method: 'nura_themeColor', params: ['#112233'] }, 'file://');
+        send({ id: 'theme-5', method: 'nura_themeColor', params: ['#112233'] }, 'null');
+
+        await settled();
+
+        expect(worn).toEqual([]);
+        expect(replies).toHaveLength(2);
+
+        stop();
+    });
+
+    it('is told to nobody when nobody asked to hear it', async () => {
+        const stop = startDappBridge(async (envelope): Promise<DappReply> => ({ id: envelope.id, result: null }));
+
+        send({ id: 'theme-6', method: 'nura_themeColor', params: ['#112233'] });
+
+        await settled();
+
+        expect(replies).toEqual([{ label: 'nura-browser-1', payload: JSON.stringify({ id: 'theme-6' }) }]);
+
+        stop();
+    });
+});

@@ -289,3 +289,246 @@ describe('the page', () => {
         expect(source).not.toContain('nura_chrome');
     });
 });
+
+interface Meta {
+    name?: string;
+    content?: string;
+    media?: string;
+}
+
+/**
+ * A page as far as the colour reader can tell: its meta elements, the media that match just now,
+ * and a canvas that takes `#rrggbb` for a colour and leaves its fill alone for anything else, which
+ * is the one thing about a real canvas the reader leans on.
+ */
+const page = (metas: Meta[], options: { matching?: string[]; framed?: boolean; channel?: 'native' | 'extension' } = {}) => {
+    const told: unknown[] = [];
+    const posted: unknown[] = [];
+    const timers: (() => void)[] = [];
+
+    const matching = new Set(options.matching);
+
+    const bus = new EventTarget();
+    const schemeBus = new EventTarget();
+
+    let observed: (() => void) | undefined;
+
+    const element = (meta: Meta) => ({
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        getAttribute: (key: string) => (meta as Record<string, string | undefined>)[key] ?? null
+    });
+
+    const list = metas.map((meta) => element(meta));
+
+    let fill = '#000000';
+    let dot = [0, 0, 0, 0];
+
+    const context = {
+        get fillStyle() {
+            return fill;
+        },
+
+        set fillStyle(value: string) {
+            if (/^#[0-9a-f]{6}$/iu.test(value)) {
+                fill = value.toLowerCase();
+            }
+        },
+
+        clearRect: () => {
+            dot = [0, 0, 0, 0];
+        },
+
+        fillRect: () => {
+            dot = [...[1, 3, 5].map((at) => Number.parseInt(fill.slice(at, at + 2), 16)), 255];
+        },
+
+        getImageData: () => ({ data: dot })
+    };
+
+    const doc = {
+        readyState: 'complete',
+        head: {},
+        documentElement: {},
+        createElement: () => ({ width: 0, height: 0, getContext: () => context }),
+        getElementsByTagName: () => list,
+        addEventListener: () => undefined
+    };
+
+    const win: Record<string, unknown> = {
+        crypto: globalThis.crypto,
+
+        addEventListener: (name: string, handler: EventListener) => {
+            bus.addEventListener(name, handler);
+        },
+
+        removeEventListener: () => undefined,
+
+        dispatchEvent: (event: Event) => bus.dispatchEvent(event),
+
+        matchMedia: (query: string) => ({
+            matches: matching.has(query),
+
+            addEventListener: (name: string, handler: EventListener) => {
+                schemeBus.addEventListener(name, handler);
+            }
+        }),
+
+        postMessage: (message: unknown) => {
+            posted.push(message);
+        },
+
+        __nuraEthereum: {
+            request: (raw: string) => {
+                // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                const call = JSON.parse(raw) as { method: string; params: unknown[] };
+
+                if (call.method === 'nura_themeColor') {
+                    told.push(call.params[0]);
+                }
+            }
+        }
+    };
+
+    win.top = options.framed === true ? {} : win;
+
+    class Observer {
+        constructor(callback: () => void) {
+            observed = callback;
+        }
+
+        observe() {
+            return this;
+        }
+
+        disconnect() {
+            return this;
+        }
+    }
+
+    const later = (task: () => void) => {
+        timers.push(task);
+    };
+
+    // oxlint-disable-next-line no-new-func
+    const run = new Function('window', 'document', 'CustomEvent', 'Event', 'setTimeout', 'MutationObserver', dappScript(dappIdentity(1020, options.channel)));
+
+    run(win, doc, CustomEvent, Event, later, Observer);
+
+    const settle = () => {
+        for (const task of timers.splice(0)) {
+            task();
+        }
+    };
+
+    settle();
+
+    return {
+        told,
+        posted,
+
+        /** The page changes what is in its head, and the reader hears of it. */
+        rewrite: (next: Meta[]) => {
+            list.splice(0, list.length, ...next.map((meta) => element(meta)));
+
+            observed?.();
+
+            settle();
+        },
+
+        /** The device goes over to another colour scheme under the page. */
+        turn: (next: string[]) => {
+            matching.clear();
+
+            for (const query of next) {
+                matching.add(query);
+            }
+
+            schemeBus.dispatchEvent(new Event('change'));
+
+            settle();
+        }
+    };
+};
+
+describe('the colour a page asks the browser around it to wear', () => {
+    const dark = '(prefers-color-scheme: dark)';
+    const light = '(prefers-color-scheme: light)';
+
+    it('is read from the meta named theme-color and told to the wallet', () => {
+        expect(page([{ name: 'theme-color', content: '#112233' }]).told).toEqual(['#112233']);
+    });
+
+    it('matches the name in any case, and sets aside the white space around the colour', () => {
+        expect(page([{ name: 'Theme-Color', content: ' \n\t#AABBCC \f\r' }]).told).toEqual(['#aabbcc']);
+    });
+
+    it('takes the first one, in the order the page wrote them', () => {
+        const metas = [
+            { name: 'viewport', content: '#000001' },
+            { name: 'theme-color', content: '#111111' },
+            { name: 'theme-color', content: '#222222' }
+        ];
+
+        expect(page(metas).told).toEqual(['#111111']);
+    });
+
+    it('passes over one whose media does not apply, and follows the scheme when it turns', () => {
+        const held = page(
+            [
+                { name: 'theme-color', content: '#000000', media: dark },
+                { name: 'theme-color', content: '#ffffff', media: light }
+            ],
+            { matching: [light] }
+        );
+
+        expect(held.told).toEqual(['#ffffff']);
+
+        held.turn([dark]);
+
+        expect(held.told).toEqual(['#ffffff', '#000000']);
+    });
+
+    it('passes over one that names no colour, or has no content at all', () => {
+        const metas = [
+            { name: 'theme-color' },
+            { name: 'theme-color', content: 'not a colour' },
+            { name: 'theme-color', content: '' },
+            { name: 'theme-color', content: '#445566' }
+        ];
+
+        expect(page(metas).told).toEqual(['#445566']);
+    });
+
+    it('says so when the page has none, so the colour of the page before it is not left on', () => {
+        expect(page([]).told).toEqual([null]);
+        expect(page([{ name: 'description', content: '#112233' }]).told).toEqual([null]);
+    });
+
+    it('speaks again only when the answer has changed', () => {
+        const held = page([{ name: 'theme-color', content: '#112233' }]);
+
+        held.rewrite([{ name: 'theme-color', content: '#112233' }]);
+        held.rewrite([
+            { name: 'theme-color', content: '#112233' },
+            { name: 'theme-color', content: '#999999' }
+        ]);
+
+        expect(held.told).toEqual(['#112233']);
+
+        held.rewrite([{ name: 'theme-color', content: '#445566' }]);
+        held.rewrite([]);
+
+        expect(held.told).toEqual(['#112233', '#445566', null]);
+    });
+
+    it('is never asked of a frame inside the page', () => {
+        expect(page([{ name: 'theme-color', content: '#112233' }], { framed: true }).told).toEqual([]);
+    });
+
+    it('is not read at all in an extension, which draws nothing around a page', () => {
+        const held = page([{ name: 'theme-color', content: '#112233' }], { channel: 'extension' });
+
+        expect(held.told).toEqual([]);
+        expect(JSON.stringify(held.posted)).not.toContain('nura_themeColor');
+    });
+});

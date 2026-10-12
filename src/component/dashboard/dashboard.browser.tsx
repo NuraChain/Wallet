@@ -28,7 +28,8 @@ import {
     getNativeTab,
     onNativeBrowserState,
     setBrowserFavorites,
-    setBrowserView
+    setBrowserView,
+    showSiteTheme
 } from '../../core/browser';
 import { Vertical } from '../../ui/stack';
 import type { Network } from '../../type/network';
@@ -57,6 +58,7 @@ const toUrl = (value: string) => {
 
 export default function DashboardBrowser({
     network,
+    inView,
     enabled,
     request,
     ticket,
@@ -66,6 +68,8 @@ export default function DashboardBrowser({
     onFullscreen
 }: {
     network: Network;
+    /** Whether this is the tab on screen. A dialog over it turns `enabled` off and leaves this on. */
+    inView: boolean;
     enabled: boolean;
     request: string;
     ticket: number;
@@ -132,6 +136,16 @@ export default function DashboardBrowser({
     useEffect(() => {
         onFullscreen?.(full);
     }, [full, onFullscreen]);
+
+    // The title bar and the status bar wear the open site's colour for as long as the site is what
+    // this tab shows — through a dialog as well, which hides the page but not the tab.
+    useEffect(() => {
+        showSiteTheme(inView && !start ? frameLabel(tab.id) : '');
+
+        return () => {
+            showSiteTheme('');
+        };
+    }, [inView, start, tab.id]);
 
     useEffect(() => {
         if (!full) {

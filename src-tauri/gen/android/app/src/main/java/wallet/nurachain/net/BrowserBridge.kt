@@ -21,6 +21,7 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.webkit.ScriptHandler
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
@@ -53,6 +54,10 @@ class BrowserBridge(
 
     // What the mouse wears. Kept apart from the view, which the first request for it comes ahead of.
     private var mouseIcon: String = "logo"
+
+    // Whether the system drew its status bar in dark ink before a site's colour was first put under
+    // it, so that leaving the site puts back exactly what was there.
+    private var systemBarInk: Boolean? = null
 
     companion object {
         private const val SOLE = "sole"
@@ -438,6 +443,27 @@ class BrowserBridge(
             mouseIcon = icon
 
             mouse?.setImageResource(mouseImage())
+        }
+    }
+
+    /**
+     * The status bar is drawn by the system over whatever the wallet paints beneath it, in dark ink
+     * or in light. Over a colour a site chose, the system's own pick may be the one that cannot be
+     * read, so the wallet says which: "dark", "light", or anything else to hand the choice back.
+     */
+    @JavascriptInterface
+    fun setBarInk(ink: String) {
+        activity.runOnUiThread {
+            val bars = WindowCompat.getInsetsController(activity.window, activity.window.decorView)
+
+            val system = systemBarInk ?: bars.isAppearanceLightStatusBars.also { systemBarInk = it }
+
+            // A light status bar, as Android names it, is one whose ink is dark.
+            bars.isAppearanceLightStatusBars = when (ink) {
+                "dark" -> true
+                "light" -> false
+                else -> system
+            }
         }
     }
 
