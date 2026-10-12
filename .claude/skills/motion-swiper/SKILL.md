@@ -24,14 +24,35 @@ that is not in the DOM before or after the animation.
 `node_modules` as a transitive dependency of `motion`; importing from it directly gets a
 second copy of the runtime and its own `AnimatePresence` context, so exits stop firing.
 
-### Animate transforms and opacity
+### Animate `transform` and `opacity`
 
-`x`, `y`, `scale`, `rotate`, `opacity`. These are composited and cost nothing per frame.
-Animating `width`, `height`, `top`, `margin` or anything else that reflows is how a
-transition starts dropping frames on a phone.
+Those two, and `transform` written whole: `transform: 'scale(0.9)'`, never Motion's separate
+`x`, `y`, `scale` or `rotate`. Motion hands `transform` and `opacity` to the browser, which runs
+them off the main thread. Its separate transform values it works out itself, in script, frame by
+frame, and that clock is the one iOS is hard on: WebKit drops it to 30 a second in Low Power
+Mode, and it stalls while the content of the dialog being opened mounts. Every animation in
+`src/ui` was moved off it for that reason. Animating `width`, `height`, `top`, `margin` or
+anything else that reflows is worse again.
+
+Writing the transform whole has three consequences, and `ui/modal.tsx` shows all of them:
+
+- **One form per element.** `transform` beside a separate `scale` or `y` on the same element is
+  two writers for one property.
+- **A surface that holds content goes back to `none`**:
+  `animate={{ transform: 'scale(1)', transitionEnd: { transform: 'none' } }}`. A transform left
+  on it, even one that changes nothing, makes it the box its `fixed` descendants are measured
+  against, and `Popover`'s backdrop is one — it would cover the dialog instead of the window. A
+  leaf with nothing inside it (the copy glyph, the waiting bar) can keep its last keyframe.
+- **An exit from `none` names its start**: `exit={{ transform: ['scale(1)', 'scale(0.9)'] }}`.
+  Motion cannot animate from `none`; it fills it in from the target with every number zeroed,
+  which for a scale is a panel that leaves from nothing.
+
+Three or more keyframes under a single `ease` are eased as one curve by the browser, where
+Motion's own engine eased each step. Pass an ease per step to keep the stepped curve, as
+`ui/copy.tsx` does for its tick.
 
 A transform has no logical direction, and that is not a reason to animate layout instead.
-`ui/progress.tsx` fills its waiting bar with `scaleX` and lets the origin carry the direction —
+`ui/progress.tsx` fills its waiting bar with `scaleX(…)` and lets the origin carry the direction —
 `origin-left rtl:origin-right` — so it runs right-to-left in Farsi and Arabic without reflowing
 anything. Nothing in the tree animates a property that reflows.
 
@@ -124,7 +145,7 @@ that is when `virtual` and `virtualIndex` become the answer — not before.
 
 - [ ] Could a Tailwind transition or scroll-snap have done this? Then it should have.
 - [ ] Imported from `motion/react`, not `framer-motion`.
-- [ ] Only transforms and opacity animate.
+- [ ] Only `transform`, written whole, and `opacity` animate; a surface ends on `transform: 'none'`.
 - [ ] Every `AnimatePresence` child has a stable `key`; `mode`/`initial` chosen deliberately.
 - [ ] Looping or auto-advancing motion is gated on `useReducedMotion()`.
 - [ ] Swiper: every feature prop has its module **and** its stylesheet.

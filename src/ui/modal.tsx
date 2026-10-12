@@ -46,14 +46,22 @@ export function Modal({
 }) {
     const { panelRef } = useDialog(onClose);
 
+    // The scale is animated as a whole `transform`, not as Motion's own `scale`. Motion hands
+    // `transform` and `opacity` to the browser and works its separate transform values out itself,
+    // in script, frame by frame — and on iOS that clock drops to 30 a second in Low Power Mode and
+    // stalls while the dialog's own content mounts, where the fade running beside it does neither.
+    //
+    // It goes back to `none` once it has arrived: a transform left on the panel, even one that
+    // changes nothing, makes it the box a popover's `fixed` backdrop is measured against. Motion
+    // cannot leave from `none`, which it fills in as a scale of 0, so the exit names its start.
     const panel = (
         <motion.div
             ref={panelRef}
             role='dialog'
             tabIndex={-1}
-            initial={{ opacity: 0, scale }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale }}
+            initial={{ opacity: 0, transform: `scale(${scale})` }}
+            animate={{ opacity: 1, transform: 'scale(1)', transitionEnd: { transform: 'none' } }}
+            exit={{ opacity: 0, transform: ['scale(1)', `scale(${scale})`] }}
             className={cn(
                 surfacePanel,
                 'pointer-events-auto flex max-w-full flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',

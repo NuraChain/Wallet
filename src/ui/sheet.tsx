@@ -25,13 +25,14 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 onClick={onClose}
             />
 
+            {/* Slid as a whole `transform` and put back to `none`, for the reasons Modal's panel is. */}
             <motion.div
                 ref={panelRef}
                 role='dialog'
                 tabIndex={-1}
-                initial={{ y: '-100%' }}
-                animate={{ y: '0%' }}
-                exit={{ y: '-100%' }}
+                initial={{ transform: 'translateY(-100%)' }}
+                animate={{ transform: 'translateY(0%)', transitionEnd: { transform: 'none' } }}
+                exit={{ transform: ['translateY(0%)', 'translateY(-100%)'] }}
                 transition={{ type: 'tween' }}
                 className={cn(
                     surfacePanel,

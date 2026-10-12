@@ -27,8 +27,8 @@ export default function ProgressBar({ value, look }: { value?: number; look?: ke
                 <div className='absolute inset-y-0 inset-s-0 min-w-1.5 bg-txt-accent' style={{ width: `${value}%` }} />
             ) : (
                 <motion.span
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
+                    initial={{ transform: 'scaleX(0)' }}
+                    animate={{ transform: 'scaleX(1)' }}
                     transition={{ duration: 1.1, ease: 'easeOut' }}
                     className='absolute inset-0 origin-left rounded-full bg-txt-accent rtl:origin-right'
                 />

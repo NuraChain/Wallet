@@ -9,9 +9,16 @@ import { surfacePanel } from './panel';
 import { getDirection } from '../utility/language';
 import { useIsWindows } from '../hook/platform';
 
-/** A route's own surface, arriving: the dashboard fades in; the intro grows from the centre. */
+/**
+ * A route's own surface, arriving: the dashboard fades in; the intro grows from the centre.
+ *
+ * Grown as a whole `transform` and put back to `none`, for the reasons Modal's panel is.
+ */
 export function Screen({ enter, backdrop = false, children }: { enter: 'fade' | 'grow'; backdrop?: boolean; children: ReactNode }) {
-    const motionProps = enter === 'fade' ? { initial: { opacity: 0 }, animate: { opacity: 1 } } : { initial: { scale: 0 }, animate: { scale: 1 } };
+    const motionProps =
+        enter === 'fade'
+            ? { initial: { opacity: 0 }, animate: { opacity: 1 } }
+            : { initial: { transform: 'scale(0)' }, animate: { transform: 'scale(1)', transitionEnd: { transform: 'none' } } };
 
     return (
         <motion.div {...motionProps} transition={{ type: 'tween' }} className={cn('relative size-full', backdrop && 'bg-base-1')}>

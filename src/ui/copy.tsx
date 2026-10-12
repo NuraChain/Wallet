@@ -61,10 +61,10 @@ export default function CopyButton({
                 {done ? (
                     <motion.span
                         key='done'
-                        initial={{ scale: 0.4, opacity: 0 }}
-                        animate={{ scale: [0.4, 1.35, 1], opacity: 1 }}
-                        exit={{ scale: 0.4, opacity: 0 }}
-                        transition={{ duration: 0.35 }}
+                        initial={{ transform: 'scale(0.4)', opacity: 0 }}
+                        animate={{ transform: ['scale(0.4)', 'scale(1.35)', 'scale(1)'], opacity: 1 }}
+                        exit={{ transform: 'scale(0.4)', opacity: 0 }}
+                        transition={{ duration: 0.35, ease: ['easeOut', 'easeOut'] }}
                         className='absolute text-txt-normal'
                     >
                         <Check size={18} />
@@ -72,9 +72,9 @@ export default function CopyButton({
                 ) : (
                     <motion.span
                         key='copy'
-                        initial={{ scale: 0.6, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0.6, opacity: 0 }}
+                        initial={{ transform: 'scale(0.6)', opacity: 0 }}
+                        animate={{ transform: 'scale(1)', opacity: 1 }}
+                        exit={{ transform: 'scale(0.6)', opacity: 0 }}
                         transition={{ duration: 0.18 }}
                         className='absolute'
                     >
