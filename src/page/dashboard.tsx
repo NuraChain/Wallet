@@ -345,7 +345,8 @@ function DashboardView({ vault }: { vault: Vault }) {
 
             forgetMicrophones();
 
-            // The title bar outlives the dashboard, and would carry a site's colour onto the lock screen.
+            // A phone's status bar outlives the dashboard, and would stay turned for a site's colour on
+            // the lock screen.
             forgetSiteThemes();
         };
     }, []);

@@ -52,11 +52,7 @@ const bareMap = {
     fieldSelect: `${focusRing} ${fieldSurface} flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3`,
     fieldAction: `${focusRing} ${tapArea} absolute -inset-e-0.5 size-8 cursor-pointer rounded-control text-txt-muted hover:text-txt-normal`,
     veil: `${focusRing} absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-1 rounded-surface bg-base-2/60 text-txt-normal hover:bg-base-2/70`,
-    window: `${focusRing} flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal transition-colors duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active`,
-    /** A window control over a colour the title bar took from a site: it wears the bar's ink, its states are that ink thinned,
-        and its focus ring is that ink too — the wallet's own ring is a blue a site may well have chosen. */
-    windowTint:
-        'flex h-full w-10 cursor-pointer items-center justify-center outline-2 outline-offset-2 outline-transparent transition-colors duration-(--duration-base) outline-double hover:bg-current/10 focus-visible:outline-current active:bg-current/20'
+    window: `${focusRing} flex h-full w-10 cursor-pointer items-center justify-center text-txt-normal transition-colors duration-(--duration-base) hover:bg-btn-muted-hover active:bg-btn-muted-active`
 } as const;
 
 const sizeMap = {

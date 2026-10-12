@@ -309,8 +309,8 @@ let tintTimer: ReturnType<typeof setTimeout> | undefined;
 const tintListeners = new Set<() => void>();
 
 /* The least time between two colours a page can put on the chrome. A page may change its mind as
-   often as it likes, and one that did so on every frame would have the wallet's title bar flashing
-   in time with it. */
+   often as it likes, and one that did so on every frame would have the wallet's header flashing in
+   time with it. */
 const tintGap = 300;
 
 const wear = () => {

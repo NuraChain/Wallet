@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 
 import { cn } from '../utility/cn';
-import { useIsWindows } from '../hook/platform';
+import { useHasStatusBar, useIsWindows } from '../hook/platform';
 import { useTint } from '../hook/tint';
 
 export const inset = {
@@ -45,9 +45,10 @@ const bodyMap = {
 
 /**
  * The strip a phone's status bar is drawn over, above a page in the browser. It wears the colour
- * that page asks for, as the bar of a browser does, and is as tall as the inset — so nothing at all
- * where no system bar lies over the app. The colour is the site's and arrives at runtime, which is
- * why it is a style here and not a class.
+ * that page asks for, as the bar of a browser does, and is as tall as the inset. It is drawn on a
+ * phone and nowhere else: on Windows, macOS and Linux the top of the window is the window's own,
+ * and keeps the wallet's colours whatever page is open. The colour is the site's and arrives at
+ * runtime, which is why it is a style here and not a class.
  */
 function BarTint() {
     const tint = useTint();
@@ -72,12 +73,13 @@ export default function PageContainer({
     children: ReactNode;
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
     const isWindows = useIsWindows();
+    const hasStatusBar = useHasStatusBar();
 
     const top = variant === 'tab' ? '' : topMap[variant][isWindows ? 'windows' : 'device'];
 
     return (
         <div className={cn(bodyMap[variant], top, center && 'items-center justify-center')} {...rest}>
-            {variant === 'browser' && <BarTint />}
+            {variant === 'browser' && hasStatusBar && <BarTint />}
 
             {children}
         </div>

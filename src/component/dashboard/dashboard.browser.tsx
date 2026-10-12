@@ -137,8 +137,9 @@ export default function DashboardBrowser({
         onFullscreen?.(full);
     }, [full, onFullscreen]);
 
-    // The title bar and the status bar wear the open site's colour for as long as the site is what
-    // this tab shows — through a dialog as well, which hides the page but not the tab.
+    // The browser's header, and on a phone the status bar over it, wear the open site's colour for as
+    // long as the site is what this tab shows — through a dialog as well, which hides the page but
+    // not the tab.
     useEffect(() => {
         showSiteTheme(inView && !start ? frameLabel(tab.id) : '');
 

@@ -9,6 +9,21 @@ export const useIsWindows = (): boolean => {
 };
 
 /**
+ * Whether the system draws a status bar over the top of the app, as a phone does. There the strip
+ * under it may wear the colour of the site in the browser. A desktop has no such bar, and nothing
+ * of a desktop window's own frame — its title bar least of all — ever takes a site's colour.
+ */
+export const useHasStatusBar = (): boolean => {
+    const [hasStatusBar] = useState(() => {
+        const host = getPlatform();
+
+        return host === 'android' || host === 'ios';
+    });
+
+    return hasStatusBar;
+};
+
+/**
  * Whether the wallet can host a page itself. A Tauri window opens a child webview for it, and
  * Android and iOS each hand one over natively — BrowserBridge.kt and BrowserBridge.mm both answer
  * to `window.__nuraBrowser`. An extension popup is a document the browser closes the moment it
