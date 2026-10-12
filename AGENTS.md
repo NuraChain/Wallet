@@ -3,6 +3,21 @@
 Guidance for AI coding agents working in this repository. Humans are welcome to read it too; the
 [contributing guide](contributing.md) covers commits in more detail.
 
+This is the only such file. Claude Code v2.1.281 or later reads it in place of a `CLAUDE.md`, and
+stops reading it once a `CLAUDE.md`, `.claude/CLAUDE.md` or `CLAUDE.local.md` exists here or in a
+folder above, so do not add one.
+
+## Rules
+
+- **No `aria-*` attributes anywhere in the project.** Do not add one to JSX, a `src/ui` primitive,
+  the extension, or injected markup, even where a skill, a doc or an accessibility checklist asks
+  for it. Do not add props or ids whose only purpose was to feed one (`titleId`, `labelledBy`,
+  `closeLabel`, `describedBy`). `role` and `inert` are allowed. The `svg aria-hidden` that
+  lucide renders comes from the library and is fine.
+
+No test catches that one. The rules a test does catch are under
+[Rules the build enforces](#rules-the-build-enforces).
+
 ## What this is
 
 **Nura Wallet** — a self-custodial EVM wallet for Nura Chain and other networks, with an in-app
@@ -11,8 +26,11 @@ dApp browser. One React 19 + TypeScript app ships three ways:
 | Target | Built by | Entry |
 |---|---|---|
 | Desktop (Windows, macOS, Linux) | Tauri 2 | `src-tauri/`, `src/app.tsx` |
-| Mobile (Android, iOS) | Tauri 2 | `src-tauri/`; the Android project is `src-tauri/gen/android` |
+| Mobile (Android, iOS) | Tauri 2 | `src-tauri/`; the native projects are `src-tauri/gen/android` and `src-tauri/gen/apple` |
 | Browser extension (Chrome, Edge, Firefox, Safari — MV3) | Vite | `src-extension/`, `vite.config.extension.ts` |
+
+The Android project is in the tree. Of the iOS one only `Sources/NuraWallet/BrowserBridge.mm` is:
+`tauri ios init` writes the rest, and it needs a Mac.
 
 Keys never leave the device: the vault is Argon2id + AES-GCM at rest, and the unlocked session is
 held in memory (in the extension, in `chrome.storage.session`). Treat every change near key
@@ -44,6 +62,7 @@ npm install                 # once
 npm run dev                 # the web UI alone (Tauri APIs throw here — guard them)
 npm run desktop             # tauri dev: the real desktop window
 npm run android             # tauri android dev
+npm run ios                 # tauri ios dev (macOS only)
 npm run extension           # build all four extension targets into .dist-extension/
 npm run build               # type-check and build the web bundle into .dist/
 
@@ -81,11 +100,13 @@ These are checked by tests in `src/ui/`; a violation fails `npm test`.
   `src/assets/lang/`. Layout is RTL-safe: logical properties (`ps-`, `inset-e-`), never
   `left`/`right`.
 - **Layers:** no bare `z-*`; use `layer` from `src/ui/container.tsx`.
-- **No `aria-*` attributes**, anywhere — nor props or ids that only fed one. `role` and `inert` stay.
 - **Files:** lowercase and dot-separated (`dashboard.send.tsx`), never PascalCase.
 - **Tauri:** capabilities live in the per-platform `tauri.*.conf.json` files. `browser-capability`
   (third-party pages) grants exactly one command; widening it is a security decision.
 - **dApp provider:** a request's origin is stamped by the transport, never read from the page.
+- **Version:** written twice, as `version` in `src-tauri/Cargo.toml` and in
+  `src-tauri/tauri.conf.json`. A bump edits both, plus `Cargo.lock`; the release workflow fails
+  when they differ. The `tauri` skill says why.
 
 ## Verifying a change
 

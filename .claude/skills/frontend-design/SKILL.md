@@ -83,7 +83,7 @@ and nothing else. It is never the app's default face.
 - **44px minimum touch target.** Icon buttons are 32–40px squares by design; `tap-44` grows
   the hit area without changing a pixel that's drawn. Never scale the glyph up instead.
 - **A dialog is a role, a focus trap and an Escape.** Use `Modal`/`Sheet`.
-- **No `aria-*` attributes** — a project rule (`CLAUDE.md`); `role` and `inert` stay.
+- **No `aria-*` attributes** — a project rule (`AGENTS.md`); `role` and `inert` stay.
 - Announce with the element, not with an attribute bolted on: `Text as='h2'` gives a screen
   an outline and a dialog a heading.
 

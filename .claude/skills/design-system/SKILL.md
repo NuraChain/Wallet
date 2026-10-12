@@ -51,7 +51,7 @@ variant: `size` (`small` | `large`), `scaleUp` (one step up at `sm`), `tone` (`n
 
 `as` picks the element and defaults to `div`. **Use it.** A visual heading and a semantic
 one are the same object here: pass `as='h1'`/`'h2'` so screens have an outline and dialogs
-have a heading. No `aria-*` attributes anywhere (see `CLAUDE.md`).
+have a heading. No `aria-*` attributes anywhere (see `AGENTS.md`).
 
 ## Buttons — `ui/button.tsx`
 
