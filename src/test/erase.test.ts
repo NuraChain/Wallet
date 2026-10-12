@@ -41,11 +41,11 @@ vi.mock('@tauri-apps/api/event', () => ({ listen: async () => () => undefined })
 vi.stubGlobal('window', { addEventListener: () => undefined });
 vi.stubGlobal('document', { addEventListener: () => undefined });
 
-const { eraseWallet, erasedKeys, takeErased } = await import('./erase');
-const { getConnections, grantConnection, isConnected, loadConnections } = await import('./dapp');
-const { addNetwork, getNetwork, getNetworks } = await import('./network');
-const { getVault, lockSession, unlockSession } = await import('./session');
-const { keysUnder, writeRaw } = await import('./cache.store');
+const { eraseWallet, erasedKeys, takeErased } = await import('../core/erase');
+const { getConnections, grantConnection, isConnected, loadConnections } = await import('../core/dapp');
+const { addNetwork, getNetwork, getNetworks } = await import('../core/network');
+const { getVault, lockSession, unlockSession } = await import('../core/session');
+const { keysUnder, writeRaw } = await import('../core/cache.store');
 
 /** One value under every key the app persists. A record, so a new key has to be added here too. */
 const everything: Record<StorageKey, string> = {

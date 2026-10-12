@@ -13,7 +13,7 @@ eleventh time is the failure mode this catalog prevents.
 **No markup outside `src/ui`.** A page or component renders primitives, never an HTML or SVG
 tag of its own, and never `motion.*`, which renders one. When nothing in the catalog is the
 element a screen needs, add a primitive here — named for what it is — rather than a `div` there.
-`src/ui/usage.test.ts` fails on any lowercase JSX tag outside `src/ui`, in `src/` and
+`src/test/usage.test.ts` fails on any lowercase JSX tag outside `src/ui`, in `src/` and
 `src-extension/` alike.
 
 **No primitive takes a `className`.** A primitive says what it is through named props, and
@@ -23,7 +23,7 @@ parent is one shared set, `Placement` in `ui/place.ts`, taken by every primitive
 `grow`, `shrink`, `squeeze='x' | 'y'`, `mt` / `mb` / `ms` / `mx`, `self`,
 `wide='hide' | 'only'` (the `lg` sidebar layout) and `width`.
 
-`src/ui/ui.test.ts` enforces this one: a file in `src/ui` that declares a `className` or `…Class`
+`src/test/ui.test.ts` enforces this one: a file in `src/ui` that declares a `className` or `…Class`
 prop, or spreads HTML attributes without omitting `className`, fails the suite. When a
 primitive nearly fits, give it the named prop or variant it lacks. A surface that is truly one
 of a kind is a plain element at its call site, built from the shared strings in

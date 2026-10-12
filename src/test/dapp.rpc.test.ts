@@ -44,12 +44,12 @@ vi.mock('@tauri-apps/plugin-http', () => ({
     }
 }));
 
-const { clearConnections, grantConnection } = await import('./dapp');
-const { getNetwork, setNetwork } = await import('./network');
-const { lockSession, unlockSession } = await import('./session');
+const { clearConnections, grantConnection } = await import('../core/dapp');
+const { getNetwork, setNetwork } = await import('../core/network');
+const { lockSession, unlockSession } = await import('../core/session');
 
 const { allowDevices, answerDapp, forgetMicrophones, getDappAccount, getDappPrompt, rejectDappPrompts, resolveDappPrompt, setDappAccount } =
-    await import('./dapp.rpc');
+    await import('../core/dapp.rpc');
 
 const wallet = ethers.Wallet.createRandom();
 

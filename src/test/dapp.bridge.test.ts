@@ -41,7 +41,7 @@ const nativeBrowser = {
 // callbacks the native layer sets on the window.
 Object.assign(globalThis, { window: globalThis, __nuraBrowser: nativeBrowser });
 
-const { forgetDappPages, getDappPages, startDappBridge } = await import('./dapp.bridge');
+const { forgetDappPages, getDappPages, startDappBridge } = await import('../core/dapp.bridge');
 
 const send = (payload: unknown, origin = 'https://dapp.example', label = 'nura-browser-1') => {
     window.__nuraDappRequest?.(JSON.stringify({ label, origin, payload: JSON.stringify(payload) }));

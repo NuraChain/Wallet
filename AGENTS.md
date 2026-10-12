@@ -49,6 +49,7 @@ material as security-critical.
 | `src/utility/` | Framework-free helpers: `cn`, storage, language, theme, format |
 | `src/platform/` | The host seam — one implementation per target behind `#platform-impl` |
 | `src/type/` | Every shared type, one file per area; `global.d.ts` for ambient ones |
+| `src/test/` | Every test, named for the file it covers (`dapp.bridge.test.ts`) |
 | `src/assets/lang/` | UI strings for all ten languages |
 | `src-extension/` | The extension's worker, content and in-page scripts, and its popup |
 | `src-tauri/` | Rust shell, commands, per-platform config and capabilities |
@@ -79,17 +80,17 @@ address for the dev server. Pass the machine's LAN address explicitly:
 
 ## Rules the build enforces
 
-These are checked by tests in `src/ui/`; a violation fails `npm test`.
+These are checked by tests in `src/test/`; a violation fails `npm test`.
 
 1. **No markup outside `src/ui`.** Pages and components compose primitives; they never render an
    HTML or SVG tag, nor `motion.*`. If no primitive fits, add one to `src/ui`, named for what it
-   is. *(`src/ui/usage.test.ts`)*
+   is. *(`src/test/usage.test.ts`)*
 2. **No `className` on a `src/ui` primitive.** A primitive's look is named props mapped to
    literal classes; where it sits in its parent is the shared `Placement` set (`grow`, `shrink`,
    `squeeze`, margins, `self`, `wide`, `width`) from `src/ui/place.ts`. Never assemble a class name
-   at runtime — Tailwind only generates classes it finds written out. *(`src/ui/ui.test.ts`)*
+   at runtime — Tailwind only generates classes it finds written out. *(`src/test/ui.test.ts`)*
 3. **A `Button`'s glyph goes in `icon`**, never as its lone child; a squeezable label goes in
-   `label`. *(`src/ui/usage.test.ts`)*
+   `label`. *(`src/test/usage.test.ts`)*
 
 ## Conventions
 

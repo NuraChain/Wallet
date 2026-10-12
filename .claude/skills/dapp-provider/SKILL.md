@@ -134,8 +134,8 @@ permission to hand it a secret. See the `wallet-security` skill.
 
 ## Tests
 
-`dapp.bridge.test.ts`, `dapp.rpc.test.ts` and `dapp.script.test.ts` are the only tests in the
-tree, and they are here because this is where a regression is expensive and invisible.
+`dapp.bridge.test.ts`, `dapp.rpc.test.ts` and `dapp.script.test.ts`, in `src/test/` with the rest,
+are the first tests this tree had, because this is where a regression is expensive and invisible.
 `npm test` (vitest, node environment). **A change to routing, origin handling or the
 injected script updates them in the same commit.**
 

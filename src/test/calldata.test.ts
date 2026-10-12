@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { describe, expect, it } from 'vitest';
 
-import { readCalldata } from './calldata';
+import { readCalldata } from '../core/calldata';
 
 const coder = ethers.AbiCoder.defaultAbiCoder();
 

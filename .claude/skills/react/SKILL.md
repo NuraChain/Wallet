@@ -68,7 +68,7 @@ Rules that shape falls out of:
 - **Props are an inline type literal**, intersected with the DOM attributes the element
   accepts, with `className`/`children` `Omit`-ed. No separate `interface Props`.
 - **A primitive in `src/ui` takes no `className`.** Its look is named props mapped to literal
-  classes, and where it sits in its parent is `Placement` (`ui/place.ts`); `src/ui/ui.test.ts`
+  classes, and where it sits in its parent is `Placement` (`ui/place.ts`); `src/test/ui.test.ts`
   enforces both. Classes still merge through `cn`, never string concatenation. See the
   `design-system` and `tailwindcss` skills.
 - **One default export per component file**; multi-component modules (`stack.tsx`,
@@ -170,11 +170,11 @@ Run `npm run lint` and `npm run format` before you consider a change done.
 Vitest, configured in `vite.config.ts` under `test`: `include: ['**/*.test.ts']`, node
 environment, `restoreMocks: true`. `npm test` runs them once.
 
-There are three, all of them in `src/core/` beside what they cover —
-`dapp.bridge.test.ts`, `dapp.rpc.test.ts`, `dapp.script.test.ts` — and that is deliberate:
-the provider is where a regression is expensive and invisible from the UI. This is not a
-tree that chases coverage, but **a change to the dApp path updates its tests in the same
-commit**, and new logic of that kind (a parser, a policy gate, a money path) earns one too.
+Every test lives in `src/test/`, named for the file it covers: `dapp.bridge.test.ts` is the test
+of `core/dapp.bridge.ts`. Most of them stand over the dApp path, and that is deliberate: the
+provider is where a regression is expensive and invisible from the UI. This is not a tree that
+chases coverage, but **a change to the dApp path updates its tests in the same commit**, and new
+logic of that kind (a parser, a policy gate, a money path) earns one too.
 
 Verification for everything else is still `npm run build`, `npm run lint` and
 `npm run format:check`.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { readRecipient } from './recipient';
+import { readRecipient } from '../core/recipient';
 
 const recipient = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
 const token = '0xdAC17F958D2ee523a2206206994597C13D831ec7';

@@ -7,9 +7,9 @@ import { describe, expect, it } from 'vitest';
  * turns back into one-off surfaces, so this pins it shut: no class-string prop is declared, and
  * no spread of HTML attributes lets `className` back in unnoticed.
  */
-const folder = new URL('./', import.meta.url);
+const folder = new URL('../ui/', import.meta.url);
 
-const files = readdirSync(folder).filter((name) => /\.tsx?$/u.test(name) && !name.endsWith('.test.ts'));
+const files = readdirSync(folder).filter((name) => /\.tsx?$/u.test(name));
 
 describe('src/ui', () => {
     it.each(files)('%s declares no class-string prop', (name) => {

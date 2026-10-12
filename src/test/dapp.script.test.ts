@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { dappIdentity, dappScript } from './dapp.script';
+import { dappIdentity, dappScript } from '../core/dapp.script';
 
 /**
  * The provider the browser injects is plain ES5 that reaches for `window` and `document` and
