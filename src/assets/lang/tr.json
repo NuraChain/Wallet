@@ -210,7 +210,14 @@
             "Insufficient": "Tutar bakiyenizi aşıyor",
             "Total": "Toplam",
             "Retry": "Tekrar dene",
-            "Reserved": "Ağ ücreti ayrıldı, böylece bu tutar gerçekten gönderilebilir."
+            "Reserved": "Ağ ücreti ayrıldı, böylece bu tutar gerçekten gönderilebilir.",
+            "Scan": "QR kodu tara",
+            "ScanHint": "Kamerayı alıcının QR koduna doğrultun.",
+            "ScanDenied": "Kamera erişimi reddedildi. Bu uygulama için kameraya izin verin ve yeniden deneyin.",
+            "ScanMissing": "Bu cihazda kamera bulunamadı.",
+            "ScanUnavailable": "Kamera açılamadı.",
+            "ScanInvalid": "Bu kod bir cüzdan adresi içermiyor.",
+            "ScanNetwork": "Bu kod başka bir ağ için."
         },
         "Receive": {
             "Title": "Al",

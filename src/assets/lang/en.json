@@ -210,7 +210,14 @@
             "Insufficient": "Amount exceeds your balance",
             "Total": "Total",
             "Retry": "Try again",
-            "Reserved": "The network fee has been kept aside, so this amount can actually be sent."
+            "Reserved": "The network fee has been kept aside, so this amount can actually be sent.",
+            "Scan": "Scan QR code",
+            "ScanHint": "Point the camera at the recipient's QR code.",
+            "ScanDenied": "Camera access was refused. Allow the camera for this app and try again.",
+            "ScanMissing": "No camera was found on this device.",
+            "ScanUnavailable": "The camera could not be opened.",
+            "ScanInvalid": "This code does not contain a wallet address.",
+            "ScanNetwork": "This code is for a different network."
         },
         "Receive": {
             "Title": "Receive",

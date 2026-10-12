@@ -210,7 +210,14 @@
             "Insufficient": "La cantidad supera tu saldo",
             "Total": "Total",
             "Retry": "Reintentar",
-            "Reserved": "La comisión de red se ha reservado para que este importe se pueda enviar de verdad."
+            "Reserved": "La comisión de red se ha reservado para que este importe se pueda enviar de verdad.",
+            "Scan": "Escanear código QR",
+            "ScanHint": "Apunta la cámara al código QR del destinatario.",
+            "ScanDenied": "Se denegó el acceso a la cámara. Permite la cámara para esta aplicación e inténtalo de nuevo.",
+            "ScanMissing": "No se encontró ninguna cámara en este dispositivo.",
+            "ScanUnavailable": "No se pudo abrir la cámara.",
+            "ScanInvalid": "Este código no contiene una dirección de cartera.",
+            "ScanNetwork": "Este código es para otra red."
         },
         "Receive": {
             "Title": "Recibir",

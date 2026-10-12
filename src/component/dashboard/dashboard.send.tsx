@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { formatUnits, isAddress, parseUnits } from 'ethers';
-import { ChevronDown, ArrowLeft, CircleCheckBig, ExternalLink, Share2 } from 'lucide-react';
+import { ChevronDown, ArrowLeft, CircleCheckBig, ExternalLink, ScanQrCode, Share2 } from 'lucide-react';
 
 import Text from '../../ui/text';
 import Alert from '../../ui/alert';
 import Button from '../../ui/button';
 import Spinner from '../../ui/spinner';
+import Scanner, { type ScanFailure } from '../../ui/scanner';
 import TokenIcon from '../../ui/token.icon';
 import CopyButton from '../../ui/copy';
 import AddressBlock from '../../ui/address';
@@ -20,7 +21,9 @@ import { T } from '../../utility/language';
 import { vaultManager } from '../../core/vault';
 import { useOnline } from '../../hook/connection';
 import { useClipboard } from '../../hook/clipboard';
+import { useCanScan } from '../../hook/platform';
 import { getProvider } from '../../core/network.provider';
+import { readRecipient } from '../../core/recipient';
 
 import { getNativeLogo, getTokenLogo } from '../../core/price';
 import { trimAmount } from '../../utility/format';
@@ -29,7 +32,13 @@ import type { TokenBalance } from '../../type/token';
 import type { Vault } from '../../type/wallet';
 import type { Network } from '../../type/network';
 
-type Step = 'form' | 'review' | 'pending' | 'success' | 'error';
+type Step = 'form' | 'scan' | 'review' | 'pending' | 'success' | 'error';
+
+const scanFailureMap: Record<ScanFailure, string> = {
+    denied: 'Dashboard.Send.ScanDenied',
+    missing: 'Dashboard.Send.ScanMissing',
+    unavailable: 'Dashboard.Send.ScanUnavailable'
+};
 
 /** What a plain transfer between two accounts costs, and the floor for a reserve when there is no
     recipient yet to estimate against. */
@@ -106,10 +115,13 @@ export default function DashboardSend({
     const [reserved, setReserved] = useState(false);
     const [busy, setBusy] = useState(false);
     const [feeBusy, setFeeBusy] = useState(false);
+    const [scanError, setScanError] = useState('');
 
     const online = useOnline();
 
     const clipboard = useClipboard();
+
+    const scannable = useCanScan();
 
     const explorerLink = network.explorerUrl.length > 0 ? `${network.explorerUrl.replace(/\/+$/u, '')}/tx/${hash}` : '';
 
@@ -130,6 +142,29 @@ export default function DashboardSend({
     const native = asset.token === undefined;
 
     const params = (value: string) => ({ to, amount: value, decimals: network.decimals, token: asset.token });
+
+    /* Only the recipient is taken from a code. One that names another network is turned down
+       rather than read as an address here: the same address there may belong to nobody, or to a
+       contract that is not on this chain at all. */
+    const onScan = (text: string) => {
+        const scanned = readRecipient(text);
+
+        if (scanned === undefined) {
+            setScanError(T('Dashboard.Send.ScanInvalid'));
+
+            return;
+        }
+
+        if (scanned.chainId !== undefined && scanned.chainId !== network.chainId) {
+            setScanError(T('Dashboard.Send.ScanNetwork'));
+
+            return;
+        }
+
+        setTo(scanned.address);
+        setError('');
+        setStep('form');
+    };
 
     const onAsset = (key: string) => {
         setChosen(key);
@@ -358,7 +393,31 @@ export default function DashboardSend({
                         </Popover>
                     </Vertical>
 
-                    <TextField label={T('Dashboard.Send.Recipient')} value={to} dir='ltr' placeholder='0x…' onValue={setTo} mono />
+                    <TextField
+                        label={T('Dashboard.Send.Recipient')}
+                        value={to}
+                        dir='ltr'
+                        placeholder='0x…'
+                        onValue={setTo}
+                        mono
+                        room={scannable ? 'trailing' : undefined}
+                        trailing={
+                            scannable ? (
+                                // The field reads left to right in every language, so its button keeps to
+                                // the field's end rather than the page's, where the address begins.
+                                <Button
+                                    dir='ltr'
+                                    variant='fieldAction'
+                                    title={T('Dashboard.Send.Scan')}
+                                    onClick={() => {
+                                        setScanError('');
+                                        setStep('scan');
+                                    }}
+                                    icon={<ScanQrCode size={18} />}
+                                />
+                            ) : undefined
+                        }
+                    />
 
                     <Vertical gap={1}>
                         <SectionHeader title={T('Dashboard.Send.Amount')}>
@@ -397,6 +456,31 @@ export default function DashboardSend({
                             void onReview();
                         }}
                         text={T('Dashboard.Send.Review')}
+                    />
+                </Vertical>
+            )}
+
+            {step === 'scan' && (
+                <Vertical gap={3}>
+                    <Alert text={scanError} />
+
+                    <Scanner
+                        onScan={onScan}
+                        onFailure={(reason) => {
+                            setScanError(T(scanFailureMap[reason]));
+                        }}
+                    />
+
+                    <Text align='center' text={T('Dashboard.Send.ScanHint')} />
+
+                    <Button
+                        variant='muted'
+                        size='action'
+                        onClick={() => {
+                            setStep('form');
+                        }}
+                        leftIcon={<ArrowLeft size={16} className='rtl:rotate-180' />}
+                        text={T('Dashboard.Send.Back')}
                     />
                 </Vertical>
             )}

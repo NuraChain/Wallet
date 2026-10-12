@@ -210,7 +210,14 @@
             "Insufficient": "Le montant dépasse votre solde",
             "Total": "Total",
             "Retry": "Réessayer",
-            "Reserved": "Les frais de réseau ont été mis de côté afin que ce montant puisse réellement être envoyé."
+            "Reserved": "Les frais de réseau ont été mis de côté afin que ce montant puisse réellement être envoyé.",
+            "Scan": "Scanner un QR code",
+            "ScanHint": "Pointez la caméra vers le QR code du destinataire.",
+            "ScanDenied": "L'accès à la caméra a été refusé. Autorisez la caméra pour cette application, puis réessayez.",
+            "ScanMissing": "Aucune caméra n'a été trouvée sur cet appareil.",
+            "ScanUnavailable": "La caméra n'a pas pu être ouverte.",
+            "ScanInvalid": "Ce code ne contient pas d'adresse de portefeuille.",
+            "ScanNetwork": "Ce code est destiné à un autre réseau."
         },
         "Receive": {
             "Title": "Recevoir",

@@ -195,8 +195,8 @@ name, no focus trap and no Escape — including the one that approves a transact
 `TextField`, `PasswordField`, `TextArea`, `ReadonlyField`; the `fieldSurface` string lives in
 `ui/token.ts`. They take `onValue: (value: string) => void` rather than an event, plus `label`,
 `error`, `size`, and `leading`/`trailing` slots. `TextField` adds `room` (text clear of a leading
-icon, or of both edges), `mono`, `align`, `textSize` and `truncate`; `TextArea` adds `tall` and
-`breaks`. `Checkbox` (`ui/checkbox.tsx`) takes
+icon, a trailing one, or both), `mono`, `align`, `textSize` and `truncate`; `TextArea` adds `tall`
+and `breaks`. `Checkbox` (`ui/checkbox.tsx`) takes
 `checked` + `onToggle`.
 
 ## Feedback
@@ -218,6 +218,11 @@ icon, or of both edges), `mono`, `align`, `textSize` and `truncate`; `TextArea` 
 - **`Slider`**, **`Logo`**, **`Flag`**, **`QrFrame`** (`ui/media.tsx`), **`FieldLead`** (the glyph over a
   field's leading edge), and the recovery phrase's **`SecretKey` / `SecretWords` / `SecretWord`**
   (`ui/secret.tsx`), which stay blurred until revealed.
+- **`Scanner`** (`ui/scanner.tsx`) — the camera's picture, read for a QR code. It asks for the
+  camera as it mounts and lets go of it as it unmounts, so it is rendered only while scanning —
+  a step of the dialog that wants the code, never a dialog of its own. `onScan` gets each code
+  once and decides what it is worth; `onFailure` says why there is no picture. Offer the way in
+  only where `useCanScan` (`hook/platform.ts`) says the host can ask for a camera.
 - **`Mouse`** (`ui/mouse.tsx`) — the floating logo in the page's `#mouse`, used only where no
   native mouse can be drawn over the browser tabs; `MouseView` is the desktop webview's own. `icon`
   swaps the logo for the browser's icon on the logo's own tile (`bg-logo-tile`, `text-logo-ink`).

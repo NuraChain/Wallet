@@ -210,7 +210,14 @@
             "Insufficient": "金额超出你的余额",
             "Total": "合计",
             "Retry": "重试",
-            "Reserved": "已预留网络手续费，因此这笔金额可以实际发出。"
+            "Reserved": "已预留网络手续费，因此这笔金额可以实际发出。",
+            "Scan": "扫描二维码",
+            "ScanHint": "将摄像头对准收款方的二维码。",
+            "ScanDenied": "摄像头权限被拒绝。请允许此应用使用摄像头后重试。",
+            "ScanMissing": "此设备上未找到摄像头。",
+            "ScanUnavailable": "无法打开摄像头。",
+            "ScanInvalid": "此二维码不包含钱包地址。",
+            "ScanNetwork": "此二维码属于其他网络。"
         },
         "Receive": {
             "Title": "接收",

@@ -9,7 +9,7 @@ import { fieldSurface, tapArea } from './token';
 
 const fieldInvalid = 'border-input-error';
 
-const roomMap = { leading: 'ps-9 pe-3', both: 'ps-10 pe-10' } as const;
+const roomMap = { leading: 'ps-9 pe-3', trailing: 'ps-3 pe-10', both: 'ps-10 pe-10' } as const;
 
 function FieldShell({ label, error, children }: { label: string; error: string; children: ReactNode }) {
     const body = (
@@ -55,7 +55,7 @@ export function TextField({
     size?: 'regular' | 'compact';
     leading?: ReactNode;
     trailing?: ReactNode;
-    /** Pads the text clear of an icon laid over the leading edge, or over both edges. */
+    /** Pads the text clear of an icon laid over the leading edge, the trailing one, or both. */
     room?: keyof typeof roomMap;
     mono?: boolean;
     align?: 'center';

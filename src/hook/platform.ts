@@ -23,3 +23,27 @@ export const useHasBrowser = (): boolean => {
 
     return hasBrowser;
 };
+
+/**
+ * Whether a QR code can be read off the camera here. That takes a camera the page may ask for and
+ * a host that puts the question to the user: WebView2 asks on Windows, and on Android the webview's
+ * client asks for the permission the manifest already names.
+ *
+ * Nowhere else does yet. A docked panel or a popup of an extension has nowhere to show the
+ * browser's question, so the request is refused unseen. macOS and iOS refuse without a usage
+ * description in the bundle — and on macOS that one key would hand the camera to every page in the
+ * browser tab as well, since wry grants whatever a webview asks. WebKitGTK has capture switched off.
+ *
+ * A webview also keeps `mediaDevices` back from a page that is not a secure one, which is what a
+ * phone sees when the dev server is reached over the LAN rather than through `localhost`.
+ */
+export const useCanScan = (): boolean => {
+    const [canScan] = useState(() => {
+        const host = getPlatform();
+        const devices: MediaDevices | undefined = navigator.mediaDevices;
+
+        return (host === 'windows' || host === 'android') && typeof devices?.getUserMedia === 'function';
+    });
+
+    return canScan;
+};

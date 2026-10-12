@@ -210,7 +210,14 @@
             "Insufficient": "O valor excede seu saldo",
             "Total": "Total",
             "Retry": "Tentar de novo",
-            "Reserved": "A taxa de rede foi reservada para que este valor possa realmente ser enviado."
+            "Reserved": "A taxa de rede foi reservada para que este valor possa realmente ser enviado.",
+            "Scan": "Escanear QR code",
+            "ScanHint": "Aponte a câmera para o QR code do destinatário.",
+            "ScanDenied": "O acesso à câmera foi negado. Permita a câmera para este aplicativo e tente novamente.",
+            "ScanMissing": "Nenhuma câmera foi encontrada neste dispositivo.",
+            "ScanUnavailable": "Não foi possível abrir a câmera.",
+            "ScanInvalid": "Este código não contém um endereço de carteira.",
+            "ScanNetwork": "Este código é de outra rede."
         },
         "Receive": {
             "Title": "Receber",
