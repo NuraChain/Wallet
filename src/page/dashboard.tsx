@@ -626,7 +626,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                     </PageContainer>
                                 ) : (
                                     <ScrollFrame>
-                                        <ScrollArea fill onRefresh={onRefresh}>
+                                        <ScrollArea fill onRefresh={item.key === 'Wallet' ? onRefresh : undefined}>
                                             <PageContainer variant='tab' inert={index === active ? undefined : true}>
                                                 {item.key === 'Settings' && (
                                                     <DashboardSettings
