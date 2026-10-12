@@ -384,6 +384,12 @@
             "ExportImageWarning": "Quem tiver estas palavras é dono da carteira. Mantenha offline.",
             "Hide": "Ocultar"
         },
+        "Backup": {
+            "Message": "Você já fez o backup da sua frase de recuperação? É a única forma de restaurar esta carteira se você perder este dispositivo ou esquecer a senha.",
+            "MessageKey": "Você já fez o backup da sua chave privada? É a única forma de restaurar esta carteira se você perder este dispositivo ou esquecer a senha.",
+            "Action": "Fazer backup agora",
+            "Later": "Lembrar em uma semana"
+        },
         "Delete": {
             "Title": "Excluir carteira",
             "Message": "Isso exclui a carteira deste dispositivo, junto com suas contas, tokens, sites conectados e histórico de navegação. Seus fundos continuam na blockchain e só sua frase de recuperação pode restaurá-los. Sem ela, eles se perdem para sempre.",

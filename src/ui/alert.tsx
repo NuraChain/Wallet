@@ -28,11 +28,15 @@ export default function Alert(
         text?: string;
         textAlign?: 'start';
         mono?: boolean;
+        /** A control of the notice's own, set under its words. For the variants laid out as a row. */
+        action?: ReactNode;
+        /** A control at the far end of the notice, such as the one that puts it away. */
+        trailing?: ReactNode;
         children?: ReactNode;
     } & Placement &
         Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
 ) {
-    const [place, { variant = 'error', size = 'compact', text, textAlign, mono = false, children, ...rest }] = splitPlacement(props);
+    const [place, { variant = 'error', size = 'compact', text, textAlign, mono = false, action, trailing, children, ...rest }] = splitPlacement(props);
 
     const content = text ?? children;
 
@@ -42,6 +46,8 @@ export default function Alert(
        say. It used to ride on the box below, which only exists once it has a message — and a live
        region that appears together with its own text is not announced at all. */
     const spoken = typeof content === 'string' ? content : '';
+
+    const body = variant === 'error' ? content : <span>{content}</span>;
 
     return (
         <>
@@ -53,7 +59,18 @@ export default function Alert(
 
                     {success && <CircleCheckBig size={16} className='mt-0.5 shrink-0' />}
 
-                    {variant === 'error' ? content : <span>{content}</span>}
+                    {/* With a control of its own the words take the room between the glyph and the far
+                        end, and the control sits under them; with none, nothing is wrapped at all. */}
+                    {action === undefined && trailing === undefined ? (
+                        body
+                    ) : (
+                        <div className='flex min-w-0 grow flex-col items-start gap-2'>
+                            {body}
+                            {action}
+                        </div>
+                    )}
+
+                    {trailing}
                 </div>
             )}
         </>

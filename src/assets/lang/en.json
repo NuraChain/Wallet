@@ -384,6 +384,12 @@
             "ExportImageWarning": "Anyone with these words owns the wallet. Keep offline.",
             "Hide": "Hide"
         },
+        "Backup": {
+            "Message": "Have you backed up your recovery phrase? It is the only way to restore this wallet if you lose this device or forget your password.",
+            "MessageKey": "Have you backed up your private key? It is the only way to restore this wallet if you lose this device or forget your password.",
+            "Action": "Back Up Now",
+            "Later": "Remind me in a week"
+        },
         "Delete": {
             "Title": "Delete wallet",
             "Message": "This deletes the wallet from this device, along with its accounts, tokens, connected sites and browsing history. Your funds stay on the blockchain, and only your recovery phrase can restore them. Without it, they are lost for good.",

@@ -384,6 +384,12 @@
             "ExportImageWarning": "Quiconque détient ces mots possède le portefeuille. À garder hors ligne.",
             "Hide": "Masquer"
         },
+        "Backup": {
+            "Message": "Avez-vous sauvegardé votre phrase de récupération ? C'est le seul moyen de restaurer ce portefeuille si vous perdez cet appareil ou oubliez votre mot de passe.",
+            "MessageKey": "Avez-vous sauvegardé votre clé privée ? C'est le seul moyen de restaurer ce portefeuille si vous perdez cet appareil ou oubliez votre mot de passe.",
+            "Action": "Sauvegarder maintenant",
+            "Later": "Me le rappeler dans une semaine"
+        },
         "Delete": {
             "Title": "Supprimer le portefeuille",
             "Message": "Cela supprime le portefeuille de cet appareil, avec ses comptes, ses jetons, ses sites connectés et son historique de navigation. Vos fonds restent sur la blockchain et seule votre phrase de récupération permet de les restaurer. Sans elle, ils sont perdus pour toujours.",

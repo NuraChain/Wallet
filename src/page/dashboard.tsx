@@ -666,6 +666,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                                                 {item.key === 'Wallet' && (
                                                     <DashboardWallet
+                                                        kind={vault.kind}
                                                         address={address}
                                                         name={name}
                                                         emoji={emoji}
@@ -697,6 +698,9 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                         }}
                                                         onSettings={() => {
                                                             goKey('Settings');
+                                                        }}
+                                                        onBackup={() => {
+                                                            setModal('phrase');
                                                         }}
                                                         onTransaction={onTransaction}
                                                         onOverview={() => {

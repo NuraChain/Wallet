@@ -33,6 +33,7 @@ const fate: Record<StorageKey, 'erase' | 'keep'> = {
     'Wallet.Active': 'erase',
     'Wallet.Tokens': 'erase',
     'Wallet.TokensHidden': 'erase',
+    'Wallet.BackupReminder': 'erase',
     'Browser.View': 'erase',
     'Browser.History': 'erase',
     'Browser.Favorites': 'erase',

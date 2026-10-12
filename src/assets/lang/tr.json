@@ -384,6 +384,12 @@
             "ExportImageWarning": "Bu kelimelere sahip olan cüzdana sahiptir. Çevrimdışı saklayın.",
             "Hide": "Gizle"
         },
+        "Backup": {
+            "Message": "Kurtarma ifadenizi yedeklediniz mi? Bu cihazı kaybeder veya parolanızı unutursanız bu cüzdanı geri yüklemenin tek yolu budur.",
+            "MessageKey": "Özel anahtarınızı yedeklediniz mi? Bu cihazı kaybeder veya parolanızı unutursanız bu cüzdanı geri yüklemenin tek yolu budur.",
+            "Action": "Şimdi yedekle",
+            "Later": "Bir hafta sonra hatırlat"
+        },
         "Delete": {
             "Title": "Cüzdanı sil",
             "Message": "Bu işlem cüzdanı hesapları, tokenleri, bağlı siteleri ve tarama geçmişiyle birlikte bu cihazdan siler. Varlıklarınız blokzincirde kalır ve yalnızca kurtarma ifadenizle geri yüklenebilir. O olmadan sonsuza dek kaybolur.",

@@ -61,6 +61,7 @@ const everything: Record<StorageKey, string> = {
     'Wallet.Active': '0',
     'Wallet.Tokens': '{"1":[{"address":"0xdAC17F958D2ee523a2206206994597C13D831ec7","symbol":"USDT","decimals":6}]}',
     'Wallet.TokensHidden': '{"1":["0x0000000000000000000000000000000000000001"]}',
+    'Wallet.BackupReminder': '1760000000000',
     'Browser.View': 'desktop',
     'Browser.History': '[{"url":"https://dapp.example","time":1}]',
     'Browser.Favorites': '[{"id":"x","name":"X","url":"https://dapp.example"}]',

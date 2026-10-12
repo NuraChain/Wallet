@@ -76,6 +76,13 @@ non-extractable, AES-GCM, stored as base64 `{ salt, iv, cipher, kdf: 'argon2id' 
 wallet *exists* to decide the landing route, and never decrypts it. Keep that distinction:
 presence is public, content is not.
 
+**Whether there is a copy anywhere else is asked, never assumed.** A wallet is made and opened
+without its phrase being shown, so the wallet page carries a reminder (`core/backup.ts`,
+`dashboard.backup.tsx`) until it is closed, and again a week after each time it was. Its one
+stored value, `Wallet.BackupReminder`, is the time it was last closed and says nothing else; a
+value that cannot be read, is not a time, or lies in the future shows the reminder. Its button
+opens the same password-gated dialog as Settings — not a second way to the phrase.
+
 Keys are the `StorageKey` union in `type/storage.ts`. It lives apart from `utility/storage.ts` so
 the platform layer can name a key without importing the module that depends on it — add new keys
 there, never a bare string.

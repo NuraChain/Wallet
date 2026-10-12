@@ -5,6 +5,7 @@ import TokenIcon from '../../ui/token.icon';
 import CopyButton from '../../ui/copy';
 import TokenRow, { AssetAmount } from '../../ui/token.row';
 import DashboardActivity from './dashboard.activity';
+import DashboardBackup from './dashboard.backup';
 import DashboardOffline from './dashboard.offline';
 
 import Text from '../../ui/text';
@@ -20,7 +21,7 @@ import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
 import { Horizontal, Vertical } from '../../ui/stack';
 import type { Network } from '../../type/network';
 import type { PriceMap, TokenBalance } from '../../type/token';
-import type { Transaction } from '../../type/wallet';
+import type { Transaction, VaultKind } from '../../type/wallet';
 
 const unknownAmount = '—';
 
@@ -34,6 +35,7 @@ interface BalanceView {
 }
 
 export default function DashboardWallet({
+    kind,
     address,
     name,
     emoji,
@@ -52,9 +54,11 @@ export default function DashboardWallet({
     onAccounts,
     onTokens,
     onSettings,
+    onBackup,
     onTransaction,
     onOverview
 }: {
+    kind: VaultKind;
     address: string;
     name: string;
     emoji: string;
@@ -73,6 +77,8 @@ export default function DashboardWallet({
     onAccounts: () => void;
     onTokens: () => void;
     onSettings: () => void;
+    /** Opens what there is to back up: the phrase, or the key. */
+    onBackup: () => void;
     onTransaction: (hash: string) => void;
     onOverview: () => void;
 }) {
@@ -163,6 +169,8 @@ export default function DashboardWallet({
             </Horizontal>
 
             <DashboardOffline error={native.error} at={native.at} />
+
+            <DashboardBackup kind={kind} onOpen={onBackup} />
 
             <Vertical align='center' gap={1.5} py={2}>
                 <Text dir='ltr' variant='display' align='center' breaks='all' text={headline()} />

@@ -206,7 +206,9 @@ and `breaks`. `Checkbox` (`ui/checkbox.tsx`) takes
 - **`Alert`** (`ui/alert.tsx`) — `variant`: `error` | `warning` | `success`;
   `size`: `compact` (dialogs) | `comfortable` (intro) | `dense` | `banner`, plus `textAlign`,
   `mono` and `Placement`. **An empty message renders nothing**,
-  so drop the `message.length > 0 &&` guard at the call site.
+  so drop the `message.length > 0 &&` guard at the call site. Two slots take a control of the
+  notice's own, on the `warning` and `success` rows: `action` under the words, `trailing` at the
+  far end — the wallet page's backup reminder has a button in one and its close in the other.
 - **`StatusBlock`** (`ui/state.tsx`) — `state`: `empty` | `loading`. What a
   list shows when it has nothing to show yet or nothing at all.
 - **`Live`** (`ui/live.tsx`) — an `sr-only` announcement slot that is **always mounted**, so a

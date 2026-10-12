@@ -384,6 +384,12 @@
             "ExportImageWarning": "Quien tenga estas palabras es dueño de la cartera. Guárdalas sin conexión.",
             "Hide": "Ocultar"
         },
+        "Backup": {
+            "Message": "¿Has hecho una copia de seguridad de tu frase de recuperación? Es la única forma de restaurar esta cartera si pierdes este dispositivo u olvidas tu contraseña.",
+            "MessageKey": "¿Has hecho una copia de seguridad de tu clave privada? Es la única forma de restaurar esta cartera si pierdes este dispositivo u olvidas tu contraseña.",
+            "Action": "Hacer copia ahora",
+            "Later": "Recordármelo en una semana"
+        },
         "Delete": {
             "Title": "Eliminar cartera",
             "Message": "Esto elimina la cartera de este dispositivo, junto con sus cuentas, tokens, sitios conectados e historial de navegación. Tus fondos siguen en la blockchain y solo tu frase de recuperación puede restaurarlos. Sin ella, se pierden para siempre.",
