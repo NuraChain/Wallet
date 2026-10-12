@@ -1,4 +1,4 @@
-import { argon2id } from 'hash-wasm';
+import { argon2id } from '../utility/argon';
 
 import { getValue } from '../utility/storage';
 

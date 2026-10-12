@@ -89,6 +89,10 @@ Things in `manifest.ts` that are load-bearing:
   covered by the optional wildcard, so the install prompt stays small.
 - **`'wasm-unsafe-eval'` is not optional** — hash-wasm compiles the Argon2id that unlocks the
   vault. Without it the wallet cannot open at all. `default-src` stays exactly `'self'`.
+- **Argon2id runs in a worker the popup or panel starts** (`src/utility/argon.ts`), a file under
+  `assets/` that `script-src 'self'` covers. The background cannot start one — a service worker
+  has no `Worker` — and never hashes a password; the helper runs the hash in place wherever there
+  is no worker to be had.
 
 ## The page ↔ worker path — `src-extension/message.ts`, `content.ts`, `background.ts`
 

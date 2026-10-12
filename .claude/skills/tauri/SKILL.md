@@ -73,6 +73,10 @@ Set per platform in `app.security.csp`. It already allows `wasm-unsafe-eval` (ha
 Argon2id), `https:` images, and `ipc:`/`localhost` connect sources. Widening it needs a
 stated reason.
 
+There is no `worker-src`, so a worker falls under `script-src 'self'`: one built from a file of the
+app's own (`utility/argon.worker.ts`, where Argon2id runs) loads, and a `blob:` or `data:` one does
+not. Keep it that way rather than adding `blob:`.
+
 ## Plugins
 
 Frontend packages and their Rust crates must stay in step (`package.json` ↔ `Cargo.toml`):

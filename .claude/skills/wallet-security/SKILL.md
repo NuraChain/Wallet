@@ -45,6 +45,26 @@ and `'missing'` is a real state (no wallet yet), not an error.
 
 `passwordIssue(password, confirm)` is the only place the 6–32 length rule lives.
 
+### Where the hash runs — `utility/argon.ts`
+
+Both call `argon2id` from `utility/argon.ts`, which is hash-wasm's with the same options and one
+difference: it runs in a worker (`utility/argon.worker.ts`), started for one hash and ended with
+it. One hash is most of a second on a desktop and several on a phone, and on the page's thread
+nothing is drawn for all of it — the unlock button's spinner stood still through two of them.
+
+- **The parameters did not move.** Each caller still states its own; the helper passes them on.
+- **A worker that lets the wallet down is not an error.** With none to start (the extension's
+  service worker, a test), or one that will not start, does not say `ready` within five seconds,
+  fails, or answers with the wrong kind of thing, the hash is run on the page as it was before,
+  and no other worker is tried for the rest of the session. A wallet that opens slowly is the
+  failure to prefer over one that does not open.
+- **It must be a file of the app's own origin** — `new Worker(new URL('./argon.worker.ts',
+  import.meta.url), { type: 'module' })`, which Vite builds into `assets/`. Never `?worker&inline`:
+  that is a `blob:` worker, and neither the app's CSP nor the extension's allows one.
+- `password.test.ts` and `storage.test.ts` hold a hash and a sealed phrase made **before** the
+  move. If either ever fails, existing wallets have stopped opening; the answer is in the code,
+  never in the expected value.
+
 ## Encrypted storage — `utility/storage.ts`
 
 `setValueEncrypted` / `getValueEncrypted` are the only way a secret reaches disk:

@@ -172,7 +172,9 @@ environment, `restoreMocks: true`. `npm test` runs them once.
 
 Every test lives in `src/test/`, named for the file it covers: `dapp.bridge.test.ts` is the test
 of `core/dapp.bridge.ts`. Most of them stand over the dApp path, and that is deliberate: the
-provider is where a regression is expensive and invisible from the UI. This is not a tree that
+provider is where a regression is expensive and invisible from the UI. `password.test.ts` and
+`storage.test.ts` are the other kind: real Argon2id against answers recorded from an earlier
+build, so nothing can change what an existing wallet's password hashes to without failing them. This is not a tree that
 chases coverage, but **a change to the dApp path updates its tests in the same commit**, and new
 logic of that kind (a parser, a policy gate, a money path) earns one too.
 
