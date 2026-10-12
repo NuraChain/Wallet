@@ -34,8 +34,8 @@ export const useHasBrowser = (): boolean => {
  * description in the bundle — and on macOS that one key would hand the camera to every page in the
  * browser tab as well, since wry grants whatever a webview asks. WebKitGTK has capture switched off.
  *
- * A webview also keeps `mediaDevices` back from a page that is not a secure one, which is what a
- * phone sees when the dev server is reached over the LAN rather than through `localhost`.
+ * The camera's own interface is looked for too: a webview that has it switched off, or does not
+ * take the page for a secure one, leaves it out altogether.
  */
 export const useCanScan = (): boolean => {
     const [canScan] = useState(() => {
