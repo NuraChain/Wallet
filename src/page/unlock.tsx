@@ -32,6 +32,12 @@ export default function UnlockPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     const onUnlock = async () => {
+        // Enter in the field asks again while the first answer is still being worked out. The
+        // button is disabled for that long; this is the same for the key.
+        if (isLoading) {
+            return;
+        }
+
         setError('');
 
         if (password.trim().length === 0) {
