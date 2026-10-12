@@ -301,7 +301,7 @@ interface Meta {
  * and a canvas that takes `#rrggbb` for a colour and leaves its fill alone for anything else, which
  * is the one thing about a real canvas the reader leans on.
  */
-const page = (metas: Meta[], options: { matching?: string[]; framed?: boolean; channel?: 'native' | 'extension' } = {}) => {
+const page = (metas: Meta[], options: { matching?: string[]; framed?: boolean; channel?: 'native' | 'extension'; arriving?: boolean } = {}) => {
     const told: unknown[] = [];
     const posted: unknown[] = [];
     const timers: (() => void)[] = [];
@@ -345,13 +345,20 @@ const page = (metas: Meta[], options: { matching?: string[]; framed?: boolean; c
         getImageData: () => ({ data: dot })
     };
 
+    let arrived: (() => void) | undefined;
+
     const doc = {
-        readyState: 'complete',
+        readyState: options.arriving === true ? 'loading' : 'complete',
         head: {},
         documentElement: {},
         createElement: () => ({ width: 0, height: 0, getContext: () => context }),
         getElementsByTagName: () => list,
-        addEventListener: () => undefined
+
+        addEventListener: (name: string, handler: () => void) => {
+            if (name === 'DOMContentLoaded') {
+                arrived = handler;
+            }
+        }
     };
 
     const win: Record<string, unknown> = {
@@ -431,6 +438,15 @@ const page = (metas: Meta[], options: { matching?: string[]; framed?: boolean; c
             list.splice(0, list.length, ...next.map((meta) => element(meta)));
 
             observed?.();
+
+            settle();
+        },
+
+        /** The last of the page arrives. */
+        finish: () => {
+            doc.readyState = 'interactive';
+
+            arrived?.();
 
             settle();
         },
@@ -519,6 +535,35 @@ describe('the colour a page asks the browser around it to wear', () => {
         held.rewrite([]);
 
         expect(held.told).toEqual(['#112233', '#445566', null]);
+    });
+
+    it('does not say "none" of a page still arriving, whose tag may lie past a script it is waiting on', () => {
+        const held = page([], { arriving: true });
+
+        // Something lands in the head, and the tag is not there yet.
+        held.rewrite([{ name: 'viewport', content: 'width=device-width' }]);
+
+        expect(held.told).toEqual([]);
+
+        held.rewrite([
+            { name: 'viewport', content: 'width=device-width' },
+            { name: 'theme-color', content: '#6200ee' }
+        ]);
+
+        expect(held.told).toEqual(['#6200ee']);
+
+        held.finish();
+
+        expect(held.told).toEqual(['#6200ee']);
+    });
+
+    it('says "none" once the whole page is in and still has no tag', () => {
+        const held = page([], { arriving: true });
+
+        held.rewrite([{ name: 'viewport', content: 'width=device-width' }]);
+        held.finish();
+
+        expect(held.told).toEqual([null]);
     });
 
     it('is never asked of a frame inside the page', () => {

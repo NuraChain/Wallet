@@ -136,7 +136,9 @@ page gets to change about the wallet's own surface, so every step of it is narro
   first whose content is a colour. The colour is painted on a canvas and read back, so whatever CSS
   can write arrives as `#rrggbb`. It runs only on the `native` channel and only in the top frame,
   and speaks when the answer changes, `null` included: a page with no colour has to say so, or the
-  last page's would stay on.
+  last page's would stay on. It holds that `null` back while the page is still arriving, when the
+  tag may only lie past a script the parser is waiting on — said early, it would flash the colour
+  off between two pages of the same site.
 - **On the wire** it is `nura_themeColor` over the provider's transport, because that is the rail a
   page has. **It is not a provider call.** `dapp.bridge.ts` reads it before anything is routed: no
   grant, no entry in `getDappPages()`, never as far as `dapp.rpc.ts`. It is always answered, since

@@ -602,6 +602,11 @@ export const dappScript = (identity: DappIdentity) => `
 
             try { color = read(); } catch (ignored) { color = null; }
 
+            // No tag yet is not the same as no tag: a page still arriving may be held up on a
+            // script written ahead of it. Saying "none" now would take the last page's colour off
+            // the chrome only to put this one's on a moment later, so that waits for the whole page.
+            if (color === null && document.readyState === 'loading') { return; }
+
             if (color === told) { return; }
 
             told = color;
