@@ -43,7 +43,7 @@ so those are Tailwind's stock steps and the only utility family that is.
 **Ink** — `txt-normal`, `txt-muted`, `txt-reverse`, `txt-error`, `txt-success`.
 
 **Ink over a site's colour** — `tint-dark`, `tint-light`. Pure black and pure white, the same in
-both themes, for the browser's load strip while it wears a visited site's `theme-color`, which it does on a phone and never in a desktop window. That colour itself is the one fill in the app that is an inline style: it is the
+both themes, for the browser's load strip and the buttons on its toolbar while they wear a visited site's `theme-color`, which they do on a phone and never in a desktop window. That colour itself is the one fill in the app that is an inline style: it is the
 site's, and known only at runtime. Both inks are variables on `:root` (`--tint-dark`,
 `--tint-light`) so the browser's toolbar can hand one to `--focus-ring` for what sits on it — the
 only arbitrary-property classes in the tree, in `ui/toolbar.tsx`.

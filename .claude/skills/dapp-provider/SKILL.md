@@ -150,13 +150,17 @@ about the wallet's own surface, so every step of it is narrow.
   300ms, so it cannot be made to flash.
 - **What it reaches** is a background and nothing else. The ink over it is one of two fixed tokens,
   picked by `inkOn` in `utility/color.ts` for 4.5:1 on any colour.
-- **On the toolbar it is the bar, and nothing on the bar.** The address field, with the lock or the
-  warning in it, and the buttons either side stay the wallet's own opaque surfaces in the wallet's
-  own ink: they are what tells the user where they are, and a site does not get to restyle that or
-  wash it out. So a new control on the toolbar needs an opaque fill of its own — a bare or
-  translucent one would be drawn in a colour the site picked. A disabled Back or Forward is the
-  exception that is there today: `dim` fades the whole button, so the bar's colour shows through
-  it. That is a control with nothing to say; the field is never dimmed. The one thing the bar
+- **On the toolbar it is the bar and the buttons on it, and never the address field.** The field,
+  with the lock or the warning in it, stays the wallet's own opaque surface in the wallet's own
+  ink: it is what tells the user where they are, and a site does not get to restyle that or wash
+  it out. Nothing reaches it by inheritance either: the bar sets no `color` of its own, because
+  the field's text takes its colour from above. The buttons either side — `ToolbarButton` in
+  `ui/toolbar.tsx` — do wear the colour: each is the bar's colour under a wash of the bar's ink, a
+  tenth at rest and a fifth when pressed, with its glyph in that ink whatever it wore before. The
+  ink is one of the two fixed ones, and against a wash that thin it holds 3:1 on every colour
+  there is (3.79:1 at rest and 3.16:1 pressed at worst, counted over all of sRGB), so a site picks
+  what a button stands in and never whether it can be seen. A new button on the toolbar is a
+  `ToolbarButton`; anything else put there needs an opaque fill of its own. The one thing the bar
   hands down is `--focus-ring`, set to its ink, since the wallet's ring is a blue a site may have
   chosen too.
 - **Where the system draws over the colour** — a phone's status bar — its ink is turned through

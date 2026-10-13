@@ -18,6 +18,12 @@ const fillDanger = `${fillBase} bg-btn-danger text-txt-reverse hover:bg-btn-dang
 
 const fillChip = `cursor-pointer ${focusRing} border border-line bg-base-2 text-txt-normal transition-[background-color,border-color] duration-(--duration-base) ease-initial hover:bg-btn-muted-hover active:bg-btn-normal-active`;
 
+/* A button over a colour the browser's toolbar took from a site. It takes that colour too, rather
+   than standing on it as a piece of the wallet: its glyph is the bar's ink, and its fill and states
+   are that ink thinned over the bar — a tenth at rest, a fifth when pressed, which leaves the glyph
+   at 3:1 or better on every colour a site could pick. */
+const fillTint = `cursor-pointer ${focusRing} bg-current/10 transition-[background-color] duration-(--duration-base) ease-initial hover:bg-current/15 active:bg-current/20`;
+
 const tabBase = `relative h-10 cursor-pointer px-3 text-small font-medium transition-colors duration-(--duration-fast)`;
 
 const optionBase = 'flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2 transition-colors duration-(--duration-fast)';
@@ -29,7 +35,10 @@ const fillMap = {
     muted: fillMuted,
     chip: fillChip,
     danger: `${fillMuted} text-txt-error`,
-    destructive: fillDanger
+    destructive: fillDanger,
+    /** One for each ink a site's colour can call for, since a class is never assembled. */
+    tintDark: `${fillTint} text-tint-dark`,
+    tintLight: `${fillTint} text-tint-light`
 } as const;
 
 /**

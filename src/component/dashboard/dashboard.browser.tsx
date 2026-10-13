@@ -7,7 +7,7 @@ import DashboardBrowserStart from './dashboard.browser.start';
 import DashboardBrowserSettings from './dashboard.browser.settings';
 
 import Button from '../../ui/button';
-import Toolbar from '../../ui/toolbar';
+import Toolbar, { ToolbarButton } from '../../ui/toolbar';
 import { FieldLead, TextField } from '../../ui/field';
 
 import { T } from '../../utility/language';
@@ -350,29 +350,21 @@ export default function DashboardBrowser({
         <Vertical relative squeeze='y' grow>
             {!full && (
                 <Toolbar>
-                    <Button variant='danger' size='iconChip' onClick={onExit} shrink={false} wide='hide' icon={<X size={16} />} />
+                    <ToolbarButton tone='danger' onClick={onExit} wide='hide' icon={<X size={16} />} />
 
-                    <Button
-                        dim
-                        variant='chip'
-                        size='iconChip'
+                    <ToolbarButton
                         disabled={!canBack}
                         onClick={() => {
                             onStep(-1);
                         }}
-                        shrink={false}
                         icon={<ArrowLeft size={16} className='rtl:rotate-180' />}
                     />
 
-                    <Button
-                        dim
-                        variant='chip'
-                        size='iconChip'
+                    <ToolbarButton
                         disabled={!canForward}
                         onClick={() => {
                             onStep(1);
                         }}
-                        shrink={false}
                         icon={<ArrowRight size={16} className='rtl:rotate-180' />}
                     />
 
@@ -414,9 +406,7 @@ export default function DashboardBrowser({
                         />
                     </Block>
 
-                    <Button
-                        variant='chip'
-                        size='iconChip'
+                    <ToolbarButton
                         onClick={
                             start
                                 ? () => {
@@ -424,7 +414,6 @@ export default function DashboardBrowser({
                                   }
                                 : onHome
                         }
-                        shrink={false}
                         icon={start ? <Settings size={16} /> : <House size={16} />}
                     />
                 </Toolbar>
