@@ -21,7 +21,9 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.webkit.ScriptHandler
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
@@ -412,7 +414,15 @@ class BrowserBridge(
         // Kept on screen through rotation and resizes: in full screen it is the only way back out.
         root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> place(view, view.x, view.y) }
 
-        root.post { place(view, (root.width - size - px(16.0)).toFloat(), root.height * 0.7f) }
+        // It starts out at the top of the screen, in the middle. The window is drawn edge to edge, so
+        // the top of this view lies behind the status bar and any cutout, and the mouse goes under
+        // both: up there it would be hidden by one and out of reach behind the other.
+        root.post {
+            val bars = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            val top = ViewCompat.getRootWindowInsets(root)?.getInsets(bars)?.top ?: 0
+
+            place(view, (root.width - size) / 2f, top.toFloat())
+        }
 
         return view
     }

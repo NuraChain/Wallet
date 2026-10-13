@@ -16,7 +16,6 @@ import { getMousePosition, readMouseIcon, readMouseOpacity, setMousePosition } f
 import type { MouseAction, MouseIcon } from '../type/app';
 
 const size = 40;
-const edge = 16;
 
 /** A second press inside this long is a double click, so a single one waits this long to be sure. */
 const doubleWindow = 250;
@@ -130,7 +129,7 @@ function MouseFace({ icon }: { icon: MouseIcon }) {
     return <img src={Logo} alt='' draggable={false} className='pointer-events-none size-full' />;
 }
 
-// Where it was left, so a lock and unlock put it back rather than in the corner.
+// Where it was left, so a lock and unlock put it back rather than where it starts.
 let parked: Point | undefined;
 
 // Kept inside the window, however far it is dragged or however small the window gets.
@@ -150,7 +149,8 @@ const clamp = ({ x, y }: Point): Point => ({
 export default function Mouse({ icon, onAction }: { icon: MouseIcon; onAction: (action: MouseAction) => void }) {
     const opacity = useMouseOpacity();
 
-    const [place, setPlace] = useState(() => clamp(parked ?? { x: window.innerWidth - size - edge, y: window.innerHeight * 0.7 }));
+    // It starts out at the top of the window, in the middle.
+    const [place, setPlace] = useState(() => clamp(parked ?? { x: (window.innerWidth - size) / 2, y: 0 }));
 
     const grabRef = useRef<{ pointer: Point; origin: Point } | undefined>(undefined);
 

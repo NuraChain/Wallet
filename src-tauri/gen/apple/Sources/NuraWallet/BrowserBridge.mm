@@ -25,10 +25,8 @@ static NSString *const kDesktopAgent =
 static NSString *const kHostChannel = @"nuraBrowser";
 static NSString *const kPageChannel = @"nuraProvider";
 
-/// The floating mouse's side, and how far from the window's edge it starts out: the same numbers as
-/// `size` and `edge` in src/ui/mouse.tsx.
+/// The floating mouse's side: the same number as `size` in src/ui/mouse.tsx.
 static const CGFloat kMouseSize = 40;
-static const CGFloat kMouseEdge = 16;
 
 /// The wallet's logo as the mouse wears it, kept at the foot of this file.
 static NSString *NuraLogo(void);
@@ -520,8 +518,10 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 
     [container addSubview:view];
 
-    [self place:view
-             at:CGPointMake(container.bounds.size.width - kMouseSize - kMouseEdge, container.bounds.size.height * 0.7)];
+    // It starts out at the top of the screen, in the middle, under the status bar and whatever is
+    // cut out of the screen there: the window runs behind both, and a mouse up there would be
+    // hidden by one and out of reach behind the other.
+    [self place:view at:CGPointMake((container.bounds.size.width - kMouseSize) / 2, container.safeAreaInsets.top)];
 
     return view;
 }

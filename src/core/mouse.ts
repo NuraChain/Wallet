@@ -14,7 +14,6 @@ declare global {
 }
 
 const mouseSize = 40;
-const mouseEdge = 16;
 
 export const defaultMouseOpacity = 0.25;
 
@@ -147,7 +146,7 @@ export const setMousePosition = async (view: Webview, point: { x: number; y: num
     await view.setPosition(new PhysicalPosition(point.x, point.y));
 };
 
-// Where the desktop mouse was left, so a lock and unlock put it back rather than in the corner.
+// Where the desktop mouse was left, so a lock and unlock put it back rather than where it starts.
 let parked: { x: number; y: number } | undefined;
 
 // Create and close run one at a time: a lock straight into an unlock would otherwise ask for the
@@ -187,8 +186,10 @@ const openDesktop = async () => {
 
     const clamp = (value: number, room: number) => Math.min(Math.max(value, 0), Math.max(room - mouseSize, 0));
 
-    const x = clamp(parked?.x ?? window.innerWidth - mouseSize - mouseEdge, window.innerWidth);
-    const y = clamp(parked?.y ?? window.innerHeight * 0.7, window.innerHeight);
+    // It starts out at the top of the window, in the middle: on Windows that is the empty stretch
+    // of the title bar, between the wallet's name and the window's own buttons.
+    const x = clamp(parked?.x ?? (window.innerWidth - mouseSize) / 2, window.innerWidth);
+    const y = clamp(parked?.y ?? 0, window.innerHeight);
 
     // The page is transparent, so the webview is only ever the mouse; the fragment carries how it
     // starts out because it never reaches the asset protocol the way a query would.
