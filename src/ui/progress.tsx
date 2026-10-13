@@ -56,9 +56,9 @@ export default function ProgressBar({ value, look, tone = 'accent' }: { value?: 
  * moves forward; a finished load stands full for a moment before it fades; and a load that begins
  * while that bar is still up is the same one going on, which leaves it full until that ends too.
  *
- * It is the last two pixels of the toolbar, so over a page it wears the page's colour as the
- * toolbar does, and draws the load in that colour's ink: the theme's accent is a blue, and on a
- * site that chose a blue of its own the load would not be seen at all.
+ * It is the last two pixels of the toolbar, so where the toolbar wears a page's colour — on a
+ * phone — it wears it too, and draws the load in that colour's ink: the theme's accent is a blue,
+ * and on a site that chose a blue of its own the load would not be seen at all.
  */
 export function LoadStrip({ loading, progress, hidden = false }: { loading: boolean; progress: number; hidden?: boolean }) {
     const tint = useTint();

@@ -10,8 +10,9 @@ export const useIsWindows = (): boolean => {
 
 /**
  * Whether the system draws a status bar over the top of the app, as a phone does. There the strip
- * under it may wear the colour of the site in the browser. A desktop has no such bar, and nothing
- * of a desktop window's own frame — its title bar least of all — ever takes a site's colour.
+ * under it, and the browser's header below that, wear the colour of the site in the browser. A
+ * desktop has no such bar, and nothing at the top of a desktop window — its title bar, or the
+ * browser's header under it — ever takes a site's colour.
  */
 export const useHasStatusBar = (): boolean => {
     const [hasStatusBar] = useState(() => {

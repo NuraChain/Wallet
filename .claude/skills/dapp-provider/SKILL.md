@@ -127,10 +127,10 @@ on `allowDevices(origin, wanted, standing)` in `dapp.rpc.ts`.
 
 ## A page naming the colour of the chrome around it
 
-A site's `<meta name="theme-color">` colours the browser's own header — the toolbar and the load
-strip — and, on a phone, the strip under the status bar above it, for as long as that site is what
-the browser tab shows. It is the one thing a page gets to change about the wallet's own surface, so
-every step of it is narrow.
+On a phone, a site's `<meta name="theme-color">` colours the browser's own header — the toolbar and
+the load strip — and the strip under the status bar above it, for as long as that site is what the
+browser tab shows. In a desktop window it colours nothing. It is the one thing a page gets to change
+about the wallet's own surface, so every step of it is narrow.
 
 - **In the page** (`dapp.script.ts`, `watchTheme`): the HTML algorithm, to the letter — the meta
   elements named `theme-color` in tree order, skipping one whose `media` does not apply, taking the
@@ -161,10 +161,13 @@ every step of it is narrow.
   chosen too.
 - **Where the system draws over the colour** — a phone's status bar — its ink is turned through
   `setBarInk` on the native bridge, present on Android and iOS and absent on desktop.
-- **A desktop window's frame never changes colour.** On Windows, macOS and Linux the title bar
-  stays the wallet's (or the system's) whatever page is open, and there is no status bar strip:
-  `useHasStatusBar` in `hook/platform.ts` is what draws that strip on a phone and nowhere else.
-  `TitleBar` does not read the tint at all. Only the toolbar under it follows the site there.
+- **A desktop window never changes colour.** On Windows, macOS and Linux the title bar stays the
+  wallet's (or the system's) whatever page is open, and so does the toolbar under it. The page
+  still says its colour and the bridge still records it, but `DashboardBrowser` names a page to
+  `showSiteTheme` only where `useHasStatusBar` in `hook/platform.ts` says there is a status bar, so
+  the tint stays empty there and `Toolbar` and `LoadStrip` have nothing to wear. The same hook is
+  what draws the status bar strip on a phone and nowhere else, and `TitleBar` does not read the
+  tint at all.
 
 ## `dapp.log.ts`
 

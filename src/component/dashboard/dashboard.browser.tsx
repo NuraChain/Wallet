@@ -31,6 +31,7 @@ import {
     setBrowserView,
     showSiteTheme
 } from '../../core/browser';
+import { useHasStatusBar } from '../../hook/platform';
 import { Vertical } from '../../ui/stack';
 import type { Network } from '../../type/network';
 import type { BrowserFavorite, BrowserState, BrowserTab, BrowserView, BrowserVisit } from '../../type/browser';
@@ -100,6 +101,8 @@ export default function DashboardBrowser({
     const [live, setLive] = useState<Map<number, BrowserState>>(new Map());
     const [notice, setNotice] = useState<Map<number, string>>(new Map());
 
+    const hasStatusBar = useHasStatusBar();
+
     const tab = tabs.find((item) => item.id === active) ?? tabs[0];
 
     const current = tab.index < 0 ? '' : tab.entries[tab.index];
@@ -137,16 +140,17 @@ export default function DashboardBrowser({
         onFullscreen?.(full);
     }, [full, onFullscreen]);
 
-    // The browser's header, and on a phone the status bar over it, wear the open site's colour for as
+    // On a phone the browser's header, and the status bar over it, wear the open site's colour for as
     // long as the site is what this tab shows — through a dialog as well, which hides the page but
-    // not the tab.
+    // not the tab. A desktop window names no page here, so nothing in it ever leaves the wallet's
+    // colours: not the title bar, and not the header under it.
     useEffect(() => {
-        showSiteTheme(inView && !start ? frameLabel(tab.id) : '');
+        showSiteTheme(hasStatusBar && inView && !start ? frameLabel(tab.id) : '');
 
         return () => {
             showSiteTheme('');
         };
-    }, [inView, start, tab.id]);
+    }, [hasStatusBar, inView, start, tab.id]);
 
     useEffect(() => {
         if (!full) {

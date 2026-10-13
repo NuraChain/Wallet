@@ -12,9 +12,10 @@ const ringMap = { dark: '[--focus-ring:var(--tint-dark)]', light: '[--focus-ring
 /**
  * The strip of controls across the top of the browser: its address bar, and its tab list.
  *
- * Over a page it wears the colour that page asks for. On a phone the strip under the status bar
- * wears it too, so the two read as one; a desktop window's title bar above it never does, and
- * stays the wallet's. That is the bar and nothing on it: the address field, with the
+ * On a phone, over a page, it wears the colour that page asks for, and the strip under the status
+ * bar wears it too, so the two read as one. In a desktop window there is no tint to wear: the bar
+ * stays the wallet's whatever page is open, as the title bar above it does. Where it is worn, that
+ * is the bar and nothing on it: the address field, with the
  * lock or the warning in it, and the buttons either side stay the wallet's own opaque surfaces in
  * the wallet's own ink. They are what tells the user where they are, and a site does not get to
  * restyle that or to wash it out. A button that is switched off is the one exception: it is
