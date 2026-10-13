@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronRight, Globe, Moon, Sun, FileText, Lock, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Globe, Moon, MousePointerClick, Sun, FileText, Lock, Trash2 } from 'lucide-react';
 
 import Text from '../../ui/text';
 import Button from '../../ui/button';
@@ -19,6 +19,7 @@ export default function DashboardSettings({
     kind,
     onBack,
     onLanguage,
+    onMouse,
     onPhrase,
     onLock,
     onDelete
@@ -26,6 +27,8 @@ export default function DashboardSettings({
     kind: VaultKind;
     onBack: () => void;
     onLanguage: () => void;
+    /** Left out where there is no floating button to set up. */
+    onMouse?: () => void;
     onPhrase: () => void;
     onLock: () => void;
     onDelete: () => void;
@@ -65,6 +68,19 @@ export default function DashboardSettings({
                 onClick={onToggleTheme}
                 trailing={<Text text={theme === 'light' ? T('Dashboard.Settings.ThemeLight') : T('Dashboard.Settings.ThemeDark')} />}
             />
+
+            {onMouse !== undefined && (
+                <MenuRow
+                    leading={
+                        <IconBox>
+                            <MousePointerClick size={16} />
+                        </IconBox>
+                    }
+                    label={T('Dashboard.Mouse.Title')}
+                    onClick={onMouse}
+                    trailing={chevron}
+                />
+            )}
 
             <MenuRow
                 leading={

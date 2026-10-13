@@ -165,8 +165,9 @@ function DashboardView({ vault }: { vault: Vault }) {
     // the wallet's own page only where that cannot be done.
     const [pageMouse, setPageMouse] = useState(false);
 
-    // Taken away on the settings tab, and put back on the way out of it.
-    const mouseOn = hasBrowser && tabMap[active].key !== 'Settings';
+    // Taken away on the settings tab, and put back on the way out of it. Its own settings bring it
+    // back for as long as they are open there, since the mouse is what they preview on.
+    const mouseOn = hasBrowser && (tabMap[active].key !== 'Settings' || modal === 'mouse');
 
     useEffect(() => {
         if (!mouseOn) {
@@ -652,6 +653,13 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                         onLanguage={() => {
                                                             setModal('language');
                                                         }}
+                                                        onMouse={
+                                                            hasBrowser
+                                                                ? () => {
+                                                                      setModal('mouse');
+                                                                  }
+                                                                : undefined
+                                                        }
                                                         onLock={() => {
                                                             lockSession();
                                                             void navigate('/unlock', { replace: true });
