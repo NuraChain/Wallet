@@ -1,7 +1,7 @@
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 
 import { buildManifest } from './manifest.ts';
-import type { Target } from '../src/type/extension';
+import type { Target } from '../src/type/extension.ts';
 
 const targets: Target[] = ['chrome', 'edge', 'firefox', 'safari'];
 

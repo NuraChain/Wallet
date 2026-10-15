@@ -1,6 +1,6 @@
 import { runnerImport, type Plugin } from 'vite';
 
-import type { DappIdentity } from '../src/type/dapp';
+import type { DappIdentity } from '../src/type/dapp.ts';
 
 const specifier = 'virtual:nura-inpage';
 
