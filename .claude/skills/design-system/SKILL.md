@@ -71,6 +71,8 @@ that is what `variant='bare'` is for (focus ring only, plus the `type='button'` 
 | `chip` | Hairline over the card tone — the account/network/settings row |
 | `danger` | Muted fill, error ink — small remove controls inside a list |
 | `destructive` | Filled red — an action that ends the session |
+| `warning` | Filled in the warning ink — a warning `Alert`'s own action (the backup reminder's button) |
+| `notice` | The ink of what it sits on, thinned — a quiet control inside an `Alert`, such as its close |
 | `tintDark` / `tintLight` | A toolbar button over a site's colour, in the ink that reads on it — picked by `ToolbarButton`, never by hand |
 | `bare` | No fill, focus ring only |
 

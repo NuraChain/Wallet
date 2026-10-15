@@ -32,9 +32,9 @@ export default function DashboardBackup({ kind, onOpen }: { kind: VaultKind; onO
             variant='warning'
             size='comfortable'
             text={due ? message : ''}
-            action={<Button variant='chip' size='small' onClick={onOpen} text={T('Dashboard.Backup.Action')} />}
+            action={<Button variant='warning' size='small' onClick={onOpen} text={T('Dashboard.Backup.Action')} />}
             trailing={
-                <Button variant='muted' size='icon' title={T('Dashboard.Backup.Later')} onClick={closeBackupReminder} shrink={false} icon={<X size={16} />} />
+                <Button variant='notice' size='icon' title={T('Dashboard.Backup.Later')} onClick={closeBackupReminder} shrink={false} icon={<X size={16} />} />
             }
         />
     );

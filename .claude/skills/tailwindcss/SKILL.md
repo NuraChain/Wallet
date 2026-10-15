@@ -36,7 +36,8 @@ labels on a white pill. Pair it with `backdrop-blur-*` — blur has no theme nam
 so those are Tailwind's stock steps and the only utility family that is.
 
 **Fills** — `btn-muted`, `btn-normal`, `btn-primary`, `btn-danger`, each with `-hover`,
-`-active`, `-border`; plus flat `btn-secondary`.
+`-active`, `-border`; plus flat `btn-secondary`, and `btn-warning` with `-hover` and `-active`
+under its own label ink, `txt-on-warning` (white in light, navy in dark).
 
 **Fields** — `input-bg`, `input-normal` (the 3:1 control boundary), `input-error`.
 

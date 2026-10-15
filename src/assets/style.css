@@ -76,6 +76,12 @@
     --color-btn-danger-active: var(--btn-danger-active);
     --color-btn-danger-border: var(--btn-danger-border);
 
+    /* A warning notice's own action, filled in its ink. A tenth of that ink, as the notice's close
+       wears, leaves a label at 3.7:1 in light; a fill and a label of its own clear 5:1 in every state. */
+    --color-btn-warning: var(--btn-warning);
+    --color-btn-warning-hover: var(--btn-warning-hover);
+    --color-btn-warning-active: var(--btn-warning-active);
+
     --color-input-bg: var(--input-bg);
     --color-input-normal: var(--input-normal);
     --color-input-error: var(--input-error);
@@ -85,6 +91,7 @@
     --color-txt-reverse: var(--txt-reverse);
     --color-txt-accent: var(--txt-accent);
     --color-txt-on-primary: var(--txt-on-primary);
+    --color-txt-on-warning: var(--txt-on-warning);
     --color-txt-error: var(--txt-error);
     --color-txt-success: var(--txt-success);
     --color-txt-warning: var(--txt-warning);
@@ -156,6 +163,10 @@
     --btn-danger-active: oklch(47% 0.2 27.3);
     --btn-danger-border: oklch(52% 0.213 27.3);
 
+    --btn-warning: oklch(55.5% 0.146 49);
+    --btn-warning-hover: oklch(50% 0.14 49);
+    --btn-warning-active: oklch(45.5% 0.13 49);
+
     --input-bg: oklch(100% 0 0);
     --input-normal: oklch(71.1% 0.035 256.8);
     --input-error: oklch(57.7% 0.215 27.3);
@@ -166,6 +177,7 @@
 
     --txt-accent: oklch(50% 0.119 242.7);
     --txt-on-primary: oklch(100% 0 0);
+    --txt-on-warning: oklch(100% 0 0);
 
     --txt-error: oklch(50.5% 0.19 27.5);
     --txt-success: oklch(52.7% 0.137 150.1);
@@ -221,6 +233,10 @@
     --btn-danger-active: oklch(52% 0.213 27.3);
     --btn-danger-border: oklch(63.7% 0.208 25.3);
 
+    --btn-warning: oklch(83.7% 0.164 84.4);
+    --btn-warning-hover: oklch(87.9% 0.169 91.6);
+    --btn-warning-active: oklch(78% 0.16 80);
+
     --input-bg: oklch(20.1% 0.034 263.4);
     --input-normal: oklch(37.2% 0.039 257.3);
     --input-error: oklch(63.7% 0.208 25.3);
@@ -231,6 +247,7 @@
 
     --txt-accent: oklch(75.4% 0.139 232.7);
     --txt-on-primary: oklch(100% 0 0);
+    --txt-on-warning: oklch(20.8% 0.04 265.8);
 
     --txt-error: oklch(70% 0.19 25.3);
     --txt-success: oklch(72.3% 0.192 149.6);
