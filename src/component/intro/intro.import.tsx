@@ -9,6 +9,7 @@ import Alert from '../../ui/alert';
 import Button from '../../ui/button';
 import IntroCredentials from './intro.credentials';
 import { TextArea } from '../../ui/field';
+import { PhraseInput } from '../../ui/secret';
 import { Sheet, SheetHeader } from '../../ui/sheet';
 
 import { T } from '../../utility/language';
@@ -16,6 +17,7 @@ import { passwordHash } from '../../core/password';
 import { unlockSession } from '../../core/session';
 import { setValue, setValueEncrypted } from '../../utility/storage';
 import { Horizontal, Vertical } from '../../ui/stack';
+import { enterPhrase, phraseLengths, resizePhrase } from '../../core/phrase';
 import type { VaultKind } from '../../type/wallet';
 
 const methodList: { kind: VaultKind; label: string }[] = [
@@ -23,11 +25,14 @@ const methodList: { kind: VaultKind; label: string }[] = [
     { kind: 'privateKey', label: 'Intro.ImportWallet.MethodKey' }
 ];
 
+const blank = () => resizePhrase([], 12);
+
 export default function IntroImport({ onClose }: { onClose: () => void }) {
     const navigate = useNavigate();
 
     const [hash, setHash] = useState('');
     const [error, setError] = useState('');
+    const [words, setWords] = useState(blank);
     const [secret, setSecret] = useState('');
     const [method, setMethod] = useState<VaultKind>('mnemonic');
     const [password, setPassword] = useState('');
@@ -47,13 +52,27 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
     const onMethod = (kind: VaultKind) => {
         setMethod(kind);
         setSecret('');
+        setWords(blank());
+        setError('');
+    };
+
+    const onWord = (index: number, text: string) => {
+        const next = enterPhrase(words, index, text);
+
+        if (next === undefined) {
+            setError(T('Intro.ImportWallet.ErrorWordCount'));
+
+            return;
+        }
+
+        setWords(next);
         setError('');
     };
 
     const validate = () => {
-        const entered = secret.trim();
-
         if (method === 'privateKey') {
+            const entered = secret.trim();
+
             if (!WalletManager.ValidatePrivateKey(entered)) {
                 setError(T('Intro.ImportWallet.ErrorInvalidKey'));
 
@@ -63,14 +82,13 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
             return WalletManager.FromPrivateKey(entered).retrieve().Private;
         }
 
-        const phrase = entered.replaceAll(/\s+/g, ' ');
-        const words = phrase.split(' ');
-
-        if (words.length !== 12 && words.length !== 24) {
-            setError(T('Intro.ImportWallet.ErrorInvalidLength'));
+        if (words.some((word) => word.length === 0)) {
+            setError(T('Intro.ImportWallet.ErrorMissingWords'));
 
             return undefined;
         }
+
+        const phrase = words.join(' ');
 
         if (!Mnemonic.isValidMnemonic(phrase.normalize('NFKD'))) {
             setError(T('Intro.ImportWallet.ErrorInvalidLength'));
@@ -135,17 +153,47 @@ export default function IntroImport({ onClose }: { onClose: () => void }) {
                         ))}
                     </Horizontal>
 
-                    <TextArea
-                        value={secret}
-                        label={method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message')}
-                        dir={method === 'privateKey' ? 'ltr' : undefined}
-                        onValue={setSecret}
-                        tall
-                        breaks={method === 'privateKey' ? 'all' : undefined}
-                        placeholder={method === 'privateKey' ? T('Intro.ImportWallet.MessageKey') : T('Intro.ImportWallet.Message')}
-                    />
+                    {method === 'mnemonic' && (
+                        <Vertical gap={2}>
+                            <Horizontal gap={2} align='center'>
+                                <Text grow text={T('Intro.ImportWallet.Message')} />
 
-                    {method === 'privateKey' && <Text text={T('Intro.ImportWallet.KeyNote')} />}
+                                {phraseLengths.map((length) => (
+                                    <Button
+                                        key={length}
+                                        variant={words.length === length ? 'primary' : 'chip'}
+                                        onClick={() => {
+                                            setWords(resizePhrase(words, length));
+                                            setError('');
+                                        }}
+                                        size='small'
+                                        shrink={false}
+                                        text={T(`Intro.ImportWallet.Words${length}`)}
+                                    />
+                                ))}
+                            </Horizontal>
+
+                            <PhraseInput words={words} onEnter={onWord} />
+
+                            <Text variant='caption' text={T('Intro.ImportWallet.PasteHint')} />
+                        </Vertical>
+                    )}
+
+                    {method === 'privateKey' && (
+                        <>
+                            <TextArea
+                                value={secret}
+                                label={T('Intro.ImportWallet.MessageKey')}
+                                dir='ltr'
+                                onValue={setSecret}
+                                tall
+                                breaks='all'
+                                placeholder={T('Intro.ImportWallet.MessageKey')}
+                            />
+
+                            <Text text={T('Intro.ImportWallet.KeyNote')} />
+                        </>
+                    )}
 
                     <Button
                         variant='primary'

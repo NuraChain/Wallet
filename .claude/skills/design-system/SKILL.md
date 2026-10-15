@@ -226,7 +226,9 @@ and `breaks`. `Checkbox` (`ui/checkbox.tsx`) takes
   `StatusBlock` takes `fill` and `px`; `LoadStrip` is the browser's page-load strip.
 - **`Slider`**, **`Logo`**, **`Flag`**, **`QrFrame`** (`ui/media.tsx`), **`FieldLead`** (the glyph over a
   field's leading edge), and the recovery phrase's **`SecretKey` / `SecretWords` / `SecretWord`**
-  (`ui/secret.tsx`), which stay blurred until revealed.
+  (`ui/secret.tsx`), which stay blurred until revealed. **`PhraseInput`**, beside them, is the
+  phrase typed in: a numbered box a word, laid out as `SecretWords` is. It hands each keystroke or
+  multi-word paste to `onEnter(index, text)`, and `core/phrase.ts` says what the boxes become.
 - **`Scanner`** (`ui/scanner.tsx`) — the camera's picture, read for a QR code. It asks for the
   camera as it mounts and lets go of it as it unmounts, so it is rendered only while scanning —
   a step of the dialog that wants the code, never a dialog of its own. `onScan` gets each code
