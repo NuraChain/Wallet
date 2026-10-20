@@ -368,7 +368,7 @@
             "ThemeDark": "Dark",
             "SidePanel": "Open in side panel",
             "Version": "Version %s",
-            "Delete": "Delete wallet"
+            "Delete": "Delete Wallet"
         },
         "Phrase": {
             "Title": "Recovery Phrase",
@@ -402,11 +402,11 @@
             "Later": "Remind me in a week"
         },
         "Delete": {
-            "Title": "Delete wallet",
+            "Title": "Delete Wallet",
             "Message": "This deletes the wallet from this device, along with its accounts, tokens, connected sites and browsing history. Your funds stay on the blockchain, and only your recovery phrase can restore them. Without it, they are lost for good.",
             "MessageKey": "This deletes the wallet from this device, along with its accounts, tokens, connected sites and browsing history. Your funds stay on the blockchain, and only your private key can restore them. Without it, they are lost for good.",
             "Password": "Password",
-            "Confirm": "Delete wallet",
+            "Confirm": "Delete Wallet",
             "Cancel": "Cancel",
             "ErrorRequired": "Please enter your password",
             "ErrorInvalid": "Password is incorrect"
