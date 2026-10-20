@@ -4,10 +4,8 @@ import { motion, useReducedMotion } from 'motion/react';
 import Spinner from './spinner';
 
 import { cn } from '../utility/cn';
-import { inset } from './container';
 import { surfacePanel } from './panel';
 import { getDirection } from '../utility/language';
-import { useIsWindows } from '../hook/platform';
 import { blur, spring, transition } from './motion';
 
 const useRise = () => ({
@@ -46,22 +44,6 @@ export function Track({ index, children }: { index: number; children: ReactNode 
         <div
             className='flex size-full transition-transform duration-(--duration-slide) ease-(--ease-slide)'
             style={{ transform: `translateX(${getDirection() === 'rtl' ? index * 100 : index * -100}%)` }}
-        >
-            {children}
-        </div>
-    );
-}
-
-export function SidebarPanel({ children }: { children: ReactNode }) {
-    const isWindows = useIsWindows();
-
-    return (
-        <div
-            className={cn(
-                'flex flex-col',
-                'hidden w-60 shrink-0 gap-1 border-e border-line bg-base-2 p-3 pb-[calc(1.5rem+var(--inset-bottom))] lg:flex',
-                inset.tabTop[isWindows ? 'windows' : 'device']
-            )}
         >
             {children}
         </div>

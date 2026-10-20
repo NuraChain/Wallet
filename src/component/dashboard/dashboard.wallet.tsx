@@ -162,7 +162,7 @@ export default function DashboardWallet({
                     <ChevronDown size={12} className='shrink-0 opacity-40' />
                 </Button>
 
-                <Button variant='chip' size='iconChip' onClick={onSettings} shrink={false} wide='hide' icon={<Settings size={17} />} />
+                <Button variant='chip' size='iconChip' onClick={onSettings} shrink={false} icon={<Settings size={17} />} />
             </Horizontal>
 
             <DashboardOffline error={native.error} at={native.at} />

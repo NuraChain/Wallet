@@ -2,11 +2,9 @@ import { Navigate, useNavigate } from 'react-router';
 import { platform } from '../platform';
 import { AnimatePresence } from 'motion/react';
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, Settings, Globe, Lock, Trash2, Wallet } from 'lucide-react';
 
 import ScrollArea from '../ui/scroll';
 import PageContainer, { ScrollFrame } from '../ui/container';
-import DashboardSidebar from '../component/dashboard/dashboard.sidebar';
 import DashboardWallet from '../component/dashboard/dashboard.wallet';
 import DashboardSend from '../component/dashboard/dashboard.send';
 import IntroLanguage from '../component/intro/intro.language';
@@ -54,7 +52,7 @@ import { getDirection, T } from '../utility/language';
 import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount } from '../utility/account';
-import type { MouseAction, MouseIcon, SidebarItem } from '../type/app';
+import type { MouseAction, MouseIcon } from '../type/app';
 import type { Account, Vault } from '../type/wallet';
 import type { HiddenMap, TokenMap } from '../type/token';
 import { Screen, Track } from '../ui/screen';
@@ -73,7 +71,6 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [active, setActive] = useState(0);
     const [account, setAccount] = useState(0);
     const [modal, setModal] = useState<Modal>('none');
-    const [browserFull, setBrowserFull] = useState(false);
     const [fullToggle, setFullToggle] = useState(0);
     const [homePress, setHomePress] = useState(0);
     const [link, setLink] = useState({ url: '', ticket: 0 });
@@ -400,36 +397,6 @@ function DashboardView({ vault }: { vault: Vault }) {
         void saveAccounts(next);
     };
 
-    const sidebarMap: SidebarItem[] = [
-        {
-            key: 'Wallet',
-            label: T('Dashboard.Nav.Wallet'),
-            icon: Wallet,
-            active: tabMap[active].key === 'Wallet',
-            onClick: () => {
-                goKey('Wallet');
-            }
-        },
-        {
-            key: 'Browser',
-            label: T('Dashboard.Nav.Browser'),
-            icon: Globe,
-            active: tabMap[active].key === 'Browser',
-            onClick: () => {
-                goKey('Browser');
-            }
-        },
-        {
-            key: 'Settings',
-            label: T('Dashboard.Settings.Title'),
-            icon: Settings,
-            active: tabMap[active].key === 'Settings',
-            onClick: () => {
-                goKey('Settings');
-            }
-        }
-    ].filter((item) => tabMap.some((tab) => tab.key === item.key));
-
     const onRemoveAccount = (index: number) => {
         const next = accounts.filter((item) => item.index !== index);
 
@@ -556,51 +523,6 @@ function DashboardView({ vault }: { vault: Vault }) {
             {pageMouse && mouseOn && <Mouse icon={mouseIcon} onAction={onMouse} />}
 
             <Horizontal dir={getDirection()} fill='both' clip>
-                {!(browserFull && tabMap[active].key === 'Browser') && (
-                    <DashboardSidebar
-                        items={sidebarMap}
-                        actions={[
-                            {
-                                key: 'Send',
-                                label: T('Dashboard.Send.Title'),
-                                icon: ArrowUpRight,
-                                onClick: () => {
-                                    setModal('send');
-                                }
-                            },
-                            {
-                                key: 'Receive',
-                                label: T('Dashboard.Receive.Title'),
-                                icon: ArrowDownLeft,
-                                onClick: () => {
-                                    setModal('receive');
-                                }
-                            }
-                        ]}
-                        footer={[
-                            {
-                                key: 'Lock',
-                                label: T('Dashboard.Lock'),
-                                icon: Lock,
-                                primary: true,
-                                onClick: () => {
-                                    lockSession();
-                                    void navigate('/unlock', { replace: true });
-                                }
-                            },
-                            {
-                                key: 'Delete',
-                                label: T('Dashboard.Delete.Title'),
-                                icon: Trash2,
-                                destructive: true,
-                                onClick: () => {
-                                    setModal('delete');
-                                }
-                            }
-                        ]}
-                    />
-                )}
-
                 <Block squeeze='x' grow clip>
                     <Track index={active}>
                         {tabMap.map((item, index) => (
@@ -613,7 +535,6 @@ function DashboardView({ vault }: { vault: Vault }) {
                                             ticket={link.ticket}
                                             fullToggle={fullToggle}
                                             homePress={homePress}
-                                            onFullscreen={setBrowserFull}
                                             inView={index === active}
                                             enabled={index === active && modal === 'none' && prompt === undefined}
                                             onExit={() => {

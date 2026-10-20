@@ -45,7 +45,7 @@ export default function DashboardSettings({
     return (
         <Vertical mt={2} squeeze='y' grow gap={3}>
             <Horizontal align='center' gap={3}>
-                <Button variant='chip' size='iconChip' onClick={onBack} shrink={false} wide='hide' icon={<ArrowLeft size={17} className='rtl:rotate-180' />} />
+                <Button variant='chip' size='iconChip' onClick={onBack} shrink={false} icon={<ArrowLeft size={17} className='rtl:rotate-180' />} />
 
                 <Text as='h1' variant='heading' py={2} text={T('Dashboard.Settings.Title')} />
             </Horizontal>

@@ -65,8 +65,7 @@ export default function DashboardBrowser({
     ticket,
     fullToggle,
     homePress,
-    onExit,
-    onFullscreen
+    onExit
 }: {
     network: Network;
     /** Stays true under a dialog, which turns only `enabled` off. */
@@ -79,7 +78,6 @@ export default function DashboardBrowser({
     /** A counter, bumped per mouse double press. */
     homePress: number;
     onExit: () => void;
-    onFullscreen?: (on: boolean) => void;
 }) {
     const [settings, setSettings] = useState(false);
     const [view, setView] = useState<BrowserView>('mobile');
@@ -127,10 +125,6 @@ export default function DashboardBrowser({
 
         setTabs((list) => list.map((item) => (item.id === active ? { ...item, home: true } : item)));
     }
-
-    useEffect(() => {
-        onFullscreen?.(full);
-    }, [full, onFullscreen]);
 
     // Phones only: the header and status bar wear the site's colour while this tab shows it.
     useEffect(() => {
@@ -336,7 +330,7 @@ export default function DashboardBrowser({
         <Vertical relative squeeze='y' grow>
             {!full && (
                 <Toolbar>
-                    <ToolbarButton tone='danger' onClick={onExit} wide='hide' icon={<X size={16} />} />
+                    <ToolbarButton tone='danger' onClick={onExit} icon={<X size={16} />} />
 
                     <ToolbarButton
                         disabled={!canBack}
