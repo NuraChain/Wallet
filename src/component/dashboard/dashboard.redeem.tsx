@@ -12,11 +12,20 @@ import { Modal, ModalHeader } from '../../ui/modal';
 import { T } from '../../utility/language';
 import { isRedeemCode, redeemCode } from '../../core/redeem';
 import { Vertical } from '../../ui/stack';
+import type { RedeemFailure } from '../../type/wallet';
+
+const failureText: Record<RedeemFailure | 'failed', string> = {
+    validation: 'Dashboard.Redeem.ErrorInvalid',
+    'not-found': 'Dashboard.Redeem.ErrorUnknown',
+    conflict: 'Dashboard.Redeem.ErrorUsed',
+    'rate-limited': 'Dashboard.Redeem.ErrorBusy',
+    failed: 'Dashboard.Redeem.ErrorFailed'
+};
 
 export default function DashboardRedeem({ address, onClose }: { address: string; onClose: () => void }) {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
-    const [done, setDone] = useState('');
+    const [done, setDone] = useState<{ amount: number; wallet: string; notified: boolean }>();
     const [showInfo, setShowInfo] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -35,12 +44,12 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
             const result = await redeemCode(address, code);
 
             if (result.ok) {
-                setDone(result.message.length > 0 ? result.message : T('Dashboard.Redeem.Success'));
+                setDone(result);
 
                 return;
             }
 
-            setError(result.message.length > 0 ? result.message : T('Dashboard.Redeem.ErrorFailed'));
+            setError(T(failureText[result.reason]));
         } finally {
             setIsLoading(false);
         }
@@ -83,11 +92,15 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                 }
             />
 
-            {done.length > 0 ? (
+            {done ? (
                 <Vertical align='center' gap={2} py={4}>
                     <CircleCheckBig size={36} className='text-txt-accent' />
 
-                    <Text variant='body' align='center' text={done} />
+                    <Text variant='body' align='center' text={T('Dashboard.Redeem.Success', done.amount)} />
+
+                    <ReadonlyField label={T('Dashboard.Redeem.Address')} value={done.wallet} />
+
+                    <Text variant='bodyMuted' align='center' text={T(done.notified ? 'Dashboard.Redeem.SuccessNote' : 'Dashboard.Redeem.SuccessSlow')} />
 
                     <Button variant='normal' size='action' fullWidth onClick={onClose} mt={2} text={T('Dashboard.Redeem.Close')} />
                 </Vertical>

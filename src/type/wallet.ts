@@ -11,7 +11,11 @@ export interface Transaction {
     incoming: boolean;
 }
 
-export type RedeemResult = { ok: true; message: string } | { ok: false; message: string };
+/** Why the shop refused a code; `failed` covers a network error or an answer it could not read. */
+export type RedeemFailure = 'validation' | 'not-found' | 'conflict' | 'rate-limited';
+
+/** A redeemed code's USDT payout is queued, not sent: the shop's operator transfers it by hand. */
+export type RedeemResult = { ok: true; amount: number; wallet: string; notified: boolean } | { ok: false; reason: RedeemFailure | 'failed' };
 
 export type VaultKind = 'mnemonic' | 'privateKey';
 

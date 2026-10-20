@@ -24,7 +24,8 @@ const knownHosts = [
     'https://api.etherscan.io/*',
     'https://bscscan.com/*',
     'https://eth.blockscout.com/*',
-    'https://raw.githubusercontent.com/*'
+    'https://raw.githubusercontent.com/*',
+    'https://ashbringer.org/*'
 ];
 
 const pages = ['http://*/*', 'https://*/*'];
