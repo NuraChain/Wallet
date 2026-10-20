@@ -14,6 +14,7 @@ export const mouseLabel = 'nura-mouse';
 
 const defaultFavorites: BrowserFavorite[] = [
     { id: 'goman', name: 'Goman', url: 'https://goman.online' },
+    { id: 'ashbringer', name: 'Ashbringer', url: 'https://ashbringer.org' },
     { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
     { id: 'nurachain', name: 'Nura Chain', url: 'https://nurachain.net' },
     { id: 'discord', name: 'Discord', url: 'https://discord.gg/ykW3PU64h9' },
