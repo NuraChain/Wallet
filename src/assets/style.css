@@ -251,6 +251,51 @@
     --duration-fast: 150ms;
     --duration-base: 200ms;
     --duration-surface: 300ms;
+    --duration-press: 400ms;
+    --ease-press: linear(
+        0,
+        0.0261,
+        0.0935,
+        0.188,
+        0.2977,
+        0.4132,
+        0.5271,
+        0.6343,
+        0.7313,
+        0.8159,
+        0.8872,
+        0.9452,
+        0.9906,
+        1.0244,
+        1.048,
+        1.063,
+        1.0709,
+        1.0732,
+        1.0713,
+        1.0663,
+        1.0594,
+        1.0514,
+        1.0429,
+        1.0346,
+        1.0267,
+        1.0196,
+        1.0134,
+        1.0082,
+        1.004,
+        1.0007,
+        0.9982,
+        0.9965,
+        0.9953,
+        0.9948,
+        0.9946,
+        0.9948,
+        0.9952,
+        0.9958,
+        0.9965,
+        1
+    );
+    --duration-slide: 750ms;
+    --ease-slide: linear(
         0,
         0.0137,
         0.0488,
@@ -408,6 +453,27 @@ input[type='password']::-webkit-strong-password-auto-fill-button {
     width: 0;
     height: 0;
     display: none;
+}
+
+@theme {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@utility press {
+    transition-property: color, background-color, border-color, scale;
+    transition-duration:
+        var(--press-tint, var(--duration-fast)), var(--press-tint, var(--duration-fast)), var(--press-tint, var(--duration-fast)), var(--duration-press);
+    transition-timing-function: ease, ease, ease, var(--ease-press);
+
+    @media (prefers-reduced-motion: no-preference) {
+        &:active:not(:disabled, [data-still]) {
+            scale: var(--press-scale, 0.97);
+        }
+    }
+}
+
+@utility press-row {
+    --press-scale: 0.985;
 }
 
 @media (prefers-reduced-motion: reduce) {

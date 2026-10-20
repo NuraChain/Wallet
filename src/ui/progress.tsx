@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 
 import { cn } from '../utility/cn';
 import { inkOn } from '../utility/color';
 import { useTint } from '../hook/tint';
+import { transition } from './motion';
 
 const inkMap = { dark: 'text-tint-dark', light: 'text-tint-light' } as const;
 
@@ -19,6 +20,7 @@ const lookMap = {
 
 export default function ProgressBar({ value, look, tone = 'accent' }: { value?: number; look?: keyof typeof lookMap; tone?: keyof typeof toneMap }) {
     const determinate = value !== undefined;
+    const reduced = useReducedMotion() === true;
 
     return (
         <div role='progressbar' className={cn('relative h-0.5 overflow-hidden', look !== undefined && lookMap[look])}>
@@ -26,9 +28,9 @@ export default function ProgressBar({ value, look, tone = 'accent' }: { value?: 
                 <div className={cn('absolute inset-y-0 inset-s-0 min-w-1.5', toneMap[tone])} style={{ width: `${value}%` }} />
             ) : (
                 <motion.span
-                    initial={{ transform: 'scaleX(0)' }}
+                    initial={{ transform: reduced ? 'scaleX(1)' : 'scaleX(0)' }}
                     animate={{ transform: 'scaleX(1)' }}
-                    transition={{ duration: 1.1, ease: 'easeOut' }}
+                    transition={transition.wait}
                     className={cn('absolute inset-0 origin-left rounded-full rtl:origin-right', toneMap[tone])}
                 />
             )}
@@ -66,7 +68,7 @@ export function LoadStrip({ loading, progress, hidden = false }: { loading: bool
                 <motion.div
                     initial={false}
                     animate={{ opacity: loading ? 1 : 0 }}
-                    transition={loading ? { duration: 0 } : { duration: 0.25, delay: 0.3 }}
+                    transition={loading ? transition.instant : { ...transition.fade, delay: 0.3 }}
                     onAnimationComplete={() => {
                         if (!loading) {
                             setShown(false);

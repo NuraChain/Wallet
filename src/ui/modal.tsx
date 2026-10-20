@@ -1,6 +1,6 @@
 import { useRef, type ReactNode } from 'react';
 
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { X } from 'lucide-react';
 
 import Text from './text';
@@ -12,6 +12,7 @@ import ScrollBar from './scrollbar';
 import { surfacePanel } from './panel';
 import { Horizontal, Vertical } from './stack';
 import { inset, layer } from './container';
+import { blur, scale as motionScale, spring, transition } from './motion';
 
 const widthMap = {
     panel: 'w-80 sm:w-96 lg:w-112',
@@ -22,7 +23,7 @@ const widthMap = {
 export function Modal({
     onClose,
     scroll = false,
-    scale = 0.9,
+    scale = motionScale.dialog,
     width = 'panel',
     padding,
     gap,
@@ -40,14 +41,25 @@ export function Modal({
 }) {
     const { panelRef } = useDialog(onClose);
 
+    const reduced = useReducedMotion() === true;
+    const upright = width === 'full' ? 'scale(1)' : 'perspective(500px) rotateX(0deg) scale(1)';
+    const tilt = width === 'full' ? '' : 'perspective(500px) rotateX(-20deg) ';
+    const tipped = reduced ? upright : `${tilt}scale(${scale})`;
+
     const panel = (
         <motion.div
             ref={panelRef}
             role='dialog'
             tabIndex={-1}
-            initial={{ opacity: 0, transform: `scale(${scale})` }}
-            animate={{ opacity: 1, transform: 'scale(1)', transitionEnd: { transform: 'none' } }}
-            exit={{ opacity: 0, transform: ['scale(1)', `scale(${scale})`] }}
+            initial={{ opacity: 0, filter: blur.surface, transform: tipped }}
+            animate={{
+                opacity: 1,
+                filter: 'blur(0px)',
+                transform: upright,
+                transition: { ...spring.dialog, opacity: transition.dialogFade },
+                transitionEnd: { filter: 'none', transform: 'none' }
+            }}
+            exit={{ opacity: 0, filter: ['blur(0px)', blur.surface], transform: [upright, tipped], transition: transition.dismiss }}
             className={cn(
                 surfacePanel,
                 'pointer-events-auto flex max-w-full flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',
@@ -68,6 +80,7 @@ export function Modal({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={transition.overlay}
                 className={cn('absolute size-full cursor-pointer bg-scrim', layer.dialog)}
                 onClick={onClose}
             />

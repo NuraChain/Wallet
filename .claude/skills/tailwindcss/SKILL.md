@@ -77,6 +77,11 @@ variables rather than baking a value in.
 - `scroll-hidden` — opts out of the native scrollbar; used by `ScrollArea` and the tab strip.
 - `list-divide` — hairlines between a container's children (`& > * + *`, block-start
   border, so RTL needs no mirror). This is how grouped lists get their rhythm.
+- `press` — the press on `ui/button.tsx`'s filled variants, rows and options: 0.97 on the
+  `scale` property (`--ease-press`), off under reduced motion and on a `data-still` button. It
+  owns the element's whole `transition`, colours included, so never put a `transition-*` class
+  beside it; a colour not on `--duration-fast` sets `[--press-tint:var(--duration-base)]`.
+  `press-row` beside it lightens the step to 0.985 for a whole row.
 
 ## `cn` — the class merge
 

@@ -5,7 +5,7 @@ description: Use when writing, changing, or reviewing anything that moves — a 
 
 # Motion and Swiper
 
-Two animation dependencies, `motion` 12 and `swiper` 14, with almost no overlap.
+Two animation dependencies, `motion` 13 and `swiper` 14, with almost no overlap.
 **Motion animates something entering, leaving, or being dragged. Swiper is the intro
 slide deck and nothing else.** Everything that merely changes state in place — a hover
 fill, a colour, a chevron rotating — is a Tailwind transition and neither library
@@ -70,16 +70,22 @@ the node, and neither dialog animates.
 | Prop | When |
 |---|---|
 | *(default)* | Two unrelated things, the leaver and the arriver can overlap |
-| `mode='wait'` | One value replacing another in the same slot — the copy icon in `dashboard.wallet.tsx` |
+| `mode='wait'` | One value replacing another where the two must never be seen together; the copy glyph overlaps instead, both absolutely placed |
 | `initial={false}` | The content is already on screen at mount and must not animate in on first paint |
 
 ### `transition`
 
-`type: 'tween'` is the house default. A spring on chrome — a nav bar, a dialog — reads as
-bounce, and this interface does not bounce. Durations are seconds here while the CSS
-tokens are milliseconds (`--duration-fast: 150ms`, `--duration-base: 200ms`,
-`--duration-surface: 300ms`); keep a JS duration in the same range rather than inventing a
-third scale.
+Every value comes from `ui/motion.ts`: one token per role, never a duration or spring typed
+where it is used. A dialog tips upright out of a light blur on `spring.dialog`, which is
+critically damped, so it settles without bouncing, and fades ahead of it on
+`transition.dialogFade`. A sheet slides on `transition.sheet`. Both leave on
+`transition.dismiss` over a scrim on `transition.overlay`. A glyph swap is `transition.swap`
+out of `blur.icon`, and a screen rises on `spring.entrance`. A surface's `filter` goes back to
+`none` with its transform, and an exit names its start for both.
+
+CSS takes the same values from `style.css`: the press (`press`, `press-row`), the dashboard's tab
+track (`--ease-slide`) and `ease-out`. The CSS durations are otherwise `--duration-fast: 150ms`,
+`--duration-base: 200ms` and `--duration-surface: 300ms`.
 
 ### Reduced motion
 
@@ -92,7 +98,9 @@ const reduced = useReducedMotion(); // from 'motion/react'
 ```
 
 and drop to an opacity change or nothing at all. A one-shot fade of a dialog is fine
-either way; a repeating animation is not.
+either way; a repeating animation is not. Motion does not skip a whole `transform` string,
+so each one here starts from its resting value when `reduced` is true, and the fade and blur
+beside it stay.
 
 ### `Reorder`
 

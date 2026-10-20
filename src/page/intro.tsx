@@ -75,7 +75,7 @@ export default function IntroPage() {
     }, []);
 
     return (
-        <Screen enter='grow'>
+        <Screen enter='rise'>
             <AnimatePresence>{subPage}</AnimatePresence>
 
             <PageContainer variant='intro'>

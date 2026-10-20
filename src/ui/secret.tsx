@@ -9,7 +9,7 @@ const veiled = 'pointer-events-none blur-sm select-none';
 
 export function SecretKey({ revealed, children }: { revealed: boolean; children: ReactNode }) {
     return (
-        <div dir='ltr' className={cn('rounded-control bg-base-1 px-3 py-2.5 transition-all duration-(--duration-fast)', !revealed && veiled)}>
+        <div dir='ltr' className={cn('rounded-control bg-base-1 px-3 py-2.5 transition-[filter] duration-(--duration-fast)', !revealed && veiled)}>
             {children}
         </div>
     );
@@ -18,7 +18,7 @@ export function SecretKey({ revealed, children }: { revealed: boolean; children:
 /** Two columns before `sm` and no `truncate`: a clipped word is written down clipped and the wallet is lost. */
 export function SecretWords({ revealed, children }: { revealed: boolean; children: ReactNode }) {
     return (
-        <div dir='ltr' className={cn('grid grid-cols-2 gap-1.5 transition-all duration-(--duration-fast) sm:grid-cols-3', !revealed && veiled)}>
+        <div dir='ltr' className={cn('grid grid-cols-2 gap-1.5 transition-[filter] duration-(--duration-fast) sm:grid-cols-3', !revealed && veiled)}>
             {children}
         </div>
     );

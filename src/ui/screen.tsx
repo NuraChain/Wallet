@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 
 import Spinner from './spinner';
 
@@ -8,15 +8,26 @@ import { inset } from './container';
 import { surfacePanel } from './panel';
 import { getDirection } from '../utility/language';
 import { useIsWindows } from '../hook/platform';
+import { blur, spring, transition } from './motion';
 
-export function Screen({ enter, backdrop = false, children }: { enter: 'fade' | 'grow'; backdrop?: boolean; children: ReactNode }) {
-    const motionProps =
-        enter === 'fade'
-            ? { initial: { opacity: 0 }, animate: { opacity: 1 } }
-            : { initial: { transform: 'scale(0)' }, animate: { transform: 'scale(1)', transitionEnd: { transform: 'none' } } };
+const useRise = () => ({
+    initial: { opacity: 0, filter: blur.surface, transform: useReducedMotion() === true ? 'translateY(0px)' : 'translateY(16px)' },
+    animate: {
+        opacity: 1,
+        filter: 'blur(0px)',
+        transform: 'translateY(0px)',
+        transition: { ...transition.reveal, transform: spring.entrance },
+        transitionEnd: { filter: 'none', transform: 'none' }
+    }
+});
+
+export function Screen({ enter, backdrop = false, children }: { enter: 'fade' | 'rise'; backdrop?: boolean; children: ReactNode }) {
+    const rise = useRise();
+
+    const motionProps = enter === 'fade' ? { initial: { opacity: 0 }, animate: { opacity: 1, transition: transition.reveal } } : rise;
 
     return (
-        <motion.div {...motionProps} transition={{ type: 'tween' }} className={cn('relative size-full', backdrop && 'bg-base-1')}>
+        <motion.div {...motionProps} className={cn('relative size-full', backdrop && 'bg-base-1')}>
             {children}
         </motion.div>
     );
@@ -24,12 +35,7 @@ export function Screen({ enter, backdrop = false, children }: { enter: 'fade' | 
 
 export function EntryCard({ children }: { children: ReactNode }) {
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ type: 'tween' }}
-            className={cn(surfacePanel, 'flex w-full max-w-md flex-col gap-4 rounded-dialog p-6')}
-        >
+        <motion.div {...useRise()} className={cn(surfacePanel, 'flex w-full max-w-md flex-col gap-4 rounded-dialog p-6')}>
             {children}
         </motion.div>
     );
@@ -38,7 +44,7 @@ export function EntryCard({ children }: { children: ReactNode }) {
 export function Track({ index, children }: { index: number; children: ReactNode }) {
     return (
         <div
-            className='flex size-full transition-transform duration-(--duration-surface) ease-out'
+            className='flex size-full transition-transform duration-(--duration-slide) ease-(--ease-slide)'
             style={{ transform: `translateX(${getDirection() === 'rtl' ? index * 100 : index * -100}%)` }}
         >
             {children}

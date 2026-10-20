@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Check, Copy } from 'lucide-react';
 
 import Live from './live';
@@ -8,6 +8,7 @@ import Button from './button';
 
 import { T } from '../utility/language';
 import { useClipboard } from '../hook/clipboard';
+import { blur, scale, transition } from './motion';
 
 export default function CopyButton({
     value,
@@ -34,6 +35,10 @@ export default function CopyButton({
 
     const done = clipboard.state === 'done';
 
+    const reduced = useReducedMotion() === true;
+    const away = { opacity: 0, filter: blur.icon, transform: `scale(${reduced ? 1 : scale.icon})` };
+    const shown = { opacity: 1, filter: 'blur(0px)', transform: 'scale(1)', transition: transition.swap };
+
     const announced = () => {
         if (clipboard.state === 'idle') {
             return '';
@@ -48,30 +53,16 @@ export default function CopyButton({
 
     const glyph = (
         <span className='relative flex size-5 shrink-0 items-center justify-center'>
-            <AnimatePresence initial={false} mode='wait'>
-                {done ? (
-                    <motion.span
-                        key='done'
-                        initial={{ transform: 'scale(0.4)', opacity: 0 }}
-                        animate={{ transform: ['scale(0.4)', 'scale(1.35)', 'scale(1)'], opacity: 1 }}
-                        exit={{ transform: 'scale(0.4)', opacity: 0 }}
-                        transition={{ duration: 0.35, ease: ['easeOut', 'easeOut'] }}
-                        className='absolute text-txt-normal'
-                    >
-                        <Check size={18} />
-                    </motion.span>
-                ) : (
-                    <motion.span
-                        key='copy'
-                        initial={{ transform: 'scale(0.6)', opacity: 0 }}
-                        animate={{ transform: 'scale(1)', opacity: 1 }}
-                        exit={{ transform: 'scale(0.6)', opacity: 0 }}
-                        transition={{ duration: 0.18 }}
-                        className='absolute'
-                    >
-                        <Copy size={18} />
-                    </motion.span>
-                )}
+            <AnimatePresence initial={false}>
+                <motion.span
+                    key={done ? 'done' : 'copy'}
+                    initial={away}
+                    animate={shown}
+                    exit={{ ...away, transition: transition.swap }}
+                    className={done ? 'absolute text-txt-normal' : 'absolute'}
+                >
+                    {done ? <Check size={18} /> : <Copy size={18} />}
+                </motion.span>
             </AnimatePresence>
         </span>
     );

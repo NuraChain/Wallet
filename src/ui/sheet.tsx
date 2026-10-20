@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { X } from 'lucide-react';
 
 import Text from './text';
@@ -11,9 +11,12 @@ import { inset, layer } from './container';
 import { useDialog } from './dialog';
 import { surfacePanel } from './panel';
 import { Vertical } from './stack';
+import { transition } from './motion';
 
 export function Sheet({ onClose, children }: { onClose: () => void; children: ReactNode }) {
     const { panelRef } = useDialog(onClose);
+
+    const offscreen = useReducedMotion() === true ? 'translateY(0%)' : 'translateY(-100%)';
 
     return (
         <>
@@ -21,6 +24,7 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                transition={transition.overlay}
                 className={`absolute size-full cursor-pointer bg-scrim ${layer.dialog}`}
                 onClick={onClose}
             />
@@ -29,10 +33,9 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 ref={panelRef}
                 role='dialog'
                 tabIndex={-1}
-                initial={{ transform: 'translateY(-100%)' }}
-                animate={{ transform: 'translateY(0%)', transitionEnd: { transform: 'none' } }}
-                exit={{ transform: ['translateY(0%)', 'translateY(-100%)'] }}
-                transition={{ type: 'tween' }}
+                initial={{ opacity: 0, transform: offscreen }}
+                animate={{ opacity: 1, transform: 'translateY(0%)', transition: transition.sheet, transitionEnd: { transform: 'none' } }}
+                exit={{ opacity: 0, transform: ['translateY(0%)', offscreen], transition: transition.dismiss }}
                 className={cn(
                     surfacePanel,
                     layer.dialog,
