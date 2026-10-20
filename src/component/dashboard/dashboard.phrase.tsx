@@ -45,6 +45,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
             return;
         }
 
+        // oxlint-disable-next-line react/purity
         const stamp = new Date().toISOString().slice(0, 10);
         const name = isKey ? `nura-private-key-${stamp}` : `nura-recovery-phrase-${stamp}`;
 
