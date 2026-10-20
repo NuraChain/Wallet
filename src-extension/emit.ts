@@ -5,15 +5,9 @@ import type { Target } from '../src/type/extension.ts';
 
 const targets: Target[] = ['chrome', 'edge', 'firefox', 'safari'];
 
-/** The documents the manifest names at the root, by the name Vite built each one under. */
 const documents = ['popup.html', 'sidepanel.html'];
 
-/**
- * The four bundles land in one directory; each store gets its own copy of it with the manifest
- * that store understands. The HTML comes out under the path Vite built it from and the manifest
- * names it at the root, so it moves up on the way in — its asset URLs are absolute and do not
- * care where the document itself sits.
- */
+// The HTML moves up to the root the manifest names; its asset URLs are absolute, so that is safe.
 export const emitTargets = async (input: { build: string; out: string }) => {
     const html = await Promise.all(documents.map(async (name) => readFile(`${input.build}/src-extension/${name}`, 'utf8')));
 

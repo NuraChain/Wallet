@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 
 import Button from './button';
 
-/** A row of underlined tabs, with room at its end for an action that belongs to them. */
 export function TabBar({ children }: { children: ReactNode }) {
     return (
         <div role='tablist' className='flex items-center border-b border-line'>

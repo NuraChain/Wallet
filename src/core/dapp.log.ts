@@ -1,12 +1,4 @@
-/**
- * A trace of the provider lifecycle, off unless someone asks for it. It exists so a connection
- * that goes wrong can be followed end to end — page, bridge, wallet, answer — without a debugger
- * attached to a webview that has no devtools.
- *
- * What may be written here is deliberately narrow: the shape of a request, never its secrets. No
- * key, phrase, seed or signature ever reaches this file, and the redaction below is the second
- * line of defence rather than the first — call sites pass identifiers, not payloads.
- */
+// Off by default. Call sites pass identifiers, never a key, phrase, seed or signature; the redaction is only the backstop.
 
 type DappScope = 'Provider' | 'Bridge' | 'Wallet';
 
@@ -18,7 +10,6 @@ const stored = () => {
     try {
         return globalThis.localStorage?.getItem(flag) === '1';
     } catch {
-        // A webview with storage turned off simply has no stored preference.
         return false;
     }
 };
@@ -35,7 +26,7 @@ export const setDappLogging = (on: boolean) => {
             globalThis.localStorage?.removeItem(flag);
         }
     } catch {
-        // The flag then lasts as long as this run, which is enough to read a trace.
+        // The flag then lasts only for this run.
     }
 };
 

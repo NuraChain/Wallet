@@ -1,4 +1,3 @@
-/** A range, set by dragging; the value it reports is the one it shows. */
 export default function Slider({
     value,
     min,

@@ -29,11 +29,7 @@ export const languageRecord: { code: LanguageType; country: string; emoji: strin
     { code: 'tr', country: 'tr', emoji: '🇹🇷', flag: flagTr }
 ];
 
-/**
- * Called by whatever is about to draw a flag. It used to run at module scope, which pulled
- * react-dom into every importer of this file — including the extension's service worker, which
- * has no document to preload anything into.
- */
+/** Not run at module scope, which would pull react-dom into every importer, the extension's service worker included. */
 export const preloadLanguageFlags = async () => {
     const { preload } = await import('react-dom');
 

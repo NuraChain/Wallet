@@ -1,26 +1,16 @@
 import { getAddress, isAddress } from 'ethers';
 
-/* `ethereum:[pay-]<target>[@<chain>][/<function>][?<parameters>]`, as EIP-681 writes a payment
-   request. The target is taken only as forty hex digits: a name would need a lookup, and a code is
-   not the place to trust one. */
+/* An EIP-681 payment request; the target is taken only as a hex address, never a name to look up. */
 const request = /^ethereum:(?:pay-)?(?<target>0x[0-9a-f]{40})(?:@(?<chain>\d+))?(?:\/(?<call>[^?]*))?(?:\?(?<query>.*))?$/iu;
 
 const plain = /^0x[0-9a-f]{40}$/iu;
 
-/* An address in mixed case carries its own checksum, and one that fails it is a misread code or an
-   altered one — so it is refused here rather than repaired. */
+/* A mixed-case address that fails its checksum is refused, not repaired. */
 const checked = (value: string) => (plain.test(value) && isAddress(value) ? getAddress(value) : undefined);
 
 /**
- * Who a scanned code says to pay: a bare address, or a payment request.
- *
- * A request for a token names the token's contract where the recipient would otherwise be, and
- * keeps the recipient in its `address` parameter. Reading the first address off such a code would
- * send the payment to the contract, which keeps it. Any call other than `transfer` is not a
- * payment this dialog can make, so it is not read at all.
- *
- * `chainId` is what the code asked for, when it asked: the caller decides what a code for another
- * network is worth.
+ * For a token the target is its contract and the payee is the `address` parameter; reading the target would pay the contract.
+ * Only `transfer` is read, and the caller decides what a `chainId` for another network is worth.
  */
 export const readRecipient = (text: string): { address: string; chainId?: number } | undefined => {
     const value = text.trim();
@@ -47,7 +37,7 @@ export const readRecipient = (text: string): { address: string; chainId?: number
 
     const address = checked(named ?? '');
 
-    // The target still has to be an address when it is the token: a code with a broken one is broken.
+    // The target must still be a valid address when it is the token.
     if (address === undefined || checked(parts.target) === undefined) {
         return undefined;
     }

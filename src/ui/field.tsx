@@ -55,7 +55,6 @@ export function TextField({
     size?: 'regular' | 'compact';
     leading?: ReactNode;
     trailing?: ReactNode;
-    /** Pads the text clear of an icon laid over the leading edge, the trailing one, or both. */
     room?: keyof typeof roomMap;
     mono?: boolean;
     align?: 'center';
@@ -180,7 +179,6 @@ export function TextArea({
     label?: string;
     error?: string;
     onValue: (value: string) => void;
-    /** Room for a whole recovery phrase without scrolling. */
     tall?: boolean;
     breaks?: 'all';
 } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'className' | 'onChange'>) {
@@ -228,7 +226,6 @@ export function ReadonlyField({ label = '', value }: { label?: string; value: st
     );
 }
 
-/** What sits over a field's leading edge — an icon, and anything said about it to a screen reader. */
 export function FieldLead({ children }: { children: ReactNode }) {
     return <span className='pointer-events-none absolute inset-s-3 flex items-center text-txt-muted'>{children}</span>;
 }

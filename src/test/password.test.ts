@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-/**
- * What a password hashes to is what is on every device under `Wallet.Password`. If that ever
- * changed — a parameter, the salt, how the string is read, where the hash is run — every wallet
- * there is would answer its own password with "incorrect". These are real hashes, at the real cost,
- * against answers taken from the code before the hash was moved off the page.
- */
+// Real hashes at real cost: any change to how a password hashes would make every existing wallet reject its own password.
 
 const held = new Map<string, string>();
 

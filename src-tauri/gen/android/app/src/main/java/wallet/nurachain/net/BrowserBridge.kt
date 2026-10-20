@@ -33,13 +33,11 @@ import org.json.JSONObject
 class BrowserBridge(
     private val activity: Activity,
     private val host: WebView,
-    /** Asks Android for permissions on the app's behalf, and reports whether it gave them all. */
     private val askAndroid: (Array<String>, (Boolean) -> Unit) -> Unit
 ) {
 
     private val pages = LinkedHashMap<String, WebView>()
 
-    // What a page has asked for and the wallet has not answered yet, by the ticket it was handed.
     private class Ask(val tab: String, val request: PermissionRequest)
 
     private val asks = LinkedHashMap<String, Ask>()
@@ -54,11 +52,10 @@ class BrowserBridge(
 
     private var mouse: ImageView? = null
 
-    // What the mouse wears. Kept apart from the view, which the first request for it comes ahead of.
+    // Kept apart from the view: the first request for an icon can come before the view exists.
     private var mouseIcon: String = "logo"
 
-    // Whether the system drew its status bar in dark ink before a site's colour was first put under
-    // it, so that leaving the site puts back exactly what was there.
+    // The system's own status-bar ink, captured once so leaving a site restores it exactly.
     private var systemBarInk: Boolean? = null
 
     companion object {
@@ -152,16 +149,8 @@ class BrowserBridge(
     }
 
     /**
-     * A page asking for the microphone, the camera, or both.
-     *
-     * A WebView refuses whatever its client does not answer, which is how every one of these used
-     * to end: the site was told "blocked" and nobody was ever asked. The wallet is asked instead,
-     * and told who is asking from the request itself — the frame the WebView says wants it — never
-     * from anything the page could say.
-     *
-     * It is told everything the page wants in one go, because the WebView takes a grant for exactly
-     * what was asked or not at all. Anything else in the request — a MIDI device, protected media —
-     * is something the wallet has no answer for, and refuses the lot.
+     * The origin comes from the request's frame, never from the page. WebView grants all or nothing,
+     * so a request holding anything but camera or microphone is refused whole.
      */
     private fun ask(tab: String, request: PermissionRequest) {
         val origin = originOf(request.origin?.toString())
@@ -188,8 +177,7 @@ class BrowserBridge(
 
         val literal = JSONObject.quote(message.toString())
 
-        // Nobody there to ask — a locked wallet has no dashboard listening — is a refusal, given
-        // now rather than left for the page to wait on.
+        // No listener (a locked wallet) is refused now rather than left for the page to wait on.
         host.evaluateJavascript("window.__nuraPermission ? window.__nuraPermission($literal) === true : false") { taken ->
             if (taken != "true") {
                 asks.remove(ticket)?.request?.deny()
@@ -272,9 +260,7 @@ class BrowserBridge(
                     return false
                 }
 
-                // A scheme this WebView cannot load is a link meant for a wallet app: a
-                // WalletConnect pairing, or another wallet's deep link. The page's navigation is
-                // dropped and the wallet is offered the URL, which knows what a pairing is.
+                // A non-web scheme (WalletConnect pairing, wallet deep link) is offered to the wallet.
                 val literal = JSONObject.quote(request.url.toString())
 
                 host.post {
@@ -312,8 +298,6 @@ class BrowserBridge(
                 ask(id, request)
             }
 
-            // The page gave up on it, by leaving or by being closed. An answer that comes for the
-            // ticket later finds nothing to give it to.
             override fun onPermissionRequestCanceled(request: PermissionRequest) {
                 asks.entries.removeAll { it.value.request === request }
             }
@@ -337,8 +321,7 @@ class BrowserBridge(
 
     private fun mouseImage() = if (mouseIcon == "browser") R.drawable.nura_browser else R.drawable.nura_logo
 
-    // The floating mouse: a view of its own above the wallet and every tab. A raised Z keeps it
-    // over tabs added after it, for drawing and for touches alike, so nothing has to re-stack it.
+    // A raised Z keeps the mouse over tabs added later, for drawing and touches, with no re-stacking.
     @SuppressLint("ClickableViewAccessibility")
     private fun buildMouse(root: ViewGroup): ImageView {
         val size = px(40.0)
@@ -359,8 +342,7 @@ class BrowserBridge(
         var dragging = false
         var pending: Runnable? = null
 
-        // Taps are told apart by hand: the view follows the finger, so its own coordinates never
-        // leave the tap region and a gesture detector would call every drag a tap.
+        // No gesture detector: the view follows the finger, so it would call every drag a tap.
         view.setOnTouchListener { touched, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
@@ -411,12 +393,10 @@ class BrowserBridge(
 
         root.addView(view)
 
-        // Kept on screen through rotation and resizes: in full screen it is the only way back out.
+        // Kept on screen through resizes: in full screen it is the only way back out.
         root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> place(view, view.x, view.y) }
 
-        // It starts out at the top of the screen, in the middle. The window is drawn edge to edge, so
-        // the top of this view lies behind the status bar and any cutout, and the mouse goes under
-        // both: up there it would be hidden by one and out of reach behind the other.
+        // Edge to edge, so it starts below the status bar and cutout, not at the view's top.
         root.post {
             val bars = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             val top = ViewCompat.getRootWindowInsets(root)?.getInsets(bars)?.top ?: 0
@@ -456,11 +436,6 @@ class BrowserBridge(
         }
     }
 
-    /**
-     * The status bar is drawn by the system over whatever the wallet paints beneath it, in dark ink
-     * or in light. Over a colour a site chose, the system's own pick may be the one that cannot be
-     * read, so the wallet says which: "dark", "light", or anything else to hand the choice back.
-     */
     @JavascriptInterface
     fun setBarInk(ink: String) {
         activity.runOnUiThread {
@@ -526,10 +501,6 @@ class BrowserBridge(
         activity.runOnUiThread { pages[id]?.let { layout(it, x, y, width, height) } }
     }
 
-    /**
-     * The wallet's answer to what a page asked for. A yes covers the site; Android has its own say
-     * over the app, asked the first time each device is wanted and remembered by it after.
-     */
     @JavascriptInterface
     fun permissionReply(ticket: String, allowed: Boolean) {
         activity.runOnUiThread {

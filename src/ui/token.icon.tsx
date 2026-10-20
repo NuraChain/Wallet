@@ -22,7 +22,6 @@ export default function TokenIcon({
     kind?: ImageKind;
     primary?: boolean;
     size?: keyof typeof sizeMap;
-    /** The fallback letter's size, for an icon too small for the default one. */
     glyph?: 'tiny';
 }) {
     const [failed, setFailed] = useState(false);

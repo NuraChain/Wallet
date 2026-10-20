@@ -12,7 +12,6 @@ import Slider from '../../ui/slider';
 export default function DashboardMouse({ onClose }: { onClose: () => void }) {
     const percent = Math.round(useMouseOpacity() * 100);
 
-    // Applied as it moves, so the mouse itself is the preview.
     const onChange = (value: number) => {
         void setMouseOpacity(value / 100);
     };

@@ -11,8 +11,7 @@ import type { SidebarItem } from '../../type/app';
 import { SidebarPanel } from '../../ui/screen';
 import { Block } from '../../ui/wrap';
 
-/* The product page, handed to the host browser rather than the wallet's own. It is a brand site,
-   not a dApp — nothing on it wants a provider, and it has no business in a tab that carries one. */
+// Opened in the host browser: a brand site has no business in a tab that carries a provider.
 const site = 'https://nurawallet.app';
 
 export default function DashboardSidebar({ items, actions, footer }: { items: SidebarItem[]; actions: SidebarItem[]; footer: SidebarItem[] }) {
@@ -25,8 +24,7 @@ export default function DashboardSidebar({ items, actions, footer }: { items: Si
                     onClick={() => {
                         void platform.openUrl(site).catch(() => undefined);
                     }}
-                    // Decorative: the button carries the name, and a labelled image inside a
-                    // labelled control is read out twice.
+                    // Decorative: the button already carries the name.
                     icon={<Logo size={24} />}
                 />
 

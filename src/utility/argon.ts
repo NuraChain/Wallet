@@ -2,16 +2,15 @@ import { argon2id as compute, type IArgon2Options } from 'hash-wasm';
 
 import type { ArgonReply } from '../type/argon';
 
-/* How long a worker gets to say it has started. A script that will not load says so with an error;
-   this is for a host that says nothing at all. */
+/* For a host that never answers; a script that fails to load reports an error itself. */
 const startLimit = 5000;
 
-// Set once a worker has let the wallet down, so nothing later in the session waits on another.
+// Once a worker has failed, nothing later in the session waits on another.
 let unusable = typeof Worker === 'undefined';
 
 const away = async (options: IArgon2Options) =>
     new Promise<string | Uint8Array>((resolve, reject) => {
-        // Vite reads `./` as the file beside this one; without it the name is tried as a package first.
+        // Without `./` Vite tries the name as a package first.
         // oxlint-disable-next-line unicorn/relative-url-style
         const worker = new Worker(new URL('./argon.worker.ts', import.meta.url), { type: 'module' });
 
@@ -50,23 +49,14 @@ const away = async (options: IArgon2Options) =>
         worker.addEventListener('error', fail);
         worker.addEventListener('messageerror', fail);
 
-        // To a worker, which has no origin to be named: that argument is a window's.
+        // A worker has no origin to be named.
         // oxlint-disable-next-line unicorn/require-post-message-target-origin
         worker.postMessage(options);
     });
 
 /**
- * Argon2id, off the page's own thread.
- *
- * It is hash-wasm's `argon2id` and takes the same options, which stay with the two callers that
- * own them. What changes is where it runs: at 64 MiB and three passes one hash takes most of a
- * second on a desktop and several on a phone, and on the page's thread nothing was drawn for all
- * of it — the unlock button's spinner stood still, or never appeared, through two of them.
- *
- * A worker is started for one hash and ended with it. Where there is none to start — the
- * extension's service worker, a test — or one will not start, fails or answers with the wrong
- * thing, the hash is run here instead, exactly as before: a wallet that opens slowly is the
- * failure to prefer over one that does not open.
+ * hash-wasm's `argon2id`, off the page's thread so the unlock spinner keeps drawing.
+ * Runs here instead when no worker starts or it fails: a wallet that opens slowly beats one that does not open.
  */
 export const argon2id = async <T extends IArgon2Options>(options: T): ReturnType<typeof compute<T>> => {
     if (!unusable) {
@@ -74,7 +64,7 @@ export const argon2id = async <T extends IArgon2Options>(options: T): ReturnType
             const value = await away(options);
 
             if (options.outputType === 'binary' ? value instanceof Uint8Array : typeof value === 'string') {
-                // Checked above against what was asked for, which is what the type turns on.
+                // Checked above against what was asked for.
                 // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 return value as Awaited<ReturnType<typeof compute<T>>>;
             }

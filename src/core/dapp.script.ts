@@ -183,8 +183,7 @@ export const dappScript = (identity: DappIdentity) => `
     {
         if (IDENTITY.channel === 'extension')
         {
-            // '/' rather than an origin string: it means "this window's own origin" and is the
-            // only form that works on a page with an opaque origin, such as a sandboxed frame.
+            // '/' means this window's own origin, the only form that works on an opaque origin such as a sandboxed frame.
             window.postMessage({ __nura: 'request', payload: body }, '/');
 
             return;
@@ -214,9 +213,7 @@ export const dappScript = (identity: DappIdentity) => `
         deliver({ id: id, error: { code: 4900, message: 'Nura Wallet is not available on this page' } });
     };
 
-    // The wallet notifies every other page of a new account, but not the one that asked — that
-    // page has the answer in hand. It still has to be read out of the answer, or the page stays
-    // connected while provider.selectedAddress and the synchronous send() both report nobody.
+    // The asking page is not notified of its own new account, so it is read out of the answer.
     var adopt = function (method, result)
     {
         if (method === 'eth_requestAccounts' || method === 'eth_accounts')
@@ -298,10 +295,7 @@ export const dappScript = (identity: DappIdentity) => `
     {
         isNuraWallet: true,
 
-        // A connect modal decides its 'MetaMask' button is usable by reading this flag off the
-        // injected provider. Without it the page falls back to a deep link that leads out of our
-        // own browser and nowhere. Only this one flag is set: wagmi rejects a provider that claims
-        // isMetaMask alongside isTrust, isRabby and friends, so the siblings stay off.
+        // Connect modals enable their MetaMask button off this flag. wagmi rejects it beside isTrust, isRabby and the like, so those stay off.
         isMetaMask: true,
 
         _metamask: { isUnlocked: function () { return Promise.resolve(true); } },
@@ -447,20 +441,16 @@ export const dappScript = (identity: DappIdentity) => `
             else if (event.data.__nura === 'event') { receive(event.data.payload); }
         });
 
-        // Read from the isolated world, which cannot see window.__nuraWallet, to know the
-        // manifest already injected us and a second script tag would only be parsed and thrown
-        // away by the guard at the top of this file.
+        // Tells the isolated world, which cannot see window.__nuraWallet, that the manifest already injected this.
         try { document.documentElement.setAttribute('data-nura-inpage', '1'); } catch (ignored) {  }
     }
 
-    // One uuid per entry, minted once: a modal keys its list on them and would otherwise grow a
-    // duplicate row every time the page asks providers to announce themselves again.
+    // Minted once: a modal keys its list on the uuid and would add a duplicate row on every re-announce.
     var announcements =
     [
         { uuid: newId(), name: IDENTITY.name, icon: IDENTITY.icon, rdns: IDENTITY.rdns },
 
-        // Inside the wallet's own browser there is no other wallet to reach, so the rows a dApp
-        // draws for the usual suspects all answer here rather than dead-ending on a deep link.
+        // No other wallet is reachable in the wallet's own browser, so these rows answer here instead of dead-ending on a deep link.
         { uuid: newId(), name: 'MetaMask', icon: IDENTITY.icon, rdns: 'io.metamask' },
         { uuid: newId(), name: 'Trust Wallet', icon: IDENTITY.icon, rdns: 'com.trustwallet.app' },
         { uuid: newId(), name: 'Coinbase Wallet', icon: IDENTITY.icon, rdns: 'com.coinbase.wallet' },
@@ -482,7 +472,7 @@ export const dappScript = (identity: DappIdentity) => `
 
     announce();
 
-    // Connectors written before EIP-6963 sniff for a named global instead of listening.
+    // Connectors older than EIP-6963 sniff for a named global.
     var expose = function (name, held)
     {
         if (window[name] !== undefined) { return; }
@@ -504,18 +494,12 @@ export const dappScript = (identity: DappIdentity) => `
     expose('coinbaseWalletExtension');
     expose('okxwallet');
 
-    // Binance's button runs its own SDK, which never looks at window.ethereum: it reads the
-    // provider off the object its in-app browser installs, and otherwise waits forever on a phone
-    // that is meant to confirm. So it gets an object of that shape. The old window.BinanceChain
-    // global stays unset on purpose — a page that finds it signs through bnbSign() and reads the
-    // missing method as a refusal rather than falling back to personal_sign.
+    // Binance's SDK reads only this object and otherwise hangs. window.BinanceChain stays unset: a page that finds it
+    // signs through bnbSign() and reads the missing method as a refusal.
     expose('binancew3w', { ethereum: provider });
 
     window.dispatchEvent(new Event('ethereum#initialized'));
 
-    // The colour a page asks the browser around it to wear, read the way HTML says to: of the meta
-    // elements named theme-color, in tree order, the first whose media applies and whose content is
-    // a colour. The wallet is told once, and again only when the answer changes.
     var watchTheme = function ()
     {
         var probe;
@@ -534,9 +518,7 @@ export const dappScript = (identity: DappIdentity) => `
             return text.slice(from, to);
         };
 
-        // Whatever way CSS has of writing a colour, it comes out as #rrggbb by being painted and
-        // read back. A canvas leaves its fill alone when handed something that is not a colour, so
-        // the text is offered over two different fills: only a colour ends the same both times.
+        // A canvas ignores a fill that is not a colour, so only a colour gives the same fill over two different starts.
         var parse = function (text)
         {
             if (probe === undefined)
@@ -602,16 +584,13 @@ export const dappScript = (identity: DappIdentity) => `
 
             try { color = read(); } catch (ignored) { color = null; }
 
-            // No tag yet is not the same as no tag: a page still arriving may be held up on a
-            // script written ahead of it. Saying "none" now would take the last page's colour off
-            // the chrome only to put this one's on a moment later, so that waits for the whole page.
+            // A loading page may still add the tag; clearing now would flash the last page's colour off and back on.
             if (color === null && document.readyState === 'loading') { return; }
 
             if (color === told) { return; }
 
             told = color;
 
-            // Not through send(): nothing waits on the answer, so nothing is kept for it to find.
             try { transport(JSON.stringify({ id: 'nura-theme-' + newId(), method: 'nura_themeColor', params: [color] }), ''); }
             catch (ignored) {  }
         };
@@ -627,9 +606,7 @@ export const dappScript = (identity: DappIdentity) => `
 
         var watcher = typeof MutationObserver === 'function' ? new MutationObserver(look) : null;
 
-        // While the page is still being read the tag may turn up anywhere. After that only the
-        // head is watched: a page that rewrites its body all day would otherwise have this looked
-        // up again beside every change it makes.
+        // After load only the head is watched, so a page rewriting its body does not trigger a lookup per change.
         var settle = function ()
         {
             look();
@@ -665,16 +642,14 @@ export const dappScript = (identity: DappIdentity) => `
 
         window.addEventListener('resize', look);
 
-        // A page brought back whole from the history runs nothing over again, and the wallet has
-        // by then been told the colour of whatever stood in its place.
+        // A page restored from the back-forward cache reruns nothing, so the colour is told again.
         window.addEventListener('pageshow', function (event)
         {
             if (event && event.persisted) { told = undefined; look(); }
         });
     };
 
-    // Asked of the page itself and never of a frame inside it, and only in the wallet's own
-    // browser: an extension draws nothing around a page that it could colour.
+    // Top page only, and only in the wallet's own browser: an extension draws no chrome to colour.
     if (IDENTITY.channel === 'native' && typeof document !== 'undefined' && window.top === window)
     {
         try { watchTheme(); } catch (ignored) {  }

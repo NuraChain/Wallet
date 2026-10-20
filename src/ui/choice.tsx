@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import { cn } from '../utility/cn';
 import { selectedTint } from './token';
 
-/** A row in a list of choices, tinted when it is the one in effect; its own controls sit inside it. */
 export default function ChoiceRow({ selected, children }: { selected: boolean; children: ReactNode }) {
     return (
         <div

@@ -4,17 +4,8 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { getVault } from './session';
 import { answerDapp } from './dapp.rpc';
 
-/**
- * nurawallet://dapp?request=<base64url(JSON)>
- *
- * JSON: { id: string, method: string, params?: unknown[], callback: 'https://…' }
- *
- * The request runs through the same provider pipeline as a page in the in-app browser —
- * same prompts, same per-origin connection grants — with the callback URL's origin standing
- * in as the requesting site. The reply is delivered by opening the callback in the system
- * browser with '#nura=<base64url({ id, result?, error? })>' appended; the fragment keeps the
- * payload out of server logs.
- */
+// nurawallet://dapp?request=<base64url({ id, method, params?, callback })>; the callback's origin is the requesting site.
+// The reply goes back in the callback's '#nura=' fragment, which keeps it out of server logs.
 
 interface ParsedLink {
     id: string;
@@ -27,9 +18,7 @@ const scheme = 'nurawallet';
 
 const pending: ParsedLink[] = [];
 
-// Windows and Linux hand the launch URL over as a command line argument, so the same request
-// arrives once from getCurrent() and again through onOpenUrl(). Answering it twice would raise
-// two prompts for one signature.
+// Windows and Linux deliver the launch URL through both getCurrent() and onOpenUrl(); answering twice would prompt twice.
 const seen = new Set<string>();
 
 const fromBase64Url = (value: string) => {
@@ -114,7 +103,7 @@ const respond = async (link: ParsedLink) => {
     try {
         await openUrl(target.href);
     } catch {
-        // The redirect is best-effort: the request itself already ran.
+        // Best-effort: the request itself already ran.
     }
 };
 
@@ -131,7 +120,7 @@ const handle = (raw: string) => {
 
     seen.add(link.id);
 
-    // A locked wallet cannot sign, so the request waits for the dashboard rather than failing.
+    // A locked wallet cannot sign, so the request waits for the dashboard.
     if (getVault() === undefined) {
         pending.push(link);
 
@@ -151,18 +140,14 @@ export const flushDeepLinks = () => {
     }
 };
 
-/**
- * The installer claims the scheme — the NSIS and MSI bundles on Windows, the .desktop file on
- * deb and rpm. A dev run and an AppImage have no installer, so the app claims it itself. The
- * call is unsupported on Android, where the manifest declares the intent filter instead.
- */
+// Installers claim the scheme; a dev run or AppImage claims it here. Unsupported on Android, whose manifest declares it.
 const claimScheme = async () => {
     try {
         if (!(await isRegistered(scheme))) {
             await register(scheme);
         }
     } catch {
-        // Either the platform has no registry to write to, or the scheme is already someone's.
+        // No registry to write to, or the scheme is already claimed.
     }
 };
 

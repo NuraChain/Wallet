@@ -1,13 +1,7 @@
 import Text from './text';
 import { Vertical } from './stack';
 
-/**
- * An address shown in full, never elided.
- *
- * `shortAddress()` is for a row being scanned. This is for a screen whose whole purpose is that
- * the user can check every character before money moves: address-poisoning works by matching the
- * first and last few, which is exactly what a truncation keeps and a middle ellipsis hides.
- */
+/** Never elided: address poisoning matches the first and last few characters a truncation keeps. */
 export default function AddressBlock({ address, label = '', boxed = false }: { address: string; label?: string; boxed?: boolean }) {
     const value = (
         <Text

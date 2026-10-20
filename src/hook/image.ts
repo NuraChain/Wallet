@@ -30,10 +30,7 @@ export const useCachedImage = (url: string, kind: ImageKind = 'unknown') => {
     return source;
 };
 
-/**
- * The icon a site serves, discovered once per origin. Empty while the lookup runs and for a host
- * that offers nothing, which is what leaves the lettered box on screen instead.
- */
+/** Empty while the lookup runs and for a host that offers nothing, which leaves the lettered box on screen. */
 export const useSiteIcon = (url: string) => {
     const [icon, setIcon] = useState('');
 

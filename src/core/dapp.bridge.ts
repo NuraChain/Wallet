@@ -48,15 +48,7 @@ const themeMethod = 'nura_themeColor';
 
 const themeColor = /^#[0-9a-f]{6}$/iu;
 
-/**
- * A page saying what colour it would have the browser around it wear. It comes over the provider's
- * rails because those are the rails a page has, but it is not a provider call: it is read here and
- * goes no further, so it needs no grant and is never routed.
- *
- * What is taken from it is a colour in one fixed shape, or word that the page has none. The page
- * can write anything it likes in that place, and whatever else it writes is `undefined`: answered
- * like the rest and otherwise dropped.
- */
+/** A theme colour is read here and never routed, so it needs no grant; anything malformed is `undefined`. */
 const readTheme = (raw: unknown): { id: string; color: string | undefined } | undefined => {
     if (typeof raw !== 'object' || raw === null || !('method' in raw) || raw.method !== themeMethod) {
         return undefined;
@@ -73,15 +65,13 @@ const readTheme = (raw: unknown): { id: string; color: string | undefined } | un
     return { id, color: typeof value === 'string' && themeColor.test(value) ? value.toLowerCase() : undefined };
 };
 
-// A link is logged by its scheme alone: what a foreign scheme carries in its query string is the
-// page's business, and the log has no use for it.
+// Logged by scheme alone: what a foreign link carries in its query is the page's business.
 const linkScheme = (url: string) => url.slice(0, Math.max(0, url.indexOf(':')));
 
 export const startDappBridge = (
     handler: (envelope: DappEnvelope) => Promise<DappReply>,
     onLink?: DappLinkHandler,
     onDevices?: (origin: string, wanted: SiteDevice[]) => Promise<boolean>,
-    /** A page's colour for the wallet's chrome, by the page's label; the empty string for none. */
     onTheme?: (label: string, color: string) => void
 ) => {
     stopBridge?.();
@@ -115,8 +105,7 @@ export const startDappBridge = (
             const theme = readTheme(parsed);
 
             if (theme !== undefined) {
-                // Answered whatever it said: on desktop a call nobody answers is held open in Rust
-                // for ten minutes, and a page can send as many of these as it likes.
+                // Always answered: on desktop an unanswered call is held open in Rust for ten minutes.
                 call.respond({ id: theme.id });
 
                 if (theme.color !== undefined && siteOrigin(call.origin).length > 0) {
@@ -150,8 +139,7 @@ export const startDappBridge = (
 
             dappLog('Bridge', 'devices asked for by a page', { origin, kinds: ask.kinds.join(',') });
 
-            // One answer covers everything asked for, so a device the wallet does not know is a
-            // refusal of the lot — as is an origin that is not a site, or nobody here to decide.
+            // One answer covers every kind asked for, so an unknown device, a non-site origin or nobody to decide refuses the lot.
             if (origin.length === 0 || wanted.length === 0 || wanted.length !== ask.kinds.length || onDevices === undefined) {
                 ask.respond(false);
 

@@ -18,18 +18,12 @@ const fillDanger = `${fillBase} bg-btn-danger text-txt-reverse hover:bg-btn-dang
 
 const fillChip = `cursor-pointer ${focusRing} border border-line bg-base-2 text-txt-normal transition-[background-color,border-color] duration-(--duration-base) ease-initial hover:bg-btn-muted-hover active:bg-btn-normal-active`;
 
-/* A button over a colour that is not the wallet's own — the one the browser's toolbar took from a
-   site, or a notice's. It takes that colour too, rather than standing on it as a piece of the wallet:
-   its glyph is the ink of what it sits on, and its fill and states are that ink thinned over it — a
-   tenth at rest, a fifth when pressed, which leaves the glyph at 3:1 or better on every colour a site
-   could pick, and on the warning notice in both themes. */
 const fillTint = `cursor-pointer ${focusRing} bg-current/10 transition-[background-color] duration-(--duration-base) ease-initial hover:bg-current/15 active:bg-current/20`;
 
 const tabBase = `relative h-10 cursor-pointer px-3 text-small font-medium transition-colors duration-(--duration-fast)`;
 
 const optionBase = 'flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2 transition-colors duration-(--duration-fast)';
 
-/** Filled variants: a centred row of icon and label on a surface of their own. */
 const fillMap = {
     primary: fillPrimary,
     normal: fillNormal,
@@ -37,19 +31,13 @@ const fillMap = {
     chip: fillChip,
     danger: `${fillMuted} text-txt-error`,
     destructive: fillDanger,
-    /** The action of a warning notice, filled in the notice's ink. */
     warning: `${fillBase} bg-btn-warning text-txt-on-warning hover:bg-btn-warning-hover active:bg-btn-warning-active`,
-    /** A quiet control inside a notice, such as its close, in the notice's own ink. */
     notice: fillTint,
-    /** One for each ink a site's colour can call for, since a class is never assembled. */
+    /** One per ink a site's colour can call for, since a class name is never assembled. */
     tintDark: `${fillTint} text-tint-dark`,
     tintLight: `${fillTint} text-tint-light`
 } as const;
 
-/**
- * Bare variants: no fill and no built-in layout, for a control whose whole look is its purpose —
- * a list row, a tab, a window control. Each is named for that purpose, not for its classes.
- */
 const bareMap = {
     bare: focusRing,
     plain: `${focusRing} cursor-pointer`,
@@ -73,21 +61,16 @@ const sizeMap = {
     none: '',
     small: 'h-8 gap-1 rounded-control px-3 text-tiny',
     action: 'h-11 rounded-surface text-small',
-    /** An action sized to its label rather than stretched by its row. */
     actionFit: 'h-11 rounded-surface px-4 text-small',
     submit: 'h-11 w-full rounded-surface text-small',
-    /** A page's one submit: the full width on a phone, its own width from `sm`. */
     cta: 'mx-auto h-11 w-full rounded-surface text-small sm:w-fit sm:px-8',
     ctaWide: 'mx-auto h-11 w-full rounded-surface text-small sm:w-fit sm:min-w-40 sm:px-8',
     icon: `relative ${tapArea} size-8 rounded-control`,
     iconChip: `relative ${tapArea} size-9 rounded-surface`,
     iconChipSmall: `relative ${tapArea} size-8 rounded-surface`,
     iconLarge: `relative ${tapArea} size-10 rounded-control`,
-    /** The wallet header's account and network chips. */
     selector: 'h-9 gap-1.5 rounded-surface ps-1 pe-2.5 text-tiny',
-    /** The wallet's send, receive and redeem tiles. */
     tile: 'h-16 w-20 flex-col gap-1 rounded-surface',
-    /** One choice in a row of filter segments. */
     segment: 'h-8 rounded-control text-tiny transition-colors duration-(--duration-base)',
     menu: 'h-12 gap-3 rounded-surface px-3',
     emoji: 'h-10 w-full rounded-control text-medium',
@@ -107,16 +90,12 @@ export default function Button(
         variant?: ButtonVariant;
         size?: keyof typeof sizeMap;
         text?: string;
-        /** A label that is cut to one line when the row squeezes the button, where `text` would wrap. */
         label?: string;
         loading?: boolean;
         dim?: boolean;
         fullWidth?: boolean;
-        /** The choice already in effect: tinted, and pressing it does nothing. */
         selected?: boolean;
-        /** Disabled because it is the current choice, not because it is unavailable. */
         current?: boolean;
-        /** The glyph of an icon button, or one set before its label. */
         icon?: ReactNode;
         leftIcon?: ReactNode;
         rightIcon?: ReactNode;

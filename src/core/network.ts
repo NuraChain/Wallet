@@ -116,8 +116,7 @@ export const initNetwork = async () => {
 
     const storedNetworks = await getValue('App.Networks').catch(() => unreadable);
 
-    // Nothing stored is the built-in networks alone. Read again after the wallet is deleted, this
-    // is what lets go of the ones it added; a read that failed leaves what is held alone.
+    // Nothing stored is the built-ins alone, which drops a deleted wallet's networks; a failed read keeps what is held.
     if (storedNetworks === undefined && customNetworks.length > 0) {
         customNetworks = [];
 

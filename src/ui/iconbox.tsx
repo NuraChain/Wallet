@@ -11,7 +11,6 @@ const toneMap = {
 
 const sizeMap = { 5: 'size-5', 7: 'size-7', 8: 'size-8', 9: 'size-9' } as const;
 
-// The size of a letter or emoji standing in for an icon.
 const glyphMap = { tiny: 'text-tiny', small: 'text-small', medium: 'text-medium' } as const;
 
 export default function IconBox({

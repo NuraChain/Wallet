@@ -3,15 +3,6 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 
 import type { DappEnvelope } from '../type/dapp';
 
-/**
- * The router as a dApp meets it: every request that reaches the wallet — from a page in the
- * browser, from a deep link — is answered here, so this is where the chain id, the account, the
- * approvals and the refusals are pinned down.
- *
- * The Tauri plugins are stood in for: the store keeps values in memory and the HTTP client answers
- * the one read method the tests proxy, so nothing here touches disk or the network.
- */
-
 const held = new Map<string, string>();
 
 vi.mock('@tauri-apps/plugin-store', () => ({
@@ -66,7 +57,6 @@ const call = (method: string, params: unknown[] = [], extra: Partial<DappEnvelop
     ...extra
 });
 
-/** Waits for the prompt a request raises, answers it the way a person would, and hands it back. */
 const settle = async (approved: boolean) => {
     for (let attempt = 0; attempt < 200; attempt += 1) {
         const prompt = getDappPrompt();
@@ -364,7 +354,6 @@ describe('a site asking for the microphone or the camera', () => {
         expect(prompt).toMatchObject({ kind: 'microphone', origin });
         expect(await first).toBe(true);
 
-        // The second time there is nothing to ask.
         expect(await allowDevices(origin, ['microphone'])).toBe(true);
         expect(getDappPrompt()).toBeUndefined();
 
@@ -423,7 +412,7 @@ describe('a site asking for the microphone or the camera', () => {
 
         expect(getDappPrompt()).toBeUndefined();
 
-        // And remembers none of it: the favourite is read again each time, so switching it off counts.
+        // Read again each time, so switching the favourite off counts.
         const later = allowDevices(origin, ['microphone']);
 
         await settle(false);

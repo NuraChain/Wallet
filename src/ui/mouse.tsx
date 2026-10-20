@@ -17,7 +17,6 @@ import type { MouseAction, MouseIcon } from '../type/app';
 
 const size = 40;
 
-/** A second press inside this long is a double click, so a single one waits this long to be sure. */
 const doubleWindow = 250;
 
 interface Point {
@@ -25,10 +24,6 @@ interface Point {
     y: number;
 }
 
-/**
- * Tells a press from a double press from a drag. Where the drag goes is the caller's: `onGrab`
- * sees the press that starts one, `onDrag` every move once it has travelled far enough to count.
- */
 const usePress = ({
     onAction,
     onGrab,
@@ -103,7 +98,7 @@ const usePress = ({
         },
         onPointerUp: onUp,
         onPointerCancel: onUp,
-        // Enter or Space: a click with no pointer behind it, which the pointer handlers never see.
+        // Enter or Space: a click with no pointer, which the pointer handlers never see.
         onClick: (event: MouseEvent<HTMLButtonElement>) => {
             if (event.detail === 0) {
                 onAction('click');
@@ -112,11 +107,6 @@ const usePress = ({
     };
 };
 
-/**
- * What the mouse wears. The browser's icon sits on a tile cut to the logo's shape and colours, so
- * the mouse stays one object that changes its emblem — and a bare glyph would be lost at the
- * opacity the mouse is usually left at.
- */
 function MouseFace({ icon }: { icon: MouseIcon }) {
     if (icon === 'browser') {
         return (
@@ -129,27 +119,17 @@ function MouseFace({ icon }: { icon: MouseIcon }) {
     return <img src={Logo} alt='' draggable={false} className='pointer-events-none size-full' />;
 }
 
-// Where it was left, so a lock and unlock put it back rather than where it starts.
 let parked: Point | undefined;
 
-// Kept inside the window, however far it is dragged or however small the window gets.
 const clamp = ({ x, y }: Point): Point => ({
     x: Math.min(Math.max(x, 0), Math.max(window.innerWidth - size, 0)),
     y: Math.min(Math.max(y, 0), Math.max(window.innerHeight - size, 0))
 });
 
-/**
- * The floating mouse drawn in the page itself: the app's logo, or the browser's icon where a press
- * opens it, dragged anywhere across the window and pressed to move around the wallet. One element
- * in the page's own `#mouse`, above everything
- * the wallet draws — but not above a browser tab, which is why desktop, Android and iOS draw
- * `MouseView` or a native view instead where they can. It only reports what happened; the
- * dashboard decides what a press means.
- */
+/** It cannot cover a browser tab, so desktop, Android and iOS draw `MouseView` or a native view where they can. */
 export default function Mouse({ icon, onAction }: { icon: MouseIcon; onAction: (action: MouseAction) => void }) {
     const opacity = useMouseOpacity();
 
-    // It starts out at the top of the window, in the middle.
     const [place, setPlace] = useState(() => clamp(parked ?? { x: (window.innerWidth - size) / 2, y: 0 }));
 
     const grabRef = useRef<{ pointer: Point; origin: Point } | undefined>(undefined);
@@ -203,8 +183,7 @@ export default function Mouse({ icon, onAction }: { icon: MouseIcon; onAction: (
     );
 }
 
-// Physical pixels throughout: the webview's own position, the window's size, and the pointer's
-// travel scaled up from CSS pixels, so no rounding creeps in between them.
+// Physical pixels throughout, so no rounding creeps in between position, size and pointer travel.
 const room = async (): Promise<Point> => {
     const inner = await getCurrentWindow().innerSize();
 
@@ -218,10 +197,6 @@ const clampPhysical = (point: Point, limit: Point): Point => ({
     y: Math.round(Math.min(Math.max(point.y, 0), limit.y))
 });
 
-/**
- * The desktop mouse: the whole of a small transparent webview stacked over the wallet and its
- * browser tabs, so it moves by moving that webview, and says what happened by event.
- */
 export function MouseView({ opacity: initial, icon: worn }: { opacity: number; icon: MouseIcon }) {
     const [opacity, setOpacity] = useState(initial);
     const [icon, setIcon] = useState(worn);
@@ -230,8 +205,7 @@ export function MouseView({ opacity: initial, icon: worn }: { opacity: number; i
     const targetRef = useRef<Point | undefined>(undefined);
     const frameRef = useRef(0);
 
-    // The webview is transparent, so nothing may paint around the logo: not the theme's canvas,
-    // and not a dark color scheme's default one either.
+    // The webview is transparent: neither the theme's canvas nor a dark scheme's default may paint.
     useLayoutEffect(() => {
         for (const element of [document.documentElement, document.body]) {
             element.style.background = 'transparent';
@@ -265,8 +239,7 @@ export function MouseView({ opacity: initial, icon: worn }: { opacity: number; i
             })
         ];
 
-        // Said once the listeners are in place: whatever the wallet sent while this page was still
-        // loading reached nobody, and it answers with what the mouse should be wearing now.
+        // Sent once listening: whatever the wallet sent while this page was loading reached nobody.
         void Promise.all(stops)
             .then(async () => emit('nura://mouse-ready'))
             .catch(() => undefined);
@@ -306,7 +279,6 @@ export function MouseView({ opacity: initial, icon: worn }: { opacity: number; i
                 ([at, limit]) => {
                     targetRef.current = clampPhysical({ x: at.x + dx, y: at.y + dy }, limit);
 
-                    // One move per frame, always to the latest point, however fast the pointer reports.
                     if (frameRef.current === 0) {
                         frameRef.current = requestAnimationFrame(() => {
                             frameRef.current = 0;

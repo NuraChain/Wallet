@@ -19,15 +19,11 @@ declare global {
         __nuraDappRequest?: (payload: string) => void;
         __nuraDappLink?: (url: string) => void;
 
-        /** Answers whether the question was taken: `false` leaves the asker to refuse it itself. */
         __nuraPermission?: (payload: string) => boolean;
     }
 }
 
-/**
- * Opened on first use rather than at module scope. The top-level await this replaces made every
- * importer of the storage module wait on the store file before it could even be evaluated.
- */
+// Opened lazily: a top-level await would make every importer wait on the store file.
 let opened: Promise<Store> | undefined;
 
 const store = async () => (opened ??= load('application.bin'));
@@ -63,21 +59,12 @@ const desktopExporter: PlatformExporter = {
     }
 };
 
-/**
- * iOS has no ExportBridge of its own yet, and the fs plugin is a desktop-only dependency, so there
- * is nothing on that platform that could write the file. It says so in the same word the Android
- * bridge uses when the write is refused, and the phrase stays on screen to be copied by hand.
- */
+// iOS has no export bridge and the fs plugin is desktop-only; 'unsupported' matches Android's refusal.
 const unsupportedExporter: PlatformExporter = {
     saveImage: async () => 'unsupported',
     saveText: async () => 'unsupported'
 };
 
-/**
- * A Tauri window holds the unlocked vault in a module variable for as long as the process lives,
- * which is exactly as long as the user can see the app. There is nothing here to keep, and
- * nothing to expire it against.
- */
 const inertSession: PlatformSession = {
     read: async () => undefined,
     write: async () => undefined,
@@ -85,10 +72,6 @@ const inertSession: PlatformSession = {
     touch: async () => undefined
 };
 
-/**
- * The window that asks is the window that draws the prompt, so the queue never leaves the module
- * it lives in and there is nothing here to publish, watch, or open.
- */
 const inertApproval: PlatformApproval = {
     publish: () => undefined,
     subscribe: () => () => undefined,
@@ -97,11 +80,7 @@ const inertApproval: PlatformApproval = {
     dismiss: () => undefined
 };
 
-/**
- * Two native transports behind one shape. Desktop rides Tauri events and IPC: Rust stamps the
- * origin from the child webview's own URL and hands over a ticket to answer against. Android has
- * no Rust at all — the Kotlin bridge installs a pair of globals and stamps the origin itself.
- */
+// Desktop: Rust stamps the origin from the webview's URL. Android: the Kotlin bridge stamps it.
 const nativeDapp: PlatformDapp = {
     emit: (label, body) => {
         const bridge = window.__nuraBrowser;
@@ -117,9 +96,7 @@ const nativeDapp: PlatformDapp = {
 
     serve: (accept, onLink, onAsk) => {
         if (window.__nuraBrowser !== undefined) {
-            /* A page asking for the microphone or the camera. Kotlin holds the request and refuses it unless this
-               says, there and then, that somebody took the question — which is what keeps a wallet
-               that is locked, or has no dashboard up, from leaving a page waiting on an answer. */
+            // Kotlin refuses the request unless this returns true, so a locked wallet never leaves a page waiting.
             window.__nuraPermission = (incoming: string) => {
                 let parsed: unknown;
 
@@ -221,9 +198,7 @@ const nativeDapp: PlatformDapp = {
             unlisten.push(stop);
         };
 
-        // A subscription that never lands is the worst kind of failure here: Rust keeps answering
-        // the page with a request nobody is listening for, and every call hangs until it times
-        // out. It means a permission is missing, so it is said out loud rather than swallowed.
+        // A failed listen means a missing permission and every call would hang, so it is logged.
         const lost = (event: string) => (cause: unknown) => {
             // oxlint-disable-next-line no-console
             console.error('[bridge]', event, cause);
@@ -285,11 +260,7 @@ export const platform: Platform = {
         }
     },
 
-    /**
-     * Outside a Tauri window — `npm run dev` in a plain browser — the plugin throws, and 'unknown'
-     * is the honest answer there. Read once and kept: the host cannot change while the process
-     * lives, and the callers are on render paths.
-     */
+    // The plugin throws outside Tauri (`npm run dev`); cached because callers are on render paths.
     host: () => {
         if (host === undefined) {
             try {

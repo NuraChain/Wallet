@@ -34,16 +34,7 @@ const painted = (element: HTMLElement) => {
     return new DOMMatrixReadOnly(transform).m42;
 };
 
-export default function ScrollArea({
-    fill = false,
-    children,
-    onRefresh
-}: {
-    /** Takes its parent's whole box. */
-    fill?: boolean;
-    children: ReactNode;
-    onRefresh?: () => Promise<void> | void;
-}) {
+export default function ScrollArea({ fill = false, children, onRefresh }: { fill?: boolean; children: ReactNode; onRefresh?: () => Promise<void> | void }) {
     const glyphRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const indicatorRef = useRef<HTMLDivElement>(null);

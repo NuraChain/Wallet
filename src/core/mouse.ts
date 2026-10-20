@@ -37,7 +37,6 @@ const announce = () => {
     }
 };
 
-/** Reads the stored opacity once, the first time anything wants to show the mouse. */
 const loadMouseOpacity = async () => {
     loading ??= getValue('App.Mouse')
         .catch(() => undefined)
@@ -64,10 +63,7 @@ export const subscribeMouseOpacity = (listener: () => void) => {
     };
 };
 
-/**
- * Changes what a native mouse wears. It is kept here as well, so a mouse drawn later starts out
- * right; the one in the page takes it as a prop and never comes through this.
- */
+/** Also kept here so a mouse drawn later starts out right; the in-page mouse takes it as a prop instead. */
 export const setMouseIcon = async (value: MouseIcon) => {
     icon = value;
 
@@ -110,15 +106,14 @@ export const setMouseOpacity = async (value: number) => {
     await setValue('App.Mouse', String(value));
 };
 
-// Linux lays a child webview out itself: Tauri moves none there and reads each one back at the
-// window's corner, so the mouse is placed and found through the commands that do the laying out.
+// Linux lays child webviews out itself, so the mouse is placed and read back through the commands that do it.
 const placeOnLinux = async (x: number, y: number) => {
     const { invoke } = await import('@tauri-apps/api/core');
 
     await invoke('browser_place', { label: mouseLabel, x, y, width: mouseSize, height: mouseSize });
 };
 
-/** Where the desktop mouse's webview sits in its window, in physical pixels. */
+/** In physical pixels. */
 export const getMousePosition = async (view: Webview): Promise<{ x: number; y: number }> => {
     if (getPlatform() !== 'linux') {
         const at = await view.position();
@@ -133,7 +128,7 @@ export const getMousePosition = async (view: Webview): Promise<{ x: number; y: n
     return { x: at.x * window.devicePixelRatio, y: at.y * window.devicePixelRatio };
 };
 
-/** Moves the desktop mouse's webview to a point in its window, in physical pixels. */
+/** In physical pixels. */
 export const setMousePosition = async (view: Webview, point: { x: number; y: number }) => {
     if (getPlatform() === 'linux') {
         await placeOnLinux(point.x / window.devicePixelRatio, point.y / window.devicePixelRatio);
@@ -146,11 +141,10 @@ export const setMousePosition = async (view: Webview, point: { x: number; y: num
     await view.setPosition(new PhysicalPosition(point.x, point.y));
 };
 
-// Where the desktop mouse was left, so a lock and unlock put it back rather than where it starts.
+// Where the mouse was left, so a lock and unlock put it back.
 let parked: { x: number; y: number } | undefined;
 
-// Create and close run one at a time: a lock straight into an unlock would otherwise ask for the
-// label while the old webview still holds it.
+// One at a time: an unlock straight after a lock would otherwise ask for a label the old webview still holds.
 let chain = Promise.resolve();
 
 const queue = (task: () => Promise<void>) => {
@@ -180,19 +174,16 @@ const openDesktop = async () => {
     const { Webview, getCurrentWebview } = await import('@tauri-apps/api/webview');
     const { getCurrentWindow } = await import('@tauri-apps/api/window');
 
-    // The mouse's webview runs under this one's capability. Unless that lets it report a press and
-    // move itself, a mouse drawn there could be seen and never used, so it is not drawn at all.
+    // Drawn only if this capability lets the mouse's webview report a press and move itself.
     await Promise.all([emit('nura://mouse-probe'), getCurrentWebview().position(), getCurrentWindow().innerSize()]);
 
     const clamp = (value: number, room: number) => Math.min(Math.max(value, 0), Math.max(room - mouseSize, 0));
 
-    // It starts out at the top of the window, in the middle: on Windows that is the empty stretch
-    // of the title bar, between the wallet's name and the window's own buttons.
+    // Top middle: on Windows, the empty stretch of the title bar.
     const x = clamp(parked?.x ?? (window.innerWidth - mouseSize) / 2, window.innerWidth);
     const y = clamp(parked?.y ?? 0, window.innerHeight);
 
-    // The page is transparent, so the webview is only ever the mouse; the fragment carries how it
-    // starts out because it never reaches the asset protocol the way a query would.
+    // The fragment carries the start state because a query never reaches the asset protocol.
     const view = new Webview(getCurrentWindow(), mouseLabel, {
         url: `index.html#mouse=${await loadMouseOpacity()}&icon=${icon}`,
         x,
@@ -215,19 +206,15 @@ const openDesktop = async () => {
         });
     });
 
-    // The place asked for above is one more thing Linux does not take.
+    // Linux ignores the position asked for above.
     if (getPlatform() === 'linux') {
         await placeOnLinux(x, y);
     }
 };
 
 /**
- * Put the mouse above every layer — the wallet and any browser tab — until the returned cleanup
- * runs. A tab is an OS-level view no z-index reaches over, so the mouse is one too: a view Kotlin
- * keeps on top on Android, one BrowserBridge.mm keeps on top on iOS, and its own transparent
- * webview on desktop, re-raised by Rust whenever a tab is added. None is reachable from a page:
- * tabs hold no event permission, so nothing they run can pose as a press. Where none can be
- * drawn, `onFallback` asks for the in-page mouse.
+ * Puts the mouse above every layer, OS-level tabs included, until the cleanup runs; `onFallback` asks for the in-page one.
+ * Tabs hold no event permission, so nothing a page runs can pose as a press.
  */
 export const showMouse = (onAction: (action: MouseAction) => void, onFallback: () => void) => {
     let live = true;
@@ -271,8 +258,7 @@ export const showMouse = (onAction: (action: MouseAction) => void, onFallback: (
                         onAction(event.payload);
                     }
                 }),
-                // The mouse's webview says when it has started listening, and is told then what to
-                // wear: a change made while it was still loading reached nobody.
+                // Told what to wear once it is listening: a change sent while it was loading reached nobody.
                 listen('nura://mouse-ready', () => {
                     void emit('nura://mouse-icon', icon).catch(() => undefined);
                 })

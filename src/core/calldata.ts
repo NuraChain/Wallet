@@ -1,22 +1,13 @@
 import { ethers } from 'ethers';
 import type { CallSummary } from '../type/dapp';
 
-/**
- * Just enough call decoding to tell an approval screen what it is approving.
- *
- * The transaction prompt used to describe a payload as "248 bytes", which says nothing about
- * whether the user is sending a token or handing a contract the right to take them later.
- * Unlimited allowances are the most drained thing on an EVM chain and they look, at the byte
- * level, exactly like a harmless call.
- */
-
-/** Anything at or above this is "forever" in practice; wallets and routers both use max-uint. */
+/** At or above this an allowance is unlimited in practice; wallets and routers approve max-uint. */
 const unlimitedFloor = 1n << 255n;
 
 interface Known {
     name: string;
     types: string[];
-    /** Index of the party being handed power, of the party being paid, and of the amount. */
+    /** Argument indexes of the spender, the payee and the amount. */
     spender?: number;
     recipient?: number;
     amount?: number;
@@ -91,8 +82,7 @@ export const readCalldata = (data: string): CallSummary | undefined => {
             revoke
         };
     } catch {
-        // A payload that does not decode is still a payload whose selector we recognised; say that
-        // much rather than pretending the call is unknown.
+        // The selector is known even though the payload does not decode, so say that much.
         return plain;
     }
 };

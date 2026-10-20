@@ -1,9 +1,4 @@
-/** What the wallet persists, by key. */
-
-/**
- * The keys the wallet persists under. Split out of `storage.ts` so the platform layer can name
- * them without importing the module that depends on it.
- */
+/** Kept apart from `storage.ts` so the platform layer can name keys without importing it. */
 export type StorageKey =
     | 'App.Language'
     | 'App.Theme'

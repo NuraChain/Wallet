@@ -96,9 +96,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const hasBrowser = useHasBrowser();
 
-    // Where nothing can render a page in-app — iOS, and the extension popup — the browser tab is
-    // left out of the tab set rather than shipped as a panel that cannot load anything; everything
-    // below indexes into this, not into navMap.
+    // No in-app browser on iOS or in the extension popup; index into this, not navMap.
     const tabMap = useMemo(() => (hasBrowser ? navMap : navMap.filter((item) => item.key !== 'Browser')), [hasBrowser]);
 
     const goKey = useCallback(
@@ -128,14 +126,10 @@ function DashboardView({ vault }: { vault: Vault }) {
     const prompt = useDappPrompt();
 
     const onMouse = (action: MouseAction) => {
-        // A press behind a dialog would act on a screen nobody is looking at, or swap a half-filled
-        // one for the mouse's own.
         if (modal !== 'none' || prompt !== undefined) {
             return;
         }
 
-        // On the browser a press takes the page full screen and back and a double press goes home;
-        // anywhere else a press opens the browser and a double press the mouse's own settings.
         if (action === 'double') {
             if (tabMap[active].key === 'Browser') {
                 setHomePress((value) => value + 1);
@@ -151,22 +145,18 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const onMouseEvent = useEffectEvent(onMouse);
 
-    // On the wallet the mouse wears the browser's icon, since that is where a press there leads.
     const mouseIcon: MouseIcon = tabMap[active].key === 'Wallet' ? 'browser' : 'logo';
 
-    // Told before the mouse is shown below, so one drawn natively starts out wearing it.
+    // Runs before showMouse below, so a natively drawn mouse starts with the right icon.
     useEffect(() => {
         if (hasBrowser) {
             void setMouseIcon(mouseIcon);
         }
     }, [hasBrowser, mouseIcon]);
 
-    // Drawn natively where a browser tab could cover it, so it stays above every page; the one in
-    // the wallet's own page only where that cannot be done.
+    // The mouse is drawn natively to stay above browser pages; this is the in-page fallback.
     const [pageMouse, setPageMouse] = useState(false);
 
-    // Taken away on the settings tab, and put back on the way out of it. Its own settings bring it
-    // back for as long as they are open there, since the mouse is what they preview on.
     const mouseOn = hasBrowser && (tabMap[active].key !== 'Settings' || modal === 'mouse');
 
     useEffect(() => {
@@ -330,7 +320,6 @@ function DashboardView({ vault }: { vault: Vault }) {
     useEffect(() => {
         void loadConnections();
 
-        // What a favourite at the site's address has been switched on for goes in with the question.
         const stop = startDappBridge(answerDapp, undefined, async (origin, wanted) => allowDevices(origin, wanted, await getSiteDevices(origin)), setSiteTheme);
 
         flushDeepLinks();
@@ -346,8 +335,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 
             forgetMicrophones();
 
-            // A phone's status bar outlives the dashboard, and would stay turned for a site's colour on
-            // the lock screen.
+            // A phone's status bar outlives the dashboard and would keep a site's colour on the lock screen.
             forgetSiteThemes();
         };
     }, []);
@@ -376,10 +364,7 @@ function DashboardView({ vault }: { vault: Vault }) {
         });
     }, [tracked, tokenMap, hidden, network.chainId]);
 
-    // Held until the three reads the pull started have answered, which is what keeps the indicator
-    // up. The token sweep is not waited for: it walks the explorer behind the page and can outlast
-    // them by far. Nothing times a request out sooner than ethers' five minutes, and no second pull
-    // is taken while one is held, so the wait has a limit of its own.
+    // Capped by refreshLimit, since ethers only times out after five minutes; the token sweep is not awaited.
     const onRefresh = async () => {
         setScan((value) => value + 1);
 
@@ -464,8 +449,6 @@ function DashboardView({ vault }: { vault: Vault }) {
     };
 
     const onBrowse = (url: string) => {
-        // With no browser tab the link is handed to the host browser rather than dropped. The
-        // wallet is no longer the provider for it, which an explorer link never needed.
         if (!hasBrowser) {
             void platform.openUrl(url).catch(() => undefined);
 
@@ -573,8 +556,6 @@ function DashboardView({ vault }: { vault: Vault }) {
             {pageMouse && mouseOn && <Mouse icon={mouseIcon} onAction={onMouse} />}
 
             <Horizontal dir={getDirection()} fill='both' clip>
-                {/* Full screen is the browser's own mode, so the rail only steps aside while that
-                    tab is the one on screen — no reset to forget on the way out. */}
                 {!(browserFull && tabMap[active].key === 'Browser') && (
                     <DashboardSidebar
                         items={sidebarMap}
@@ -733,10 +714,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 export default function DashboardPage() {
     const vault = useVault();
 
-    // The loader only guards the way in. A lock that lands while the dashboard is open — the
-    // extension's idle deadline, a second window's Lock — used to leave this on a spinner forever,
-    // since nothing moved the route. The launch route decides where it goes: unlock for a wallet
-    // still in storage, intro for one just deleted.
+    // The loader only guards the way in; a lock while open (idle deadline, another window) lands here.
     if (vault === undefined) {
         return <Navigate to='/' replace />;
     }

@@ -92,16 +92,8 @@ const approve = async (detail: Omit<DappPrompt, 'id'>) => {
     }
 };
 
-/* A site's microphone and camera are not the wallet's to give, but the decision is the wallet's to
-   make: where the webview has no prompt of its own, a request nobody answers is simply refused, and
-   the site only ever sees "blocked".
-
-   A site gets what a favourite at its address has been switched on for — `standing`, handed in by
-   whoever holds the favourites — without a word. Beyond that the microphone can be asked for: a yes
-   holds for that site until the wallet locks, a no is for the one request it answered, and requests
-   that arrive while the question is up share it. The camera is never asked for. It comes from a
-   favourite or not at all, and since a page is answered for everything it wants at once, a request
-   that needs it and does not have it is refused whole. */
+/* A favourite's `standing` devices are given silently; the microphone may be asked for, a yes lasting until lock.
+   The camera is never asked for, and a request missing any device is refused whole. */
 const listening = new Set<string>();
 
 const hearing = new Map<string, Promise<boolean>>();
@@ -474,18 +466,14 @@ const broadcast = () => {
     }
 };
 
-/** The chain being left is read here, where the move is decided: in an extension the window drawing
-    the prompt keeps its own copy of the current network, and the worker is the one that changes it. */
+/** Read here: in an extension the prompt window keeps its own copy of the current network. */
 const approveChain = async (origin: string, chain: { name: string; id: number; rpc: string; added: boolean }) => {
     const current = getNetwork();
 
     await approve({ kind: 'chain', origin, summary: chain.name, chain: { ...chain, from: { name: current.name, id: current.chainId } } });
 };
 
-/**
- * Moves the wallet onto a chain a caller asked for, prompting first. Answers whether the wallet
- * ended up there; a chain it has never heard of is left to the caller to report.
- */
+/** Answers whether the wallet ended up on the chain; an unknown chain is left to the caller to report. */
 const ensureDappChain = async (chainId: number, origin: string) => {
     if (chainId === getNetwork().chainId) {
         return true;

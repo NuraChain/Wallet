@@ -25,7 +25,6 @@ export function Sheet({ onClose, children }: { onClose: () => void; children: Re
                 onClick={onClose}
             />
 
-            {/* Slid as a whole `transform` and put back to `none`, for the reasons Modal's panel is. */}
             <motion.div
                 ref={panelRef}
                 role='dialog'

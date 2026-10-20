@@ -9,7 +9,7 @@ export const atBrowserStart = (tab: BrowserTab) => tab.home || tab.index < 0;
 
 export const frameLabel = (id: number) => `nura-browser-${id}`;
 
-/** The floating mouse's own webview on desktop — not a page, so outside `nura-browser-*`. */
+/** Not a page, so outside `nura-browser-*`. */
 export const mouseLabel = 'nura-mouse';
 
 const defaultFavorites: BrowserFavorite[] = [
@@ -109,14 +109,7 @@ const originOf = (url: string) => {
     }
 };
 
-/**
- * The devices a site has been given through a favourite, read fresh each time so a switch thrown
- * in the form counts from the next request on.
- *
- * It is the favourite's own origin that holds them, and nothing wider. A favourite that only
- * forwards — an invite link, a short address — hands them to the address it was saved under, not
- * to wherever that leads, since the page asking is then a different site.
- */
+/** Read fresh per request, and held by the favourite's exact origin, never by wherever it forwards to. */
 export const getSiteDevices = async (origin: string): Promise<SiteDevice[]> => {
     if (origin.length === 0) {
         return [];
@@ -137,7 +130,7 @@ export const getSiteDevices = async (origin: string): Promise<SiteDevice[]> => {
     return devices;
 };
 
-/** Whether the wallet is the one a page's device requests come to: only Android's bridge brings them. */
+/** Only Android's bridge brings a page's device requests to the wallet. */
 export const managesSiteDevices = () => window.__nuraBrowser?.permissionReply !== undefined;
 
 interface BrowserBridge {
@@ -187,12 +180,7 @@ declare global {
 
 export const getNativeBrowser = () => window.__nuraBrowser;
 
-/**
- * Close every native browser layer, wherever it came from. The multiwebview children (desktop)
- * and the Kotlin WebViews (Android) sit above the app's own page, so a JS context that starts
- * over — a reload, an Android activity restore — lands on the unlock screen underneath layers
- * nobody owns any more. The lock screen calls this to take the surface back.
- */
+/** Native layers sit above the page and outlive a reload or activity restore, so the lock screen closes them. */
 export const closeBrowserLayers = () => {
     const bridge = window.__nuraBrowser;
 
@@ -295,10 +283,7 @@ export const getNativeTab = (id: string): NativeTab | undefined => {
     };
 };
 
-/* What each open page has asked the wallet's chrome to wear, by the page's label, and which page
-   is the one on show. A page says its colour once and is taken at its word until it says another,
-   so the colour is still there after a trip to the start page and back; it is worn only while its
-   page is the one in view. */
+/* A page's colour is kept until it sends another, and worn only while its page is in view. */
 const themes = new Map<string, string>();
 
 let shownPage = '';
@@ -309,9 +294,7 @@ let tintTimer: ReturnType<typeof setTimeout> | undefined;
 
 const tintListeners = new Set<() => void>();
 
-/* The least time between two colours a page can put on the chrome. A page may change its mind as
-   often as it likes, and one that did so on every frame would have the wallet's header flashing in
-   time with it. */
+/* Throttles colour changes so a page that changes every frame cannot flash the header. */
 const tintGap = 300;
 
 const wear = () => {
@@ -330,7 +313,6 @@ const wear = () => {
     tint = next;
     tintAt = Date.now();
 
-    // Where the system draws over the colour — a phone's status bar — its ink has to turn with it.
     window.__nuraBrowser?.setBarInk?.(next.length > 0 ? inkOn(next) : '');
 
     for (const listener of tintListeners) {
@@ -338,7 +320,6 @@ const wear = () => {
     }
 };
 
-/** A page's colour for the wallet's chrome, as the bridge read it; the empty string for none. */
 export const setSiteTheme = (label: string, color: string) => {
     if (color.length > 0) {
         themes.set(label, color);
@@ -359,14 +340,12 @@ export const setSiteTheme = (label: string, color: string) => {
     }
 };
 
-/** Which page's colour the chrome wears: the one in view, or the empty string while none is. */
 export const showSiteTheme = (label: string) => {
     shownPage = label;
 
     wear();
 };
 
-/** Every page is gone, and the chrome goes back to the wallet's own colours. */
 export const forgetSiteThemes = () => {
     themes.clear();
 
@@ -375,7 +354,6 @@ export const forgetSiteThemes = () => {
     wear();
 };
 
-/** The colour the wallet's chrome wears now, as `#rrggbb`, or the empty string for its own. */
 export const getTint = () => tint;
 
 export const subscribeTint = (listener: () => void) => {

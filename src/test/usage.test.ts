@@ -4,11 +4,6 @@ import { join, relative, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { parseAst } from 'rolldown/parseAst';
 
-/**
- * How the rest of the app may use `src/ui`, checked on every file outside it — the app and the
- * extension's own entry points. A rule a reviewer has to remember is a rule that erodes one call
- * site at a time; these fail the suite instead.
- */
 const src = fileURLToPath(new URL('../', import.meta.url));
 const root = resolve(src, '..');
 const ui = resolve(src, 'ui');
@@ -64,8 +59,6 @@ const files = [...walk(src), ...walk(resolve(root, 'src-extension'))].map((file)
 const lineOf = (source: string, offset: number) => source.slice(0, offset).split('\n').length;
 
 describe('outside src/ui', () => {
-    // Markup — an HTML or SVG tag, or `motion.*`, which renders one — belongs to the design system.
-    // Everything else composes its primitives, so a look is only ever defined once.
     it.each(files)('$name renders no HTML element of its own', ({ source, ast }) => {
         const found: string[] = [];
 

@@ -51,11 +51,7 @@ class Unreadable extends Error {
     }
 }
 
-/**
- * A refusal the same request would keep earning — a 404, a page where an icon was expected, a file
- * past the ceiling the cache accepts. Retrying only spends the backoff, so these leave the attempt
- * loop at once and take the short cooldown instead.
- */
+/** A refusal retrying will not fix (a 404, a page instead of an icon, too large): skips the backoff for the short cooldown. */
 class Refused extends Error {
     public constructor(message: string) {
         super(message);
@@ -360,9 +356,7 @@ const download = async (url: string, known: CacheEntry | undefined) => {
         headers.set('If-Modified-Since', known.modified);
     }
 
-    // The webview would send this cross origin and be refused: a favicon is served without any
-    // Access-Control-Allow-Origin, so a fetch from the page's own origin never sees the bytes. The
-    // request goes through Rust instead, where CORS does not apply.
+    // Favicons are served without CORS headers, so the fetch goes through Rust, where CORS does not apply.
     const response = await httpRequest(url, { headers, redirect: 'follow' }).catch((cause: unknown) => {
         throw new Unreadable(cause);
     });

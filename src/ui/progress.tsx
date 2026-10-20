@@ -9,25 +9,14 @@ const inkMap = { dark: 'text-tint-dark', light: 'text-tint-light' } as const;
 
 const toneMap = {
     accent: 'bg-txt-accent',
-    /** The colour of the text around it, for a bar drawn over a colour that is not the theme's. */
     ink: 'bg-current'
 } as const;
 
 const lookMap = {
-    /** Fills the strip it sits in, under the address bar. */
     strip: 'size-full',
-    /** A short rounded track standing on its own, under a loading message. */
     track: 'w-32 rounded-full bg-base-3'
 } as const;
 
-/**
- * With no `value` there is no progress to report, so the bar fills once and stays full for as long
- * as the wait goes on. It used to slide across and start over, which read as the load itself
- * starting over each time it reached the end.
- *
- * It is scaled rather than widened, so nothing reflows while it runs, and from the side reading
- * starts on: a transform has no logical direction of its own, so the origin is what flips.
- */
 export default function ProgressBar({ value, look, tone = 'accent' }: { value?: number; look?: keyof typeof lookMap; tone?: keyof typeof toneMap }) {
     const determinate = value !== undefined;
 
@@ -47,19 +36,6 @@ export default function ProgressBar({ value, look, tone = 'accent' }: { value?: 
     );
 }
 
-/**
- * The strip under the browser's address bar: a page's load, fading out once it is done.
- *
- * A page reports its load in fits and starts. Progress can fall back, the load can be called done
- * before the last of it has arrived, and a redirect ends one load only to begin the next from
- * nothing — and a bar that followed all of that filled, vanished and started over. So it only ever
- * moves forward; a finished load stands full for a moment before it fades; and a load that begins
- * while that bar is still up is the same one going on, which leaves it full until that ends too.
- *
- * It is the last two pixels of the toolbar, so where the toolbar wears a page's colour — on a
- * phone — it wears it too, and draws the load in that colour's ink: the theme's accent is a blue,
- * and on a site that chose a blue of its own the load would not be seen at all.
- */
 export function LoadStrip({ loading, progress, hidden = false }: { loading: boolean; progress: number; hidden?: boolean }) {
     const tint = useTint();
 

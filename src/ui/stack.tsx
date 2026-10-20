@@ -16,7 +16,6 @@ const ptMap = { 5: 'pt-5' } as const;
 const pbMap = {
     1: 'pb-1',
     4: 'pb-4',
-    /** A gutter, plus whatever of the system's bottom bar the surface runs on underneath. */
     bar: 'pb-[calc(1rem+var(--inset-bottom)-var(--inset-bar))]'
 } as const;
 
@@ -26,25 +25,19 @@ const scrollMap = { y: 'overflow-y-auto', both: 'overflow-auto' } as const;
 
 export interface StackProps extends Placement {
     gap?: keyof typeof gapMap;
-    /** Cross-axis alignment of the children. */
     align?: keyof typeof alignMap;
-    /** Main-axis distribution of the children. */
     justify?: keyof typeof justifyMap;
     p?: keyof typeof pMap;
     px?: keyof typeof pxMap;
     py?: keyof typeof pyMap;
     pt?: keyof typeof ptMap;
     pb?: keyof typeof pbMap;
-    /** Positions absolutely placed children against itself. */
     relative?: boolean;
-    /** Takes its parent's whole box, or its whole height. */
     fill?: keyof typeof fillMap;
     maxWidth?: 'lg';
     scroll?: keyof typeof scrollMap;
-    /** Every child takes an equal share of the row. */
     even?: boolean;
     textAlign?: 'start';
-    /** Clips what runs past its edge. */
     clip?: boolean;
     children: ReactNode;
 }

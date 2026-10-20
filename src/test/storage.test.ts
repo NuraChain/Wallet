@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-/**
- * The recovery phrase is on disk sealed under a key Argon2id makes of the password. A change to how
- * that key is made would leave every phrase already sealed unopenable, so the first thing held here
- * is a phrase sealed by the code before the hash was moved off the page: it still has to open.
- */
+// A phrase sealed before the hash moved off the page must still open: a change to the key derivation strands every sealed phrase.
 
 const held = new Map<string, string>();
 

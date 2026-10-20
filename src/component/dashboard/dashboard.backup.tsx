@@ -9,15 +9,7 @@ import { useBackupDue } from '../../hook/backup';
 import { closeBackupReminder, loadBackupReminder } from '../../core/backup';
 import type { VaultKind } from '../../type/wallet';
 
-/**
- * The question a self-custodial wallet has to keep asking: is there a copy of the phrase anywhere
- * but on this device?
- *
- * A new wallet is made and opened without its phrase ever being shown, so nothing else on the way
- * in asks it. It stands on the wallet page until it is closed, and comes back a week after each
- * time it was. Opening the backup from it does not close it: looking at the words is not the same
- * as having written them down, and only the user can say which happened.
- */
+/** Opening the backup does not close this: seeing the words is not writing them down. */
 export default function DashboardBackup({ kind, onOpen }: { kind: VaultKind; onOpen: () => void }) {
     const due = useBackupDue();
 

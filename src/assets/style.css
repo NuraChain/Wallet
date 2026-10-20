@@ -43,14 +43,9 @@
     --color-badge-line: var(--badge-border);
     --color-badge-text: var(--badge-text);
 
-    /* The logo's own two colours, for what is drawn to sit beside it. Fixed in both themes, as the
-       image is. */
     --color-logo-tile: oklch(0% 0 0);
     --color-logo-ink: oklch(73.7% 0.144 232.5);
 
-    /* The ink set over a colour a visited site chose for the browser's header: whichever of the two
-       reads on it. Fixed in both themes, since what lies under them is the site's and not the theme's,
-       and nothing softer than these two clears 4.5:1 on every colour a site could pick. */
     --color-tint-dark: var(--tint-dark);
     --color-tint-light: var(--tint-light);
 
@@ -76,8 +71,6 @@
     --color-btn-danger-active: var(--btn-danger-active);
     --color-btn-danger-border: var(--btn-danger-border);
 
-    /* A warning notice's own action, filled in its ink. A tenth of that ink, as the notice's close
-       wears, leaves a label at 3.7:1 in light; a fill and a label of its own clear 5:1 in every state. */
     --color-btn-warning: var(--btn-warning);
     --color-btn-warning-hover: var(--btn-warning-hover);
     --color-btn-warning-active: var(--btn-warning-active);
@@ -258,25 +251,93 @@
     --duration-fast: 150ms;
     --duration-base: 200ms;
     --duration-surface: 300ms;
+        0,
+        0.0137,
+        0.0488,
+        0.0981,
+        0.156,
+        0.2184,
+        0.2824,
+        0.3459,
+        0.4073,
+        0.4658,
+        0.5206,
+        0.5714,
+        0.6182,
+        0.6608,
+        0.6995,
+        0.7345,
+        0.7658,
+        0.7939,
+        0.8189,
+        0.8411,
+        0.8608,
+        0.8782,
+        0.8936,
+        0.9071,
+        0.919,
+        0.9295,
+        0.9386,
+        0.9466,
+        0.9536,
+        0.9597,
+        0.965,
+        0.9697,
+        0.9737,
+        0.9772,
+        0.9803,
+        0.9829,
+        0.9852,
+        0.9872,
+        0.989,
+        0.9905,
+        0.9918,
+        0.9929,
+        0.9939,
+        0.9947,
+        0.9954,
+        0.9961,
+        0.9966,
+        0.9971,
+        0.9975,
+        0.9978,
+        0.9981,
+        0.9984,
+        0.9986,
+        0.9988,
+        0.999,
+        0.9991,
+        0.9992,
+        0.9993,
+        0.9994,
+        0.9995,
+        0.9996,
+        0.9996,
+        0.9997,
+        0.9997,
+        0.9998,
+        0.9998,
+        0.9998,
+        0.9999,
+        0.9999,
+        0.9999,
+        1,
+        1,
+        1,
+        1,
+        1
+    );
 
-    /* The two inks over a site's colour. Variables of their own, like the themed colours, so the
-       browser's toolbar can hand one to `--focus-ring` for everything that sits on it. */
     --tint-dark: oklch(0% 0 0);
     --tint-light: oklch(100% 0 0);
 
-    /* Every layout that reaches a screen edge measures from these, never from env() itself. Android's
-       WebView fills env(safe-area-inset-*) from a display cutout and from nothing else, so the status
-       and navigation bars the window is drawn behind under edge-to-edge never reach CSS; InsetBridge
-       overwrites both variables there with the window insets the system does hand the view. */
+    /* Use these, never env(): Android's WebView fills env() only from a display cutout, so
+       InsetBridge overwrites them with the real window insets. */
     --inset-top: env(safe-area-inset-top);
     --inset-bottom: env(safe-area-inset-bottom);
 
-    /* How much of the bottom inset holds something the system takes taps on. A gesture bar is a
-       line drawn over the app and takes none, so a page may run on underneath it; three buttons do,
-       and a page that ran under them would have its own bottom controls answer to Android instead.
-       Android tells the two apart through InsetBridge, and on iOS the inset is only ever the home
-       indicator, a line of the same kind, so initInsets clears it there. Everywhere else the whole
-       inset is kept clear, as it always was. */
+    /* The part of the bottom inset that takes taps (three-button nav, not a gesture bar). Android
+       sets it through InsetBridge; on iOS initInsets clears it. */
     --inset-bar: var(--inset-bottom);
 }
 
@@ -311,10 +372,7 @@ input[type='password']::-ms-clear {
     display: none;
 }
 
-/* Never the decoration container itself: in WebKit that shadow element wraps the field's own
-   editable text, so hiding it leaves a password input that cannot be seen or typed into, while a
-   text input — which never grows a container — stays fine. Only the buttons Safari hangs inside
-   it are hidden. */
+/* Not the decoration container: in WebKit it wraps a password field's editable text. */
 input[type='password']::-webkit-credentials-auto-fill-button,
 input[type='password']::-webkit-strong-password-auto-fill-button {
     display: none !important;

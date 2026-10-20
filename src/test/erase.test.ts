@@ -2,14 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { StorageKey } from '../type/storage';
 
-/**
- * Settings → Delete wallet. What it promises the person deleting it is that nothing of the wallet
- * is left on the device — not in storage, not in a cache, and not in memory waiting to be handed
- * to the next wallet made here.
- *
- * The Tauri store is stood in for by a map, and the page globals the connectivity probe listens on
- * by inert ones, so nothing here touches disk, the network or a window.
- */
+// Delete Wallet leaves nothing of the wallet on the device: not in storage, a cache, or memory.
 
 const held = new Map<string, string>();
 
@@ -47,7 +40,7 @@ const { addNetwork, getNetwork, getNetworks } = await import('../core/network');
 const { getVault, lockSession, unlockSession } = await import('../core/session');
 const { keysUnder, writeRaw } = await import('../core/cache.store');
 
-/** One value under every key the app persists. A record, so a new key has to be added here too. */
+/** A record, so a new key has to be added here too. */
 const everything: Record<StorageKey, string> = {
     'App.Language': 'fa',
     'App.Theme': 'dark',
@@ -70,7 +63,6 @@ const everything: Record<StorageKey, string> = {
 
 const address = '0x9fb8678213295c11ffc544865fe0f1a18019d941';
 
-/** A key under each cache that names an address, a balance, a coin or a site. */
 const caches: { area: 'local' | 'session'; key: string }[] = [
     { area: 'local', key: `tx-cache/v1/1|${address}|https://eth.blockscout.com/api|` },
     { area: 'session', key: `token-cache/v1/balances/ethereum|${address}|` },

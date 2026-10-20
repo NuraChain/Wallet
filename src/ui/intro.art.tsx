@@ -1,4 +1,3 @@
-// The one size the intro slides show them at, growing with the window.
 const artSize = 'h-44 max-h-[52%] w-auto max-w-full sm:h-60 md:h-72';
 
 export function IntroArtConnect() {

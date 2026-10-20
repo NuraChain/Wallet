@@ -1,10 +1,4 @@
-/**
- * Which ink reads on a colour somebody else chose: `dark` on a light one, `light` on a dark one.
- *
- * The turn comes where the colour's luminance, as WCAG measures it, is as far from black as it is
- * from white. There the contrast with either is 4.58:1, so pure black or pure white clears 4.5:1
- * on every colour there is; an ink any softer than those would not.
- */
+/** The turn is where WCAG luminance is as far from black as from white, so either ink clears 4.5:1 on every colour. */
 export const inkOn = (hex: string): 'dark' | 'light' => {
     const channel = (at: number) => {
         const value = Number.parseInt(hex.slice(at, at + 2), 16) / 255;

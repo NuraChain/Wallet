@@ -13,10 +13,6 @@ import { surfacePanel } from './panel';
 import { Horizontal, Vertical } from './stack';
 import { inset, layer } from './container';
 
-/* The window is 360 wide, but the app lays out for a desktop too — a sidebar at `lg`, a wider
-   page container — and every dialog stayed a 320px column on all of it. That width is what made
-   a recovery word clip and an address need truncating, so it grows with the window now. Callers
-   pick a step rather than passing a width, so nothing has to out-specify a breakpoint here. */
 const widthMap = {
     panel: 'w-80 sm:w-96 lg:w-112',
     narrow: 'w-72 sm:w-80',
@@ -37,23 +33,13 @@ export function Modal({
     scroll?: boolean;
     scale?: number;
     width?: keyof typeof widthMap;
-    /** `none` for a full-screen dialog whose sections run to its edges. */
     padding?: 'none';
-    /** A tighter rhythm than the default, for a dialog that is mostly a list. */
     gap?: 2;
     align?: 'center';
     children: ReactNode;
 }) {
     const { panelRef } = useDialog(onClose);
 
-    // The scale is animated as a whole `transform`, not as Motion's own `scale`. Motion hands
-    // `transform` and `opacity` to the browser and works its separate transform values out itself,
-    // in script, frame by frame — and on iOS that clock drops to 30 a second in Low Power Mode and
-    // stalls while the dialog's own content mounts, where the fade running beside it does neither.
-    //
-    // It goes back to `none` once it has arrived: a transform left on the panel, even one that
-    // changes nothing, makes it the box a popover's `fixed` backdrop is measured against. Motion
-    // cannot leave from `none`, which it fills in as a scale of 0, so the exit names its start.
     const panel = (
         <motion.div
             ref={panelRef}
@@ -86,10 +72,7 @@ export function Modal({
                 onClick={onClose}
             />
 
-            {/* The frame spans the whole app, so the panel's `max-h-full` measures against a height
-                that is definite on every engine — a viewport unit read the window wrong under macOS
-                WebKit and left the taller modals overflowing. It passes clicks through to the scrim
-                underneath rather than swallowing the ones that land beside the panel. */}
+            {/* Spans the app so `max-h-full` has a definite height; a viewport unit misread it on macOS WebKit. */}
             <div className={cn('pointer-events-none absolute inset-0 flex items-center justify-center p-4', inset.modalFrame, layer.dialog)}>
                 {scroll ? (
                     <div className='pointer-events-auto relative flex max-h-full min-h-0'>
@@ -120,24 +103,18 @@ export function ModalHeader({
     title: string;
     subtitle?: string;
     leading?: ReactNode;
-    /** A control of the dialog's own, set beside the close button. */
     action?: ReactNode;
     close?: 'icon' | 'chip' | 'none';
-    /** Cuts a long title to one line. */
     truncate?: boolean;
     titleSize?: 'large';
-    /** The title and subtitle take the width the close button leaves. */
     titleGrow?: boolean;
     width?: 'full';
     onClose: () => void;
 }) {
-    // With nothing leading, the title and its subtitle stack; with an icon, they sit beside it.
     const Group = leading === undefined ? Vertical : Horizontal;
 
     const heading = <Text as='h2' variant='title' squeeze='x' size={titleSize} truncate={truncate} text={title} />;
 
-    // A step that must not be abandoned halfway — a transaction already in flight — asks for
-    // `none`, so the header offers no way out that the surface itself refuses.
     const closer = close !== 'none' && (
         <Button
             variant={close === 'chip' ? 'chip' : 'muted'}
@@ -162,8 +139,6 @@ export function ModalHeader({
                 </Group>
             )}
 
-            {/* Held together, so the row still has two ends to push apart, and far enough apart
-                that neither one's tap area reaches over the other. */}
             {action === undefined ? (
                 closer
             ) : (
@@ -177,22 +152,10 @@ export function ModalHeader({
     );
 }
 
-export function ModalBody({
-    gap = 3,
-    short = false,
-    mt,
-    children
-}: {
-    gap?: 2 | 3;
-    /** Held to a short height, for a list that should not fill the window. */
-    short?: boolean;
-    mt?: 2;
-    children: ReactNode;
-}) {
+export function ModalBody({ gap = 3, short = false, mt, children }: { gap?: 2 | 3; short?: boolean; mt?: 2; children: ReactNode }) {
     const viewportRef = useRef<HTMLDivElement>(null);
 
-    // The frame pulls out by the viewport's padding, so the rows scroll edge to edge and a focus
-    // ring on the first or last of them is not clipped.
+    // Pulled out by the viewport's padding so a focus ring on the first or last row is not clipped.
     return (
         <div className='relative -m-3 flex min-h-0 flex-1 flex-col'>
             <div

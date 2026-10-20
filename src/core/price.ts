@@ -233,7 +233,6 @@ export const readPrices = async (ids: string[]): Promise<PriceRead> => {
     return collect(held);
 };
 
-/** Forget every price read, along with which coins they were read for. */
 export const clearPrices = () => {
     clearUnder('local', pricePrefix);
 };

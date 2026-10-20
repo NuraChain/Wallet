@@ -1,14 +1,7 @@
 import { platform } from '../platform';
 import type { DappPrompt } from '../type/dapp';
 
-/**
- * The queue of things waiting on the user.
- *
- * In a Tauri window one context both asks and answers, and the platform hooks below do nothing.
- * In an extension the two are pulled apart: the worker owns `waiting`, because a promise resolver
- * cannot be serialised anywhere, and publishes the list for whatever window is open to render.
- * That window answers by name, and the answer comes back here.
- */
+// In an extension the worker owns `waiting` (a resolver cannot be serialised); a window renders it and answers by id.
 const promptListeners = new Set<() => void>();
 
 let prompts: DappPrompt[] = [];
@@ -60,7 +53,6 @@ export const resolveDappPrompt = (id: string, approved: boolean) => {
         return;
     }
 
-    // Answering a queue this context does not own — the resolver lives with whoever asked.
     platform.approval.answer(id, approved);
 };
 
@@ -84,7 +76,6 @@ export const askDappPrompt = async (detail: Omit<DappPrompt, 'id'>) =>
         platform.approval.surface();
     });
 
-// A context that does not own the queue renders the one that does.
 platform.approval.subscribe((published) => {
     prompts = published;
 

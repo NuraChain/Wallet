@@ -1,4 +1,3 @@
-// The alias decides which target's implementation this resolves to. Importing the module rather
-// than the file is what keeps one build from pulling in the other's dependencies.
+// Import the alias, not a file, so one build never pulls in another target's dependencies.
 // oxlint-disable-next-line import/no-unresolved
 export { platform } from '#platform-impl';

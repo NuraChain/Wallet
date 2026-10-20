@@ -9,12 +9,7 @@ interface DappScriptModule {
     dappIdentity: (chainId: number, channel?: 'native' | 'extension') => DappIdentity;
 }
 
-/**
- * The provider the wallet injects is a source string built by `dappScript()`, which is what the
- * Tauri and Android targets hand to their native layers. An extension cannot ship a string —
- * MV3 forbids eval, and most dApp sites forbid it too — so the string is evaluated at build time
- * and becomes the source of a real bundled file. One definition, five targets, no drift.
- */
+// MV3 and most dApp CSPs forbid eval, so dappScript()'s string becomes a bundled file at build time.
 export const inpageModule = (input: { icon: string; chainId: number }): Plugin => ({
     name: 'nura:inpage',
 

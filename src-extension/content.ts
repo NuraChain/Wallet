@@ -1,15 +1,9 @@
 import { dockChannel, isPageMessage, providerChannel } from './message';
 import type { DockMessage, WorkerMessage } from '../src/type/extension';
 
-/**
- * The isolated half of the bridge. It decides nothing, and holds nothing but the ids of calls still
- * waiting for an answer: the page cannot be trusted to say who it is, so the origin is never read
- * here — the worker takes it off `port.sender`, which only the browser can write.
- */
+// The origin is never read here: the worker takes it off port.sender, which only the browser writes.
 
-// On Chrome the manifest injects the provider into the main world itself and it leaves this
-// attribute behind. Everywhere else — Firefox below 128, Safari below 18 — the script tag is the
-// only way in, and it has to be synchronous to beat a page that reads window.ethereum in <head>.
+// Chromium injects via world: 'MAIN'; elsewhere a synchronous tag must beat a page reading window.ethereum in <head>.
 if (document.documentElement.dataset.nuraInpage === undefined) {
     const tag = document.createElement('script');
 
@@ -26,10 +20,7 @@ const toPage = (kind: 'reply' | 'event', payload: unknown) => {
 
 let port: chrome.runtime.Port | undefined;
 
-/* Calls the worker has not answered yet — the one thing this relay remembers. A worker that stops
-   mid-call (evicted, reloaded, crashed) takes its port with it and the answer never comes, and a
-   page left waiting on a promise shows a spinner forever. Failing those calls with the provider's
-   own "disconnected" code lets the page's error handling take over instead. */
+// Failed with 4900 if the worker dies mid-call, so the page is not left waiting forever.
 const unanswered = new Set<string>();
 
 const idOf = (body: unknown) => {
@@ -49,8 +40,7 @@ const strand = (ids: Iterable<string>) => {
 };
 
 const connect = () => {
-    // After an extension reload or update the old context is dead, and connecting through it
-    // throws. Every page that ever loaded us would otherwise spin forever on its next call.
+    // After an extension reload this context is dead and connecting through it throws.
     if (chrome.runtime?.id === undefined) {
         return undefined;
     }
@@ -106,8 +96,7 @@ window.addEventListener('message', (event) => {
     }
 });
 
-// accountsChanged and chainChanged reach a frame whose port died with a previous worker, so they
-// come as a plain message rather than down the port.
+// Events come as a plain message: the frame's port may have died with a previous worker.
 chrome.runtime.onMessage.addListener((message: WorkerMessage | DockMessage) => {
     if (message.kind === 'event') {
         toPage('event', message.payload);
@@ -115,10 +104,7 @@ chrome.runtime.onMessage.addListener((message: WorkerMessage | DockMessage) => {
         return;
     }
 
-    // Still deciding nothing: the worker asked for its own panel, and this hands the request
-    // straight back. What it adds on the way is the one thing the worker cannot have — the click
-    // the page's call came out of is live in this frame for a few seconds yet, and a browser opens
-    // a docked panel for nothing else.
+    // Bounced back to the worker because the page's user gesture is still live in this frame.
     if (message.kind === 'dock') {
         void chrome.runtime.sendMessage({ kind: dockChannel }).catch(() => undefined);
     }

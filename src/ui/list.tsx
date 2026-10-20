@@ -8,7 +8,6 @@ export default function ListCard({
     children,
     ...rest
 }: {
-    /** Runs edge to edge and full height, as the whole body of a full-screen dialog. */
     flush?: boolean;
     children: ReactNode;
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {

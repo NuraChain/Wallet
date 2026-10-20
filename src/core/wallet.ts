@@ -3,8 +3,7 @@ import type { SendParams } from '../type/wallet';
 
 const transferAbi = ['function transfer(address to, uint256 amount) returns (bool)'];
 
-/* One description of the transaction, built once and used by both the estimate and the send, so
-   the fee shown on the review screen prices the transaction that actually goes out. */
+/* Shared by the estimate and the send, so the fee shown prices the transaction that goes out. */
 const describe = (signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParams): ethers.TransactionRequest => {
     if (params.token === undefined) {
         return { to: params.to, value: ethers.parseUnits(params.amount, params.decimals) };
@@ -18,13 +17,7 @@ const describe = (signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParam
     };
 };
 
-/**
- * What this transaction costs to mine, in native base units.
- *
- * Nothing in the send flow used to price gas at all, so the review screen omitted the one number
- * that decides whether the transfer can land — and `Max` on the native token proposed the entire
- * balance, which cannot pay for its own execution.
- */
+/** In native base units. */
 export const estimateFee = async (provider: ethers.Provider, from: string, signer: ethers.Wallet | ethers.HDNodeWallet, params: SendParams) => {
     const request = describe(signer, params);
 

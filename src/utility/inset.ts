@@ -15,18 +15,8 @@ declare global {
 }
 
 /**
- * Android's WebView fills `env(safe-area-inset-*)` from a display cutout and from nothing else, so
- * the status and navigation bars the window is laid out behind never reach CSS and every surface
- * that runs to a screen edge would draw underneath them. InsetBridge answers with the insets the
- * system does hand the view, and they are written over the `env()` seeds style.css declares.
- *
- * The Kotlin side pushes the same variables whenever the insets change — a rotation, the gesture
- * bar swapping for buttons. This covers the first paint, which comes after the last push it made,
- * and that one landed on the document this one replaced.
- *
- * iOS fills `env()` itself and needs none of that. What it cannot say in CSS is that its bottom
- * inset is only ever the home indicator: a line drawn over the app, as Android's gesture bar is,
- * with nothing in it to tap. So a page in the browser has no bar to stop short of there.
+ * Android's WebView fills `env(safe-area-inset-*)` only from a cutout, so InsetBridge's insets are written over style.css's seeds.
+ * iOS fills `env()` itself, and its bottom inset is only the home indicator, so the browser has no bar to stop short of.
  */
 export const initInsets = () => {
     const { style } = document.documentElement;

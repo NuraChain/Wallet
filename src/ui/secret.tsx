@@ -5,10 +5,8 @@ import Text from './text';
 import { cn } from '../utility/cn';
 import { fieldSurface } from './token';
 
-// Until the user asks to see it, the secret is blurred, and cannot be selected or copied.
 const veiled = 'pointer-events-none blur-sm select-none';
 
-/** A private key, laid out left to right in every language. */
 export function SecretKey({ revealed, children }: { revealed: boolean; children: ReactNode }) {
     return (
         <div dir='ltr' className={cn('rounded-control bg-base-1 px-3 py-2.5 transition-all duration-(--duration-fast)', !revealed && veiled)}>
@@ -17,12 +15,7 @@ export function SecretKey({ revealed, children }: { revealed: boolean; children:
     );
 }
 
-/**
- * A recovery phrase's words: two columns before `sm`, and no `truncate` on the word. Three columns
- * in a 320px dialog left about 55px for the word, and the wordlist has 8-character entries that need
- * nearer 58 — `abstract`, `business`, `champion`. A word clipped to `busines` is written down that
- * way and the wallet is gone.
- */
+/** Two columns before `sm` and no `truncate`: a clipped word is written down clipped and the wallet is lost. */
 export function SecretWords({ revealed, children }: { revealed: boolean; children: ReactNode }) {
     return (
         <div dir='ltr' className={cn('grid grid-cols-2 gap-1.5 transition-all duration-(--duration-fast) sm:grid-cols-3', !revealed && veiled)}>
@@ -32,12 +25,8 @@ export function SecretWords({ revealed, children }: { revealed: boolean; childre
 }
 
 /**
- * Boxes to type a recovery phrase into, a word each, numbered as it was written down, in the columns
- * `SecretWords` shows it in. A space or Enter goes on to the next box and Backspace in an empty one
- * back to the last. A paste of more than one word is handed over as it was copied: a box keeps no
- * line breaks, and would have made `1. abandon⏎2. ability` into `1. abandon2. ability`. The keyboard
- * is asked not to capitalize, correct or learn — one that does is wrong about every one of these
- * words, and should not remember them — though only it decides whether to listen.
+ * A multi-word paste goes to the caller whole: an input drops line breaks and would join the words.
+ * The keyboard is asked not to correct or learn the words.
  */
 export function PhraseInput({ words, onEnter }: { words: string[]; onEnter: (index: number, text: string) => void }) {
     const boxes = useRef<(HTMLInputElement | null)[]>([]);
@@ -49,8 +38,7 @@ export function PhraseInput({ words, onEnter }: { words: string[]; onEnter: (ind
     return (
         <div dir='ltr' className='grid grid-cols-2 gap-1.5 sm:grid-cols-3'>
             {words.map((word, index) => (
-                // A box is its place in the phrase. Keyed by its word, it would be a new box at every
-                // keystroke, and the caret would go with the old one.
+                // Keyed by word, the box would remount on every keystroke and lose the caret.
                 // oxlint-disable-next-line react/no-array-index-key
                 <label key={index} className='relative flex items-center'>
                     <span className='pointer-events-none absolute inset-s-2.5 text-tiny text-txt-muted tabular-nums'>{index + 1}</span>
@@ -106,7 +94,6 @@ export function PhraseInput({ words, onEnter }: { words: string[]; onEnter: (ind
     );
 }
 
-/** One word of the phrase, with its position in front of it. */
 export function SecretWord({ index, word }: { index: number; word: string }) {
     return (
         <div className='flex items-baseline gap-1.5 rounded-control bg-base-1 px-2 py-1.5'>

@@ -5,17 +5,12 @@ import Spinner from './spinner';
 
 import { cn } from '../utility/cn';
 
-/** Why there is no picture: the camera was refused, there is none to open, or it would not start. */
 export type ScanFailure = 'denied' | 'missing' | 'unavailable';
 
-/* The side a frame is cut down to before it is read, and how long passes between two reads. A code
-   held at arm's length still fills enough of a square this size, and reading is work done on the
-   thread the page draws on. */
+// Frames are decoded on the main thread, so they are cut down and spaced out.
 const frameSide = 480;
 const frameGap = 150;
 
-/* The four corners of the viewfinder. They sit over the picture as well as over the empty frame, so
-   the frame reads as somewhere to aim before the camera has shown anything at all. */
 const cornerMap = [
     'top-0 inset-s-0 rounded-ss-surface border-t-3 border-s-3',
     'top-0 inset-e-0 rounded-se-surface border-t-3 border-e-3',
@@ -33,14 +28,7 @@ const reasonOf = (cause: unknown): ScanFailure => {
     return name === 'NotFoundError' || name === 'OverconstrainedError' ? 'missing' : 'unavailable';
 };
 
-/**
- * The camera's picture, read for a QR code until it is taken off the page.
- *
- * It asks for the camera as it mounts, which is where the host puts its own question to the user,
- * and lets go of it as it unmounts — a stream left open keeps the camera's light on behind a dialog
- * that has already closed. `onScan` is given each code once: what to make of it is the caller's,
- * and one it turns down is not handed over again on every frame it stays in view.
- */
+/** Releases the stream on unmount: one left open keeps the camera light on behind a closed dialog. */
 export default function Scanner({ onScan, onFailure }: { onScan: (text: string) => void; onFailure: (reason: ScanFailure) => void }) {
     const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -79,7 +67,6 @@ export default function Scanner({ onScan, onFailure }: { onScan: (text: string) 
         };
 
         const run = async () => {
-            // The back camera where there is one; a laptop's only camera answers to this as well.
             const opened = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: 'environment' } });
 
             if (!active) {
@@ -111,7 +98,6 @@ export default function Scanner({ onScan, onFailure }: { onScan: (text: string) 
                     return;
                 }
 
-                // The middle square, which is the part of the picture the frame on the page shows.
                 const size = Math.min(side, frameSide);
 
                 if (canvas.width !== size) {

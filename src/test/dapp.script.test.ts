@@ -2,11 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { dappIdentity, dappScript } from '../core/dapp.script';
 
-/**
- * The provider the browser injects is plain ES5 that reaches for `window` and `document` and
- * nothing else, so it can be run here with both handed in — the same script the webview gets,
- * answered by a stand-in for the wallet on the other side of the bridge.
- */
+// The injected ES5 provider reaches only `window` and `document`, so it runs here with both handed in.
 
 interface Provider {
     isNuraWallet: boolean;
@@ -50,7 +46,6 @@ const boot = () => {
         dispatchEvent: (event: Event) => bus.dispatchEvent(event)
     };
 
-    // The wallet, as far as the page can tell: the same answers dapp.rpc.ts gives, and nothing else.
     const answer = (method: string, params: unknown[]): { result?: unknown; error?: { code: number; message: string } } => {
         if (method === 'eth_chainId') {
             return { result: '0x3fc' };
@@ -284,7 +279,7 @@ describe('the page', () => {
     it('gets no wallet control drawn into it', () => {
         const source = dappScript(dappIdentity(1020));
 
-        // The floating mouse is the wallet's own layer now, out of the page's reach entirely.
+        // The floating mouse is the wallet's own layer, out of the page's reach.
         expect(source).not.toContain('nura-grip');
         expect(source).not.toContain('nura_chrome');
     });
@@ -296,11 +291,7 @@ interface Meta {
     media?: string;
 }
 
-/**
- * A page as far as the colour reader can tell: its meta elements, the media that match just now,
- * and a canvas that takes `#rrggbb` for a colour and leaves its fill alone for anything else, which
- * is the one thing about a real canvas the reader leans on.
- */
+/** The reader leans on one thing about a real canvas: it takes `#rrggbb` and leaves its fill alone for anything else. */
 const page = (metas: Meta[], options: { matching?: string[]; framed?: boolean; channel?: 'native' | 'extension'; arriving?: boolean } = {}) => {
     const told: unknown[] = [];
     const posted: unknown[] = [];
@@ -433,7 +424,6 @@ const page = (metas: Meta[], options: { matching?: string[]; framed?: boolean; c
         told,
         posted,
 
-        /** The page changes what is in its head, and the reader hears of it. */
         rewrite: (next: Meta[]) => {
             list.splice(0, list.length, ...next.map((meta) => element(meta)));
 
@@ -442,7 +432,6 @@ const page = (metas: Meta[], options: { matching?: string[]; framed?: boolean; c
             settle();
         },
 
-        /** The last of the page arrives. */
         finish: () => {
             doc.readyState = 'interactive';
 
@@ -451,7 +440,6 @@ const page = (metas: Meta[], options: { matching?: string[]; framed?: boolean; c
             settle();
         },
 
-        /** The device goes over to another colour scheme under the page. */
         turn: (next: string[]) => {
             matching.clear();
 

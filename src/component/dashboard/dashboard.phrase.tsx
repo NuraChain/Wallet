@@ -65,8 +65,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
     };
 
     const onUnlock = async () => {
-        // Enter in the field asks again while the first answer is still being worked out. The
-        // button is disabled for that long; this is the same for the key.
+        // Enter in the field can ask again while the first answer is still being worked out.
         if (isLoading) {
             return;
         }
@@ -144,10 +143,7 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                             <Text variant='captionStrong' mono breaks='all' text={secret} />
                         </SecretKey>
                     ) : (
-                        /* Two columns before `sm`, and no `truncate` on the word. Three columns in a
-                           320px dialog left about 55px for the word, and the wordlist has 8-character
-                           entries that need nearer 58 — `abstract`, `business`, `champion`. A word
-                           clipped to `busines` is written down that way and the wallet is gone. */
+                        /* Two columns before `sm` and no `truncate`: a word clipped to `busines` is written down that way. */
                         <SecretWords revealed={revealed}>
                             {words.map((word, index) => (
                                 <SecretWord key={`${index}-${word}`} index={index} word={word} />
@@ -170,8 +166,6 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
 
                     {revealed && (
                         <Vertical mt={3} gap={2}>
-                            {/* There was no way back once the words were on screen but closing the
-                                dialog, which is the wrong thing to reach for when someone walks past. */}
                             <Button
                                 variant='muted'
                                 size='small'

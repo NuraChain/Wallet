@@ -12,11 +12,9 @@ const variantMap = {
     title: 'text-medium font-semibold text-txt-normal',
     heading: 'text-large font-semibold text-txt-normal',
     display: 'text-display font-bold text-txt-normal',
-    /** No size and no colour: a label inside a control whose own classes decide both. */
     plain: ''
 } as const;
 
-// The size each variant starts from, so `scaleUp` knows which step comes next.
 const variantSize = {
     caption: 'tiny',
     captionStrong: 'tiny',
@@ -31,7 +29,6 @@ const variantSize = {
 
 const sizeMap = { small: 'text-small', large: 'text-large' } as const;
 
-// One step up from `sm`, for the headline and lede that get room to breathe on a wider screen.
 const scaleUpMap: Partial<Record<string, string>> = { tiny: 'sm:text-small', small: 'sm:text-medium', medium: 'sm:text-large' };
 
 const toneMap = { normal: 'text-txt-normal', accent: 'text-txt-accent', error: 'text-txt-error', onPrimary: 'text-txt-on-primary' } as const;
@@ -46,11 +43,8 @@ export interface TextProps extends Placement {
     variant?: keyof typeof variantMap;
     as?: ElementType;
     text?: string;
-    /** Overrides the variant's size. */
     size?: keyof typeof sizeMap;
-    /** Steps the size up once at `sm`. */
     scaleUp?: boolean;
-    /** Overrides the variant's colour. */
     tone?: keyof typeof toneMap;
     align?: keyof typeof alignMap;
     truncate?: boolean;
@@ -58,15 +52,11 @@ export interface TextProps extends Placement {
     weight?: 'medium';
     tabular?: boolean;
     breaks?: keyof typeof breaksMap;
-    /** Keeps the text's own line breaks and runs of spaces. */
     pre?: boolean;
-    /** Selectable even inside a surface that turns selection off. */
     selectable?: boolean;
     leading?: keyof typeof leadingMap;
-    /** There for assistive technology only. */
     srOnly?: boolean;
     maxWidth?: 'sm';
-    /** Set in a recessed box of its own, apart from the surface around it. */
     inset?: boolean;
     pt?: 1;
     py?: 2;

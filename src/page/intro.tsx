@@ -56,7 +56,6 @@ export default function IntroPage() {
     const [subPage, setSubPage] = useState<ReactNode>();
     const [theme, setThemeState] = useState(getTheme());
 
-    // Said once, on the screen a deleted wallet lands on, so the person who asked for it sees it done.
     const [deleted] = useState(takeErased);
 
     const onCloseSub = useCallback(() => {

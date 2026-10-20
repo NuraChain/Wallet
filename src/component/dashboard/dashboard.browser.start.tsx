@@ -36,16 +36,7 @@ function BrowserShortcut({ url, name, symbol, title, onPick }: { url: string; na
     );
 }
 
-/**
- * A favourite as a card: what it is, and where it actually goes.
- *
- * The card lays out LTR in every language. A favicon beside a domain is an inherently LTR pair,
- * and the host line is forced LTR already — mirroring the row put the icon on one side and the
- * address it belongs to on the other.
- *
- * The host is the description because it is the one fact about a bookmark worth checking before
- * tapping it — the name is whatever the user typed, and this is the browser a site signs through.
- */
+/** LTR in every language: a favicon and its domain are an LTR pair. */
 function FavoriteCard({ item, grow = false, onPick }: { item: BrowserFavorite; grow?: boolean; onPick: (item: BrowserFavorite) => void }) {
     return (
         <Button

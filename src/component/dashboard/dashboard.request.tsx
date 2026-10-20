@@ -40,31 +40,23 @@ const noteMap: Record<DappPrompt['kind'], string> = {
     microphone: 'Dashboard.Request.MicrophoneNote'
 };
 
-/* A value dropped into a translated sentence keeps its own direction, or "0.25 ETH" is reordered
-   around its punctuation inside a Persian or Arabic headline. */
+// Bidi-isolated, or "0.25 ETH" is reordered inside a Persian or Arabic sentence.
 const isolate = (value: string) => `\u2068${value}\u2069`;
 
-/* formatUnits always leaves a decimal point, and a whole amount reads better without its ".0".
-   Nothing else is rounded: dust hidden behind six decimals is exactly what a drainer counts on. */
+// Only the trailing ".0" goes; nothing is rounded, since hidden dust is what a drainer counts on.
 const exact = (value: string) => value.replace(/\.0(?=\s|$)/u, '');
 
 const siteOf = (origin: string) => {
     try {
         const url = new URL(origin);
 
-        // `host` stays in punycode for an internationalised name, which is the whole defence
-        // against a lookalike domain, and keeps its `www.` where getSiteHost drops it: this is the
-        // one screen where the exact name is what gets checked.
+        // `host` keeps punycode and `www.` (unlike getSiteHost): the defence against a lookalike domain.
         return { host: url.host, secure: url.protocol === 'https:' };
     } catch {
         return { host: origin, secure: false };
     }
 };
 
-/**
- * One end of what the request moves. The first stop carries the rail down to the second, and that
- * rail is the only thing on screen that says which way the value, the access or the network goes.
- */
 function Stop({ icon, label, rail = false, children }: { icon: ReactNode; label: string; rail?: boolean; children: ReactNode }) {
     return (
         <Horizontal gap={3}>
@@ -98,8 +90,7 @@ export default function DashboardRequest({
     network: string;
     tokens: Token[];
 }) {
-    // Which way the person answered. In an extension the answer travels to the worker before the
-    // queue moves on, so the pressed button carries the spinner and neither can fire twice.
+    // In an extension the queue moves on only once the worker hears back, so this blocks a second answer.
     const [answered, setAnswered] = useState<boolean | undefined>(undefined);
 
     const payloadRef = useRef<HTMLDivElement>(null);
@@ -129,29 +120,21 @@ export default function DashboardRequest({
 
     const risky = call?.approval === true;
 
-    /* The contract being called is the token whose allowance is at stake, so its own decimals are
-       the only ones that make the number mean anything. A contract the wallet does not track keeps
-       base units rather than being formatted against a guess. */
+    // Only the called token's own decimals apply; an untracked contract stays in base units.
     const subject = tokens.find((item) => item.address.toLowerCase() === (transaction?.to ?? '').toLowerCase());
 
-    // Who the call really reaches when `to` is only a token contract: the spender of an approval,
-    // or the payee of a transfer (readCalldata names one for `transfer` alone).
     const spender = call?.spender ?? '';
     const payee = call?.recipient ?? '';
 
     const party = spender.length > 0 ? spender : payee;
 
-    /* The bare quantity the call names. The warning sentence names the token itself, so the symbol
-       is added only where the amount stands alone, or the sentence reads "take 2500 USDT of USDT". */
     let amount = '';
 
     if (call?.amount !== undefined) {
         amount = subject === undefined ? call.amount.toString() : exact(formatUnits(call.amount, subject.decimals));
     }
 
-    /* The headline states the consequence and the button repeats its verb, so the one word under the
-       thumb says what pressing it does. Anything a site gets to name — a chain it is adding, a token
-       symbol — is kept out of the headline and shown below it as evidence instead. */
+    // Nothing a site gets to name (a chain it adds, a token symbol) goes in the headline.
     const ask = () => {
         if (prompt.kind === 'connect') {
             return { title: T('Dashboard.Request.ConnectTitle'), verb: T('Dashboard.Request.ConnectAction') };
@@ -206,7 +189,6 @@ export default function DashboardRequest({
 
     const { title, verb } = ask();
 
-    // On an approval the red warning below says it all, and a grey note under it would only dilute it.
     const note = risky ? '' : T(noteMap[prompt.kind]);
 
     const rows = (): Row[] => {
@@ -216,13 +198,9 @@ export default function DashboardRequest({
             const zero = /^0(?:\.0*)?\s/u.test(transaction.value);
 
             return [
-                // A plain send already says its amount in the headline; a call that also carries
-                // value is the case where that amount would otherwise go unsaid.
                 ...(hasData && !zero ? [{ label: T('Dashboard.Request.Value'), value: transaction.value, mono: true }] : []),
-                // A transfer of a token the wallet does not track has no decimals to format with, and
-                // its headline cannot name a quantity; base units are still the true amount.
                 ...(payee.length > 0 && subject === undefined && amount.length > 0 ? [{ label: T('Dashboard.Request.Value'), value: amount, mono: true }] : []),
-                // "Unlimited" is a word, not an amount, and the mono face breaks its Arabic and Persian shaping.
+                // Not mono: the mono face breaks Arabic and Persian shaping.
                 ...(risky && call.unlimited
                     ? [{ label: T('Dashboard.Request.Allowance'), value: T('Dashboard.Request.AllowanceUnlimited'), mono: false }]
                     : []),
@@ -258,8 +236,7 @@ export default function DashboardRequest({
         return [where];
     };
 
-    /* Never `shortAddress` for the far end. This is the screen the whole approval exists for, and a
-       poisoning contract is picked to match the first and last characters a truncation keeps. */
+    // Never `shortAddress` here: a poisoning address matches the characters a truncation keeps.
     const route = () => {
         if (prompt.kind === 'chain' && prompt.chain !== undefined) {
             return (
@@ -286,7 +263,6 @@ export default function DashboardRequest({
             return undefined;
         }
 
-        // A transaction leaves this account for somewhere; a connection or a signature only names it.
         const target = party.length > 0 ? party : (transaction?.to ?? '');
 
         return (
@@ -317,8 +293,6 @@ export default function DashboardRequest({
         );
     };
 
-    /* An approval's `to` is the token rather than the party, so it moves down here. A token the
-       wallet tracks is named by its own record; anything else is shown in full to be checked. */
     const contract = party.length > 0 && subject === undefined ? (transaction?.to ?? '') : (prompt.asset?.address ?? '');
 
     const warning = () => {
@@ -353,12 +327,8 @@ export default function DashboardRequest({
 
             <Alert variant='warning' textAlign='start' text={site.secure ? '' : T('Dashboard.Request.InsecureNote')} />
 
-            {/* Red is the product's one warning colour, so it is spent on the call that can still
-                take tokens after this dialog is gone, not on every routine note. */}
             <Alert variant='error' size='comfortable' textAlign='start' text={warning()} />
 
-            {/* A site asking for the microphone moves nothing and names no account or network: who
-                is asking and what it means, above, is all there is to weigh. */}
             {prompt.kind !== 'microphone' && (
                 <ModalBody>
                     {route()}
@@ -405,8 +375,7 @@ export default function DashboardRequest({
                 </ModalBody>
             )}
 
-            {/* On an allowance the safe answer carries the weight: the expensive mistake here is the
-                reflex tap on whatever looks like the primary button. */}
+            {/* On an allowance Reject is the primary button, against a reflex tap. */}
             <ModalActions>
                 <Button
                     dim

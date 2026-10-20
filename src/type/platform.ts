@@ -1,51 +1,31 @@
-/** The seam every host implements — a Tauri window or a browser extension — and the host itself. */
-
 import type { DappPrompt, DappReply } from './dapp';
 import type { StorageKey } from './storage';
 import type { Vault } from './wallet';
 
 export type Exporter = PlatformExporter;
 
-/** Durable key/value storage. Values are always strings — callers stringify their own shapes. */
 export interface PlatformStorage {
     get: (key: StorageKey) => Promise<string | undefined>;
     set: (key: StorageKey, value: string) => Promise<void>;
     remove: (keys: StorageKey[]) => Promise<void>;
 }
 
-/**
- * Writing a file out to wherever the host keeps the user's own files. Both answers are the empty
- * string on success and a reason on failure, which is what the phrase screen puts on the page.
- */
+/** Each resolves to the empty string on success, or to the reason it failed. */
 export interface PlatformExporter {
     saveImage: (base64Png: string, name: string) => Promise<string>;
     saveText: (text: string, name: string) => Promise<string>;
 }
 
-/**
- * Where the unlocked vault lives between reads.
- *
- * In a Tauri window it lives in a module variable and dies with the process, so there is nothing
- * to hold: the implementation there is inert. A browser extension has no such process — its
- * worker is evicted after about thirty seconds idle — so the vault has to survive somewhere the
- * worker does not, and be taken away again on a deadline rather than on a window closing.
- */
+/** Inert in Tauri. An extension's worker is evicted when idle, so the vault is held elsewhere and expires on a deadline. */
 export interface PlatformSession {
     read: () => Promise<Vault | undefined>;
     write: (vault: Vault | undefined) => Promise<void>;
     watch: (listener: (vault: Vault | undefined) => void) => () => void;
 
-    /** Push the idle deadline out. Inert where the session ends with the process. */
     touch: () => Promise<void>;
 }
 
-/**
- * One provider call, as the transport hands it over.
- *
- * `origin` is the security boundary of the whole feature and is never read from the payload: on
- * desktop Rust stamps it from the webview's own URL, in an extension it comes off the port's
- * sender. A page that could name its own origin could spend another site's grants.
- */
+/** `origin` is stamped by the transport, never read from the payload: a page naming its own origin could spend another site's grants. */
 export interface PlatformDappCall {
     label: string;
     origin: string;
@@ -53,12 +33,7 @@ export interface PlatformDappCall {
     respond: (reply: DappReply) => void;
 }
 
-/**
- * A page asking for devices — its microphone, its camera — rather than for the wallet. It comes the
- * way a provider call does, and under the same rule: `origin` is the frame the webview says is
- * asking, never a name the page gave. Everything it wants arrives in one request, because the
- * webview takes one answer for all of it.
- */
+/** `origin` is the frame the webview reports, never a name the page gave. One answer covers every kind. */
 export interface PlatformSiteAsk {
     label: string;
     origin: string;
@@ -66,37 +41,21 @@ export interface PlatformSiteAsk {
     respond: (allowed: boolean) => void;
 }
 
-/** How provider calls reach the wallet, and how unsolicited events reach a page. */
 export interface PlatformDapp {
     serve: (accept: (call: PlatformDappCall) => void, onLink?: (url: string) => void, onAsk?: (ask: PlatformSiteAsk) => void) => () => void;
     emit: (label: string, body: string) => void;
 }
 
-/**
- * Getting a question in front of the user, when the context that asks it is not the context that
- * can draw it.
- *
- * A Tauri window asks and answers in the same place, so all of this is inert there. An extension
- * asks in a worker that has no UI at all, and the window that can draw the question may not even
- * be open — so the queue is published for it to read, and it answers back by name.
- */
 export interface PlatformApproval {
     publish: (prompts: DappPrompt[]) => void;
     subscribe: (listener: (prompts: DappPrompt[]) => void) => () => void;
     answer: (id: string, approved: boolean) => void;
 
-    /** Make sure there is somewhere the user can see the queue. */
     surface: () => void;
 
-    /** Nothing is waiting any more. */
     dismiss: () => void;
 }
 
-/**
- * Everything the wallet needs from the thing it is running inside — a Tauri window today, a
- * browser extension next. One implementation per target, picked by the `#platform-impl` alias, so
- * a build never carries another target's code.
- */
 export interface Platform {
     readonly storage: PlatformStorage;
     readonly session: PlatformSession;
@@ -108,8 +67,5 @@ export interface Platform {
     readonly exporter: () => PlatformExporter;
 }
 
-/**
- * The host the app runs on. Mirrors the plugin-os `Platform` union rather than importing it, so a
- * build with no Tauri in it — the browser extension — still has a name for where it is running.
- */
+/** Mirrors plugin-os `Platform` rather than importing it, so the extension build carries no Tauri. */
 export type Host = 'linux' | 'macos' | 'ios' | 'freebsd' | 'dragonfly' | 'netbsd' | 'openbsd' | 'solaris' | 'android' | 'windows' | 'extension' | 'unknown';

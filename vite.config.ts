@@ -23,8 +23,6 @@ export default defineConfig(() => ({
         __APP_VERSION__: JSON.stringify(appVersion)
     },
 
-    // The build's half of the platform seam: which implementation "#platform-impl" resolves to
-    // is what decides whether this bundle carries Tauri or a browser extension underneath it.
     resolve: {
         alias: {
             '#platform-impl': fileURLToPath(new URL('src/platform/tauri.ts', import.meta.url))

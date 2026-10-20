@@ -17,14 +17,10 @@ const here = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 const build = '.dist-extension/build';
 const out = '.dist-extension';
 
-// The floor for sidePanel.open, which only the Chromium targets are told about. The other two
-// engines get the sidebar or nothing at all, so their real floor is lower.
+// chrome116 is the floor for sidePanel.open; the other engines never call it.
 const target = ['chrome116', 'firefox115', 'safari16.4'];
 
-/**
- * A bundle the manifest names by a fixed path. Rolldown will not emit an IIFE made of more than
- * one chunk — an IIFE has no import mechanism — so these are one input each, inlined, unhashed.
- */
+/** Named by a fixed path in the manifest; an IIFE cannot import, so one chunk, unhashed. */
 const single = (name: string, input: string, format: 'iife' | 'esm'): EnvironmentOptions => ({
     consumer: 'client',
 
@@ -35,7 +31,6 @@ const single = (name: string, input: string, format: 'iife' | 'esm'): Environmen
         copyPublicDir: false,
         rolldownOptions: {
             input: { [name]: input },
-            // An IIFE has no import mechanism, so each of these must stay a single chunk.
             output: { format, entryFileNames: `${name}.js`, codeSplitting: false }
         }
     }
@@ -60,10 +55,7 @@ export default defineConfig({
     plugins: [react(), tailwind(), inpageModule({ icon, chainId: 1020 })],
 
     environments: {
-        // The popup is an ordinary app build: code splitting, lazy routes, hashed assets. The
-        // panel is the same app under a document that fills its frame instead of stating a size,
-        // and it is an input of the same build so the two share every chunk rather than each
-        // carrying a copy of the wallet.
+        // The side panel is an input of the popup's build so the two share every chunk.
         client: {
             build: {
                 target,
@@ -74,8 +66,7 @@ export default defineConfig({
             }
         },
 
-        // An ES module, and not by preference: `ethers` and the storage graph put top-level await
-        // in this bundle, which a classic script cannot hold.
+        // ESM because `ethers` and the storage graph use top-level await.
         background: single('background', here('src-extension/background.ts'), 'esm'),
 
         // Content scripts are classic scripts in every engine — `import` throws in them.

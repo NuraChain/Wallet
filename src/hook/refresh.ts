@@ -1,13 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 
-/**
- * A read that can be asked for again and waited on: `refresh` settles once the read it started has
- * answered, failed, or been dropped for a newer one. `claim` is called at the top of the effect
- * that reads, and hands back what tells those waiting that this run is over.
- *
- * Each run takes its own waiters. One list emptied on cleanup would let the run a refresh replaces
- * answer for the one it starts, and whoever pulled to refresh would be told at once.
- */
+/** Each run takes its own waiters, or the run a refresh replaces would answer for the new one and end the pull at once. */
 export const useRefresh = () => {
     const [nonce, setNonce] = useState(0);
 

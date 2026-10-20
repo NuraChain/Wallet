@@ -77,7 +77,6 @@ export default function DashboardWallet({
     onAccounts: () => void;
     onTokens: () => void;
     onSettings: () => void;
-    /** Opens what there is to back up: the phrase, or the key. */
     onBackup: () => void;
     onTransaction: (hash: string) => void;
     onOverview: () => void;
@@ -95,8 +94,6 @@ export default function DashboardWallet({
             return formatUsd(total);
         }
 
-        /* No price feed — a custom chain, or the feed is down. The balance itself is known, so the
-           screen says what it knows instead of putting a dash where its whole purpose goes. */
         return native.at > 0 ? `${trimAmount(native.formatted)} ${network.symbol}` : unknownAmount;
     };
 

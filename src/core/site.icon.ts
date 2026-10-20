@@ -8,17 +8,13 @@ const day = 24 * 60 * 60 * 1000;
 
 const lifetime = 7 * day;
 
-/** A host that offered nothing usable is asked again tomorrow, not on the next render. */
 const emptyLifetime = day;
 
 const maxHosts = 200;
 
 const maxHtmlBytes = 512 * 1024;
 
-/**
- * Below this an icon is a 16px relic that looks soft in a 32px slot, so a site that declares both is
- * read at the smallest size that still holds up, and only falls back to whatever else it offers.
- */
+/** Smaller icons look soft in a 32px slot, so they are only a fallback. */
 const usableSize = 32;
 
 interface Found {
@@ -88,9 +84,7 @@ const declared = async (origin: string) => {
 
         const html = (await response.text()).slice(0, maxHtmlBytes);
 
-        // The markup is parsed, never run: DOMParser builds an inert document, so a hostile page has
-        // nothing to execute here. A regex over the same markup would miss half the ways a link tag
-        // is written and trip over the other half.
+        // DOMParser builds an inert document, so a hostile page's markup never runs here.
         const parsed = new DOMParser().parseFromString(html, 'text/html');
 
         const base = response.url.length > 0 ? response.url : origin;
@@ -124,10 +118,7 @@ const firstUsable = async (candidates: string[]) => {
 };
 
 const discover = async (origin: string) => {
-    // /favicon.ico is still what most hosts answer, and asking for it costs one small request. Only
-    // when it is missing — a 404, or the HTML a redirect hands back instead — is the page itself read
-    // for the icon it declares, which is the only way to find one that is neither at the root nor
-    // named favicon.
+    // /favicon.ico first; the page is read for a declared icon only when that is missing.
     const direct = await firstUsable([`${origin}/favicon.ico`]);
 
     if (direct.length > 0) {
@@ -137,11 +128,7 @@ const discover = async (origin: string) => {
     return firstUsable(await declared(origin));
 };
 
-/**
- * The icon a site actually serves, as a URL for the image cache to hold. Resolved once per origin
- * and remembered, because the lookup can cost a page fetch and every favourite, tab and history row
- * on the browser's home screen asks for one.
- */
+/** Resolved once per origin and remembered: the lookup can cost a page fetch, and every favourite, tab and history row asks. */
 export const resolveSiteIcon = async (url: string): Promise<string> => {
     const origin = originOf(url);
 

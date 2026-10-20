@@ -14,11 +14,7 @@ const announce = () => {
 
 export const getVault = () => current;
 
-/**
- * Read the session back from wherever the platform keeps it. Awaited once per context — the app's
- * startup, the worker's — before anything reaches for the vault, which is what lets `getVault()`
- * stay synchronous for the render and signing paths that call it.
- */
+/** Awaited once per context before anything reads the vault, which keeps `getVault()` synchronous. */
 export const restoreSession = async () => {
     current = await platform.session.read();
 
@@ -41,7 +37,7 @@ export const lockSession = () => {
     void platform.session.write(undefined);
 };
 
-/** Push the idle deadline out, where there is one. Called on the user's own actions, not on reads. */
+/** Called on the user's own actions, never on reads, or the wallet would never lock. */
 export const touchSession = () => {
     void platform.session.touch();
 };
@@ -54,7 +50,7 @@ export const subscribeVault = (listener: () => void) => {
     };
 };
 
-// Somewhere else changed it: a second window, or the worker locking on its deadline.
+// Changed elsewhere: another window, or the worker locking on its deadline.
 platform.session.watch((vault) => {
     current = vault;
 

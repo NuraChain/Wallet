@@ -40,8 +40,7 @@ const scanFailureMap: Record<ScanFailure, string> = {
     unavailable: 'Dashboard.Send.ScanUnavailable'
 };
 
-/** What a plain transfer between two accounts costs, and the floor for a reserve when there is no
-    recipient yet to estimate against. */
+/** Also the reserve floor while there is no recipient to estimate against. */
 const baseTransferGas = 21_000n;
 
 const unknownAmount = '—';
@@ -143,9 +142,7 @@ export default function DashboardSend({
 
     const params = (value: string) => ({ to, amount: value, decimals: network.decimals, token: asset.token });
 
-    /* Only the recipient is taken from a code. One that names another network is turned down
-       rather than read as an address here: the same address there may belong to nobody, or to a
-       contract that is not on this chain at all. */
+    // A code naming another network is refused: the same address may be nobody's on this chain.
     const onScan = (text: string) => {
         const scanned = readRecipient(text);
 
@@ -186,8 +183,6 @@ export default function DashboardSend({
         return `${trimAmount(formatUnits(fee, network.decimals))} ${network.symbol}`;
     };
 
-    /* Only the native asset pays its fee out of the same balance it is spending, so it is the only
-       one with a total worth stating. A token transfer's fee comes from somewhere else entirely. */
     const totalText = () => {
         if (!native || fee === undefined) {
             return '';
@@ -207,11 +202,7 @@ export default function DashboardSend({
         { label: T('Dashboard.Network.Title'), value: network.name }
     ];
 
-    /**
-     * `Max` used to propose the entire native balance, which cannot pay for its own gas — a
-     * guaranteed revert after the user had already confirmed. The reserve is the real estimate when
-     * there is a recipient to estimate against, and the plain-transfer floor when there is not.
-     */
+    // Native `Max` holds back gas: the whole balance cannot pay its own fee and would revert.
     const onMax = async () => {
         if (!native) {
             setAmount(asset.formatted);
@@ -276,8 +267,7 @@ export default function DashboardSend({
         setFee(undefined);
         setFeeBusy(true);
 
-        // A fee that cannot be estimated is shown as unknown rather than blocking the send: an RPC
-        // that refuses to estimate is not the same thing as a transaction that cannot land.
+        // An unestimable fee does not block the send: the transaction may still land.
         try {
             setFee(await vaultManager(vault, index).estimate(getProvider(), params(amount)));
         } catch {
@@ -304,8 +294,6 @@ export default function DashboardSend({
             setStep('success');
             onSent();
         } catch (cause) {
-            // The reason used to be swallowed and replaced with one generic sentence, which left
-            // "nonce too low", "gas too low" and "reverted" looking like the same problem.
             setFailure(cause instanceof Error ? cause.message : String(cause));
             setStep('error');
         }
@@ -313,8 +301,7 @@ export default function DashboardSend({
 
     const pending = step === 'pending';
 
-    /* Dismissing mid-broadcast used to take the hash with it, leaving a transaction in flight and
-       no reference to it anywhere. The header drops its close for the same reason. */
+    // No dismissing mid-broadcast, or an in-flight transaction's hash is lost.
     const dismiss = () => {
         if (!pending) {
             onClose();
@@ -403,8 +390,7 @@ export default function DashboardSend({
                         room={scannable ? 'trailing' : undefined}
                         trailing={
                             scannable ? (
-                                // The field reads left to right in every language, so its button keeps to
-                                // the field's end rather than the page's, where the address begins.
+                                // The field is LTR in every language, so its button keeps to the field's end.
                                 <Button
                                     dir='ltr'
                                     variant='fieldAction'

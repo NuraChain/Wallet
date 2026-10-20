@@ -30,8 +30,6 @@ struct DappRequest {
     payload: String,
 }
 
-/// A link the page tried to open that this webview cannot load itself — a wallet scheme, an app
-/// link. The page's own navigation is cancelled and the wallet is offered the URL.
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct DappLink {
@@ -39,7 +37,6 @@ struct DappLink {
     url: String,
 }
 
-/// Where a child webview sits in the wallet's page, in CSS pixels.
 #[cfg(target_os = "linux")]
 #[derive(Clone, Serialize)]
 pub struct Spot {
@@ -209,9 +206,7 @@ pub async fn browser_open<R: Runtime>(
                 return true;
             }
 
-            // Nothing in this webview can open a foreign scheme, and letting the navigation run
-            // leaves the page on a dead end. The wallet is given the URL instead, and decides for
-            // itself whether it has any use for it.
+            // A foreign scheme would leave the page on a dead end; the wallet gets the URL instead.
             let _ = carrier.emit_to(
                 WALLET_LABEL,
                 "nura://dapp-link",
@@ -233,16 +228,13 @@ pub async fn browser_open<R: Runtime>(
         )
         .map_err(|cause| cause.to_string())?;
 
-    // Linux takes neither the position nor the size above, and keeps the mouse on a layer over
-    // every tab, so there the page is placed and the mouse is left where it is. The wallet places
-    // the page again as soon as it finds it, which is why a miss here is not a failure to open.
+    // Linux ignores the position and size above. A miss is not fatal: the wallet places it again.
     #[cfg(target_os = "linux")]
     if let Some(page) = app.get_webview(&label) {
         let _ = crate::stage::place(&page, false, x, y, width, height);
     }
 
-    // A child added later is drawn above the ones before it, which would bury the floating mouse
-    // under the new tab. Handing it back to the same window puts it on top again.
+    // A later child draws over the mouse; re-parenting it puts it back on top.
     #[cfg(not(target_os = "linux"))]
     if let Some(mouse) = app.get_webview(MOUSE_LABEL) {
         let _ = mouse.reparent(&window);
@@ -251,7 +243,6 @@ pub async fn browser_open<R: Runtime>(
     Ok(())
 }
 
-/// The webview a caller may place: the wallet any tab or the mouse, and the mouse itself.
 #[cfg(target_os = "linux")]
 fn placed<R: Runtime>(
     app: &AppHandle<R>,
@@ -272,8 +263,7 @@ fn placed<R: Runtime>(
         .ok_or_else(|| "that webview is gone".to_string())
 }
 
-/// Linux only, where Tauri's own position and size calls do nothing to a child webview. The
-/// numbers are the wallet's own: CSS pixels from the corner of its page.
+/// Linux only: Tauri's own position and size calls do nothing to a child webview there.
 #[cfg(target_os = "linux")]
 #[tauri::command]
 pub async fn browser_place<R: Runtime>(
@@ -291,7 +281,7 @@ pub async fn browser_place<R: Runtime>(
         .map_err(|cause| cause.to_string())
 }
 
-/// Linux only, where Tauri reads every child webview back as sitting at the window's corner.
+/// Linux only: Tauri reads every child webview back as sitting at the window's corner.
 #[cfg(target_os = "linux")]
 #[tauri::command]
 pub async fn browser_position<R: Runtime>(

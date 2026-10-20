@@ -21,7 +21,6 @@ export default function StatusBlock({
     state?: keyof typeof iconMap;
     text: string;
     panel?: boolean;
-    /** Takes the whole height it is given and centres itself in it. */
     fill?: boolean;
     px?: 5;
 }) {

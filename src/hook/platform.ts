@@ -8,12 +8,7 @@ export const useIsWindows = (): boolean => {
     return isWindows;
 };
 
-/**
- * Whether the system draws a status bar over the top of the app, as a phone does. There the strip
- * under it, and the browser's header below that, wear the colour of the site in the browser. A
- * desktop has no such bar, and nothing at the top of a desktop window — its title bar, or the
- * browser's header under it — ever takes a site's colour.
- */
+/** On a phone the strip under the status bar and the browser header wear the site's colour; a desktop never does. */
 export const useHasStatusBar = (): boolean => {
     const [hasStatusBar] = useState(() => {
         const host = getPlatform();
@@ -24,12 +19,7 @@ export const useHasStatusBar = (): boolean => {
     return hasStatusBar;
 };
 
-/**
- * Whether the wallet can host a page itself. A Tauri window opens a child webview for it, and
- * Android and iOS each hand one over natively — BrowserBridge.kt and BrowserBridge.mm both answer
- * to `window.__nuraBrowser`. An extension popup is a document the browser closes the moment it
- * loses focus — the browser it lives in is the one that browses.
- */
+/** An extension popup closes the moment it loses focus, so only a Tauri window or a native bridge hosts a page. */
 export const useHasBrowser = (): boolean => {
     const [hasBrowser] = useState(() => {
         const host = getPlatform();
@@ -41,17 +31,8 @@ export const useHasBrowser = (): boolean => {
 };
 
 /**
- * Whether a QR code can be read off the camera here. That takes a camera the page may ask for and
- * a host that puts the question to the user, which each does its own way: WebView2 asks on Windows;
- * on Android the webview's client asks for the permission the manifest names; macOS and iOS ask
- * once the bundle says what the camera is for, in `Info.plist` and `Info.ios.plist`; and on Linux
- * `camera.rs` switches on the capture WebKitGTK ships without, for the wallet's webview alone.
- *
- * An extension is the one host left out. Its docked panel and its popup have nowhere to show the
- * browser's question, so the request is refused unseen.
- *
- * The camera's own interface is looked for too: a webview that has it switched off, or does not
- * take the page for a secure one, leaves it out altogether.
+ * Each host asks for the camera its own way (on Linux `camera.rs` enables capture); an extension cannot show the prompt, so it is left out.
+ * A webview with the camera off, or that does not take the page as secure, lacks the interface altogether.
  */
 export const useCanScan = (): boolean => {
     const [canScan] = useState(() => {

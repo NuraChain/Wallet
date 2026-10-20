@@ -25,10 +25,8 @@ export default function IntroCredentials({
 }: {
     prefix: string;
     submitKey: string;
-    /** Pads the form in from the edges of the sheet it sits in. */
     inset?: boolean;
     shrink?: boolean;
-    /** Room under the submit button, where the sheet's own bottom padding is not enough. */
     submitGap?: boolean;
     onError: (message: string) => void;
     onSubmit: (password: string) => Promise<void>;

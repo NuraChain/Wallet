@@ -69,14 +69,14 @@ export default function DashboardBrowser({
     onFullscreen
 }: {
     network: Network;
-    /** Whether this is the tab on screen. A dialog over it turns `enabled` off and leaves this on. */
+    /** Stays true under a dialog, which turns only `enabled` off. */
     inView: boolean;
     enabled: boolean;
     request: string;
     ticket: number;
-    /** Counts up once per press of the floating mouse while this tab is showing. */
+    /** A counter, bumped per mouse press. */
     fullToggle: number;
-    /** Counts up once per double press of the floating mouse while this tab is showing. */
+    /** A counter, bumped per mouse double press. */
     homePress: number;
     onExit: () => void;
     onFullscreen?: (on: boolean) => void;
@@ -87,9 +87,7 @@ export default function DashboardBrowser({
     const [favorites, setFavorites] = useState<BrowserFavorite[]>([]);
     const [icons, setIcons] = useState({ bytes: 0, count: 0, blocked: 0 });
     const [connections, setConnections] = useState(0);
-    /* One page, kept as a list of one. The browser held several once, behind a strip of tabs; with
-       nothing left on screen to reach a second page by, or to close it, every site opens in the
-       same one. The list is the shape the frames and the native bridges are addressed in. */
+    // A list of one: the frames and the native bridges are addressed by tab.
     const [tabs, setTabs] = useState<BrowserTab[]>([{ id: 1, entries: [], index: -1, draft: '', reload: 0, home: false }]);
 
     const active = tabs[0].id;
@@ -113,14 +111,9 @@ export default function DashboardBrowser({
 
     const native = getNativeBrowser() !== undefined;
 
-    /* The home page is the wallet's own, so there is nothing to go full screen for. Deriving the
-       mode rather than storing it keeps a tab that went full screen from coming home to a page with
-       no chrome and no way to bring it back, while still remembering the intent for when a site is
-       opened again. */
+    // Derived, so coming home never leaves a page with no chrome and no way back.
     const full = fullMode && !start;
 
-    // Acted on once per count, during render rather than after it, and only over a site: on the
-    // home page there is nothing to hide.
     if (fullToggle !== seenToggle) {
         setSeenToggle(fullToggle);
 
@@ -129,7 +122,6 @@ export default function DashboardBrowser({
         }
     }
 
-    // A double press comes home the way the Home button does, which also lifts full screen off the page.
     if (homePress !== seenHome) {
         setSeenHome(homePress);
 
@@ -140,10 +132,7 @@ export default function DashboardBrowser({
         onFullscreen?.(full);
     }, [full, onFullscreen]);
 
-    // On a phone the browser's header, and the status bar over it, wear the open site's colour for as
-    // long as the site is what this tab shows — through a dialog as well, which hides the page but
-    // not the tab. A desktop window names no page here, so nothing in it ever leaves the wallet's
-    // colours: not the title bar, and not the header under it.
+    // Phones only: the header and status bar wear the site's colour while this tab shows it.
     useEffect(() => {
         showSiteTheme(hasStatusBar && inView && !start ? frameLabel(tab.id) : '');
 
@@ -176,8 +165,6 @@ export default function DashboardBrowser({
         getNativeBrowser()?.setDappScript?.(script);
     }, [script]);
 
-    /* The field used to lead with a magnifier whatever it was pointing at, so a wallet's own
-       browser said nothing about whether the page asking to sign was served over TLS. */
     const originGlyph = () => {
         if (current.startsWith('http://')) {
             return <TriangleAlert size={16} className='text-txt-error' />;
@@ -242,7 +229,6 @@ export default function DashboardBrowser({
             return;
         }
 
-        // Into the page already open, on top of what it showed, so Back still leads there.
         patch(active, (item) => {
             const next = [...item.entries.slice(0, item.index + 1), url];
 

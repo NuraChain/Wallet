@@ -1,11 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-/**
- * The reminder to back the wallet up: on the wallet page until it is closed, and back a week after
- * each time it was. The store is stood in for by a map and the clock by a fake one, so a week here
- * takes no time at all.
- */
-
 const held = new Map<string, string>();
 
 let unreadable = false;
@@ -31,7 +25,6 @@ const day = 24 * 60 * 60 * 1000;
 
 const start = Date.UTC(2026, 9, 13, 9, 0, 0);
 
-/** A copy of the module that has read nothing yet. */
 const fresh = async () => import('../core/backup');
 
 beforeEach(() => {

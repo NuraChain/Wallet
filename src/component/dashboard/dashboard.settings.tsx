@@ -27,7 +27,6 @@ export default function DashboardSettings({
     kind: VaultKind;
     onBack: () => void;
     onLanguage: () => void;
-    /** Left out where there is no floating button to set up. */
     onMouse?: () => void;
     onPhrase: () => void;
     onLock: () => void;
@@ -95,10 +94,6 @@ export default function DashboardSettings({
 
             <Block grow />
 
-            {/* One row, one metric, by request. Delete erases the wallet from this device and sits
-                a target width from the everyday action, so the weight it carries is the fill:
-                `destructive` is the only red button on the screen, and the password prompt behind
-                it is what actually stands between a mis-tap and a lost wallet. */}
             <ModalActions>
                 <Button
                     variant='primary'

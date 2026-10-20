@@ -1,5 +1,3 @@
-/** The in-app browser: its tabs, pages, favourites and the native bridge that draws them. */
-
 export interface BrowserState {
     id?: string;
     url: string;
@@ -26,7 +24,6 @@ export interface BrowserTab {
     home: boolean;
 }
 
-/** A device a page can ask for. */
 export type SiteDevice = 'microphone' | 'camera';
 
 export interface BrowserFavorite {
@@ -34,7 +31,7 @@ export interface BrowserFavorite {
     name: string;
     url: string;
 
-    /** Devices the site at this address may use without being asked each time. Off unless set. */
+    /** Allowed without asking each time. Off unless set. */
     microphone?: boolean;
     camera?: boolean;
 }

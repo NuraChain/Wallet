@@ -55,8 +55,6 @@ export default function DashboardReceive({ address, network, onClose }: { addres
                 <AddressBlock address={address} />
             </Panel>
 
-            {/* The result rides on the button rather than an alert underneath it, which used to
-                appear after the fact and grow the dialog out from under the user's finger. */}
             <CopyButton variant='primary' size='action' value={address} width='full'>
                 {T('Dashboard.Copy')}
             </CopyButton>

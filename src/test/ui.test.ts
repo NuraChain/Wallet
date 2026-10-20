@@ -1,12 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-/**
- * `src/ui` is the design system, and a primitive says what it is through named props — never
- * through a class string handed in by the caller. A `className` escape hatch is how a catalog
- * turns back into one-off surfaces, so this pins it shut: no class-string prop is declared, and
- * no spread of HTML attributes lets `className` back in unnoticed.
- */
+/** Primitives take named props, never a class string: no class-string prop is declared, and no HTML attribute spread lets `className` back in. */
 const folder = new URL('../ui/', import.meta.url);
 
 const files = readdirSync(folder).filter((name) => /\.tsx?$/u.test(name));

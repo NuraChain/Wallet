@@ -11,8 +11,6 @@ import { getVault } from './core/session';
 import { getValue } from './utility/storage';
 
 const launchLoader = async () => {
-    // A session the platform kept for us: the wallet is already open, and the unlock screen would
-    // be asking for a passphrase it does not need.
     if (getVault() !== undefined) {
         return redirect('/dashboard');
     }

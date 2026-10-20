@@ -15,7 +15,7 @@ const legal =
 
 const empty = (length: number) => Array.from({ length }, () => '');
 
-/** The text export of the phrase dialog, `dashboard.phrase.tsx`: one numbered word a line. */
+/** The phrase dialog's text export: one numbered word a line. */
 const exported = (words: string[]) => words.map((word, index) => `${index + 1}. ${word}`).join('\n');
 
 describe('the words of a phrase', () => {

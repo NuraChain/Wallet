@@ -1,5 +1,3 @@
-/** Tokens, their prices, and the kinds of image the cache holds for them. */
-
 export type ImageKind = 'network' | 'token' | 'nft' | 'unknown';
 
 export type PriceMap = Record<string, number>;

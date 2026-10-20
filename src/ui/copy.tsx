@@ -9,14 +9,6 @@ import Button from './button';
 import { T } from '../utility/language';
 import { useClipboard } from '../hook/clipboard';
 
-/**
- * Copy, with its result reported on the control itself.
- *
- * The result used to be an `Alert` underneath, which appeared between the buttons and the primary
- * action and pushed that action down — under the finger already reaching for it. Swapping the
- * glyph says the same thing where the user is already looking and moves no layout, and `Live`
- * carries it to assistive tech, which an Alert that mounts with its own text never did.
- */
 export default function CopyButton({
     value,
     doneText = '',
@@ -34,7 +26,6 @@ export default function CopyButton({
     variant?: 'bare' | 'muted' | 'normal' | 'primary';
     size?: 'none' | 'action';
     trailing?: boolean;
-    /** The small muted form, set under a figure rather than beside it. */
     subtle?: boolean;
     width?: 'full';
     children?: ReactNode;
@@ -89,7 +80,6 @@ export default function CopyButton({
 
     return (
         <Button
-            // A filled variant is already a centred row; a bare one is laid out as a row here.
             variant={variant === 'bare' ? bare : variant}
             size={size}
             width={width}

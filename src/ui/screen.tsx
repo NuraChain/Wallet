@@ -9,11 +9,6 @@ import { surfacePanel } from './panel';
 import { getDirection } from '../utility/language';
 import { useIsWindows } from '../hook/platform';
 
-/**
- * A route's own surface, arriving: the dashboard fades in; the intro grows from the centre.
- *
- * Grown as a whole `transform` and put back to `none`, for the reasons Modal's panel is.
- */
 export function Screen({ enter, backdrop = false, children }: { enter: 'fade' | 'grow'; backdrop?: boolean; children: ReactNode }) {
     const motionProps =
         enter === 'fade'
@@ -27,7 +22,6 @@ export function Screen({ enter, backdrop = false, children }: { enter: 'fade' | 
     );
 }
 
-/** The single card a page is made of, fading in at the centre — the unlock screen. */
 export function EntryCard({ children }: { children: ReactNode }) {
     return (
         <motion.div
@@ -41,7 +35,6 @@ export function EntryCard({ children }: { children: ReactNode }) {
     );
 }
 
-/** The dashboard's tabs side by side, slid so the one at `index` fills the view — mirrored for RTL. */
 export function Track({ index, children }: { index: number; children: ReactNode }) {
     return (
         <div
@@ -53,7 +46,6 @@ export function Track({ index, children }: { index: number; children: ReactNode 
     );
 }
 
-/** The dashboard's sidebar, which only exists from `lg`, padded clear of the title bar or the device's inset. */
 export function SidebarPanel({ children }: { children: ReactNode }) {
     const isWindows = useIsWindows();
 
@@ -70,7 +62,6 @@ export function SidebarPanel({ children }: { children: ReactNode }) {
     );
 }
 
-/** The whole window waiting on a route, with nothing on it but a spinner. */
 export function Splash() {
     return (
         <div className='flex size-full items-center justify-center bg-base-1'>
@@ -79,12 +70,10 @@ export function Splash() {
     );
 }
 
-/** The intro's top bar: the language picker at one end, the theme toggle at the other. */
 export function IntroBar({ children }: { children: ReactNode }) {
     return <div className='mt-3 flex shrink-0 items-center justify-between gap-2 sm:mt-4'>{children}</div>;
 }
 
-/** One slide of the intro carousel: its art, headline and line of copy, centred. */
 export function IntroSlide({ children }: { children: ReactNode }) {
     return <div className='flex h-full cursor-pointer flex-col items-center justify-center gap-2 px-2 pb-10'>{children}</div>;
 }

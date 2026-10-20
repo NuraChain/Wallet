@@ -5,7 +5,6 @@ import { layer } from './container';
 
 const minSize = 32;
 
-// Where the thumb rides: against the edge of a dialog, or inset into a panel's padding.
 const edgeMap = { flush: '-inset-e-0.5', flushTop: '-inset-e-0.5 top-2', inset: 'inset-e-2 top-2' } as const;
 
 export default function ScrollBar({ viewportRef, edge }: { viewportRef: RefObject<HTMLElement | null>; edge?: keyof typeof edgeMap }) {

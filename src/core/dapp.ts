@@ -46,12 +46,11 @@ export const loadConnections = async (): Promise<string[]> => {
     try {
         stored = await getValue('Browser.Connections');
     } catch {
-        // A read that failed says nothing about what was granted, so what is held stays.
+        // A failed read says nothing about grants, so what is held stays.
         return granted;
     }
 
-    // Nothing stored is nothing granted. Keeping what was held here is how a deleted wallet's
-    // sites went on being answered with the address of the next wallet made on the device.
+    // Nothing stored is nothing granted, or a deleted wallet's sites would be answered with the next wallet's address.
     if (stored === undefined) {
         granted = [];
 

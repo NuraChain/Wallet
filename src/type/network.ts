@@ -1,5 +1,3 @@
-/** A chain the wallet can be on. */
-
 export interface Network {
     id: string;
     name: string;

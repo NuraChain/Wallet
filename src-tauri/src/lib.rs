@@ -51,8 +51,7 @@ pub fn run() {
                 dapp::dapp_emit
             ]);
 
-        // The window exists by now and holds only the wallet, which is what the overlay is built
-        // around; a child webview comes later, from the page.
+        // Runs while the window still holds only the wallet, before any child webview exists.
         #[cfg(target_os = "linux")]
         {
             builder = builder.setup(|app| {

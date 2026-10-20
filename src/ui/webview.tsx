@@ -22,18 +22,8 @@ const settleFrames = 90;
 const originSettle = 32;
 
 /**
- * How far the document's own origin sits below the window's.
- *
- * A child webview is placed in window coordinates, while the rect it is placed from was measured
- * in the document's. On macOS those two do not share an origin: the window's content view runs the
- * full height of the frame and the title bar is drawn over the top of it, so WebKit keeps the
- * document out from under the bar and `innerHeight` comes back short by exactly that strip. A rect
- * at document y sits at window y plus the strip, and placing the webview at the document's number
- * puts it that much too high - over the browser's own header, with a gap left beneath it.
- *
- * The strip is the difference between the two heights, which is how it stays right without naming
- * a title bar height: full screen takes the bar away and the difference falls to zero on its own,
- * and on every other platform the window never covered the document and it was zero all along.
+ * On macOS the title bar is drawn over the content view, so the document's origin sits below the
+ * window's by the height difference; it is zero in full screen and on every other platform.
  */
 const topOffset = async (view: Webview) => {
     try {
@@ -47,21 +37,9 @@ const topOffset = async (view: Webview) => {
     }
 };
 
-/**
- * Size, then origin, then origin again.
- *
- * Resizing a child webview re-derives its origin from the frame it already had, and macOS gets
- * that derivation wrong. The resize lands on a later main-thread pass than the call that asked
- * for it, so an origin stated in the same turn is thrown away afterwards and the page ends up
- * pinned to the top of the window — over the browser's own header, with a gap left beneath it.
- * Ordering the two calls was not enough, because awaiting the IPC round trip does not wait for
- * the layout pass behind it. Restating the origin once the resize has settled is what makes it
- * stick, and on the platforms that never lost it the second call carries the same numbers and
- * changes nothing.
- */
+/** macOS applies a resize on a later pass and drops an origin set in the same turn, so it is restated. */
 const applyBounds = async (view: Webview, rect: { x: number; y: number; width: number; height: number }) => {
-    // Linux lays a child webview out itself and takes neither of the calls below, so the rect goes
-    // to the command that does the placing there, measured from the page's corner as it stands.
+    // Linux lays a child webview out itself and ignores both calls below, so a command places it.
     if (getPlatform() === 'linux') {
         await invoke('browser_place', { label: view.label, x: rect.x, y: rect.y, width: rect.width, height: rect.height });
 
@@ -99,7 +77,6 @@ export default function WebFrame({
     reload?: number;
     title?: string;
     script?: string;
-    /** The tab on show; the others stay mounted, and hidden. */
     front: boolean;
     children?: ReactNode;
     onFallback?: (notice: string) => void;
@@ -467,8 +444,6 @@ export default function WebFrame({
 
                     <Text text={T('Dashboard.Browser.Loading')} />
 
-                    {/* Keyed by the load, so each page fills its own bar rather than finding the
-                        last one's already full. */}
                     <ProgressBar key={`${url}-${reload}`} look='track' />
                 </div>
             )}

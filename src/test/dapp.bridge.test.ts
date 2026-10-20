@@ -2,11 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { DappEnvelope, DappReply } from '../type/dapp';
 
-/**
- * The bridge is the only door a web page has into the wallet, so what matters here is what it
- * refuses to carry: a page writes the request, but never its own origin and never the flag that
- * says an approval has already been given.
- */
+// A page writes the request, but never its own origin nor the flag saying an approval was given.
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: async () => undefined }));
 
@@ -37,8 +33,7 @@ const nativeBrowser = {
     }
 };
 
-// The Android bridge is the one that can be exercised without a webview: it is reached through two
-// callbacks the native layer sets on the window.
+// Android's bridge is the one testable without a webview: two callbacks the native layer sets on the window.
 Object.assign(globalThis, { window: globalThis, __nuraBrowser: nativeBrowser });
 
 const { forgetDappPages, getDappPages, startDappBridge } = await import('../core/dapp.bridge');
@@ -53,7 +48,6 @@ const settled = async () => {
     });
 };
 
-/** A page asking for devices, the way the native layer hands it over: who, and what for. */
 const wants = (kinds: unknown[], origin = 'https://voice.example', ticket = 'seven') =>
     window.__nuraPermission?.(JSON.stringify({ ticket, label: 'nura-browser-1', origin, kinds }));
 
@@ -99,8 +93,7 @@ describe('what a page may put in an envelope', () => {
 
         await settled();
 
-        // An envelope is built field by field from the request: it carries what the bridge writes,
-        // and nothing the page slipped in alongside it.
+        // Built field by field: nothing the page slipped in alongside the request rides along.
         expect('granted' in seen[0]).toBe(false);
 
         stop();
@@ -161,12 +154,9 @@ describe('what a page may put in an envelope', () => {
 
         await settled();
 
-        // Nothing malformed reaches the router.
         expect(seen).toHaveLength(0);
 
-        // The three that parsed as JSON but not as a call are each refused by name. The page has
-        // a promise open on every one of them, and silence would hang it for good; only the
-        // string that was not JSON at all is dropped, because nothing in it identifies a caller.
+        // JSON that is not a call is refused by name, or the page's promise hangs; non-JSON names no caller, so it is dropped.
         expect(replies).toHaveLength(3);
 
         for (const reply of replies) {

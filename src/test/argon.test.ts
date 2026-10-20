@@ -1,14 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-/**
- * Argon2id runs in a worker so the page goes on drawing through it. Every wallet there is opens on
- * what it returns, so what is held here is that where it runs can never decide whether it answers:
- * with no worker, or one that will not start, fails, or says the wrong thing, the hash is run on
- * the page as it always was.
- *
- * hash-wasm is stood in for, so nothing here costs a real hash; what a password really hashes to is
- * held in `password.test.ts` and `storage.test.ts`.
- */
+// However the worker fails, the hash still runs on the page. hash-wasm is stubbed; real hashes are in password and storage tests.
 
 const computed = vi.hoisted(() => vi.fn<(options: { outputType?: string }) => Promise<string | Uint8Array>>());
 
@@ -40,7 +32,6 @@ class FakeWorker {
         this.ended = true;
     }
 
-    /** The worker says something, or something happens to it. */
     public say(name: 'message' | 'error' | 'messageerror', data?: unknown) {
         for (const listener of this.listeners.get(name) ?? []) {
             listener({ data });
@@ -58,12 +49,11 @@ const options = {
     outputType: 'hex'
 } as const;
 
-/** A host that will not have a worker started at all. A plain function, since it is called with `new`. */
+/** A plain function, since it is called with `new`. */
 function RefusedWorker() {
     throw new Error('refused by the content security policy');
 }
 
-/** A copy of the module that has not yet met a worker, good or bad. */
 const fresh = async () => (await import('../utility/argon')).argon2id;
 
 const worker = () => FakeWorker.made[FakeWorker.made.length - 1];

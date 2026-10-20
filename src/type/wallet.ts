@@ -1,5 +1,3 @@
-/** The unlocked wallet: its vault, accounts, sends, history and redeem codes. */
-
 export interface Transaction {
     id: string;
     hash: string;
@@ -28,8 +26,7 @@ export interface SendParams {
     to: string;
     amount: string;
 
-    /** The native token's own decimals. This used to be hardcoded to 18 through `parseEther`, so
-        on a chain that uses anything else the amount confirmed was not the amount broadcast. */
+    /** The native token's own decimals, never assumed to be 18. */
     decimals: number;
     token?: { address: string; decimals: number };
 }

@@ -28,7 +28,6 @@ export default function SiteForm({
 }: {
     title: string;
     item?: SiteEntry;
-    /** Offers the two device switches. Left off where the wallet is not the one a site's request comes to. */
     devices?: boolean;
     onSave: (item: SiteEntry) => void;
     onClose: () => void;
@@ -60,8 +59,7 @@ export default function SiteForm({
 
         const label = name.trim();
 
-        // A switch left off is not written at all, so a favourite saved before there were any reads
-        // the same as one saved with both off.
+        // A switch left off is not written, so an older favourite reads the same as both off.
         onSave({
             id: item?.id ?? crypto.randomUUID(),
             name: label.length > 0 ? label : getSiteHost(full),
@@ -79,8 +77,7 @@ export default function SiteForm({
 
             <TextField label={T('Dashboard.Site.Name')} value={name} autoComplete='off' placeholder={T('Dashboard.Site.Name')} onValue={setName} />
 
-            {/* `url` is what brings up a phone's address keyboard, with its slash and dot to hand. The
-                field still takes a bare host: nothing here is a form for the browser to validate. */}
+            {/* `url` brings up a phone's address keyboard; a bare host is still accepted. */}
             <TextField
                 type='url'
                 inputMode='url'

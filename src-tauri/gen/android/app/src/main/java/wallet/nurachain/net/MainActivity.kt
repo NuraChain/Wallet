@@ -9,9 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 
 class MainActivity : TauriActivity() {
-  // Whoever is waiting to hear whether Android let the app use a device, in the order they asked. A
-  // page in the browser asks through BrowserBridge, but the launcher is registered here: an
-  // activity takes one only before it has started, and the bridge is built later than that.
+  // Registered here, not in BrowserBridge: an activity takes a launcher only before it starts.
   private val deviceAsks = ArrayDeque<Pair<Array<String>, (Boolean) -> Unit>>()
 
   private val devices = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
@@ -26,7 +24,6 @@ class MainActivity : TauriActivity() {
     deviceAsks.firstOrNull()?.let { devices.launch(it.first) }
   }
 
-  // One system dialog at a time: a page asking while one is up waits its turn.
   private fun askAndroid(names: Array<String>, answer: (Boolean) -> Unit) {
     deviceAsks.addLast(names to answer)
 
