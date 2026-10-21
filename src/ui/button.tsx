@@ -47,6 +47,8 @@ const bareMap = {
     listRow: `${focusRing} press press-row flex items-center gap-3 p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-muted-hover`,
     inlineRow: `${focusRing} flex cursor-pointer items-center gap-2`,
     inlineSubtle: `${focusRing} flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal`,
+    /** A link inside running text: it flows with the sentence instead of starting a row. */
+    link: `${focusRing} inline cursor-pointer rounded-control font-medium text-txt-accent underline underline-offset-2 hover:text-txt-normal`,
     tab: `${focusRing} ${tabBase} text-txt-muted hover:text-txt-normal`,
     tabOn: `${focusRing} ${tabBase} text-txt-accent`,
     option: `${focusRing} ${optionBase} press press-row hover:bg-btn-muted-hover`,

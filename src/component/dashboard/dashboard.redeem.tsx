@@ -10,7 +10,7 @@ import { ReadonlyField, TextField } from '../../ui/field';
 import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
-import { isRedeemCode, redeemCode } from '../../core/redeem';
+import { isRedeemCode, redeemCode, redeemShop } from '../../core/redeem';
 import { Vertical } from '../../ui/stack';
 import type { RedeemFailure } from '../../type/wallet';
 
@@ -22,7 +22,9 @@ const failureText: Record<RedeemFailure | 'failed', string> = {
     failed: 'Dashboard.Redeem.ErrorFailed'
 };
 
-export default function DashboardRedeem({ address, onClose }: { address: string; onClose: () => void }) {
+const shopHost = new URL(redeemShop).host;
+
+export default function DashboardRedeem({ address, onBrowse, onClose }: { address: string; onBrowse: (url: string) => void; onClose: () => void }) {
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
     const [done, setDone] = useState<{ amount: number; wallet: string; notified: boolean }>();
@@ -55,6 +57,9 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
         }
     };
 
+    // Every translation names the shop's domain as written, so it is split out and made the link.
+    const [infoBefore, ...infoAfter] = T('Dashboard.Redeem.Info').split(shopHost);
+
     return (
         <Modal scroll onClose={onClose}>
             <ModalHeader
@@ -86,7 +91,24 @@ export default function DashboardRedeem({ address, onClose }: { address: string;
                             }}
                             look='note'
                         >
-                            {T('Dashboard.Redeem.Info')}
+                            {infoBefore}
+
+                            {infoAfter.length > 0 && (
+                                <>
+                                    <Button
+                                        variant='link'
+                                        dir='ltr'
+                                        onClick={() => {
+                                            setShowInfo(false);
+
+                                            onBrowse(redeemShop);
+                                        }}
+                                        text={shopHost}
+                                    />
+
+                                    {infoAfter.join(shopHost)}
+                                </>
+                            )}
                         </Popover>
                     </PopoverAnchor>
                 }

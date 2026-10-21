@@ -1,7 +1,10 @@
 import { httpRequest } from './request';
 import type { RedeemFailure, RedeemResult } from '../type/wallet';
 
-const endpoint = 'https://ashbringer.org/api/redeem';
+/** The shop that sells redeem codes; the info note links its domain here. */
+export const redeemShop = 'https://ashbringer.org';
+
+const endpoint = `${redeemShop}/api/redeem`;
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 

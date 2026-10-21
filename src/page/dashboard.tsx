@@ -507,7 +507,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                 {modal === 'language' && <IntroLanguage key='language' onClose={closeModal} />}
 
-                {modal === 'redeem' && <DashboardRedeem key='redeem' address={address} onClose={closeModal} />}
+                {modal === 'redeem' && <DashboardRedeem key='redeem' address={address} onBrowse={onBrowse} onClose={closeModal} />}
 
                 {modal === 'mouse' && <DashboardMouse key='mouse' onClose={closeModal} />}
 
