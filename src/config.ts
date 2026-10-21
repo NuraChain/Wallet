@@ -4,9 +4,10 @@ import type { Network } from './type/network';
 /** The app's fixed addresses in one place. They are built in, not read at run time, so a change needs a rebuild. */
 
 const favorites: BrowserFavorite[] = [
-    { id: 'goman', name: 'Goman', url: 'https://goman.online' },
-    { id: 'ashbringer', name: 'Ashbringer', url: 'https://ashbringer.org' },
+    { id: 'baziche', name: 'BaziChe', url: 'https://baziche.com' },
     { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
+    { id: 'ashbringer', name: 'Ashbringer', url: 'https://ashbringer.org' },
+    { id: 'goman', name: 'Goman', url: 'https://goman.online' },
     { id: 'nurachain', name: 'Nura Chain', url: 'https://nurachain.net' },
     { id: 'discord', name: 'Discord', url: 'https://discord.gg/vxyzMY8yFy' },
     { id: 'telegram', name: 'Nura Telegram', url: 'https://t.me/nurachain' }
