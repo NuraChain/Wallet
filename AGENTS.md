@@ -24,7 +24,7 @@ No test catches that one. The rules a test does catch are under
 dApp browser. One React 19 + TypeScript app ships three ways:
 
 | Target | Built by | Entry |
-|---|---|---|
+| --- | --- | --- |
 | Desktop (Windows, macOS, Linux) | Tauri 2 | `src-tauri/`, `src/app.tsx` |
 | Mobile (Android, iOS) | Tauri 2 | `src-tauri/`; the native projects are `src-tauri/gen/android` and `src-tauri/gen/apple` |
 | Browser extension (Chrome, Edge, Firefox, Safari — MV3) | Vite | `src-extension/`, `vite.config.extension.ts` |
@@ -39,7 +39,7 @@ material as security-critical.
 ## Repository map
 
 | Path | Holds |
-|---|---|
+| --- | --- |
 | `src/page/` | Route-level screens (`intro`, `unlock`, `dashboard`) |
 | `src/component/` | Screen-specific composites (`dashboard/*`, `intro/*`) |
 | `src/ui/` | The design system — **the only place markup is written** |
@@ -102,6 +102,8 @@ These are checked by tests in `src/test/`; a violation fails `npm test`.
   `left`/`right`.
 - **Layers:** no bare `z-*`; use `layer` from `src/ui/container.tsx`.
 - **Files:** lowercase and dot-separated (`dashboard.send.tsx`), never PascalCase.
+- **Comments:** only where they are needed — a reason, a constraint or a trap the code cannot show
+  by itself. Never one that restates the code, labels a section, or narrates a change.
 - **Tauri:** capabilities live in the per-platform `tauri.*.conf.json` files. `browser-capability`
   (third-party pages) grants exactly one command; widening it is a security decision.
 - **dApp provider:** a request's origin is stamped by the transport, never read from the page.
@@ -132,7 +134,7 @@ Project skills in `.claude/skills/` hold the detail; read the matching one befor
 area.
 
 | Skill | Read before touching |
-|---|---|
+| --- | --- |
 | `design-system` | Any JSX that renders UI — the primitive catalog and its rules |
 | `frontend-design` | How a screen should look and behave: hierarchy, motion, states, a11y |
 | `react` | Components, hooks, state, routing, tests, lint and format rules |
