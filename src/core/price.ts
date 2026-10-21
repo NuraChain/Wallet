@@ -6,6 +6,8 @@ import { clearUnder, prune, readRaw, writeRaw } from './cache.store';
 import type { PriceMap, PriceRead } from '../type/token';
 
 import logoBtc from '../assets/token/btc.svg';
+import logoBnb from '../assets/token/bnb.svg';
+import logoUsdt from '../assets/token/usdt.svg';
 import logoEth from '../assets/token/eth.svg';
 
 const marketPrefix = 'nura:';
@@ -24,10 +26,10 @@ const nativeLogos: Record<number, string | undefined> = { [nuraChainId]: `${nura
 
 const tokenLogos: Record<number, Record<string, string | undefined> | undefined> = {
     [nuraChainId]: {
-        '0x578facf1f6d7de0e78d59f405c2a53f387d94e93': `${nuraAssets}/BNB.svg`,
+        '0x578facf1f6d7de0e78d59f405c2a53f387d94e93': logoBnb,
         '0x5891b71b6e18fb8a7d770f65a9060f76c7d2a166': logoBtc,
         '0x4bef1c404e6bde102d9fceca678bd7471f3fd0ba': logoEth,
-        '0xeaf3361a86c22e9691283a30338b57ca95567207': `${nuraAssets}/USDT.svg`
+        '0xeaf3361a86c22e9691283a30338b57ca95567207': logoUsdt
     }
 };
 
