@@ -1,46 +1,10 @@
+import config from '../../config.json';
 import { setValue, getValue } from '../utility/storage';
 import type { Network } from '../type/network';
 
-export const nuraChainId = 1020;
+export const defaultNetworks: Network[] = config.networks;
 
-export const defaultNetworks: Network[] = [
-    {
-        id: 'nura',
-        name: 'Nura Chain',
-        chainId: nuraChainId,
-        symbol: 'Nura',
-        coin: 'Nura Coin',
-        rpcUrl: 'https://rpc.nurachain.net',
-        explorerUrl: 'https://explorer.nurachain.net',
-        explorerApi: 'https://explorer.nurachain.net/api',
-        decimals: 18,
-        custom: false
-    },
-    {
-        id: 'ethereum',
-        name: 'Ethereum',
-        chainId: 1,
-        symbol: 'ETH',
-        rpcUrl: 'https://ethereum.publicnode.com',
-        rpcBackups: ['https://eth.drpc.org', 'https://cloudflare-eth.com', 'https://eth.llamarpc.com', 'https://rpc.ankr.com/eth'],
-        explorerUrl: 'https://etherscan.io',
-        explorerApi: 'https://eth.blockscout.com/api',
-        decimals: 18,
-        custom: false
-    },
-    {
-        id: 'bnb',
-        name: 'BNB Smart Chain',
-        chainId: 56,
-        symbol: 'BNB',
-        rpcUrl: 'https://bsc-dataseed.binance.org',
-        rpcBackups: ['https://bsc-rpc.publicnode.com', 'https://bsc.publicnode.com'],
-        explorerUrl: 'https://bscscan.com',
-        explorerApi: 'https://api.etherscan.io/v2/api?chainid=56',
-        decimals: 18,
-        custom: false
-    }
-];
+export const nuraChainId = defaultNetworks[0].chainId;
 
 let customNetworks: Network[] = [];
 let networkCurrentId: string = defaultNetworks[0].id;

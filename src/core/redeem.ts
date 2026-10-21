@@ -1,8 +1,9 @@
+import config from '../../config.json';
 import { httpRequest } from './request';
 import type { RedeemFailure, RedeemResult } from '../type/wallet';
 
 /** The shop that sells redeem codes; the info note links its domain here. */
-export const redeemShop = 'https://ashbringer.org';
+export const redeemShop = config.redeemShop;
 
 const endpoint = `${redeemShop}/api/redeem`;
 

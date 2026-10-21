@@ -1,3 +1,4 @@
+import config from '../../config.json';
 import { inkOn } from '../utility/color';
 import { getValue, removeValue, setValue } from '../utility/storage';
 
@@ -12,14 +13,7 @@ export const frameLabel = (id: number) => `nura-browser-${id}`;
 /** Not a page, so outside `nura-browser-*`. */
 export const mouseLabel = 'nura-mouse';
 
-const defaultFavorites: BrowserFavorite[] = [
-    { id: 'goman', name: 'Goman', url: 'https://goman.online' },
-    { id: 'ashbringer', name: 'Ashbringer', url: 'https://ashbringer.org' },
-    { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
-    { id: 'nurachain', name: 'Nura Chain', url: 'https://nurachain.net' },
-    { id: 'discord', name: 'Discord', url: 'https://discord.gg/vxyzMY8yFy' },
-    { id: 'telegram', name: 'Nura Telegram', url: 'https://t.me/nurachain' }
-];
+const defaultFavorites: BrowserFavorite[] = config.favorites;
 
 const historyLimit = 40;
 

@@ -1,3 +1,4 @@
+import config from '../../config.json';
 import { isOnline } from './connection';
 import { nuraChainId } from './network';
 import { httpRequest } from './request';
@@ -17,7 +18,7 @@ const nativeIds: Record<number, string | undefined> = { 1: 'ethereum', 56: 'bina
 
 const assetFolders: Record<number, string | undefined> = { 1: 'ethereum', 56: 'smartchain' };
 
-const nuraAssets = 'https://raw.githubusercontent.com/NuraChain/Asset/refs/heads/main';
+const nuraAssets = config.assets.nura;
 
 const nativeLogos: Record<number, string | undefined> = { [nuraChainId]: `${nuraAssets}/Nura.png` };
 
@@ -30,9 +31,9 @@ const tokenLogos: Record<number, Record<string, string | undefined> | undefined>
     }
 };
 
-const endpoint = 'https://api.coingecko.com/api/v3/simple/price';
+const endpoint = config.price.coingecko;
 
-const marketEndpoint = 'https://swap.nurachain.net/api/market/tokens';
+const marketEndpoint = config.price.market;
 
 const pricePrefix = 'price-cache/v1/';
 const priceFresh = 60 * 1000;
@@ -65,7 +66,7 @@ export const getNativeLogo = (chainId: number) => {
 
     const folder = assetFolders[chainId];
 
-    return folder === undefined ? '' : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${folder}/info/logo.png`;
+    return folder === undefined ? '' : `${config.assets.trustWallet}/${folder}/info/logo.png`;
 };
 
 export const getTokenLogo = (chainId: number, address: string, symbol = '') => {
@@ -81,7 +82,7 @@ export const getTokenLogo = (chainId: number, address: string, symbol = '') => {
 
     const folder = assetFolders[chainId];
 
-    return folder === undefined ? '' : `https://raw.githubusercontent.com/trustwallet/assets/master/blockchains/${folder}/assets/${address}/logo.png`;
+    return folder === undefined ? '' : `${config.assets.trustWallet}/${folder}/assets/${address}/logo.png`;
 };
 
 const parsePrice = (raw: string | undefined) => {

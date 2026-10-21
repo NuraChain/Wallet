@@ -1,3 +1,4 @@
+import config from '../../../config.json';
 import { useEffect, useMemo, useState } from 'react';
 import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, TriangleAlert } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
@@ -54,7 +55,7 @@ const toUrl = (value: string) => {
         return `https://${trimmed}`;
     }
 
-    return `https://duckduckgo.com/?q=${encodeURIComponent(trimmed)}`;
+    return `${config.searchUrl}${encodeURIComponent(trimmed)}`;
 };
 
 export default function DashboardBrowser({
