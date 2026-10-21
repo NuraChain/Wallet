@@ -1,4 +1,4 @@
-import config from '../../../config.json';
+import config from '../../config';
 import { useEffect, useMemo, useState } from 'react';
 import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, TriangleAlert } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';

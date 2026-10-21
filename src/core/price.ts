@@ -1,4 +1,4 @@
-import config from '../../config.json';
+import config from '../config';
 import { isOnline } from './connection';
 import { nuraChainId } from './network';
 import { httpRequest } from './request';

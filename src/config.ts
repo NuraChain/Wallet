@@ -1,0 +1,68 @@
+import type { BrowserFavorite } from './type/browser';
+import type { Network } from './type/network';
+
+/** The app's fixed addresses in one place. They are built in, not read at run time, so a change needs a rebuild. */
+
+const favorites: BrowserFavorite[] = [
+    { id: 'goman', name: 'Goman', url: 'https://goman.online' },
+    { id: 'ashbringer', name: 'Ashbringer', url: 'https://ashbringer.org' },
+    { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
+    { id: 'nurachain', name: 'Nura Chain', url: 'https://nurachain.net' },
+    { id: 'discord', name: 'Discord', url: 'https://discord.gg/vxyzMY8yFy' },
+    { id: 'telegram', name: 'Nura Telegram', url: 'https://t.me/nurachain' }
+];
+
+/** Nura Chain stays first: its chain id is read from here. */
+const networks: Network[] = [
+    {
+        id: 'nura',
+        name: 'Nura Chain',
+        chainId: 1020,
+        symbol: 'Nura',
+        coin: 'Nura Coin',
+        rpcUrl: 'https://rpc.nurachain.net',
+        explorerUrl: 'https://explorer.nurachain.net',
+        explorerApi: 'https://explorer.nurachain.net/api',
+        decimals: 18,
+        custom: false
+    },
+    {
+        id: 'ethereum',
+        name: 'Ethereum',
+        chainId: 1,
+        symbol: 'ETH',
+        rpcUrl: 'https://ethereum.publicnode.com',
+        rpcBackups: ['https://eth.drpc.org', 'https://cloudflare-eth.com', 'https://eth.llamarpc.com', 'https://rpc.ankr.com/eth'],
+        explorerUrl: 'https://etherscan.io',
+        explorerApi: 'https://eth.blockscout.com/api',
+        decimals: 18,
+        custom: false
+    },
+    {
+        id: 'bnb',
+        name: 'BNB Smart Chain',
+        chainId: 56,
+        symbol: 'BNB',
+        rpcUrl: 'https://bsc-dataseed.binance.org',
+        rpcBackups: ['https://bsc-rpc.publicnode.com', 'https://bsc.publicnode.com'],
+        explorerUrl: 'https://bscscan.com',
+        explorerApi: 'https://api.etherscan.io/v2/api?chainid=56',
+        decimals: 18,
+        custom: false
+    }
+];
+
+export default {
+    redeemShop: 'https://ashbringer.org',
+    searchUrl: 'https://duckduckgo.com/?q=',
+    favorites,
+    networks,
+    price: {
+        coingecko: 'https://api.coingecko.com/api/v3/simple/price',
+        market: 'https://swap.nurachain.net/api/market/tokens'
+    },
+    assets: {
+        nura: 'https://raw.githubusercontent.com/NuraChain/Asset/refs/heads/main',
+        trustWallet: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains'
+    }
+};

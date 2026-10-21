@@ -1,4 +1,4 @@
-import config from '../../config.json';
+import config from '../config';
 import { setValue, getValue } from '../utility/storage';
 import type { Network } from '../type/network';
 

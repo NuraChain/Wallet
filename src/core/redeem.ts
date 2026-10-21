@@ -1,4 +1,4 @@
-import config from '../../config.json';
+import config from '../config';
 import { httpRequest } from './request';
 import type { RedeemFailure, RedeemResult } from '../type/wallet';
 

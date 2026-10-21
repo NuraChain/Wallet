@@ -1,4 +1,4 @@
-import config from '../../config.json';
+import config from '../config';
 import { inkOn } from '../utility/color';
 import { getValue, removeValue, setValue } from '../utility/storage';
 
