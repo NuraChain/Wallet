@@ -3,6 +3,7 @@ fn main() {
         tauri_build::Attributes::new().app_manifest(
             tauri_build::AppManifest::new().commands(&[
                 "browser_open",
+                "browser_clear",
                 "browser_place",
                 "browser_position",
                 "dapp_request",

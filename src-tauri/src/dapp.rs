@@ -243,6 +243,28 @@ pub async fn browser_open<R: Runtime>(
     Ok(())
 }
 
+/// Every browser page shares the wallet's browsing-data store, so clearing it from the wallet takes
+/// what each site kept: cookies, storage and cache. The pages close first so none writes again.
+#[tauri::command]
+pub async fn browser_clear<R: Runtime>(
+    app: AppHandle<R>,
+    webview: Webview<R>,
+) -> Result<(), String> {
+    if webview.label() != WALLET_LABEL {
+        return Err("only the wallet may clear browsing data".into());
+    }
+
+    for (label, page) in app.webviews() {
+        if is_page(&label) {
+            page.close().map_err(|cause| cause.to_string())?;
+        }
+    }
+
+    webview
+        .clear_all_browsing_data()
+        .map_err(|cause| cause.to_string())
+}
+
 #[cfg(target_os = "linux")]
 fn placed<R: Runtime>(
     app: &AppHandle<R>,

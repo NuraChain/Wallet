@@ -123,8 +123,10 @@ WebView can reach it. Both answers are `''` on success and a reason on failure.
    (`dashboard.delete.tsx`) runs `eraseWallet` in `core/erase.ts`, whose `fate` record names
    every `StorageKey` as `erase` or `keep`. Only `App.Language`, `App.Theme` and `App.Mouse`
    are kept; everything else goes, then every cache that holds an address, a balance or a
-   visited site is cleared, and the network and connection state is read back from the
-   emptied store so nothing carries into the next wallet. A new key fails the type check
+   visited site is cleared, the in-app browser closes and drops every site's cookies, storage
+   and cache (`clearBrowsingData`: `browser_clear` on desktop, `clearData` in Android's
+   `BrowserBridge.kt`), and the network and connection state is read back from the emptied
+   store so nothing carries into the next wallet. A new key fails the type check
    there until it is given a fate — that is the point, not an obstacle. `erase.test.ts`
    holds the behaviour.
 6. A change in this directory says why in the commit body.

@@ -10,14 +10,17 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
 import android.webkit.CookieManager
+import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
+import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebViewDatabase
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
@@ -543,6 +546,24 @@ class BrowserBridge(
             }
 
             pages.clear()
+        }
+    }
+
+    /** What every site kept goes with the wallet. Cookies, storage and cache are process-wide, so
+     * the host clears them for all tabs; the tabs close first so none writes again. */
+    @JavascriptInterface
+    fun clearData() {
+        closeAll()
+
+        activity.runOnUiThread {
+            CookieManager.getInstance().removeAllCookies(null)
+            CookieManager.getInstance().flush()
+
+            WebStorage.getInstance().deleteAllData()
+            GeolocationPermissions.getInstance().clearAll()
+            WebViewDatabase.getInstance(activity).clearHttpAuthUsernamePassword()
+
+            host.clearCache(true)
         }
     }
 

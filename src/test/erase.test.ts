@@ -27,7 +27,9 @@ vi.mock('@tauri-apps/plugin-store', () => ({
     })
 }));
 
-vi.mock('@tauri-apps/api/core', () => ({ invoke: async () => undefined }));
+const { invoke } = vi.hoisted(() => ({ invoke: vi.fn(async (_command: string) => undefined) }));
+
+vi.mock('@tauri-apps/api/core', () => ({ invoke }));
 
 vi.mock('@tauri-apps/api/event', () => ({ listen: async () => () => undefined }));
 
@@ -158,6 +160,32 @@ describe('deleting the wallet', () => {
         expect(getNetwork().id).toBe('nura');
 
         expect(getNetworks().some((item) => item.custom)).toBe(false);
+    });
+
+    it('clears what the sites in its browser kept, on the desktop', async () => {
+        invoke.mockClear();
+
+        await eraseWallet();
+
+        expect(invoke).toHaveBeenCalledWith('browser_clear');
+    });
+
+    it('clears what the sites in its browser kept, on Android', async () => {
+        const clearData = vi.fn();
+
+        vi.stubGlobal('window', { addEventListener: () => undefined, __nuraBrowser: { clearData } });
+
+        invoke.mockClear();
+
+        try {
+            await eraseWallet();
+        } finally {
+            vi.stubGlobal('window', { addEventListener: () => undefined });
+        }
+
+        expect(clearData).toHaveBeenCalledOnce();
+
+        expect(invoke).not.toHaveBeenCalledWith('browser_clear');
     });
 
     it('locks the wallet and says so once, to the screen that follows', async () => {

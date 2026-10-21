@@ -1,4 +1,5 @@
 import { loadConnections } from './dapp';
+import { clearBrowsingData } from './browser';
 import { imageCache } from './image';
 import { initNetwork } from './network';
 import { clearPrices } from './price';
@@ -49,6 +50,9 @@ export const eraseWallet = async () => {
     clearSiteIcons();
 
     await imageCache.clear().catch(() => undefined);
+
+    // A site's own storage can hold the address it was connected to.
+    await clearBrowsingData();
 
     // Re-read from the emptied storage so in-memory networks and grants do not carry into the next wallet.
     await Promise.all([initNetwork(), loadConnections()]);

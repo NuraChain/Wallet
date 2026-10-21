@@ -156,6 +156,8 @@ interface BrowserBridge {
 
     permissionReply?: (ticket: string, allowed: boolean) => void;
 
+    clearData?: () => void;
+
     showMouse?: (opacity: number) => void;
     hideMouse?: () => void;
     setMouseOpacity?: (opacity: number) => void;
@@ -201,6 +203,25 @@ export const closeBrowserLayers = () => {
     };
 
     void run();
+};
+
+/** Closes every page and drops what the sites it visited kept on the device: cookies, storage and cache. */
+export const clearBrowsingData = async () => {
+    const bridge = window.__nuraBrowser;
+
+    if (bridge !== undefined) {
+        bridge.clearData?.();
+
+        return;
+    }
+
+    try {
+        const { invoke } = await import('@tauri-apps/api/core');
+
+        await invoke('browser_clear');
+    } catch {
+        // Only a desktop window has an in-app browser to clear.
+    }
 };
 
 export const nativeHoldsTabs = () => window.__nuraBrowser?.openTab !== undefined;
