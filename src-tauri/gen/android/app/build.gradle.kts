@@ -141,6 +141,13 @@ android {
     dependenciesInfo {
         includeInApk = false
     }
+
+    // AGP 9.4's lint crashes analysing the Kotlin build scripts (`findFirCompiledSymbol` only works
+    // on compiled declarations), which fails every release build in lintVitalAnalyze. Lint still
+    // runs on demand with `gradlew lint`.
+    lint {
+        checkReleaseBuilds = false
+    }
 }
 
 kotlin {
