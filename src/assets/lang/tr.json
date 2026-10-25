@@ -106,7 +106,10 @@
         "Recovery": "Parolanızı unutursanız onu kurtaramazsınız.",
         "ErrorRequired": "Lütfen parolanızı girin",
         "ErrorInvalid": "Parola yanlış",
-        "ErrorMissing": "Cüzdan verileri yüklenemedi"
+        "ErrorMissing": "Cüzdan verileri yüklenemedi",
+        "Biometric": "Biyometriyle aç",
+        "BiometricGone": "Bu cihazdaki biyometrik veriler değiştiği için biyometrik kilit açma kapatıldı. Şifrenizi girin.",
+        "BiometricFailed": "Biyometriyle açılamadı. Şifrenizi girin."
     },
     "Dashboard": {
         "Nav": {
@@ -333,6 +336,21 @@
             "FeeShort": "Ağ ücretini ödemeye yetecek %s kalmıyor.",
             "NotNura": "Takaslar Nura Chain üzerinde çalışır.",
             "Switch": "Nura Chain’e geç"
+        },
+        "Biometric": {
+            "Title": "Biyometrik kilit açma",
+            "Row": "Biyometrik kilit açma",
+            "On": "Açık",
+            "Off": "Kapalı",
+            "Note": "Bundan sonra yüzünüz veya parmak izinizle açmak için cüzdan şifresini girin. Kurtarma ifadesi yine şifre isteyecek.",
+            "Password": "Cüzdan şifresi",
+            "Enable": "Aç",
+            "Prompt": "Nura Wallet’ın kilidini aç",
+            "ErrorRequired": "Şifrenizi girin",
+            "ErrorInvalid": "Şifre yanlış",
+            "ErrorCancel": "Biyometrik doğrulama iptal edildi.",
+            "ErrorUnavailable": "Biyometrik kilit açma, uygulamanın bu sürümünde kullanılamıyor.",
+            "ErrorFailed": "Biyometrik kilit açma açılamadı. Tekrar deneyin."
         },
         "Request": {
             "RequestedBy": "İsteyen",

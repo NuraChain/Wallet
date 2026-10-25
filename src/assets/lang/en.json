@@ -106,7 +106,10 @@
         "Recovery": "If you forget your password, you will not be able to recover it.",
         "ErrorRequired": "Please enter your password",
         "ErrorInvalid": "Password is incorrect",
-        "ErrorMissing": "Wallet data could not be loaded"
+        "ErrorMissing": "Wallet data could not be loaded",
+        "Biometric": "Unlock with biometrics",
+        "BiometricGone": "Biometric unlock was turned off because the biometrics on this device changed. Enter your password.",
+        "BiometricFailed": "Could not unlock with biometrics. Enter your password."
     },
     "Dashboard": {
         "Nav": {
@@ -333,6 +336,21 @@
             "FeeShort": "Not enough %s left to pay the network fee.",
             "NotNura": "Swaps run on Nura Chain.",
             "Switch": "Switch to Nura Chain"
+        },
+        "Biometric": {
+            "Title": "Biometric unlock",
+            "Row": "Biometric unlock",
+            "On": "On",
+            "Off": "Off",
+            "Note": "Enter your wallet password to unlock with your face or fingerprint from now on. Your recovery phrase will still ask for the password.",
+            "Password": "Wallet password",
+            "Enable": "Turn on",
+            "Prompt": "Unlock Nura Wallet",
+            "ErrorRequired": "Enter your password",
+            "ErrorInvalid": "Incorrect password",
+            "ErrorCancel": "The biometric check was cancelled.",
+            "ErrorUnavailable": "Biometric unlock is not available in this build of the app.",
+            "ErrorFailed": "Biometric unlock could not be turned on. Try again."
         },
         "Request": {
             "RequestedBy": "Requested by",

@@ -106,7 +106,10 @@
         "Recovery": "Si olvidas tu contraseña, no podrás recuperarla.",
         "ErrorRequired": "Introduce tu contraseña",
         "ErrorInvalid": "La contraseña es incorrecta",
-        "ErrorMissing": "No se pudieron cargar los datos de la cartera"
+        "ErrorMissing": "No se pudieron cargar los datos de la cartera",
+        "Biometric": "Desbloquear con biometría",
+        "BiometricGone": "El desbloqueo biométrico se desactivó porque cambiaron los datos biométricos de este dispositivo. Introduce tu contraseña.",
+        "BiometricFailed": "No se pudo desbloquear con biometría. Introduce tu contraseña."
     },
     "Dashboard": {
         "Nav": {
@@ -333,6 +336,21 @@
             "FeeShort": "No queda suficiente %s para pagar la comisión de red.",
             "NotNura": "Los intercambios funcionan en Nura Chain.",
             "Switch": "Cambiar a Nura Chain"
+        },
+        "Biometric": {
+            "Title": "Desbloqueo biométrico",
+            "Row": "Desbloqueo biométrico",
+            "On": "Activado",
+            "Off": "Desactivado",
+            "Note": "Introduce la contraseña de la billetera para desbloquearla con tu cara o huella a partir de ahora. La frase de recuperación seguirá pidiendo la contraseña.",
+            "Password": "Contraseña de la billetera",
+            "Enable": "Activar",
+            "Prompt": "Desbloquear Nura Wallet",
+            "ErrorRequired": "Introduce tu contraseña",
+            "ErrorInvalid": "Contraseña incorrecta",
+            "ErrorCancel": "Se canceló la verificación biométrica.",
+            "ErrorUnavailable": "El desbloqueo biométrico no está disponible en esta versión de la app.",
+            "ErrorFailed": "No se pudo activar el desbloqueo biométrico. Inténtalo de nuevo."
         },
         "Request": {
             "RequestedBy": "Solicitado por",

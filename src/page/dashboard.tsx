@@ -22,12 +22,14 @@ import DashboardRequest from '../component/dashboard/dashboard.request';
 import DashboardSettings from '../component/dashboard/dashboard.settings';
 import DashboardMouse from '../component/dashboard/dashboard.mouse';
 import DashboardSwap from '../component/dashboard/dashboard.swap';
+import DashboardBiometric from '../component/dashboard/dashboard.biometric';
 
 import { getNetwork, setNetwork } from '../core/network';
 import { loadConnections } from '../core/dapp';
 import { forgetDappPages, startDappBridge } from '../core/dapp.bridge';
 import { flushDeepLinks } from '../core/deeplink';
 import { lockSession } from '../core/session';
+import { biometricEnabled, biometricKind, disableBiometric } from '../core/biometric';
 import { useVault } from '../hook/vault';
 import {
     allowDevices,
@@ -57,13 +59,14 @@ import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache'
 import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount } from '../utility/account';
 import type { MouseAction } from '../type/app';
 import type { Account, Vault } from '../type/wallet';
+import type { BiometricKind } from '../type/platform';
 import type { HiddenMap, TokenMap } from '../type/token';
 import { Screen, Track } from '../ui/screen';
 import { NavAction, NavBar, NavTab } from '../ui/navbar';
 import { Horizontal, Vertical } from '../ui/stack';
 import { Block } from '../ui/wrap';
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'delete' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse';
+type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'delete' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse' | 'biometric';
 
 const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Swap' }, { key: 'Settings' }];
 
@@ -81,6 +84,7 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [fullToggle, setFullToggle] = useState(0);
     const [homePress, setHomePress] = useState(0);
     const [searchPress, setSearchPress] = useState(0);
+    const [biometric, setBiometric] = useState<{ kind: BiometricKind; on: boolean } | undefined>(undefined);
     const [link, setLink] = useState({ url: '', ticket: 0 });
     const [network, setNetworkState] = useState(getNetwork());
     const [tokenMap, setTokenMap] = useState<TokenMap>({});
@@ -118,6 +122,39 @@ function DashboardView({ vault }: { vault: Vault }) {
     const closeModal = useCallback(() => {
         setModal('none');
     }, []);
+
+    const readBiometric = useCallback(async () => {
+        const kind = await biometricKind();
+
+        return kind === undefined ? undefined : { kind, on: await biometricEnabled() };
+    }, []);
+
+    const showBiometric = useCallback(async () => {
+        setBiometric(await readBiometric());
+    }, [readBiometric]);
+
+    useEffect(() => {
+        let live = true;
+
+        void readBiometric().then((read) => {
+            if (live) {
+                setBiometric(read);
+            }
+        });
+
+        return () => {
+            live = false;
+        };
+    }, [readBiometric]);
+
+    // Off needs nothing; on asks for the password, from which the device's copy is made.
+    const onBiometric = () => {
+        if (biometric?.on === true) {
+            void disableBiometric().then(showBiometric);
+        } else {
+            setModal('biometric');
+        }
+    };
 
     const current = accounts.find((item) => item.index === account);
 
@@ -538,6 +575,17 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                 {modal === 'phrase' && <DashboardPhrase key='phrase' kind={vault.kind} onClose={closeModal} />}
 
+                {modal === 'biometric' && (
+                    <DashboardBiometric
+                        key='biometric'
+                        onEnabled={() => {
+                            closeModal();
+                            void showBiometric();
+                        }}
+                        onClose={closeModal}
+                    />
+                )}
+
                 {modal === 'delete' && <DashboardDelete key='delete' kind={vault.kind} onClose={closeModal} />}
 
                 {prompt !== undefined && (
@@ -593,6 +641,8 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                                 lockSession();
                                                                 void navigate('/unlock', { replace: true });
                                                             }}
+                                                            biometric={biometric}
+                                                            onBiometric={onBiometric}
                                                             onPhrase={() => {
                                                                 setModal('phrase');
                                                             }}

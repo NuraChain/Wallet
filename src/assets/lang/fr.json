@@ -106,7 +106,10 @@
         "Recovery": "Si vous oubliez votre mot de passe, il sera impossible de le récupérer.",
         "ErrorRequired": "Veuillez saisir votre mot de passe",
         "ErrorInvalid": "Mot de passe incorrect",
-        "ErrorMissing": "Impossible de charger les données du portefeuille"
+        "ErrorMissing": "Impossible de charger les données du portefeuille",
+        "Biometric": "Déverrouiller par biométrie",
+        "BiometricGone": "Le déverrouillage biométrique a été désactivé, car la biométrie de cet appareil a changé. Saisissez votre mot de passe.",
+        "BiometricFailed": "Impossible de déverrouiller par biométrie. Saisissez votre mot de passe."
     },
     "Dashboard": {
         "Nav": {
@@ -333,6 +336,21 @@
             "FeeShort": "Il ne reste pas assez de %s pour payer les frais de réseau.",
             "NotNura": "Les échanges se font sur Nura Chain.",
             "Switch": "Passer à Nura Chain"
+        },
+        "Biometric": {
+            "Title": "Déverrouillage biométrique",
+            "Row": "Déverrouillage biométrique",
+            "On": "Activé",
+            "Off": "Désactivé",
+            "Note": "Saisissez le mot de passe du portefeuille pour le déverrouiller désormais avec votre visage ou votre empreinte. La phrase de récupération demandera toujours le mot de passe.",
+            "Password": "Mot de passe du portefeuille",
+            "Enable": "Activer",
+            "Prompt": "Déverrouiller Nura Wallet",
+            "ErrorRequired": "Saisissez votre mot de passe",
+            "ErrorInvalid": "Mot de passe incorrect",
+            "ErrorCancel": "La vérification biométrique a été annulée.",
+            "ErrorUnavailable": "Le déverrouillage biométrique n’est pas disponible dans cette version de l’application.",
+            "ErrorFailed": "Impossible d’activer le déverrouillage biométrique. Réessayez."
         },
         "Request": {
             "RequestedBy": "Demandé par",

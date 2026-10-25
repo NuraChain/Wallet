@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { CircleQuestionMark } from 'lucide-react';
+import { CircleQuestionMark, Fingerprint, ScanFace } from 'lucide-react';
 
 import Text from '../ui/text';
 import Alert from '../ui/alert';
@@ -14,10 +14,12 @@ import { readVault } from '../core/vault';
 import { closeBrowserLayers } from '../core/browser';
 import { passwordCheck } from '../core/password';
 import { unlockSession } from '../core/session';
+import { biometricEnabled, biometricKind, unlockWithBiometric } from '../core/biometric';
 import { getValueEncrypted } from '../utility/storage';
 import { Horizontal } from '../ui/stack';
 import { EntryCard } from '../ui/screen';
 import { Block } from '../ui/wrap';
+import type { BiometricKind } from '../type/platform';
 
 export default function UnlockPage() {
     useEffect(() => {
@@ -30,6 +32,9 @@ export default function UnlockPage() {
     const [password, setPassword] = useState('');
     const [showHint, setShowHint] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [biometric, setBiometric] = useState<BiometricKind | undefined>(undefined);
+
+    const asked = useRef(false);
 
     const onUnlock = async () => {
         // Enter in the field can ask again while the first answer is still being worked out.
@@ -79,6 +84,65 @@ export default function UnlockPage() {
             setIsLoading(false);
         }
     };
+
+    // A cancel is quiet and leaves the button; a copy the device dropped takes the button away and says why.
+    const onBiometric = async () => {
+        if (isLoading) {
+            return;
+        }
+
+        setError('');
+        setIsLoading(true);
+
+        try {
+            const outcome = await unlockWithBiometric(T('Dashboard.Biometric.Prompt'));
+
+            if (outcome === 'ok') {
+                await navigate('/dashboard', { replace: true });
+
+                return;
+            }
+
+            if (outcome === 'gone' || outcome === 'unavailable' || outcome === 'off') {
+                setBiometric(undefined);
+            }
+
+            if (outcome === 'gone' || outcome === 'unavailable') {
+                setError(T('Unlock.BiometricGone'));
+            } else if (outcome === 'failed') {
+                setError(T('Unlock.BiometricFailed'));
+            }
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const askBiometric = useEffectEvent(onBiometric);
+
+    // Asked for once on arriving, never again by itself after a cancel.
+    useEffect(() => {
+        let live = true;
+
+        void (async () => {
+            const kind = await biometricKind();
+
+            if (!live || kind === undefined || !(await biometricEnabled()) || !live) {
+                return;
+            }
+
+            setBiometric(kind);
+
+            if (!asked.current) {
+                asked.current = true;
+
+                void askBiometric();
+            }
+        })();
+
+        return () => {
+            live = false;
+        };
+    }, []);
 
     return (
         <PageContainer variant='intro' center>
@@ -136,6 +200,19 @@ export default function UnlockPage() {
                     }}
                     text={T('Unlock.Submit')}
                 />
+
+                {biometric !== undefined && (
+                    <Button
+                        variant='muted'
+                        size='ctaWide'
+                        disabled={isLoading}
+                        onClick={() => {
+                            void onBiometric();
+                        }}
+                        leftIcon={biometric === 'face' ? <ScanFace size={16} /> : <Fingerprint size={16} />}
+                        text={T('Unlock.Biometric')}
+                    />
+                )}
             </EntryCard>
         </PageContainer>
     );

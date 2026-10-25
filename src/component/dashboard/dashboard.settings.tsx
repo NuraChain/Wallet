@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, ChevronRight, Globe, Moon, MousePointerClick, Sun, FileText, Lock, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Fingerprint, Globe, Moon, MousePointerClick, ScanFace, Sun, FileText, Lock, Trash2 } from 'lucide-react';
 
 import Text from '../../ui/text';
 import Button from '../../ui/button';
@@ -11,6 +11,7 @@ import { Horizontal, Vertical } from '../../ui/stack';
 import { T } from '../../utility/language';
 import { getTheme, setTheme } from '../../utility/theme';
 import type { VaultKind } from '../../type/wallet';
+import type { BiometricKind } from '../../type/platform';
 import { Block } from '../../ui/wrap';
 
 const chevron = <ChevronRight size={18} className='text-txt-muted rtl:rotate-180' />;
@@ -20,6 +21,8 @@ export default function DashboardSettings({
     onBack,
     onLanguage,
     onMouse,
+    biometric,
+    onBiometric,
     onPhrase,
     onLock,
     onDelete
@@ -28,6 +31,9 @@ export default function DashboardSettings({
     onBack: () => void;
     onLanguage: () => void;
     onMouse?: () => void;
+    /** Undefined where the device has no biometrics to offer. */
+    biometric?: { kind: BiometricKind; on: boolean };
+    onBiometric: () => void;
     onPhrase: () => void;
     onLock: () => void;
     onDelete: () => void;
@@ -78,6 +84,15 @@ export default function DashboardSettings({
                     label={T('Dashboard.Mouse.Title')}
                     onClick={onMouse}
                     trailing={chevron}
+                />
+            )}
+
+            {biometric !== undefined && (
+                <MenuRow
+                    leading={<IconBox>{biometric.kind === 'face' ? <ScanFace size={16} /> : <Fingerprint size={16} />}</IconBox>}
+                    label={T('Dashboard.Biometric.Row')}
+                    onClick={onBiometric}
+                    trailing={<Text text={T(biometric.on ? 'Dashboard.Biometric.On' : 'Dashboard.Biometric.Off')} />}
                 />
             )}
 

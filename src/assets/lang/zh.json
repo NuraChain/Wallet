@@ -106,7 +106,10 @@
         "Recovery": "如果忘记密码，将无法找回。",
         "ErrorRequired": "请输入密码",
         "ErrorInvalid": "密码不正确",
-        "ErrorMissing": "无法加载钱包数据"
+        "ErrorMissing": "无法加载钱包数据",
+        "Biometric": "用生物识别解锁",
+        "BiometricGone": "由于此设备的生物识别信息已更改，生物识别解锁已关闭。请输入密码。",
+        "BiometricFailed": "无法用生物识别解锁，请输入密码。"
     },
     "Dashboard": {
         "Nav": {
@@ -333,6 +336,21 @@
             "FeeShort": "剩余的 %s 不足以支付网络费。",
             "NotNura": "兑换在 Nura Chain 上进行。",
             "Switch": "切换到 Nura Chain"
+        },
+        "Biometric": {
+            "Title": "生物识别解锁",
+            "Row": "生物识别解锁",
+            "On": "开",
+            "Off": "关",
+            "Note": "输入钱包密码，之后即可用面容或指纹解锁。查看恢复短语仍需输入密码。",
+            "Password": "钱包密码",
+            "Enable": "开启",
+            "Prompt": "解锁 Nura Wallet",
+            "ErrorRequired": "请输入密码",
+            "ErrorInvalid": "密码错误",
+            "ErrorCancel": "生物识别验证已取消。",
+            "ErrorUnavailable": "此版本的应用无法使用生物识别解锁。",
+            "ErrorFailed": "无法开启生物识别解锁，请重试。"
         },
         "Request": {
             "RequestedBy": "请求来自",
