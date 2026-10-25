@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { formatUnits } from 'ethers';
-import { ArrowDown, KeyRound, User } from 'lucide-react';
+import { formatUnits, parseUnits } from 'ethers';
+import { ArrowDown, Fuel, KeyRound, User } from 'lucide-react';
 
 import Text from '../../ui/text';
 import Alert from '../../ui/alert';
@@ -10,17 +10,18 @@ import IconBox from '../../ui/iconbox';
 import ListCard from '../../ui/list';
 import ScrollBar from '../../ui/scrollbar';
 import AddressBlock from '../../ui/address';
+import { TextField } from '../../ui/field';
 import SiteIcon from '../site.icon';
 import TokenIcon from '../../ui/token.icon';
 import { Horizontal, Vertical } from '../../ui/stack';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
-import { shortAddress } from '../../utility/format';
+import { latinDigits, shortAddress } from '../../utility/format';
 import { getNativeLogo } from '../../core/price';
 import { readCalldata } from '../../core/calldata';
 import { resolveDappPrompt } from '../../core/dapp.rpc';
-import type { DappPrompt } from '../../type/dapp';
+import type { DappGas, DappPrompt } from '../../type/dapp';
 import type { Token } from '../../type/token';
 import { Rail } from '../../ui/wrap';
 
@@ -45,6 +46,29 @@ const isolate = (value: string) => `\u2068${value}\u2069`;
 
 // Only the trailing ".0" goes; nothing is rounded, since hidden dust is what a drainer counts on.
 const exact = (value: string) => value.replace(/\.0(?=\s|$)/u, '');
+
+const gwei = (wei: string) => exact(formatUnits(wei, 'gwei'));
+
+// The same bounds the worker holds an answer to.
+const readLimit = (text: string) => {
+    if (!/^\d+$/u.test(text.trim())) {
+        return undefined;
+    }
+
+    const limit = BigInt(text.trim());
+
+    return limit >= 21_000n && limit <= 100_000_000n ? limit : undefined;
+};
+
+const readGwei = (text: string, zero: boolean) => {
+    try {
+        const wei = parseUnits(text.trim(), 'gwei');
+
+        return wei > 0n || (zero && wei === 0n) ? wei : undefined;
+    } catch {
+        return undefined;
+    }
+};
 
 const siteOf = (origin: string) => {
     try {
@@ -95,6 +119,34 @@ export default function DashboardRequest({
 
     const payloadRef = useRef<HTMLDivElement>(null);
 
+    const suggested = prompt.kind === 'transaction' ? prompt.transaction?.gas : undefined;
+
+    const [editing, setEditing] = useState(false);
+    const [limitText, setLimitText] = useState(suggested?.limit ?? '');
+    const [priceText, setPriceText] = useState(suggested === undefined ? '' : gwei(suggested.price));
+    const [tipText, setTipText] = useState(suggested?.priority === undefined ? '' : gwei(suggested.priority));
+
+    // On an EIP-1559 chain the price is a ceiling and the tip is what buys a place in the block.
+    const eip1559 = suggested?.priority !== undefined;
+
+    const limit = readLimit(limitText);
+    const price = readGwei(priceText, false);
+    const tip = eip1559 ? readGwei(tipText, true) : undefined;
+
+    const tipWrong = eip1559 && (tip === undefined || (price !== undefined && tip > price));
+
+    const entered: DappGas | undefined =
+        editing && limit !== undefined && price !== undefined && !tipWrong
+            ? { limit: limit.toString(), price: price.toString(), priority: tip?.toString() }
+            : undefined;
+
+    const custom =
+        entered !== undefined && (entered.limit !== suggested?.limit || entered.price !== suggested.price || entered.priority !== suggested.priority)
+            ? entered
+            : undefined;
+
+    const unfinished = editing && entered === undefined;
+
     const onAnswer = (approved: boolean) => {
         if (answered !== undefined) {
             return;
@@ -102,7 +154,17 @@ export default function DashboardRequest({
 
         setAnswered(approved);
 
-        resolveDappPrompt(prompt.id, approved);
+        resolveDappPrompt(prompt.id, approved, approved ? custom : undefined);
+    };
+
+    const onGasToggle = () => {
+        if (editing && suggested !== undefined) {
+            setLimitText(suggested.limit);
+            setPriceText(gwei(suggested.price));
+            setTipText(suggested.priority === undefined ? '' : gwei(suggested.priority));
+        }
+
+        setEditing(!editing);
     };
 
     const onClose = () => {
@@ -211,7 +273,16 @@ export default function DashboardRequest({
                 ...(call === undefined
                     ? []
                     : [{ label: T('Dashboard.Request.Method'), value: call.method.length > 0 ? call.method : call.selector, mono: true }]),
-                ...(transaction.fee.length > 0 ? [{ label: T('Dashboard.Request.Fee'), value: transaction.fee, mono: true }] : []),
+                ...(custom !== undefined && suggested !== undefined
+                    ? [
+                          {
+                              label: T('Dashboard.Request.FeeCustom'),
+                              value: `${exact(formatUnits(BigInt(custom.limit) * BigInt(custom.price), suggested.decimals))} ${suggested.symbol}`,
+                              mono: true
+                          }
+                      ]
+                    : []),
+                ...(custom === undefined && transaction.fee.length > 0 ? [{ label: T('Dashboard.Request.Fee'), value: transaction.fee, mono: true }] : []),
                 where,
                 ...(hasData
                     ? [
@@ -349,6 +420,67 @@ export default function DashboardRequest({
                         ))}
                     </ListCard>
 
+                    {suggested !== undefined && (
+                        <Horizontal>
+                            <Button
+                                variant='muted'
+                                size='small'
+                                leftIcon={<Fuel size={14} />}
+                                disabled={answered !== undefined}
+                                onClick={onGasToggle}
+                                text={T(editing ? 'Dashboard.Request.GasReset' : 'Dashboard.Request.GasEdit')}
+                            />
+                        </Horizontal>
+                    )}
+
+                    {editing && suggested !== undefined && (
+                        <Panel flow='column' gap={3}>
+                            <TextField
+                                label={T('Dashboard.Request.GasLimit')}
+                                error={limit === undefined ? T('Dashboard.Request.GasLimitInvalid') : ''}
+                                value={limitText}
+                                onValue={(value) => {
+                                    setLimitText(latinDigits(value));
+                                }}
+                                inputMode='numeric'
+                                dir='ltr'
+                                mono
+                            />
+
+                            <TextField
+                                label={T(eip1559 ? 'Dashboard.Request.GasMaxFee' : 'Dashboard.Request.GasPrice')}
+                                error={price === undefined ? T('Dashboard.Request.GasPriceInvalid') : ''}
+                                value={priceText}
+                                onValue={(value) => {
+                                    setPriceText(latinDigits(value));
+                                }}
+                                inputMode='decimal'
+                                dir='ltr'
+                                mono
+                            />
+
+                            {eip1559 && (
+                                <TextField
+                                    label={T('Dashboard.Request.GasPriority')}
+                                    error={tipWrong ? T('Dashboard.Request.GasPriorityInvalid') : ''}
+                                    value={tipText}
+                                    onValue={(value) => {
+                                        setTipText(latinDigits(value));
+                                    }}
+                                    inputMode='decimal'
+                                    dir='ltr'
+                                    mono
+                                />
+                            )}
+
+                            <Alert
+                                variant='warning'
+                                textAlign='start'
+                                text={limit !== undefined && limit < BigInt(suggested.limit) ? T('Dashboard.Request.GasLimitLow', suggested.limit) : ''}
+                            />
+                        </Panel>
+                    )}
+
                     {endpoint.length > 0 && (
                         <Vertical gap={1}>
                             <Text text={T('Dashboard.Request.ChainRpc')} />
@@ -392,7 +524,7 @@ export default function DashboardRequest({
                     variant={risky ? 'destructive' : 'primary'}
                     size='action'
                     loading={answered === true}
-                    disabled={answered !== undefined}
+                    disabled={answered !== undefined || unfinished}
                     onClick={() => {
                         onAnswer(true);
                     }}
