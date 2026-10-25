@@ -65,7 +65,6 @@ export default function DashboardBrowserStart({
     favorites,
     visits,
     notice,
-    docked,
     onOpen,
     onFavoriteSave,
     onFavoriteRemove
@@ -73,8 +72,6 @@ export default function DashboardBrowserStart({
     favorites: BrowserFavorite[];
     visits: BrowserVisit[];
     notice: string;
-    /** The nav bar is under the page and owns the bottom inset. */
-    docked: boolean;
     onOpen: (url: string) => void;
     onFavoriteSave: (item: BrowserFavorite) => void;
     onFavoriteRemove: (id: string) => void;
@@ -94,7 +91,7 @@ export default function DashboardBrowserStart({
 
     return (
         <Vertical relative fill='both'>
-            <Vertical ref={viewportRef} fill='both' gap={3} scroll='y' p={4} pb={docked ? 4 : 'bar'}>
+            <Vertical ref={viewportRef} fill='both' gap={3} scroll='y' p={4} pb='bar'>
                 <TabBar>
                     {tabMap.map((item) => (
                         <Tab

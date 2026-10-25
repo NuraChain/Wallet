@@ -1,5 +1,5 @@
 import config from '../../config';
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, TriangleAlert } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
@@ -67,8 +67,6 @@ export default function DashboardBrowser({
     fullToggle,
     homePress,
     searchPress,
-    docked,
-    onFull,
     onExit
 }: {
     network: Network;
@@ -83,8 +81,6 @@ export default function DashboardBrowser({
     homePress: number;
     /** A counter, bumped per press of the nav bar's search: the address field takes the focus. */
     searchPress: number;
-    docked: boolean;
-    onFull: (full: boolean) => void;
     onExit: () => void;
 }) {
     const [settings, setSettings] = useState(false);
@@ -146,12 +142,6 @@ export default function DashboardBrowser({
             addressRef.current?.select();
         }
     }, [focusing]);
-
-    const reportFull = useEffectEvent(onFull);
-
-    useEffect(() => {
-        reportFull(full);
-    }, [full]);
 
     if (homePress !== seenHome) {
         setSeenHome(homePress);
@@ -462,7 +452,6 @@ export default function DashboardBrowser({
                                     favorites={favorites}
                                     visits={visits}
                                     notice={notice.get(item.id) ?? ''}
-                                    docked={docked}
                                     onOpen={onOpen}
                                     onFavoriteSave={onFavoriteSave}
                                     onFavoriteRemove={onFavoriteRemove}

@@ -80,7 +80,6 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [fullToggle, setFullToggle] = useState(0);
     const [homePress, setHomePress] = useState(0);
     const [searchPress, setSearchPress] = useState(0);
-    const [browserFull, setBrowserFull] = useState(false);
     const [link, setLink] = useState({ url: '', ticket: 0 });
     const [network, setNetworkState] = useState(getNetwork());
     const [tokenMap, setTokenMap] = useState<TokenMap>({});
@@ -154,7 +153,8 @@ function DashboardView({ vault }: { vault: Vault }) {
     // The browser's own control; the nav bar is how every other tab is reached. Shown elsewhere only while its settings preview it.
     const mouseOn = hasBrowser && (tabMap[active].key === 'Browser' || modal === 'mouse');
 
-    const barOn = !(tabMap[active].key === 'Browser' && browserFull);
+    // The browser keeps the whole height; its own close button and the mouse lead back out.
+    const barOn = tabMap[active].key !== 'Browser';
 
     const onSearch = () => {
         goKey('Browser');
@@ -534,7 +534,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                             {tabMap.map((item, index) => (
                                 <Block key={item.key} fill shrink={false}>
                                     {item.key === 'Browser' ? (
-                                        <PageContainer variant='browser' docked={!browserFull} inert={index === active ? undefined : true}>
+                                        <PageContainer variant='browser' inert={index === active ? undefined : true}>
                                             <DashboardBrowser
                                                 network={network}
                                                 request={link.url}
@@ -542,8 +542,6 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                 fullToggle={fullToggle}
                                                 homePress={homePress}
                                                 searchPress={searchPress}
-                                                docked={!browserFull}
-                                                onFull={setBrowserFull}
                                                 inView={index === active}
                                                 enabled={index === active && modal === 'none' && prompt === undefined}
                                                 onExit={() => {
