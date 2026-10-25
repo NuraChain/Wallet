@@ -112,7 +112,8 @@
         "Nav": {
             "Wallet": "钱包",
             "Browser": "浏览器",
-            "Search": "搜索"
+            "Search": "搜索",
+            "Swap": "兑换"
         },
         "Mouse": {
             "Title": "悬浮按钮",
@@ -309,6 +310,29 @@
             "ConnectedClear": "全部断开",
             "FavoriteRemoveConfirm": "要从收藏中移除 %s 吗？",
             "Insecure": "不安全"
+        },
+        "Swap": {
+            "Title": "兑换",
+            "Pay": "支付",
+            "Receive": "收到",
+            "Flip": "互换两侧",
+            "Rate": "汇率",
+            "Minimum": "最少收到",
+            "FeeTier": "池子手续费",
+            "NetworkFee": "网络费（最高）",
+            "Slippage": "滑点容差",
+            "Action": "兑换",
+            "Wrap": "包装",
+            "Unwrap": "解包",
+            "Pending": "正在发送到网络…",
+            "Approved": "已批准，正在兑换…",
+            "Done": "兑换已发送。",
+            "Failed": "兑换未完成。",
+            "NoPool": "这个交易对还没有池子。",
+            "Unsupported": "%s 在这里只能与 WNURA 兑换。请先包装成 WNURA，再兑换 WNURA。",
+            "FeeShort": "剩余的 %s 不足以支付网络费。",
+            "NotNura": "兑换在 Nura Chain 上进行。",
+            "Switch": "切换到 Nura Chain"
         },
         "Request": {
             "RequestedBy": "请求来自",

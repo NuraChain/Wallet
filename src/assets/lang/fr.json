@@ -112,7 +112,8 @@
         "Nav": {
             "Wallet": "Portefeuille",
             "Browser": "Navigateur",
-            "Search": "Rechercher"
+            "Search": "Rechercher",
+            "Swap": "Échange"
         },
         "Mouse": {
             "Title": "Bouton flottant",
@@ -309,6 +310,29 @@
             "ConnectedClear": "Tout déconnecter",
             "FavoriteRemoveConfirm": "Retirer %s de vos favoris ?",
             "Insecure": "Non sécurisé"
+        },
+        "Swap": {
+            "Title": "Échange",
+            "Pay": "Vous payez",
+            "Receive": "Vous recevez",
+            "Flip": "Inverser",
+            "Rate": "Taux",
+            "Minimum": "Minimum reçu",
+            "FeeTier": "Frais du pool",
+            "NetworkFee": "Frais de réseau (max.)",
+            "Slippage": "Tolérance de glissement",
+            "Action": "Échanger",
+            "Wrap": "Envelopper",
+            "Unwrap": "Désenvelopper",
+            "Pending": "Envoi au réseau…",
+            "Approved": "Approuvé. Échange en cours…",
+            "Done": "Échange envoyé.",
+            "Failed": "L’échange n’a pas abouti.",
+            "NoPool": "Il n’y a pas encore de pool pour cette paire.",
+            "Unsupported": "%s ne s’échange ici qu’avec WNURA. Enveloppez-le d’abord en WNURA, puis échangez le WNURA.",
+            "FeeShort": "Il ne reste pas assez de %s pour payer les frais de réseau.",
+            "NotNura": "Les échanges se font sur Nura Chain.",
+            "Switch": "Passer à Nura Chain"
         },
         "Request": {
             "RequestedBy": "Demandé par",

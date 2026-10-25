@@ -1,7 +1,7 @@
 import { Navigate, useNavigate } from 'react-router';
 import { platform } from '../platform';
 import { AnimatePresence } from 'motion/react';
-import { Globe, Search, Wallet, type LucideIcon } from 'lucide-react';
+import { ArrowLeftRight, Globe, Search, Wallet, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 
 import ScrollArea from '../ui/scroll';
@@ -21,8 +21,9 @@ import DashboardReceive from '../component/dashboard/dashboard.receive';
 import DashboardRequest from '../component/dashboard/dashboard.request';
 import DashboardSettings from '../component/dashboard/dashboard.settings';
 import DashboardMouse from '../component/dashboard/dashboard.mouse';
+import DashboardSwap from '../component/dashboard/dashboard.swap';
 
-import { getNetwork } from '../core/network';
+import { getNetwork, setNetwork } from '../core/network';
 import { loadConnections } from '../core/dapp';
 import { forgetDappPages, startDappBridge } from '../core/dapp.bridge';
 import { flushDeepLinks } from '../core/deeplink';
@@ -63,10 +64,10 @@ import { Block } from '../ui/wrap';
 
 type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'delete' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse';
 
-const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Settings' }];
+const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Swap' }, { key: 'Settings' }];
 
 // Settings is reached from the wallet page, not from the bar.
-const navIcons: Record<string, LucideIcon | undefined> = { Wallet, Browser: Globe };
+const navIcons: Record<string, LucideIcon | undefined> = { Wallet, Browser: Globe, Swap: ArrowLeftRight };
 
 const refreshLimit = 15_000;
 
@@ -580,6 +581,23 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                             onDelete={() => {
                                                                 setModal('delete');
                                                             }}
+                                                        />
+                                                    )}
+
+                                                    {item.key === 'Swap' && (
+                                                        <DashboardSwap
+                                                            vault={vault}
+                                                            index={account}
+                                                            address={address}
+                                                            network={network}
+                                                            onSwitch={() => {
+                                                                void setNetwork('nura').then(onNetworkChange);
+                                                            }}
+                                                            onSent={onSent}
+                                                            onTrack={(contract) => {
+                                                                void onAddToken(contract);
+                                                            }}
+                                                            onExplorer={onTransaction}
                                                         />
                                                     )}
 

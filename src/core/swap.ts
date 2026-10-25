@@ -24,6 +24,8 @@ const tokenAbi = [
 
 const wnuraAbi = ['function deposit() payable', 'function withdraw(uint256 amount)'];
 
+const balanceAbi = ['function balanceOf(address owner) view returns (uint256)'];
+
 const router = new ethers.Interface(routerAbi);
 const token = new ethers.Interface(tokenAbi);
 const wnura = new ethers.Interface(wnuraAbi);
@@ -55,6 +57,16 @@ export const swapKind = (from: SwapAsset, to: SwapAsset): SwapKind | undefined =
     }
 
     return same(from.address, to.address) ? undefined : 'swap';
+};
+
+export const readSwapBalance = async (provider: ethers.Provider, owner: string, asset: SwapAsset): Promise<bigint> => {
+    if (isNativeAsset(asset)) {
+        return provider.getBalance(owner);
+    }
+
+    const value: unknown = await new ethers.Contract(asset.address, balanceAbi, provider).balanceOf(owner);
+
+    return typeof value === 'bigint' ? value : 0n;
 };
 
 /** The best of the fee tiers that have a pool, or undefined when none does. */

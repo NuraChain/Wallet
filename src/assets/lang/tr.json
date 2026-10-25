@@ -112,7 +112,8 @@
         "Nav": {
             "Wallet": "Cüzdan",
             "Browser": "Tarayıcı",
-            "Search": "Ara"
+            "Search": "Ara",
+            "Swap": "Takas"
         },
         "Mouse": {
             "Title": "Kayan düğme",
@@ -309,6 +310,29 @@
             "ConnectedClear": "Tümünün bağlantısını kes",
             "FavoriteRemoveConfirm": "%s favorilerden kaldırılsın mı?",
             "Insecure": "Güvenli değil"
+        },
+        "Swap": {
+            "Title": "Takas",
+            "Pay": "Ödersiniz",
+            "Receive": "Alırsınız",
+            "Flip": "Yer değiştir",
+            "Rate": "Kur",
+            "Minimum": "En az alınacak",
+            "FeeTier": "Havuz ücreti",
+            "NetworkFee": "Ağ ücreti (azami)",
+            "Slippage": "Kayma toleransı",
+            "Action": "Takas et",
+            "Wrap": "Sar",
+            "Unwrap": "Sarmayı aç",
+            "Pending": "Ağa gönderiliyor…",
+            "Approved": "Onaylandı. Takas ediliyor…",
+            "Done": "Takas gönderildi.",
+            "Failed": "Takas gerçekleşmedi.",
+            "NoPool": "Bu çift için henüz havuz yok.",
+            "Unsupported": "%s burada yalnızca WNURA ile takas edilir. Önce WNURA’ya sarın, sonra WNURA’yı takas edin.",
+            "FeeShort": "Ağ ücretini ödemeye yetecek %s kalmıyor.",
+            "NotNura": "Takaslar Nura Chain üzerinde çalışır.",
+            "Switch": "Nura Chain’e geç"
         },
         "Request": {
             "RequestedBy": "İsteyen",

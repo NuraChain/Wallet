@@ -112,7 +112,8 @@
         "Nav": {
             "Wallet": "Wallet",
             "Browser": "Browser",
-            "Search": "Search"
+            "Search": "Search",
+            "Swap": "Swap"
         },
         "Mouse": {
             "Title": "Floating button",
@@ -309,6 +310,29 @@
             "ConnectedClear": "Disconnect all",
             "FavoriteRemoveConfirm": "Remove %s from your favorites?",
             "Insecure": "Not secure"
+        },
+        "Swap": {
+            "Title": "Swap",
+            "Pay": "You pay",
+            "Receive": "You receive",
+            "Flip": "Switch sides",
+            "Rate": "Rate",
+            "Minimum": "Minimum received",
+            "FeeTier": "Pool fee",
+            "NetworkFee": "Network fee (max)",
+            "Slippage": "Slippage tolerance",
+            "Action": "Swap",
+            "Wrap": "Wrap",
+            "Unwrap": "Unwrap",
+            "Pending": "Sending to the network…",
+            "Approved": "Approved. Swapping…",
+            "Done": "Swap sent.",
+            "Failed": "The swap did not go through.",
+            "NoPool": "There is no pool for this pair yet.",
+            "Unsupported": "%s trades only with WNURA here. Wrap it to WNURA first, then swap the WNURA.",
+            "FeeShort": "Not enough %s left to pay the network fee.",
+            "NotNura": "Swaps run on Nura Chain.",
+            "Switch": "Switch to Nura Chain"
         },
         "Request": {
             "RequestedBy": "Requested by",
