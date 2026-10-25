@@ -398,7 +398,19 @@ export default function DashboardSwap({
 
     return (
         <Vertical mt={2} gap={3}>
-            <Text as='h1' variant='heading' py={2} text={T('Dashboard.Swap.Title')} />
+            <Horizontal align='center' justify='between' gap={3}>
+                <Text as='h1' variant='heading' py={2} text={T('Dashboard.Swap.Title')} />
+
+                <Button
+                    variant='chip'
+                    size='iconChip'
+                    title={T('Dashboard.Swap.Flip')}
+                    disabled={pending}
+                    onClick={onFlip}
+                    shrink={false}
+                    icon={<ArrowDownUp size={16} />}
+                />
+            </Horizontal>
 
             <Panel flow='column' gap={2}>
                 <SectionHeader title={T('Dashboard.Swap.Pay')}>
@@ -438,10 +450,6 @@ export default function DashboardSwap({
                     mono
                 />
             </Panel>
-
-            <Horizontal justify='center'>
-                <Button variant='chip' size='iconChip' title={T('Dashboard.Swap.Flip')} disabled={pending} onClick={onFlip} icon={<ArrowDownUp size={16} />} />
-            </Horizontal>
 
             <Panel flow='column' gap={2}>
                 <Text text={T('Dashboard.Swap.Receive')} />
