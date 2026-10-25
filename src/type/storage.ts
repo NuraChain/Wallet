@@ -13,6 +13,7 @@ export type StorageKey =
     | 'Wallet.Tokens'
     | 'Wallet.TokensHidden'
     | 'Wallet.BackupReminder'
+    | 'Wallet.Biometric'
     | 'Browser.View'
     | 'Browser.History'
     | 'Browser.Favorites'

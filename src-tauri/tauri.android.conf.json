@@ -18,6 +18,8 @@
                         "main"
                     ],
                     "permissions": [
+                        "biometric:allow-status",
+                        "biometric:allow-biometric-cipher",
                         "core:event:allow-listen",
                         "core:event:allow-unlisten",
                         "core:app:allow-register-listener",

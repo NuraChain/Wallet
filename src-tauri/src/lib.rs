@@ -7,6 +7,9 @@ mod camera;
 #[cfg(target_os = "linux")]
 mod stage;
 
+#[cfg(any(target_os = "ios", target_os = "macos"))]
+mod keychain;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let mut builder = tauri::Builder::default();
@@ -49,7 +52,13 @@ pub fn run() {
                 dapp::browser_position,
                 dapp::dapp_request,
                 dapp::dapp_respond,
-                dapp::dapp_emit
+                dapp::dapp_emit,
+                #[cfg(target_os = "macos")]
+                keychain::biometric_seal,
+                #[cfg(target_os = "macos")]
+                keychain::biometric_open,
+                #[cfg(target_os = "macos")]
+                keychain::biometric_forget
             ]);
 
         // Runs while the window still holds only the wallet, before any child webview exists.
@@ -64,6 +73,21 @@ pub fn run() {
                 Ok(())
             });
         }
+    }
+
+    // iOS has no other command, so its handler is this one alone; one set on desktop above would be replaced by a second.
+    #[cfg(target_os = "ios")]
+    {
+        builder = builder.invoke_handler(tauri::generate_handler![
+            keychain::biometric_seal,
+            keychain::biometric_open,
+            keychain::biometric_forget
+        ]);
+    }
+
+    #[cfg(any(target_os = "android", target_os = "ios", target_os = "macos"))]
+    {
+        builder = builder.plugin(tauri_plugin_biometric::init());
     }
 
     builder = builder.plugin(tauri_plugin_deep_link::init());

@@ -56,6 +56,27 @@ export interface PlatformApproval {
     dismiss: () => void;
 }
 
+/** Why a biometric step gave no password: `cancel` keeps biometric unlock on; `gone` means the sealed copy can no longer be opened. */
+export type BiometricFailure = 'cancel' | 'gone' | 'unavailable' | 'failed';
+
+export type BiometricKind = 'face' | 'fingerprint' | 'iris' | 'other';
+
+/**
+ * The wallet password held behind the device's biometrics: Android's Keystore through the plugin's cipher, the Keychain on
+ * iOS and macOS. Every method rejects with an `Error` whose message is a `BiometricFailure`, and none falls back to the device's own passcode.
+ */
+export interface PlatformBiometric {
+    /** Undefined where this host cannot, or the device has nothing enrolled. */
+    kind: () => Promise<BiometricKind | undefined>;
+
+    /** Asks for a face or finger where the host must, and answers what to keep in `Wallet.Biometric`. */
+    seal: (password: string, reason: string) => Promise<string>;
+
+    open: (sealed: string, reason: string) => Promise<string>;
+
+    forget: () => Promise<void>;
+}
+
 export interface Platform {
     readonly storage: PlatformStorage;
     readonly session: PlatformSession;
@@ -68,6 +89,8 @@ export interface Platform {
 
     /** Android's back button and gesture; the handler answers false when nothing took it, and the app closes. Inert elsewhere. */
     readonly backButton: (handler: () => boolean) => () => void;
+
+    readonly biometric: PlatformBiometric;
 }
 
 /** Mirrors plugin-os `Platform` rather than importing it, so the extension build carries no Tauri. */

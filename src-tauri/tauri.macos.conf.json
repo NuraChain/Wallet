@@ -23,6 +23,10 @@
                         "main"
                     ],
                     "permissions": [
+                        "biometric:allow-status",
+                        "allow-biometric-seal",
+                        "allow-biometric-open",
+                        "allow-biometric-forget",
                         "core:event:allow-listen",
                         "core:window:allow-scale-factor",
                         "core:window:allow-inner-size",

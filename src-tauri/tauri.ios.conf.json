@@ -18,6 +18,10 @@
                         "main"
                     ],
                     "permissions": [
+                        "biometric:allow-status",
+                        "allow-biometric-seal",
+                        "allow-biometric-open",
+                        "allow-biometric-forget",
                         "core:event:allow-listen",
                         "core:event:allow-unlisten",
                         "core:webview:allow-get-all-webviews",

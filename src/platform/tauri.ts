@@ -5,9 +5,20 @@ import { load, type Store } from '@tauri-apps/plugin-store';
 import { fetch as nativeFetch } from '@tauri-apps/plugin-http';
 import { platform as hostPlatform } from '@tauri-apps/plugin-os';
 import { openUrl as openExternal } from '@tauri-apps/plugin-opener';
+import { BiometryType, biometricCipher, checkStatus } from '@tauri-apps/plugin-biometric';
 import { BaseDirectory, mkdir, writeFile, writeTextFile } from '@tauri-apps/plugin-fs';
 
-import type { Host, Platform, PlatformApproval, PlatformDapp, PlatformExporter, PlatformSession } from '../type/platform';
+import type {
+    BiometricFailure,
+    BiometricKind,
+    Host,
+    Platform,
+    PlatformApproval,
+    PlatformBiometric,
+    PlatformDapp,
+    PlatformExporter,
+    PlatformSession
+} from '../type/platform';
 
 interface AndroidBridge {
     saveImage: (base64Png: string, name: string) => string;
@@ -236,6 +247,113 @@ const nativeDapp: PlatformDapp = {
 
 let host: Host | undefined;
 
+const biometricKinds: Record<BiometryType, BiometricKind | undefined> = {
+    [BiometryType.None]: undefined,
+    [BiometryType.TouchID]: 'fingerprint',
+    [BiometryType.FaceID]: 'face',
+    [BiometryType.Iris]: 'iris'
+};
+
+const failureCodes = new Set<string>(['cancel', 'gone', 'unavailable', 'failed']);
+
+const readFailure = (cause: unknown): { code: string; message: string } => {
+    if (typeof cause === 'string') {
+        return { code: '', message: cause };
+    }
+
+    if (typeof cause === 'object' && cause !== null) {
+        const code = 'code' in cause && typeof cause.code === 'string' ? cause.code : '';
+        const message = 'message' in cause && typeof cause.message === 'string' ? cause.message : '';
+
+        return { code, message };
+    }
+
+    return { code: '', message: '' };
+};
+
+// The Keychain commands answer one of these words; the plugin answers its own codes, and a key the system dropped as a message.
+const biometricFailure = (cause: unknown): BiometricFailure => {
+    const { code, message } = readFailure(cause);
+
+    if (failureCodes.has(message)) {
+        return message as BiometricFailure;
+    }
+
+    if (['userCancel', 'systemCancel', 'appCancel', 'userFallback', 'authenticationFailed', 'biometryLockout'].includes(code)) {
+        return 'cancel';
+    }
+
+    if (['biometryNotEnrolled', 'passcodeNotSet'].includes(code) || /^Failed to (?:initialize the cipher|decrypt)/u.test(message)) {
+        return 'gone';
+    }
+
+    return 'failed';
+};
+
+const biometricFailing = async <T>(work: () => Promise<T>) => {
+    try {
+        return await work();
+    } catch (cause) {
+        throw new Error(biometricFailure(cause), { cause });
+    }
+};
+
+const unavailable = async (): Promise<never> => {
+    throw new Error('unavailable');
+};
+
+// Never `allowDeviceCredential`: the device's passcode is not the wallet's password, and must not stand in for it.
+const androidBiometric: PlatformBiometric = {
+    kind: async () => {
+        const status = await checkStatus();
+
+        return status.isAvailable ? (biometricKinds[status.biometryType] ?? 'other') : undefined;
+    },
+
+    seal: async (password, prompt) =>
+        biometricFailing(async () => (await biometricCipher(prompt, { dataToEncrypt: password, allowDeviceCredential: false })).data),
+
+    open: async (sealed, prompt) => biometricFailing(async () => (await biometricCipher(prompt, { dataToDecrypt: sealed, allowDeviceCredential: false })).data),
+
+    // The Keystore key is the plugin's and outlives what it sealed; the sealed copy is ours, and goes with Wallet.Biometric.
+    forget: async () => undefined
+};
+
+const keychainMark = 'keychain';
+
+const appleBiometric: PlatformBiometric = {
+    kind: androidBiometric.kind,
+
+    // Read back once while being set up: an unsigned macOS build cannot hold the item, and says so only when it is read.
+    seal: async (password) =>
+        biometricFailing(async () => {
+            await invoke('biometric_seal', { secret: password });
+
+            try {
+                if ((await invoke<string>('biometric_open')) !== password) {
+                    throw new Error('failed');
+                }
+            } catch (cause) {
+                await invoke('biometric_forget').catch(() => undefined);
+
+                throw cause;
+            }
+
+            return keychainMark;
+        }),
+
+    open: async () => biometricFailing(async () => invoke<string>('biometric_open')),
+
+    forget: async () => biometricFailing(async () => invoke('biometric_forget'))
+};
+
+const noBiometric: PlatformBiometric = {
+    kind: async () => undefined,
+    seal: unavailable,
+    open: unavailable,
+    forget: async () => undefined
+};
+
 export const platform: Platform = {
     session: inertSession,
     approval: inertApproval,
@@ -289,6 +407,16 @@ export const platform: Platform = {
             saveImage: async (base64Png: string, name: string) => bridge.saveImage(base64Png, name),
             saveText: async (text: string, name: string) => bridge.saveText(text, name)
         };
+    },
+
+    get biometric() {
+        const name = platform.host();
+
+        if (name === 'android') {
+            return androidBiometric;
+        }
+
+        return name === 'ios' || name === 'macos' ? appleBiometric : noBiometric;
     },
 
     // Listening takes the button over from the activity, so leaving the app at the root is ours to do.

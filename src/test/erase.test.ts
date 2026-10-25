@@ -33,6 +33,9 @@ vi.mock('@tauri-apps/api/core', () => ({ invoke }));
 
 vi.mock('@tauri-apps/api/event', () => ({ listen: async () => () => undefined }));
 
+// macOS, whose Keychain holds the biometric copy of the password apart from storage.
+vi.mock('@tauri-apps/plugin-os', () => ({ platform: () => 'macos' }));
+
 vi.stubGlobal('window', { addEventListener: () => undefined });
 vi.stubGlobal('document', { addEventListener: () => undefined });
 
@@ -57,6 +60,7 @@ const everything: Record<StorageKey, string> = {
     'Wallet.Tokens': '{"1":[{"address":"0xdAC17F958D2ee523a2206206994597C13D831ec7","symbol":"USDT","decimals":6}]}',
     'Wallet.TokensHidden': '{"1":["0x0000000000000000000000000000000000000001"]}',
     'Wallet.BackupReminder': '1760000000000',
+    'Wallet.Biometric': 'keychain',
     'Browser.View': 'desktop',
     'Browser.History': '[{"url":"https://dapp.example","time":1}]',
     'Browser.Favorites': '[{"id":"x","name":"X","url":"https://dapp.example"}]',
@@ -106,9 +110,18 @@ describe('deleting the wallet', () => {
         expect(held.get('App.Language')).toBe('fa');
     });
 
+    it('takes the biometric copy of the password out of the Keychain too', async () => {
+        invoke.mockClear();
+
+        await eraseWallet();
+
+        expect(invoke).toHaveBeenCalledWith('biometric_forget');
+    });
+
     it('names every key it erases, and the secret ones above all', () => {
         expect(erasedKeys).toContain('Wallet.Mnemonic');
         expect(erasedKeys).toContain('Wallet.Password');
+        expect(erasedKeys).toContain('Wallet.Biometric');
         expect(erasedKeys).not.toContain('App.Language');
 
         expect(erasedKeys).toHaveLength(Object.keys(everything).length - 3);

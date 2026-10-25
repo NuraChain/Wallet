@@ -8,6 +8,7 @@ import { clearSiteIcons } from './site.icon';
 import { invalidateHistory } from './history.cache';
 import { invalidateTokenCache } from './token.cache';
 import { removeValues } from '../utility/storage';
+import { platform } from '../platform';
 
 import type { StorageKey } from '../type/storage';
 
@@ -29,6 +30,7 @@ const fate: Record<StorageKey, 'erase' | 'keep'> = {
     'Wallet.Tokens': 'erase',
     'Wallet.TokensHidden': 'erase',
     'Wallet.BackupReminder': 'erase',
+    'Wallet.Biometric': 'erase',
     'Browser.View': 'erase',
     'Browser.History': 'erase',
     'Browser.Favorites': 'erase',
@@ -43,6 +45,9 @@ let erased = false;
 /** Storage goes before the lock: locking first would still find the phrase on disk and ask for its password. */
 export const eraseWallet = async () => {
     await removeValues(...erasedKeys);
+
+    // The Keychain holds the password apart from storage; Android's copy was Wallet.Biometric itself.
+    await platform.biometric.forget().catch(() => undefined);
 
     invalidateHistory();
     invalidateTokenCache();

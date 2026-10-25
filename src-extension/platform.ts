@@ -434,5 +434,16 @@ export const platform: Platform = {
 
     exporter: () => anchorExporter,
 
-    backButton: () => () => undefined
+    backButton: () => () => undefined,
+
+    biometric: {
+        kind: async () => undefined,
+        seal: async () => {
+            throw new Error('unavailable');
+        },
+        open: async () => {
+            throw new Error('unavailable');
+        },
+        forget: async () => undefined
+    }
 };

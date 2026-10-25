@@ -4,6 +4,8 @@
 <dict>
     <key>NSCameraUsageDescription</key>
     <string>Nura Wallet uses the camera to scan a recipient's QR code.</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Nura Wallet uses Face ID to unlock your wallet.</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <true/>
 </dict>
