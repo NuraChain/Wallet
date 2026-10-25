@@ -11,6 +11,7 @@ import { startDappBridge } from '../src/core/dapp.bridge';
 import { getVault, restoreSession } from '../src/core/session';
 import { getDappPrompt, rejectDappPrompts, resolveDappPrompt } from '../src/core/dapp.prompt';
 import { answerDapp, setDappAccount, syncDappState } from '../src/core/dapp.rpc';
+import type { DappGas } from '../src/type/dapp';
 import type { StorageKey } from '../src/type/storage';
 
 // Register every listener synchronously: one attached after an await misses the event that woke the worker.
@@ -94,7 +95,22 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // Not sender.tab: a docked panel reports a tab just as a content script does.
 const fromWallet = (sender: chrome.runtime.MessageSender) => sender.url?.startsWith(chrome.runtime.getURL('')) === true;
 
-chrome.runtime.onMessage.addListener((message: { kind?: string; id?: string; approved?: boolean }, sender) => {
+// Only the shape is checked here; whether the numbers are sane is decided where the transaction is sent.
+const gasOf = (value: unknown): DappGas | undefined => {
+    if (typeof value !== 'object' || value === null || !('limit' in value) || !('price' in value)) {
+        return undefined;
+    }
+
+    if (typeof value.limit !== 'string' || typeof value.price !== 'string') {
+        return undefined;
+    }
+
+    const priority = 'priority' in value && typeof value.priority === 'string' ? value.priority : undefined;
+
+    return { limit: value.limit, price: value.price, priority };
+};
+
+chrome.runtime.onMessage.addListener((message: { kind?: string; id?: string; approved?: boolean; gas?: unknown }, sender) => {
     if (sender.id !== chrome.runtime.id) {
         return;
     }
@@ -115,7 +131,7 @@ chrome.runtime.onMessage.addListener((message: { kind?: string; id?: string; app
 
     if (message.kind === 'approval/answer' && typeof message.id === 'string' && typeof message.approved === 'boolean') {
         void boot().then(() => {
-            resolveDappPrompt(message.id as string, message.approved as boolean);
+            resolveDappPrompt(message.id as string, message.approved as boolean, gasOf(message.gas));
         });
     }
 });

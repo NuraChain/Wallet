@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { DappEnvelope } from '../type/dapp';
+import type { DappEnvelope, DappGas } from '../type/dapp';
 
 const held = new Map<string, string>();
 
@@ -23,6 +23,63 @@ vi.mock('@tauri-apps/api/core', () => ({ invoke: async () => undefined }));
 vi.mock('@tauri-apps/api/event', () => ({ listen: async () => () => undefined }));
 
 const rpcCalls: { url: string; body: unknown }[] = [];
+
+let london = false;
+
+// The signer's provider, kept off the network: a transaction signed here must never reach a real chain.
+const chainCalls: { method: string; params: unknown[] }[] = [];
+
+const chainAnswers: Record<string, (params: unknown[]) => unknown> = {
+    // Without `baseFeePerGas` the chain reads as legacy, and a price is a `gasPrice`.
+    eth_getBlockByNumber: () => ({
+        ...(london ? { baseFeePerGas: '0x3b9aca00' } : {}),
+        hash: ethers.ZeroHash,
+        parentHash: ethers.ZeroHash,
+        number: '0x1',
+        timestamp: '0x1',
+        nonce: '0x0000000000000000',
+        difficulty: '0x0',
+        gasLimit: '0x1c9c380',
+        gasUsed: '0x0',
+        miner: ethers.ZeroAddress,
+        extraData: '0x',
+        transactions: []
+    }),
+    eth_blockNumber: () => '0x1',
+    eth_estimateGas: () => '0x5208',
+    eth_gasPrice: () => '0x3b9aca00',
+    eth_maxPriorityFeePerGas: () => '0x3b9aca00',
+    eth_getTransactionCount: () => '0x0',
+    eth_sendRawTransaction: (params) => ethers.keccak256(String(params[0]))
+};
+
+vi.mock('../core/network.provider', async () => {
+    const { JsonRpcProvider } = await import('ethers');
+
+    class OfflineProvider extends JsonRpcProvider {
+        override async _send(payload: ethers.JsonRpcPayload | ethers.JsonRpcPayload[]): Promise<ethers.JsonRpcResult[]> {
+            return (Array.isArray(payload) ? payload : [payload]).map((item) => {
+                const params = Array.isArray(item.params) ? item.params : [];
+
+                chainCalls.push({ method: item.method, params });
+
+                const answer = chainAnswers[item.method];
+
+                if (answer === undefined) {
+                    throw new Error(`${item.method} is not answered offline`);
+                }
+
+                return { id: item.id, result: answer(params) };
+            });
+        }
+    }
+
+    // One each, since ethers reuses an identical request's answer for a moment and would hand one chain's block to the other.
+    const legacy = new OfflineProvider('http://offline.invalid', 1020, { staticNetwork: true });
+    const modern = new OfflineProvider('http://offline.invalid', 1020, { staticNetwork: true });
+
+    return { getProvider: () => (london ? modern : legacy) };
+});
 
 vi.mock('@tauri-apps/plugin-http', () => ({
     fetch: async (url: string, init?: { body?: string }) => {
@@ -57,12 +114,12 @@ const call = (method: string, params: unknown[] = [], extra: Partial<DappEnvelop
     ...extra
 });
 
-const settle = async (approved: boolean) => {
+const settle = async (approved: boolean, gas?: DappGas) => {
     for (let attempt = 0; attempt < 200; attempt += 1) {
         const prompt = getDappPrompt();
 
         if (prompt !== undefined) {
-            resolveDappPrompt(prompt.id, approved);
+            resolveDappPrompt(prompt.id, approved, gas);
 
             return prompt;
         }
@@ -94,6 +151,7 @@ beforeEach(async () => {
     await clearConnections();
 
     rpcCalls.length = 0;
+    chainCalls.length = 0;
 });
 
 afterEach(() => {
@@ -276,6 +334,109 @@ describe('signing', () => {
         const reply = await answerDapp(call('eth_sendTransaction', [{ from: stranger, to: stranger, value: '0x1' }]));
 
         expect(reply.error?.code).toBe(4100);
+    });
+
+    const sentRaw = () => {
+        const sent = chainCalls.find((item) => item.method === 'eth_sendRawTransaction');
+
+        return sent === undefined ? undefined : ethers.Transaction.from(String(sent.params[0]));
+    };
+
+    it('offers the gas it worked the fee out from, and sends with it when left alone', async () => {
+        await grantConnection(origin);
+
+        const answer = answerDapp(call('eth_sendTransaction', [{ to: stranger, value: '0x1' }]));
+
+        const prompt = await settle(true);
+
+        expect(prompt.transaction?.gas).toEqual({ limit: '21000', price: '1000000000', symbol: getNetwork().symbol, decimals: getNetwork().decimals });
+
+        expect((await answer).error).toBeUndefined();
+
+        expect(sentRaw()?.gasLimit).toBe(21_000n);
+        expect(sentRaw()?.gasPrice).toBe(1_000_000_000n);
+    });
+
+    it('sends with the gas the user set instead', async () => {
+        await grantConnection(origin);
+
+        const answer = answerDapp(call('eth_sendTransaction', [{ to: stranger, value: '0x1' }]));
+
+        await settle(true, { limit: '50000', price: '3000000000' });
+
+        expect((await answer).error).toBeUndefined();
+
+        expect(sentRaw()?.gasLimit).toBe(50_000n);
+        expect(sentRaw()?.gasPrice).toBe(3_000_000_000n);
+    });
+
+    it('takes the price the user set as the most an EIP-1559 transaction may pay', async () => {
+        await grantConnection(origin);
+
+        london = true;
+
+        try {
+            const answer = answerDapp(call('eth_sendTransaction', [{ to: stranger, value: '0x1' }]));
+
+            await settle(true, { limit: '50000', price: '500000000' });
+
+            expect((await answer).error).toBeUndefined();
+
+            expect(sentRaw()?.type).toBe(2);
+            expect(sentRaw()?.maxFeePerGas).toBe(500_000_000n);
+            expect(sentRaw()?.maxPriorityFeePerGas).toBe(500_000_000n);
+        } finally {
+            london = false;
+        }
+    });
+
+    it('offers the tip on an EIP-1559 chain and sends the one the user set', async () => {
+        await grantConnection(origin);
+
+        london = true;
+
+        try {
+            const answer = answerDapp(call('eth_sendTransaction', [{ to: stranger, value: '0x1' }]));
+
+            const prompt = await settle(true, { limit: '50000', price: '4000000000', priority: '2000000000' });
+
+            expect(prompt.transaction?.gas?.priority).toBe('1000000000');
+
+            expect((await answer).error).toBeUndefined();
+
+            expect(sentRaw()?.maxFeePerGas).toBe(4_000_000_000n);
+            expect(sentRaw()?.maxPriorityFeePerGas).toBe(2_000_000_000n);
+        } finally {
+            london = false;
+        }
+    });
+
+    it('sends nothing when the tip is set above the max fee', async () => {
+        await grantConnection(origin);
+
+        london = true;
+
+        try {
+            const answer = answerDapp(call('eth_sendTransaction', [{ to: stranger, value: '0x1' }]));
+
+            await settle(true, { limit: '50000', price: '1000000000', priority: '2000000000' });
+
+            expect((await answer).error?.code).toBe(-32602);
+            expect(sentRaw()).toBeUndefined();
+        } finally {
+            london = false;
+        }
+    });
+
+    it('sends nothing on a gas setting it cannot use', async () => {
+        await grantConnection(origin);
+
+        const answer = answerDapp(call('eth_sendTransaction', [{ to: stranger, value: '0x1' }]));
+
+        await settle(true, { limit: '5', price: '3000000000' });
+
+        expect((await answer).error?.code).toBe(-32602);
+        expect(sentRaw()).toBeUndefined();
     });
 });
 

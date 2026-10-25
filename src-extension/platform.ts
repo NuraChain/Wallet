@@ -353,8 +353,8 @@ const browserApproval: PlatformApproval = {
         };
     },
 
-    answer: (id, approved) => {
-        void chrome.runtime.sendMessage({ kind: 'approval/answer', id, approved }).catch(() => undefined);
+    answer: (id, approved, gas) => {
+        void chrome.runtime.sendMessage({ kind: 'approval/answer', id, approved, gas }).catch(() => undefined);
     },
 
     surface: () => {

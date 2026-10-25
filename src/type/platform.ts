@@ -1,4 +1,4 @@
-import type { DappPrompt, DappReply } from './dapp';
+import type { DappGas, DappPrompt, DappReply } from './dapp';
 import type { StorageKey } from './storage';
 import type { Vault } from './wallet';
 
@@ -49,7 +49,7 @@ export interface PlatformDapp {
 export interface PlatformApproval {
     publish: (prompts: DappPrompt[]) => void;
     subscribe: (listener: (prompts: DappPrompt[]) => void) => () => void;
-    answer: (id: string, approved: boolean) => void;
+    answer: (id: string, approved: boolean, gas?: DappGas) => void;
 
     surface: () => void;
 

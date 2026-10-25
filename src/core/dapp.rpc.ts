@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 
 import { getVault } from './session';
-import { askDappPrompt } from './dapp.prompt';
+import { askDappAnswer, askDappPrompt } from './dapp.prompt';
 import { dappLog } from './dapp.log';
 import { vaultManager } from './vault';
 import { httpRequest } from './request';
@@ -10,7 +10,7 @@ import { emitDappEvent, getDappPages } from './dapp.bridge';
 import { addNetwork, getNetwork, getNetworks, setNetwork } from './network';
 import { DappError, clearConnections, dappError, failure, getConnections, grantConnection, isConnected, revokeConnection } from './dapp';
 import type { SiteDevice } from '../type/browser';
-import type { DappEnvelope, DappFailure, DappPrompt, DappReply } from '../type/dapp';
+import type { DappEnvelope, DappFailure, DappGas, DappPrompt, DappReply } from '../type/dapp';
 
 export { getDappPrompt, rejectDappPrompts, resolveDappPrompt } from './dapp.prompt';
 
@@ -341,7 +341,7 @@ const transactionRequest = (value: unknown): ethers.TransactionRequest => {
     return request;
 };
 
-const estimateFee = async (request: ethers.TransactionRequest) => {
+const estimateFee = async (request: ethers.TransactionRequest): Promise<{ fee: string; gas?: DappGas }> => {
     const network = getNetwork();
 
     try {
@@ -352,16 +352,73 @@ const estimateFee = async (request: ethers.TransactionRequest) => {
             provider.getFeeData()
         ]);
 
-        const price = fees.maxFeePerGas ?? fees.gasPrice;
+        const offered = request.gasPrice ?? request.maxFeePerGas;
 
-        if (price === null || price === undefined) {
-            return '';
+        // A page that names a legacy price keeps a legacy transaction; otherwise the chain decides.
+        const eip1559 = request.gasPrice === undefined || request.gasPrice === null ? (request.maxFeePerGas ?? fees.maxFeePerGas) !== null : false;
+
+        const named = offered ?? fees.maxFeePerGas ?? fees.gasPrice;
+
+        if (named === null || named === undefined) {
+            return { fee: '' };
         }
 
-        return `${ethers.formatUnits(limit * price, network.decimals)} ${network.symbol}`;
+        const price = BigInt(named);
+
+        const tip = BigInt(request.maxPriorityFeePerGas ?? fees.maxPriorityFeePerGas ?? 0n);
+
+        return {
+            fee: `${ethers.formatUnits(limit * price, network.decimals)} ${network.symbol}`,
+            gas: { limit: limit.toString(), price: price.toString(), priority: eip1559 ? (tip < price ? tip : price).toString() : undefined }
+        };
     } catch {
-        return '';
+        return { fee: '' };
     }
+};
+
+const maxGasLimit = 100_000_000n;
+
+const wholeNumber = (value: string) => {
+    try {
+        return BigInt(value);
+    } catch {
+        throw failure(dappError.invalidParams, 'The gas set for this transaction is not a number');
+    }
+};
+
+// The answer comes from the wallet's own window, but in an extension it has crossed a message boundary, so it is checked again.
+const applyGas = (request: ethers.TransactionRequest, gas: DappGas, suggested: DappGas | undefined) => {
+    const limit = wholeNumber(gas.limit);
+    const price = wholeNumber(gas.price);
+
+    if (limit < 21_000n || limit > maxGasLimit || price <= 0n) {
+        throw failure(dappError.invalidParams, 'The gas set for this transaction is out of range');
+    }
+
+    request.gasLimit = limit;
+
+    if (suggested?.priority === undefined) {
+        request.gasPrice = price;
+        request.maxFeePerGas = undefined;
+        request.maxPriorityFeePerGas = undefined;
+
+        return;
+    }
+
+    const suggestedTip = BigInt(suggested.priority);
+
+    // A tip the user did not set follows the price down rather than refusing it.
+    const followed = suggestedTip < price ? suggestedTip : price;
+
+    const tip = gas.priority === undefined ? followed : wholeNumber(gas.priority);
+
+    if (tip < 0n || tip > price) {
+        throw failure(dappError.invalidParams, 'The priority fee set for this transaction is out of range');
+    }
+
+    request.gasPrice = undefined;
+    request.maxFeePerGas = price;
+    request.maxPriorityFeePerGas = tip;
 };
 
 const privateAddress = (host: string) => {
@@ -633,9 +690,9 @@ const route = async (envelope: DappEnvelope): Promise<unknown> => {
 
             const network = getNetwork();
 
-            const fee = await estimateFee(request);
+            const { fee, gas } = await estimateFee(request);
 
-            await approve({
+            const answer = await askDappAnswer({
                 kind: 'transaction',
                 origin,
                 summary: `${ethers.formatUnits(request.value ?? 0n, network.decimals)} ${network.symbol}`,
@@ -643,9 +700,18 @@ const route = async (envelope: DappEnvelope): Promise<unknown> => {
                     to: typeof request.to === 'string' ? request.to : '',
                     value: `${ethers.formatUnits(request.value ?? 0n, network.decimals)} ${network.symbol}`,
                     data: typeof request.data === 'string' ? request.data : '',
-                    fee
+                    fee,
+                    gas: gas === undefined ? undefined : { ...gas, symbol: network.symbol, decimals: network.decimals }
                 }
             });
+
+            if (!answer.approved) {
+                throw failure(dappError.rejected, 'The user rejected the request');
+            }
+
+            if (answer.gas !== undefined) {
+                applyGas(request, answer.gas, gas);
+            }
 
             const sent = await signerFor().sendTransaction(request);
 
