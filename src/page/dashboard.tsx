@@ -153,8 +153,8 @@ function DashboardView({ vault }: { vault: Vault }) {
     // The browser's own control; the nav bar is how every other tab is reached. Shown elsewhere only while its settings preview it.
     const mouseOn = hasBrowser && (tabMap[active].key === 'Browser' || modal === 'mouse');
 
-    // The browser keeps the whole height; its own close button and the mouse lead back out.
-    const barOn = tabMap[active].key !== 'Browser';
+    // The browser keeps the whole height, its own close button and the mouse leading back out; settings has its own way back.
+    const barOn = tabMap[active].key !== 'Browser' && tabMap[active].key !== 'Settings';
 
     const barTabs = tabMap.flatMap((item) => {
         const icon = navIcons[item.key];
@@ -558,7 +558,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                                     ) : (
                                         <ScrollFrame>
                                             <ScrollArea fill onRefresh={item.key === 'Wallet' ? onRefresh : undefined}>
-                                                <PageContainer variant='tab' inert={index === active ? undefined : true}>
+                                                <PageContainer variant='tab' bar={item.key !== 'Settings'} inert={index === active ? undefined : true}>
                                                     {item.key === 'Settings' && (
                                                         <DashboardSettings
                                                             kind={vault.kind}
