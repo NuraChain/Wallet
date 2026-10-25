@@ -51,9 +51,9 @@ const bareMap = {
     link: `${focusRing} inline cursor-pointer rounded-control font-medium text-txt-accent underline underline-offset-2 hover:text-txt-normal`,
     tab: `${focusRing} ${tabBase} text-txt-muted hover:text-txt-normal`,
     tabOn: `${focusRing} ${tabBase} text-txt-accent`,
-    /** A tab of the dashboard's bottom bar; the one in view sits on a pill of its own. */
-    nav: `${focusRing} flex cursor-pointer items-center justify-center text-txt-muted transition-colors duration-(--duration-fast) hover:text-txt-normal`,
-    navOn: `${focusRing} flex cursor-default items-center justify-center bg-btn-muted text-txt-normal transition-colors duration-(--duration-fast)`,
+    /** A tab of the dashboard's bottom bar; the pill under the one in view belongs to the bar, so it can slide between them. */
+    nav: `${focusRing} relative flex cursor-pointer items-center justify-center text-txt-muted transition-colors duration-(--duration-fast) hover:text-txt-normal`,
+    navOn: `${focusRing} relative flex cursor-default items-center justify-center text-txt-normal transition-colors duration-(--duration-fast)`,
     option: `${focusRing} ${optionBase} press press-row hover:bg-btn-muted-hover`,
     optionOn: `${focusRing} ${optionBase} transition-colors duration-(--duration-fast) ${selectedTint}`,
     fieldSelect: `${focusRing} ${fieldSurface} flex h-14 w-full cursor-pointer items-center gap-3 rounded-surface px-3`,
@@ -75,7 +75,7 @@ const sizeMap = {
     iconChipSmall: `relative ${tapArea} size-8 rounded-surface`,
     iconLarge: `relative ${tapArea} size-10 rounded-control`,
     nav: 'h-full min-w-0 flex-1 rounded-full',
-    navAction: 'size-16 shrink-0 rounded-full',
+    navAction: 'size-14 shrink-0 rounded-full',
     selector: 'h-9 gap-1.5 rounded-surface ps-1 pe-2.5 text-tiny',
     tile: 'h-16 w-20 flex-col gap-1 rounded-surface',
     segment: 'h-8 rounded-control text-tiny',

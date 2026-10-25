@@ -156,6 +156,12 @@ function DashboardView({ vault }: { vault: Vault }) {
     // The browser keeps the whole height; its own close button and the mouse lead back out.
     const barOn = tabMap[active].key !== 'Browser';
 
+    const barTabs = tabMap.flatMap((item) => {
+        const icon = navIcons[item.key];
+
+        return icon === undefined ? [] : [{ key: item.key, icon }];
+    });
+
     const onSearch = () => {
         goKey('Browser');
         setSearchPress((value) => value + 1);
@@ -653,25 +659,28 @@ function DashboardView({ vault }: { vault: Vault }) {
                     </Block>
                 </Horizontal>
 
-                {barOn && (
-                    <NavBar action={hasBrowser ? <NavAction label={T('Dashboard.Nav.Search')} icon={<Search size={22} />} onClick={onSearch} /> : undefined}>
-                        {tabMap.map((item) => {
-                            const Icon = navIcons[item.key];
-
-                            return Icon === undefined ? undefined : (
+                <AnimatePresence initial={false}>
+                    {barOn && (
+                        <NavBar
+                            key='nav'
+                            count={barTabs.length}
+                            selected={barTabs.findIndex((item) => item.key === tabMap[active].key)}
+                            action={hasBrowser ? <NavAction label={T('Dashboard.Nav.Search')} icon={<Search size={22} />} onClick={onSearch} /> : undefined}
+                        >
+                            {barTabs.map((item) => (
                                 <NavTab
                                     key={item.key}
                                     label={T(`Dashboard.Nav.${item.key}`)}
-                                    icon={<Icon size={22} />}
+                                    icon={<item.icon size={22} />}
                                     selected={tabMap[active].key === item.key}
                                     onSelect={() => {
                                         goKey(item.key);
                                     }}
                                 />
-                            );
-                        })}
-                    </NavBar>
-                )}
+                            ))}
+                        </NavBar>
+                    )}
+                </AnimatePresence>
             </Vertical>
         </Screen>
     );
