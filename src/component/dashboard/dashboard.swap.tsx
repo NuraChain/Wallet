@@ -438,9 +438,8 @@ export default function DashboardSwap({
                                         setSlippage(item);
                                         setTuning(false);
                                     }}
-                                >
-                                    <Text dir='ltr' variant='body' text={`${item / 100}%`} />
-                                </Button>
+                                    text={`${item / 100}%`}
+                                />
                             ))}
                         </Popover>
                     </PopoverAnchor>
