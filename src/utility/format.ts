@@ -49,6 +49,18 @@ export const formatAge = (at: number) => {
     return '';
 };
 
+// A Persian or Arabic keyboard types its own digits and decimal mark; a number is read in Latin ones.
+export const latinDigits = (value: string) =>
+    value.replaceAll(/[٠-٩۰-۹٫]/gu, (char) => {
+        if (char === '٫') {
+            return '.';
+        }
+
+        const code = char.codePointAt(0) ?? 0;
+
+        return String(code >= 0x06f0 ? code - 0x06f0 : code - 0x0660);
+    });
+
 export const trimAmount = (amount: string, max = 6) => {
     if (!amount.includes('.')) {
         return amount;
