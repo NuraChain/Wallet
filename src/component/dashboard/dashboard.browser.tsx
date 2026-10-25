@@ -9,6 +9,7 @@ import DashboardBrowserSettings from './dashboard.browser.settings';
 
 import Button from '../../ui/button';
 import Toolbar, { ToolbarButton } from '../../ui/toolbar';
+import { useBack } from '../../hook/back';
 import { FieldLead, TextField } from '../../ui/field';
 
 import { T } from '../../utility/language';
@@ -294,6 +295,23 @@ export default function DashboardBrowser({
     const onHome = () => {
         patch(active, (item) => ({ ...item, home: true }));
     };
+
+    // Out of full screen first, then back through the page's history, and out of the browser at its first page.
+    useBack(() => {
+        if (!inView) {
+            return false;
+        }
+
+        if (full) {
+            setFullMode(false);
+        } else if (canBack) {
+            onStep(-1);
+        } else {
+            onExit();
+        }
+
+        return true;
+    });
 
     const onView = (chosen: BrowserView) => {
         setView(chosen);

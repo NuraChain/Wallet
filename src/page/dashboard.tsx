@@ -46,6 +46,7 @@ import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
+import { useBack } from '../hook/back';
 import { forgetSiteThemes, getSiteDevices, setSiteTheme } from '../core/browser';
 import { showMouse } from '../core/mouse';
 import Mouse from '../ui/mouse';
@@ -155,6 +156,19 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     // The browser keeps the whole height, its own close button and the mouse leading back out; settings has its own way back.
     const barOn = tabMap[active].key !== 'Browser' && tabMap[active].key !== 'Settings';
+
+    // The browser answers for itself; every other tab steps back to the wallet, and the wallet lets the app close.
+    useBack(() => {
+        const key = tabMap[active].key;
+
+        if (key === 'Wallet' || key === 'Browser') {
+            return false;
+        }
+
+        goKey('Wallet');
+
+        return true;
+    });
 
     const barTabs = tabMap.flatMap((item) => {
         const icon = navIcons[item.key];

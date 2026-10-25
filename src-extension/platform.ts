@@ -432,5 +432,7 @@ export const platform: Platform = {
         await chrome.tabs.create({ url });
     },
 
-    exporter: () => anchorExporter
+    exporter: () => anchorExporter,
+
+    backButton: () => () => undefined
 };

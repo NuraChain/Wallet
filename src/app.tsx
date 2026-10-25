@@ -9,6 +9,8 @@ import { initTheme } from './utility/theme';
 import { initInsets } from './utility/inset';
 import { startDeepLinks } from './core/deeplink';
 import { initNetwork } from './core/network';
+import { platform } from './platform';
+import { runBack } from './utility/back';
 import { readMouseIcon, readMouseOpacity } from './core/mouse';
 import { initLanguage, preloadLanguageFlags } from './utility/language';
 
@@ -63,6 +65,8 @@ if (mouseHash !== null && mouseElement !== null) {
     await startup();
 
     startDeepLinks();
+
+    platform.backButton(runBack);
 
     const application = (
         <ErrorBoundary>

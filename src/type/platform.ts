@@ -65,6 +65,9 @@ export interface Platform {
     readonly fetch: (url: string, init?: RequestInit) => Promise<Response>;
     readonly openUrl: (url: string) => Promise<void>;
     readonly exporter: () => PlatformExporter;
+
+    /** Android's back button and gesture; the handler answers false when nothing took it, and the app closes. Inert elsewhere. */
+    readonly backButton: (handler: () => boolean) => () => void;
 }
 
 /** Mirrors plugin-os `Platform` rather than importing it, so the extension build carries no Tauri. */

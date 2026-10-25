@@ -20,6 +20,9 @@
                     "permissions": [
                         "core:event:allow-listen",
                         "core:event:allow-unlisten",
+                        "core:app:allow-register-listener",
+                        "core:app:allow-remove-listener",
+                        "core:app:allow-exit",
                         "core:webview:allow-create-webview",
                         "core:webview:allow-webview-close",
                         "core:webview:allow-webview-hide",

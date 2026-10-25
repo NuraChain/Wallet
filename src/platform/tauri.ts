@@ -1,5 +1,6 @@
-import { invoke } from '@tauri-apps/api/core';
+import { invoke, type PluginListener } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
+import { exit, onBackButtonPress } from '@tauri-apps/api/app';
 import { load, type Store } from '@tauri-apps/plugin-store';
 import { fetch as nativeFetch } from '@tauri-apps/plugin-http';
 import { platform as hostPlatform } from '@tauri-apps/plugin-os';
@@ -287,6 +288,36 @@ export const platform: Platform = {
         return {
             saveImage: async (base64Png: string, name: string) => bridge.saveImage(base64Png, name),
             saveText: async (text: string, name: string) => bridge.saveText(text, name)
+        };
+    },
+
+    // Listening takes the button over from the activity, so leaving the app at the root is ours to do.
+    backButton: (handler) => {
+        if (platform.host() !== 'android') {
+            return () => undefined;
+        }
+
+        let listener: PluginListener | undefined;
+        let dropped = false;
+
+        void onBackButtonPress(() => {
+            if (!handler()) {
+                void exit(0);
+            }
+        })
+            .then((held) => {
+                if (dropped) {
+                    void held.unregister();
+                } else {
+                    listener = held;
+                }
+            })
+            .catch(() => undefined);
+
+        return () => {
+            dropped = true;
+
+            void listener?.unregister();
         };
     }
 };

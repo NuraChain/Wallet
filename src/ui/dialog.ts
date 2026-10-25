@@ -7,6 +7,8 @@ const onKeyDown = (event: KeyboardEvent) => {
         return;
     }
 
+    // Cancelled as well as stopped, so Android's back (utility/back.ts) can tell a dialog took it.
+    event.preventDefault();
     event.stopPropagation();
 
     stack[stack.length - 1]();
