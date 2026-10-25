@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { formatUnits, parseUnits } from 'ethers';
-import { ArrowDownUp, ChevronDown, ExternalLink } from 'lucide-react';
+import { ArrowDownUp, ChevronDown, ExternalLink, SlidersHorizontal } from 'lucide-react';
 
 import Text from '../../ui/text';
 import Alert from '../../ui/alert';
 import Panel from '../../ui/panel';
 import Button from '../../ui/button';
-import Popover from '../../ui/popover';
+import Popover, { PopoverAnchor } from '../../ui/popover';
 import ListCard from '../../ui/list';
 import TokenIcon from '../../ui/token.icon';
 import AddressBlock from '../../ui/address';
@@ -165,6 +165,7 @@ export default function DashboardSwap({
     const [to, setTo] = useState<SwapAsset>(swapTokens[1]);
     const [amount, setAmount] = useState('');
     const [slippage, setSlippage] = useState(50);
+    const [tuning, setTuning] = useState(false);
 
     const [balances, setBalances] = useState<Record<string, bigint>>({});
     const [reread, setReread] = useState(0);
@@ -399,17 +400,61 @@ export default function DashboardSwap({
     return (
         <Vertical mt={2} gap={3}>
             <Horizontal align='center' justify='between' gap={3}>
-                <Text as='h1' variant='heading' py={2} text={T('Dashboard.Swap.Title')} />
+                <Text as='h1' variant='heading' py={2} squeeze='x' text={T('Dashboard.Swap.Title')} />
 
-                <Button
-                    variant='chip'
-                    size='iconChip'
-                    title={T('Dashboard.Swap.Flip')}
-                    disabled={pending}
-                    onClick={onFlip}
-                    shrink={false}
-                    icon={<ArrowDownUp size={16} />}
-                />
+                <Horizontal align='center' gap={2}>
+                    <PopoverAnchor>
+                        <Button
+                            variant='chip'
+                            size='selector'
+                            title={T('Dashboard.Swap.Slippage')}
+                            disabled={pending}
+                            onClick={() => {
+                                setTuning(!tuning);
+                            }}
+                            leftIcon={<SlidersHorizontal size={14} />}
+                            text={`${slippage / 100}%`}
+                        />
+
+                        <Popover
+                            role='listbox'
+                            open={tuning}
+                            anchor='corner'
+                            look='menu'
+                            onClose={() => {
+                                setTuning(false);
+                            }}
+                        >
+                            <Horizontal px={2} pb={1}>
+                                <Text text={T('Dashboard.Swap.Slippage')} />
+                            </Horizontal>
+
+                            {slippages.map((item) => (
+                                <Button
+                                    key={item}
+                                    role='option'
+                                    variant={slippage === item ? 'optionOn' : 'option'}
+                                    onClick={() => {
+                                        setSlippage(item);
+                                        setTuning(false);
+                                    }}
+                                >
+                                    <Text dir='ltr' variant='body' text={`${item / 100}%`} />
+                                </Button>
+                            ))}
+                        </Popover>
+                    </PopoverAnchor>
+
+                    <Button
+                        variant='chip'
+                        size='iconChip'
+                        title={T('Dashboard.Swap.Flip')}
+                        disabled={pending}
+                        onClick={onFlip}
+                        shrink={false}
+                        icon={<ArrowDownUp size={16} />}
+                    />
+                </Horizontal>
             </Horizontal>
 
             <Panel flow='column' gap={2}>
@@ -479,28 +524,6 @@ export default function DashboardSwap({
                         </Horizontal>
                     ))}
                 </ListCard>
-            )}
-
-            {kind === 'swap' && (
-                <Vertical gap={1}>
-                    <Text text={T('Dashboard.Swap.Slippage')} />
-
-                    <Horizontal gap={2}>
-                        {slippages.map((item) => (
-                            <Button
-                                key={item}
-                                variant={slippage === item ? 'primary' : 'chip'}
-                                size='segment'
-                                grow
-                                disabled={pending}
-                                onClick={() => {
-                                    setSlippage(item);
-                                }}
-                                text={`${item / 100}%`}
-                            />
-                        ))}
-                    </Horizontal>
-                </Vertical>
             )}
 
             <Button

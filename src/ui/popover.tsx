@@ -9,7 +9,9 @@ const anchorMap = { below: 'inset-x-0 top-full mt-1', corner: 'inset-e-0 top-ful
 
 const lookMap = {
     list: 'flex max-h-56 flex-col gap-1 overflow-y-auto',
-    note: 'w-56 p-3 text-start text-tiny text-txt-normal'
+    note: 'w-56 p-3 text-start text-tiny text-txt-normal',
+    /** A short list of choices under a heading, wider than the chip that opens it. */
+    menu: 'flex w-48 flex-col gap-1'
 } as const;
 
 export default function Popover({
