@@ -1,5 +1,5 @@
 import config from '../../config';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { X, ArrowLeft, ArrowRight, House, Lock, RotateCw, Search, Settings, TriangleAlert } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
@@ -66,6 +66,9 @@ export default function DashboardBrowser({
     ticket,
     fullToggle,
     homePress,
+    searchPress,
+    docked,
+    onFull,
     onExit
 }: {
     network: Network;
@@ -78,6 +81,10 @@ export default function DashboardBrowser({
     fullToggle: number;
     /** A counter, bumped per mouse double press. */
     homePress: number;
+    /** A counter, bumped per press of the nav bar's search: the address field takes the focus. */
+    searchPress: number;
+    docked: boolean;
+    onFull: (full: boolean) => void;
     onExit: () => void;
 }) {
     const [settings, setSettings] = useState(false);
@@ -94,6 +101,10 @@ export default function DashboardBrowser({
     const [fullMode, setFullMode] = useState(false);
     const [seenToggle, setSeenToggle] = useState(fullToggle);
     const [seenHome, setSeenHome] = useState(homePress);
+    const [seenSearch, setSeenSearch] = useState(searchPress);
+    const [focusing, setFocusing] = useState(0);
+
+    const addressRef = useRef<HTMLInputElement>(null);
 
     const [live, setLive] = useState<Map<number, BrowserState>>(new Map());
     const [notice, setNotice] = useState<Map<number, string>>(new Map());
@@ -120,6 +131,27 @@ export default function DashboardBrowser({
             setFullMode(!full);
         }
     }
+
+    if (searchPress !== seenSearch) {
+        setSeenSearch(searchPress);
+
+        setFullMode(false);
+        setFocusing((value) => value + 1);
+    }
+
+    // After the commit that lifts `inert` off this tab; `preventScroll`, or the clipped track scrolls to the field and shows the wrong tab.
+    useEffect(() => {
+        if (focusing > 0) {
+            addressRef.current?.focus({ preventScroll: true });
+            addressRef.current?.select();
+        }
+    }, [focusing]);
+
+    const reportFull = useEffectEvent(onFull);
+
+    useEffect(() => {
+        reportFull(full);
+    }, [full]);
 
     if (homePress !== seenHome) {
         setSeenHome(homePress);
@@ -351,6 +383,7 @@ export default function DashboardBrowser({
 
                     <Block squeeze='x' grow>
                         <TextField
+                            ref={addressRef}
                             dir={tab.draft.length > 0 ? 'ltr' : undefined}
                             value={tab.draft}
                             placeholder={T('Dashboard.Browser.Placeholder')}
@@ -429,6 +462,7 @@ export default function DashboardBrowser({
                                     favorites={favorites}
                                     visits={visits}
                                     notice={notice.get(item.id) ?? ''}
+                                    docked={docked}
                                     onOpen={onOpen}
                                     onFavoriteSave={onFavoriteSave}
                                     onFavoriteRemove={onFavoriteRemove}

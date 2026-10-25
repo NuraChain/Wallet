@@ -111,7 +111,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Cüzdan",
-            "Browser": "Tarayıcı"
+            "Browser": "Tarayıcı",
+            "Search": "Ara"
         },
         "Mouse": {
             "Title": "Kayan düğme",

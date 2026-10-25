@@ -111,7 +111,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "वॉलेट",
-            "Browser": "ब्राउज़र"
+            "Browser": "ब्राउज़र",
+            "Search": "खोजें"
         },
         "Mouse": {
             "Title": "फ़्लोटिंग बटन",

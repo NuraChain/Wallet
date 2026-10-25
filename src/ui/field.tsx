@@ -1,4 +1,4 @@
-import { useState, type InputHTMLAttributes, type ReactNode, type TextareaHTMLAttributes } from 'react';
+import { useState, type InputHTMLAttributes, type ReactNode, type Ref, type TextareaHTMLAttributes } from 'react';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 
 import Text from './text';
@@ -46,10 +46,12 @@ export function TextField({
     align,
     textSize,
     truncate = false,
+    ref,
     ...rest
 }: {
     label?: string;
     error?: string;
+    ref?: Ref<HTMLInputElement>;
     onValue: (value: string) => void;
     onEnter?: () => void;
     size?: 'regular' | 'compact';
@@ -69,6 +71,7 @@ export function TextField({
                 {leading}
 
                 <input
+                    ref={ref}
                     onChange={(event) => {
                         onValue(event.target.value);
                     }}

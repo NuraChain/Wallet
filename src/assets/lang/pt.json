@@ -111,7 +111,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Carteira",
-            "Browser": "Navegador"
+            "Browser": "Navegador",
+            "Search": "Pesquisar"
         },
         "Mouse": {
             "Title": "Botão flutuante",

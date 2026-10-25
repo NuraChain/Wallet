@@ -111,7 +111,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Wallet",
-            "Browser": "Browser"
+            "Browser": "Browser",
+            "Search": "Search"
         },
         "Mouse": {
             "Title": "Floating button",

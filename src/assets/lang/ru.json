@@ -111,7 +111,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "Кошелёк",
-            "Browser": "Браузер"
+            "Browser": "Браузер",
+            "Search": "Поиск"
         },
         "Mouse": {
             "Title": "Плавающая кнопка",

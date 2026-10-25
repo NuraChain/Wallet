@@ -111,7 +111,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "钱包",
-            "Browser": "浏览器"
+            "Browser": "浏览器",
+            "Search": "搜索"
         },
         "Mouse": {
             "Title": "悬浮按钮",

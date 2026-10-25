@@ -1,6 +1,7 @@
 import { Navigate, useNavigate } from 'react-router';
 import { platform } from '../platform';
 import { AnimatePresence } from 'motion/react';
+import { Globe, Search, Wallet, type LucideIcon } from 'lucide-react';
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 
 import ScrollArea from '../ui/scroll';
@@ -45,23 +46,27 @@ import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
 import { forgetSiteThemes, getSiteDevices, setSiteTheme } from '../core/browser';
-import { setMouseIcon, showMouse } from '../core/mouse';
+import { showMouse } from '../core/mouse';
 import Mouse from '../ui/mouse';
 
 import { getDirection, T } from '../utility/language';
 import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount } from '../utility/account';
-import type { MouseAction, MouseIcon } from '../type/app';
+import type { MouseAction } from '../type/app';
 import type { Account, Vault } from '../type/wallet';
 import type { HiddenMap, TokenMap } from '../type/token';
 import { Screen, Track } from '../ui/screen';
-import { Horizontal } from '../ui/stack';
+import { NavAction, NavBar, NavTab } from '../ui/navbar';
+import { Horizontal, Vertical } from '../ui/stack';
 import { Block } from '../ui/wrap';
 
 type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'delete' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse';
 
 const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Settings' }];
+
+// Settings is reached from the wallet page, not from the bar.
+const navIcons: Record<string, LucideIcon | undefined> = { Wallet, Browser: Globe };
 
 const refreshLimit = 15_000;
 
@@ -73,6 +78,8 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [modal, setModal] = useState<Modal>('none');
     const [fullToggle, setFullToggle] = useState(0);
     const [homePress, setHomePress] = useState(0);
+    const [searchPress, setSearchPress] = useState(0);
+    const [browserFull, setBrowserFull] = useState(false);
     const [link, setLink] = useState({ url: '', ticket: 0 });
     const [network, setNetworkState] = useState(getNetwork());
     const [tokenMap, setTokenMap] = useState<TokenMap>({});
@@ -135,26 +142,23 @@ function DashboardView({ vault }: { vault: Vault }) {
             }
         } else if (tabMap[active].key === 'Browser') {
             setFullToggle((value) => value + 1);
-        } else {
-            goKey('Browser');
         }
     };
 
     const onMouseEvent = useEffectEvent(onMouse);
 
-    const mouseIcon: MouseIcon = tabMap[active].key === 'Wallet' ? 'browser' : 'logo';
-
-    // Runs before showMouse below, so a natively drawn mouse starts with the right icon.
-    useEffect(() => {
-        if (hasBrowser) {
-            void setMouseIcon(mouseIcon);
-        }
-    }, [hasBrowser, mouseIcon]);
-
     // The mouse is drawn natively to stay above browser pages; this is the in-page fallback.
     const [pageMouse, setPageMouse] = useState(false);
 
-    const mouseOn = hasBrowser && (tabMap[active].key !== 'Settings' || modal === 'mouse');
+    // The browser's own control; the nav bar is how every other tab is reached. Shown elsewhere only while its settings preview it.
+    const mouseOn = hasBrowser && (tabMap[active].key === 'Browser' || modal === 'mouse');
+
+    const barOn = !(tabMap[active].key === 'Browser' && browserFull);
+
+    const onSearch = () => {
+        goKey('Browser');
+        setSearchPress((value) => value + 1);
+    };
 
     useEffect(() => {
         if (!mouseOn) {
@@ -520,114 +524,139 @@ function DashboardView({ vault }: { vault: Vault }) {
                 )}
             </AnimatePresence>
 
-            {pageMouse && mouseOn && <Mouse icon={mouseIcon} onAction={onMouse} />}
+            {pageMouse && mouseOn && <Mouse icon='logo' onAction={onMouse} />}
 
-            <Horizontal dir={getDirection()} fill='both' clip>
-                <Block squeeze='x' grow clip>
-                    <Track index={active}>
-                        {tabMap.map((item, index) => (
-                            <Block key={item.key} fill shrink={false}>
-                                {item.key === 'Browser' ? (
-                                    <PageContainer variant='browser' inert={index === active ? undefined : true}>
-                                        <DashboardBrowser
-                                            network={network}
-                                            request={link.url}
-                                            ticket={link.ticket}
-                                            fullToggle={fullToggle}
-                                            homePress={homePress}
-                                            inView={index === active}
-                                            enabled={index === active && modal === 'none' && prompt === undefined}
-                                            onExit={() => {
-                                                goKey('Wallet');
-                                            }}
-                                        />
-                                    </PageContainer>
-                                ) : (
-                                    <ScrollFrame>
-                                        <ScrollArea fill onRefresh={item.key === 'Wallet' ? onRefresh : undefined}>
-                                            <PageContainer variant='tab' inert={index === active ? undefined : true}>
-                                                {item.key === 'Settings' && (
-                                                    <DashboardSettings
-                                                        kind={vault.kind}
-                                                        onBack={() => {
-                                                            goKey('Wallet');
-                                                        }}
-                                                        onLanguage={() => {
-                                                            setModal('language');
-                                                        }}
-                                                        onMouse={
-                                                            hasBrowser
-                                                                ? () => {
-                                                                      setModal('mouse');
-                                                                  }
-                                                                : undefined
-                                                        }
-                                                        onLock={() => {
-                                                            lockSession();
-                                                            void navigate('/unlock', { replace: true });
-                                                        }}
-                                                        onPhrase={() => {
-                                                            setModal('phrase');
-                                                        }}
-                                                        onDelete={() => {
-                                                            setModal('delete');
-                                                        }}
-                                                    />
-                                                )}
+            <Vertical fill='both'>
+                <Horizontal dir={getDirection()} squeeze='y' grow clip>
+                    <Block squeeze='x' grow clip>
+                        <Track index={active}>
+                            {tabMap.map((item, index) => (
+                                <Block key={item.key} fill shrink={false}>
+                                    {item.key === 'Browser' ? (
+                                        <PageContainer variant='browser' docked={!browserFull} inert={index === active ? undefined : true}>
+                                            <DashboardBrowser
+                                                network={network}
+                                                request={link.url}
+                                                ticket={link.ticket}
+                                                fullToggle={fullToggle}
+                                                homePress={homePress}
+                                                searchPress={searchPress}
+                                                docked={!browserFull}
+                                                onFull={setBrowserFull}
+                                                inView={index === active}
+                                                enabled={index === active && modal === 'none' && prompt === undefined}
+                                                onExit={() => {
+                                                    goKey('Wallet');
+                                                }}
+                                            />
+                                        </PageContainer>
+                                    ) : (
+                                        <ScrollFrame>
+                                            <ScrollArea fill onRefresh={item.key === 'Wallet' ? onRefresh : undefined}>
+                                                <PageContainer variant='tab' inert={index === active ? undefined : true}>
+                                                    {item.key === 'Settings' && (
+                                                        <DashboardSettings
+                                                            kind={vault.kind}
+                                                            onBack={() => {
+                                                                goKey('Wallet');
+                                                            }}
+                                                            onLanguage={() => {
+                                                                setModal('language');
+                                                            }}
+                                                            onMouse={
+                                                                hasBrowser
+                                                                    ? () => {
+                                                                          setModal('mouse');
+                                                                      }
+                                                                    : undefined
+                                                            }
+                                                            onLock={() => {
+                                                                lockSession();
+                                                                void navigate('/unlock', { replace: true });
+                                                            }}
+                                                            onPhrase={() => {
+                                                                setModal('phrase');
+                                                            }}
+                                                            onDelete={() => {
+                                                                setModal('delete');
+                                                            }}
+                                                        />
+                                                    )}
 
-                                                {item.key === 'Wallet' && (
-                                                    <DashboardWallet
-                                                        kind={vault.kind}
-                                                        address={address}
-                                                        name={name}
-                                                        emoji={emoji}
-                                                        network={network}
-                                                        native={reads}
-                                                        tokens={tokens.tokens}
-                                                        total={prices.total}
-                                                        totalLoading={prices.loading}
-                                                        totalAt={prices.at}
-                                                        prices={prices.prices}
-                                                        history={history}
-                                                        onSend={() => {
-                                                            setModal('send');
-                                                        }}
-                                                        onReceive={() => {
-                                                            setModal('receive');
-                                                        }}
-                                                        onRedeem={() => {
-                                                            setModal('redeem');
-                                                        }}
-                                                        onNetwork={() => {
-                                                            setModal('network');
-                                                        }}
-                                                        onAccounts={() => {
-                                                            setModal('accounts');
-                                                        }}
-                                                        onTokens={() => {
-                                                            setModal('tokens');
-                                                        }}
-                                                        onSettings={() => {
-                                                            goKey('Settings');
-                                                        }}
-                                                        onBackup={() => {
-                                                            setModal('phrase');
-                                                        }}
-                                                        onTransaction={onTransaction}
-                                                        onOverview={() => {
-                                                            setModal('history');
-                                                        }}
-                                                    />
-                                                )}
-                                            </PageContainer>
-                                        </ScrollArea>
-                                    </ScrollFrame>
-                                )}
-                            </Block>
-                        ))}
-                    </Track>
-                </Block>
-            </Horizontal>
+                                                    {item.key === 'Wallet' && (
+                                                        <DashboardWallet
+                                                            kind={vault.kind}
+                                                            address={address}
+                                                            name={name}
+                                                            emoji={emoji}
+                                                            network={network}
+                                                            native={reads}
+                                                            tokens={tokens.tokens}
+                                                            total={prices.total}
+                                                            totalLoading={prices.loading}
+                                                            totalAt={prices.at}
+                                                            prices={prices.prices}
+                                                            history={history}
+                                                            onSend={() => {
+                                                                setModal('send');
+                                                            }}
+                                                            onReceive={() => {
+                                                                setModal('receive');
+                                                            }}
+                                                            onRedeem={() => {
+                                                                setModal('redeem');
+                                                            }}
+                                                            onNetwork={() => {
+                                                                setModal('network');
+                                                            }}
+                                                            onAccounts={() => {
+                                                                setModal('accounts');
+                                                            }}
+                                                            onTokens={() => {
+                                                                setModal('tokens');
+                                                            }}
+                                                            onSettings={() => {
+                                                                goKey('Settings');
+                                                            }}
+                                                            onBackup={() => {
+                                                                setModal('phrase');
+                                                            }}
+                                                            onTransaction={onTransaction}
+                                                            onOverview={() => {
+                                                                setModal('history');
+                                                            }}
+                                                        />
+                                                    )}
+                                                </PageContainer>
+                                            </ScrollArea>
+                                        </ScrollFrame>
+                                    )}
+                                </Block>
+                            ))}
+                        </Track>
+                    </Block>
+                </Horizontal>
+
+                {barOn && (
+                    <NavBar action={hasBrowser ? <NavAction label={T('Dashboard.Nav.Search')} icon={<Search size={22} />} onClick={onSearch} /> : undefined}>
+                        {tabMap.map((item) => {
+                            const Icon = navIcons[item.key];
+
+                            return Icon === undefined ? undefined : (
+                                <NavTab
+                                    key={item.key}
+                                    label={T(`Dashboard.Nav.${item.key}`)}
+                                    icon={<Icon size={22} />}
+                                    selected={tabMap[active].key === item.key}
+                                    onSelect={() => {
+                                        goKey(item.key);
+                                    }}
+                                />
+                            );
+                        })}
+                    </NavBar>
+                )}
+            </Vertical>
         </Screen>
     );
 }

@@ -9,8 +9,6 @@ export const inset = {
     modalFrame: 'pt-[calc(1rem+var(--inset-top))] pb-[calc(1rem+var(--inset-bottom))]',
     tabTop: { windows: 'pt-8', device: 'pt-[calc(0.375rem+var(--inset-top))]' },
 
-    tabBottom: 'pb-[calc(1.5rem+var(--inset-bottom))]',
-
     edgeBottom: 'pb-[calc(1rem+var(--inset-bottom))] sm:pb-[calc(1.5rem+var(--inset-bottom))]'
 } as const;
 
@@ -29,9 +27,12 @@ const topMap = {
 } as const;
 
 const bodyMap = {
-    tab: `mx-auto flex min-h-full w-full max-w-lg flex-col px-4 sm:px-6 lg:max-w-4xl ${inset.tabBottom}`,
+    // The bottom inset is the nav bar's, which sits under every tab.
+    tab: 'mx-auto flex min-h-full w-full max-w-lg flex-col px-4 pb-6 sm:px-6 lg:max-w-4xl',
     // Runs under a gesture bar or iOS home indicator; stopping short leaves a strip of wallet colour.
     browser: 'relative flex size-full flex-col pb-[var(--inset-bar)]',
+    // With the nav bar under it, which owns the bottom inset.
+    browserDocked: 'relative flex size-full flex-col',
     intro: `bg-base-1 flex size-full flex-col px-4 sm:px-6 ${inset.edgeBottom}`
 } as const;
 
@@ -50,11 +51,14 @@ function BarTint() {
 export default function PageContainer({
     variant,
     center = false,
+    docked = false,
     children,
     ...rest
 }: {
     variant: 'tab' | 'browser' | 'intro';
     center?: boolean;
+    /** A browser page with the nav bar under it. */
+    docked?: boolean;
     children: ReactNode;
 } & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>) {
     const isWindows = useIsWindows();
@@ -63,7 +67,7 @@ export default function PageContainer({
     const top = variant === 'tab' ? '' : topMap[variant][isWindows ? 'windows' : 'device'];
 
     return (
-        <div className={cn(bodyMap[variant], top, center && 'items-center justify-center')} {...rest}>
+        <div className={cn(bodyMap[variant === 'browser' && docked ? 'browserDocked' : variant], top, center && 'items-center justify-center')} {...rest}>
             {variant === 'browser' && hasStatusBar && <BarTint />}
 
             {children}

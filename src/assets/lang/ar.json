@@ -111,7 +111,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "المحفظة",
-            "Browser": "المتصفح"
+            "Browser": "المتصفح",
+            "Search": "بحث"
         },
         "Mouse": {
             "Title": "الزر العائم",

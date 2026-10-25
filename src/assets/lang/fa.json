@@ -111,7 +111,8 @@
     "Dashboard": {
         "Nav": {
             "Wallet": "کیف پول",
-            "Browser": "مرورگر"
+            "Browser": "مرورگر",
+            "Search": "جستجو"
         },
         "Mouse": {
             "Title": "دکمهٔ شناور",
