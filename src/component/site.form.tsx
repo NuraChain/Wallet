@@ -10,6 +10,7 @@ import { Modal, ModalActions, ModalHeader } from '../ui/modal';
 
 import { T } from '../utility/language';
 import { getSiteHost } from '../core/browser';
+import { askNoticePermission } from '../core/notice';
 
 interface SiteEntry {
     id: string;
@@ -17,6 +18,7 @@ interface SiteEntry {
     url: string;
     microphone?: boolean;
     camera?: boolean;
+    notifications?: boolean;
 }
 
 export default function SiteForm({
@@ -36,6 +38,7 @@ export default function SiteForm({
     const [url, setUrl] = useState(item?.url ?? '');
     const [microphone, setMicrophone] = useState(item?.microphone === true);
     const [camera, setCamera] = useState(item?.camera === true);
+    const [notifications, setNotifications] = useState(item?.notifications === true);
     const [error, setError] = useState('');
 
     const onConfirm = () => {
@@ -65,7 +68,8 @@ export default function SiteForm({
             name: label.length > 0 ? label : getSiteHost(full),
             url: full,
             ...(microphone ? { microphone: true } : {}),
-            ...(camera ? { camera: true } : {})
+            ...(camera ? { camera: true } : {}),
+            ...(notifications ? { notifications: true } : {})
         });
     };
 
@@ -91,27 +95,42 @@ export default function SiteForm({
                 onValue={setUrl}
             />
 
-            {devices && (
-                <Vertical>
-                    <Text text={T('Dashboard.Site.Devices')} />
+            {/* Notifications reach the wallet through the page's own script on every host; devices only through Android's bridge. */}
+            <Vertical>
+                <Text text={T('Dashboard.Site.Devices')} />
 
-                    <Checkbox
-                        checked={microphone}
-                        text={T('Dashboard.Site.Microphone')}
-                        onToggle={() => {
-                            setMicrophone(!microphone);
-                        }}
-                    />
+                {devices && (
+                    <>
+                        <Checkbox
+                            checked={microphone}
+                            text={T('Dashboard.Site.Microphone')}
+                            onToggle={() => {
+                                setMicrophone(!microphone);
+                            }}
+                        />
 
-                    <Checkbox
-                        checked={camera}
-                        text={T('Dashboard.Site.Camera')}
-                        onToggle={() => {
-                            setCamera(!camera);
-                        }}
-                    />
-                </Vertical>
-            )}
+                        <Checkbox
+                            checked={camera}
+                            text={T('Dashboard.Site.Camera')}
+                            onToggle={() => {
+                                setCamera(!camera);
+                            }}
+                        />
+                    </>
+                )}
+
+                <Checkbox
+                    checked={notifications}
+                    text={T('Dashboard.Site.Notifications')}
+                    onToggle={() => {
+                        if (!notifications) {
+                            void askNoticePermission();
+                        }
+
+                        setNotifications(!notifications);
+                    }}
+                />
+            </Vertical>
 
             <ModalActions>
                 <Button variant='muted' size='action' onClick={onClose} text={T('Dashboard.Site.Cancel')} />

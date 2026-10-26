@@ -52,6 +52,7 @@ import { useHasBrowser } from '../hook/platform';
 import { useBack } from '../hook/back';
 import { forgetSiteThemes, getSiteDevices, setSiteTheme } from '../core/browser';
 import { showMouse } from '../core/mouse';
+import { siteNotices } from '../core/notice';
 import Mouse from '../ui/mouse';
 
 import { getDirection, T } from '../utility/language';
@@ -398,7 +399,13 @@ function DashboardView({ vault }: { vault: Vault }) {
     useEffect(() => {
         void loadConnections();
 
-        const stop = startDappBridge(answerDapp, undefined, async (origin, wanted) => allowDevices(origin, wanted, await getSiteDevices(origin)), setSiteTheme);
+        const stop = startDappBridge(
+            answerDapp,
+            undefined,
+            async (origin, wanted) => allowDevices(origin, wanted, await getSiteDevices(origin)),
+            setSiteTheme,
+            siteNotices
+        );
 
         flushDeepLinks();
 

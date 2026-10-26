@@ -89,3 +89,9 @@ export interface DappReply {
     result?: unknown;
     error?: DappFailure;
 }
+
+/** What a site in the browser may do with the system's notifications, decided per origin by the dashboard. */
+export interface SiteNotices {
+    allowed: (origin: string) => Promise<boolean>;
+    show: (origin: string, title: string, body: string) => Promise<boolean>;
+}

@@ -475,6 +475,7 @@
             "Devices": "无需询问即可使用",
             "Microphone": "麦克风",
             "Camera": "摄像头",
+            "Notifications": "通知",
             "Url": "网址"
         }
     }

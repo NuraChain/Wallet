@@ -475,6 +475,7 @@
             "Devices": "Autoriser sans demander",
             "Microphone": "Microphone",
             "Camera": "Caméra",
+            "Notifications": "Notifications",
             "Url": "Adresse web"
         }
     }

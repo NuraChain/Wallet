@@ -475,6 +475,7 @@
             "Devices": "Allow without asking",
             "Microphone": "Microphone",
             "Camera": "Camera",
+            "Notifications": "Notifications",
             "Url": "Web address"
         }
     }

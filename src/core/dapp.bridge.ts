@@ -2,9 +2,9 @@ import { platform } from '../platform';
 
 import { dappLog } from './dapp.log';
 
-import { siteOrigin } from './dapp';
+import { dappError, siteOrigin } from './dapp';
 import type { SiteDevice } from '../type/browser';
-import type { DappEnvelope, DappLinkHandler, DappPage, DappReply } from '../type/dapp';
+import type { DappEnvelope, DappLinkHandler, DappPage, DappReply, SiteNotices } from '../type/dapp';
 
 const pages = new Map<string, string>();
 
@@ -65,6 +65,31 @@ const readTheme = (raw: unknown): { id: string; color: string | undefined } | un
     return { id, color: typeof value === 'string' && themeColor.test(value) ? value.toLowerCase() : undefined };
 };
 
+const noticeMethod = 'nura_notify';
+
+const noticeAsk = 'nura_notifyPermission';
+
+/** A notification, or the question whether one may be shown: read here and never routed, like a theme colour. */
+const readNotice = (raw: unknown): { id: string; ask: boolean; title?: string; body: string } | undefined => {
+    if (typeof raw !== 'object' || raw === null || !('method' in raw) || (raw.method !== noticeMethod && raw.method !== noticeAsk)) {
+        return undefined;
+    }
+
+    const id = 'id' in raw && typeof raw.id === 'string' ? raw.id : '';
+
+    if (raw.method === noticeAsk) {
+        return { id, ask: true, body: '' };
+    }
+
+    const [value]: unknown[] = 'params' in raw && Array.isArray(raw.params) ? raw.params : [];
+
+    if (typeof value !== 'object' || value === null || !('title' in value) || typeof value.title !== 'string') {
+        return { id, ask: false, body: '' };
+    }
+
+    return { id, ask: false, title: value.title, body: 'body' in value && typeof value.body === 'string' ? value.body : '' };
+};
+
 // Logged by scheme alone: what a foreign link carries in its query is the page's business.
 const linkScheme = (url: string) => url.slice(0, Math.max(0, url.indexOf(':')));
 
@@ -72,7 +97,8 @@ export const startDappBridge = (
     handler: (envelope: DappEnvelope) => Promise<DappReply>,
     onLink?: DappLinkHandler,
     onDevices?: (origin: string, wanted: SiteDevice[]) => Promise<boolean>,
-    onTheme?: (label: string, color: string) => void
+    onTheme?: (label: string, color: string) => void,
+    notices?: SiteNotices
 ) => {
     stopBridge?.();
 
@@ -111,6 +137,37 @@ export const startDappBridge = (
                 if (theme.color !== undefined && siteOrigin(call.origin).length > 0) {
                     onTheme?.(call.label, theme.color);
                 }
+
+                return;
+            }
+
+            const notice = readNotice(parsed);
+
+            if (notice !== undefined) {
+                const origin = siteOrigin(call.origin);
+
+                dappLog('Bridge', notice.ask ? 'notification permission asked by a page' : 'notification from a page', { origin });
+
+                // Always answered, as a theme colour is; `default` rather than `denied`, since the user may yet allow it.
+                const answer = (allowed: boolean) => {
+                    if (notice.ask) {
+                        call.respond({ id: notice.id, result: allowed ? 'granted' : 'default' });
+                    } else if (allowed) {
+                        call.respond({ id: notice.id, result: null });
+                    } else {
+                        call.respond({ id: notice.id, error: { code: dappError.unauthorized, message: 'This site may not show notifications' } });
+                    }
+                };
+
+                if (origin.length === 0 || notices === undefined || (!notice.ask && notice.title === undefined)) {
+                    answer(false);
+
+                    return;
+                }
+
+                void (notice.ask ? notices.allowed(origin) : notices.show(origin, notice.title ?? '', notice.body)).then(answer, () => {
+                    answer(false);
+                });
 
                 return;
             }

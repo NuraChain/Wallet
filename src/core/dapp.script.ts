@@ -655,6 +655,109 @@ export const dappScript = (identity: DappIdentity) => `
         try { watchTheme(); } catch (ignored) {  }
     }
 
+    // A WebView on a phone has no notifications of its own, so they are asked of the wallet, which shows only
+    // those a site's favourite allows. Top page only: a frame would otherwise speak with the page's name.
+    var shimNotices = function ()
+    {
+        var standing = 'default';
+        var asking = null;
+
+        var ask = function ()
+        {
+            if (asking === null)
+            {
+                asking = send('nura_notifyPermission', []).then(function (answer)
+                {
+                    standing = answer === 'granted' ? 'granted' : 'default';
+
+                    return standing;
+                }, function ()
+                {
+                    return standing;
+                });
+
+                asking.then(function () { asking = null; });
+            }
+
+            return asking;
+        };
+
+        var Notice = function Notification(title, options)
+        {
+            if (!(this instanceof Notice)) { throw new TypeError("Failed to construct 'Notification': Please use the 'new' operator."); }
+
+            var self = this;
+            var heard = {};
+
+            self.title = String(title);
+            self.body = options && typeof options.body === 'string' ? options.body : '';
+            self.tag = options && typeof options.tag === 'string' ? options.tag : '';
+            self.data = options ? options.data : undefined;
+            self.onshow = null;
+            self.onerror = null;
+            self.onclick = null;
+            self.onclose = null;
+
+            self.addEventListener = function (name, handler)
+            {
+                (heard[name] = heard[name] || []).push(handler);
+            };
+
+            self.removeEventListener = function (name, handler)
+            {
+                heard[name] = (heard[name] || []).filter(function (item) { return item !== handler; });
+            };
+
+            var fire = function (name)
+            {
+                var event = { type: name, target: self };
+
+                if (typeof self['on' + name] === 'function') { try { self['on' + name](event); } catch (ignored) {  } }
+
+                (heard[name] || []).forEach(function (handler) { try { handler.call(self, event); } catch (ignored) {  } });
+            };
+
+            send('nura_notify', [{ title: self.title, body: self.body }]).then(function () { fire('show'); }, function () { fire('error'); });
+        };
+
+        Notice.prototype.close = function () {};
+
+        Object.defineProperty(Notice, 'permission', { get: function () { return standing; } });
+
+        Notice.maxActions = 0;
+
+        Notice.requestPermission = function (callback)
+        {
+            var answer = ask();
+
+            if (typeof callback === 'function') { answer.then(callback); }
+
+            return answer;
+        };
+
+        try { Object.defineProperty(window, 'Notification', { value: Notice, writable: true, configurable: true }); }
+        catch (ignored) { window.Notification = Notice; }
+
+        // Shown from the page through a worker's registration; a push to the worker itself has no service to come from.
+        var Registration = window.ServiceWorkerRegistration;
+
+        if (typeof Registration === 'function' && Registration.prototype)
+        {
+            Registration.prototype.showNotification = function (title, options)
+            {
+                return send('nura_notify', [{ title: String(title), body: options && typeof options.body === 'string' ? options.body : '' }]).then(function () { return undefined; });
+            };
+        }
+
+        // Learnt at once, so a page that reads the permission before asking finds it right.
+        ask();
+    };
+
+    if (IDENTITY.channel === 'native' && window.top === window)
+    {
+        try { shimNotices(); } catch (ignored) {  }
+    }
+
     setTimeout(function ()
     {
         connected = true;

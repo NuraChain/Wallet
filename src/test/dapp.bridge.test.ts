@@ -404,3 +404,119 @@ describe('a page naming the colour of the chrome around it', () => {
         stop();
     });
 });
+
+describe('a page asking for the system notifications', () => {
+    const noticed = (allowed: boolean) => {
+        const routed: DappEnvelope[] = [];
+        const asked: string[] = [];
+        const shown: { origin: string; title: string; body: string }[] = [];
+
+        const stop = startDappBridge(
+            async (envelope): Promise<DappReply> => {
+                routed.push(envelope);
+
+                return { id: envelope.id, result: null };
+            },
+            undefined,
+            undefined,
+            undefined,
+            {
+                allowed: async (origin) => {
+                    asked.push(origin);
+
+                    return allowed;
+                },
+                show: async (origin, title, body) => {
+                    shown.push({ origin, title, body });
+
+                    return allowed;
+                }
+            }
+        );
+
+        return { routed, asked, shown, stop };
+    };
+
+    it('is told what the favourite allows, and goes no further', async () => {
+        const { routed, asked, stop } = noticed(true);
+
+        send({ id: 'ask-1', method: 'nura_notifyPermission', params: [] });
+
+        await settled();
+
+        expect(asked).toEqual(['https://dapp.example']);
+        expect(routed).toEqual([]);
+        expect(getDappPages()).toEqual([]);
+        expect(replies).toEqual([{ label: 'nura-browser-1', payload: JSON.stringify({ id: 'ask-1', result: 'granted' }) }]);
+
+        stop();
+    });
+
+    it('hears "default" rather than "denied" where nothing allows it', async () => {
+        const { stop } = noticed(false);
+
+        send({ id: 'ask-2', method: 'nura_notifyPermission' });
+
+        await settled();
+
+        expect(replies).toEqual([{ label: 'nura-browser-1', payload: JSON.stringify({ id: 'ask-2', result: 'default' }) }]);
+
+        stop();
+    });
+
+    it('hands a notification on with the origin the transport stamped', async () => {
+        const { shown, stop } = noticed(true);
+
+        send({ id: 'show-1', method: 'nura_notify', params: [{ title: 'New message', body: 'Hello', origin: 'https://other.example' }] });
+
+        await settled();
+
+        expect(shown).toEqual([{ origin: 'https://dapp.example', title: 'New message', body: 'Hello' }]);
+        expect(replies).toEqual([{ label: 'nura-browser-1', payload: JSON.stringify({ id: 'show-1', result: null }) }]);
+
+        stop();
+    });
+
+    it('answers a refusal as unauthorized', async () => {
+        const { stop } = noticed(false);
+
+        send({ id: 'show-2', method: 'nura_notify', params: [{ title: 'New message' }] });
+
+        await settled();
+
+        expect(replies).toEqual([
+            { label: 'nura-browser-1', payload: JSON.stringify({ id: 'show-2', error: { code: 4100, message: 'This site may not show notifications' } }) }
+        ]);
+
+        stop();
+    });
+
+    it('refuses, without asking anyone, a page that is no site or a notification with no title', async () => {
+        const { asked, shown, stop } = noticed(true);
+
+        send({ id: 'show-3', method: 'nura_notify', params: [{ title: 'Hi' }] }, 'file:///etc/passwd');
+        send({ id: 'show-4', method: 'nura_notify', params: [{ body: 'no title' }] });
+        send({ id: 'show-5', method: 'nura_notify', params: 'nothing like a list' });
+
+        await settled();
+
+        expect(asked).toEqual([]);
+        expect(shown).toEqual([]);
+        expect(replies).toHaveLength(3);
+        expect(replies.every((reply) => reply.payload.includes('4100'))).toBe(true);
+
+        stop();
+    });
+
+    it('is refused where nobody was given to decide', async () => {
+        const stop = startDappBridge(async (envelope): Promise<DappReply> => ({ id: envelope.id, result: null }));
+
+        send({ id: 'ask-3', method: 'nura_notifyPermission' });
+
+        await settled();
+
+        expect(replies).toEqual([{ label: 'nura-browser-1', payload: JSON.stringify({ id: 'ask-3', result: 'default' }) }]);
+
+        stop();
+    });
+});

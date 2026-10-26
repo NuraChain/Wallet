@@ -565,3 +565,146 @@ describe('the colour a page asks the browser around it to wear', () => {
         expect(JSON.stringify(held.posted)).not.toContain('nura_themeColor');
     });
 });
+
+describe('the notifications a page asks the wallet to show', () => {
+    interface Notice {
+        addEventListener: (name: string, handler: () => void) => void;
+    }
+
+    type NoticeType = (new (title: string, options?: Record<string, unknown>) => Notice) & {
+        permission: string;
+        requestPermission: (callback?: (answer: string) => void) => Promise<string>;
+    };
+
+    const notices = (options: { allowed?: boolean; framed?: boolean; channel?: 'native' | 'extension' } = {}) => {
+        const calls: { method: string; params: unknown[] }[] = [];
+        const posted: unknown[] = [];
+
+        const win: Record<string, unknown> = {
+            crypto: globalThis.crypto,
+            addEventListener: () => undefined,
+            removeEventListener: () => undefined,
+            dispatchEvent: () => true,
+
+            postMessage: (message: unknown) => {
+                posted.push(message);
+            },
+
+            __nuraEthereum: {
+                request: (raw: string) => {
+                    // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                    const call = JSON.parse(raw) as { id: string; method: string; params: unknown[] };
+
+                    calls.push(call);
+
+                    const allowed = options.allowed === true;
+
+                    let reply: unknown = { id: call.id, error: { code: 4100, message: 'This site may not show notifications' } };
+
+                    if (call.method === 'nura_notifyPermission') {
+                        reply = { id: call.id, result: allowed ? 'granted' : 'default' };
+                    } else if (allowed) {
+                        reply = { id: call.id, result: null };
+                    }
+
+                    queueMicrotask(() => {
+                        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                        (win.__nuraWalletReply as (payload: string) => void)(JSON.stringify(reply));
+                    });
+                }
+            }
+        };
+
+        win.top = options.framed === true ? {} : win;
+
+        // oxlint-disable-next-line no-new-func
+        const run = new Function('window', 'CustomEvent', 'Event', 'setTimeout', dappScript(dappIdentity(1020, options.channel)));
+
+        run(win, CustomEvent, Event, () => undefined);
+
+        // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        return { calls, posted, Notice: win.Notification as NoticeType | undefined };
+    };
+
+    const settled = async () => {
+        await new Promise((resolve) => {
+            setTimeout(resolve, 5);
+        });
+    };
+
+    it('learns at once whether the wallet allows them, and says so through the permission', async () => {
+        const allowed = notices({ allowed: true });
+
+        expect(allowed.Notice?.permission).toBe('default');
+
+        await settled();
+
+        expect(allowed.calls.map((call) => call.method)).toEqual(['nura_notifyPermission']);
+        expect(allowed.Notice?.permission).toBe('granted');
+
+        const refused = notices();
+
+        await expect(refused.Notice?.requestPermission()).resolves.toBe('default');
+        expect(refused.Notice?.permission).toBe('default');
+    });
+
+    it('hands the answer to a legacy callback too', async () => {
+        const { Notice } = notices({ allowed: true });
+
+        const answer = vi.fn();
+
+        await Notice?.requestPermission(answer);
+
+        expect(answer).toHaveBeenCalledWith('granted');
+    });
+
+    it('sends the title and body, and nothing else, to the wallet', async () => {
+        const { Notice, calls } = notices({ allowed: true });
+
+        if (Notice === undefined) {
+            throw new Error('no Notification');
+        }
+
+        const shown = vi.fn();
+
+        const notice = new Notice('New message', { body: 'Hello', icon: 'https://tracker.example/pixel.png' });
+
+        notice.addEventListener('show', shown);
+
+        await settled();
+
+        expect(calls.at(-1)).toMatchObject({ method: 'nura_notify', params: [{ title: 'New message', body: 'Hello' }] });
+        expect(JSON.stringify(calls)).not.toContain('tracker.example');
+        expect(shown).toHaveBeenCalledOnce();
+    });
+
+    it('tells the page when the wallet would not show it', async () => {
+        const { Notice } = notices();
+
+        if (Notice === undefined) {
+            throw new Error('no Notification');
+        }
+
+        const failed = vi.fn();
+
+        const notice = new Notice('New message');
+
+        notice.addEventListener('error', failed);
+
+        await settled();
+
+        expect(failed).toHaveBeenCalledOnce();
+    });
+
+    it('is not offered to a frame, nor in an extension, where the browser has its own', async () => {
+        const framed = notices({ framed: true });
+        const extension = notices({ channel: 'extension' });
+
+        await settled();
+
+        expect(framed.Notice).toBeUndefined();
+        expect(framed.calls).toEqual([]);
+        expect(extension.Notice).toBeUndefined();
+        expect(JSON.stringify(extension.posted)).not.toContain('nura_notify');
+    });
+});

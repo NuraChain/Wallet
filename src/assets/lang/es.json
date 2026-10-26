@@ -475,6 +475,7 @@
             "Devices": "Permitir sin preguntar",
             "Microphone": "Micrófono",
             "Camera": "Cámara",
+            "Notifications": "Notificaciones",
             "Url": "Dirección web"
         }
     }

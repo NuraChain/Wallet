@@ -34,6 +34,9 @@ export interface BrowserFavorite {
     /** Allowed without asking each time. Off unless set. */
     microphone?: boolean;
     camera?: boolean;
+
+    /** May show the system's notifications. Off unless set. */
+    notifications?: boolean;
 }
 
 export interface NativeTab {

@@ -124,6 +124,10 @@ export const getSiteDevices = async (origin: string): Promise<SiteDevice[]> => {
     return devices;
 };
 
+/** Held the same way as a device: by a favourite at the exact origin. */
+export const getSiteNotices = async (origin: string): Promise<boolean> =>
+    origin.length > 0 && (await getBrowserFavorites().catch(() => [])).some((item) => originOf(item.url) === origin && item.notifications === true);
+
 /** Only Android's bridge brings a page's device requests to the wallet. */
 export const managesSiteDevices = () => window.__nuraBrowser?.permissionReply !== undefined;
 
