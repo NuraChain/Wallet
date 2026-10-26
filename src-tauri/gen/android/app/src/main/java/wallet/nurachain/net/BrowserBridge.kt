@@ -10,6 +10,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.webkit.CookieManager
 import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
@@ -295,7 +296,7 @@ class BrowserBridge(
         return builder.build()
     }
 
-    @SuppressLint("SetJavaScriptEnabled")
+    @SuppressLint("SetJavaScriptEnabled", "ClickableViewAccessibility")
     private fun build(id: String): WebView {
         val view = WebView(activity)
 
@@ -324,6 +325,16 @@ class BrowserBridge(
 
         ViewCompat.setOnApplyWindowInsetsListener(view) { target, insets ->
             ViewCompat.onApplyWindowInsets(target, overlap(target, insets))
+        }
+
+        // A tap on a site never reaches the wallet's page, so a field there (the address bar) kept
+        // its focus and the keyboard stayed up. Checked on the way down, before the tab takes focus.
+        view.setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_DOWN && host.hasFocus()) {
+                dismissKeyboard()
+            }
+
+            false
         }
 
         applyScript(id, view)
@@ -378,6 +389,12 @@ class BrowserBridge(
         }
 
         return view
+    }
+
+    private fun dismissKeyboard() {
+        host.evaluateJavascript("document.activeElement && document.activeElement.blur && document.activeElement.blur()", null)
+
+        activity.getSystemService(InputMethodManager::class.java)?.hideSoftInputFromWindow(host.windowToken, 0)
     }
 
     private fun place(view: View, x: Float, y: Float) {
