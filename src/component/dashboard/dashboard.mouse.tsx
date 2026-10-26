@@ -1,9 +1,7 @@
 import Text from '../../ui/text';
-import IconBox from '../../ui/iconbox';
 import { Modal, ModalHeader } from '../../ui/modal';
 import { Horizontal, Vertical } from '../../ui/stack';
 
-import { Logo } from '../../ui/media';
 import { T } from '../../utility/language';
 import { setMouseOpacity } from '../../core/mouse';
 import { useMouseOpacity } from '../../hook/mouse';
@@ -18,15 +16,7 @@ export default function DashboardMouse({ onClose }: { onClose: () => void }) {
 
     return (
         <Modal onClose={onClose}>
-            <ModalHeader
-                title={T('Dashboard.Mouse.Title')}
-                onClose={onClose}
-                leading={
-                    <IconBox tone='primary'>
-                        <Logo size={5} />
-                    </IconBox>
-                }
-            />
+            <ModalHeader title={T('Dashboard.Mouse.Title')} onClose={onClose} />
 
             <Vertical gap={2}>
                 <Horizontal align='center' justify='between'>
