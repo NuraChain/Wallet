@@ -518,10 +518,8 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 
     [container addSubview:view];
 
-    // It starts out at the top of the screen, in the middle, under the status bar and whatever is
-    // cut out of the screen there: the window runs behind both, and a mouse up there would be
-    // hidden by one and out of reach behind the other.
-    [self place:view at:CGPointMake((container.bounds.size.width - kMouseSize) / 2, container.safeAreaInsets.top)];
+    [self place:view
+             at:CGPointMake((container.bounds.size.width - kMouseSize) / 2, (container.bounds.size.height - kMouseSize) / 2)];
 
     return view;
 }

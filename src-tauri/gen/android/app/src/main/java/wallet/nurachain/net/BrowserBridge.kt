@@ -487,13 +487,7 @@ class BrowserBridge(
         // Kept on screen through resizes: in full screen it is the only way back out.
         root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> place(view, view.x, view.y) }
 
-        // Edge to edge, so it starts below the status bar and cutout, not at the view's top.
-        root.post {
-            val bars = WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
-            val top = ViewCompat.getRootWindowInsets(root)?.getInsets(bars)?.top ?: 0
-
-            place(view, (root.width - size) / 2f, top.toFloat())
-        }
+        root.post { place(view, (root.width - size) / 2f, (root.height - size) / 2f) }
 
         return view
     }

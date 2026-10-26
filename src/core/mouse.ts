@@ -179,9 +179,8 @@ const openDesktop = async () => {
 
     const clamp = (value: number, room: number) => Math.min(Math.max(value, 0), Math.max(room - mouseSize, 0));
 
-    // Top middle: on Windows, the empty stretch of the title bar.
     const x = clamp(parked?.x ?? (window.innerWidth - mouseSize) / 2, window.innerWidth);
-    const y = clamp(parked?.y ?? 0, window.innerHeight);
+    const y = clamp(parked?.y ?? (window.innerHeight - mouseSize) / 2, window.innerHeight);
 
     // The fragment carries the start state because a query never reaches the asset protocol.
     const view = new Webview(getCurrentWindow(), mouseLabel, {

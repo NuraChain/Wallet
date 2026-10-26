@@ -130,7 +130,7 @@ const clamp = ({ x, y }: Point): Point => ({
 export default function Mouse({ icon, onAction }: { icon: MouseIcon; onAction: (action: MouseAction) => void }) {
     const opacity = useMouseOpacity();
 
-    const [place, setPlace] = useState(() => clamp(parked ?? { x: (window.innerWidth - size) / 2, y: 0 }));
+    const [place, setPlace] = useState(() => clamp(parked ?? { x: (window.innerWidth - size) / 2, y: (window.innerHeight - size) / 2 }));
 
     const grabRef = useRef<{ pointer: Point; origin: Point } | undefined>(undefined);
 
