@@ -100,6 +100,8 @@ pub fn run() {
 
     builder = builder.plugin(tauri_plugin_http::init());
 
+    builder = builder.plugin(tauri_plugin_notification::init());
+
     builder
         .run(tauri::generate_context!())
         .expect("Application Failed");
