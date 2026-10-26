@@ -4,11 +4,18 @@ import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '../utility/cn';
 import { focusRing } from './token';
 import { useDialog } from './dialog';
-import { inset, layer } from './container';
+import { layer } from './container';
 import { spring, transition } from './motion';
 import { ringLabel, ringSlice } from '../utility/ring';
 
+import type { Point } from '../type/app';
+
 const ring = { box: 216, inner: 56, outer: 104, gap: 4, corner: 6 };
+
+// Kept this far inside the window when the mouse sits near an edge.
+const edge = 8;
+
+const fit = (value: number, room: number) => Math.min(Math.max(value - ring.box / 2, edge), Math.max(room - ring.box - edge, edge));
 
 export interface RingChoice {
     key: string;
@@ -18,27 +25,40 @@ export interface RingChoice {
 }
 
 /**
- * Choices laid round a hub that closes them, over a scrim: what the floating mouse opens. A dialog
- * like any other, so a browser tab steps aside for it and Escape or Android's back closes it.
+ * Choices laid round a hub that closes them, popped over the floating mouse with the hub where the
+ * mouse was, or in the middle of the window when it is not known where that is. A dialog to the
+ * rest of the app, so a browser tab steps aside for it and Escape or Android's back closes it.
  * Each slice is a whole button clipped to its shape, so a press lands only on the slice it shows.
  */
-export function RingMenu({ choices, hub, hubLabel, onClose }: { choices: RingChoice[]; hub: ReactNode; hubLabel: string; onClose: () => void }) {
+export function RingMenu({
+    at,
+    choices,
+    hub,
+    hubLabel,
+    onClose
+}: {
+    at: Point | undefined;
+    choices: RingChoice[];
+    hub: ReactNode;
+    hubLabel: string;
+    onClose: () => void;
+}) {
     const { panelRef } = useDialog(onClose);
 
     const reduced = useReducedMotion() === true;
 
     return (
         <>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={transition.overlay}
-                className={cn('absolute size-full cursor-pointer bg-scrim', layer.dialog)}
-                onClick={onClose}
-            />
+            {/* Unseen: it only takes a press outside the ring, which closes it. */}
+            <div className={cn('fixed inset-0', layer.dialog)} onClick={onClose} />
 
-            <div className={cn('pointer-events-none absolute inset-0 flex items-center justify-center', inset.modalFrame, layer.dialog)}>
+            <div
+                style={{
+                    left: fit(at?.x ?? window.innerWidth / 2, window.innerWidth),
+                    top: fit(at?.y ?? window.innerHeight / 2, window.innerHeight)
+                }}
+                className={cn('pointer-events-none fixed', layer.dialog)}
+            >
                 <motion.div
                     ref={panelRef}
                     role='dialog'

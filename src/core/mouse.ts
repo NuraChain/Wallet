@@ -4,12 +4,12 @@ import { getValue, setValue } from '../utility/storage';
 import { getNativeBrowser, mouseLabel } from './browser';
 
 import type { Webview } from '@tauri-apps/api/webview';
-import type { MouseIcon } from '../type/app';
+import type { MouseIcon, Point } from '../type/app';
 
 declare global {
     interface Window {
-        /** Where a native mouse, Android's or iOS's, reports a press: `click`, the only one there is. */
-        __nuraMouse?: (action: string) => void;
+        /** Where a native mouse, Android's or iOS's, reports a press: `click`, with the mouse's centre in the wallet's page. */
+        __nuraMouse?: (action: string, x?: number, y?: number) => void;
     }
 }
 
@@ -211,11 +211,30 @@ const openDesktop = async () => {
     }
 };
 
+// The mouse's webview is placed in the window, and the wallet's own fills it from the top corner.
+const desktopCentre = async (): Promise<Point | undefined> => {
+    try {
+        const { Webview } = await import('@tauri-apps/api/webview');
+
+        const view = await Webview.getByLabel(mouseLabel);
+
+        if (view === null) {
+            return undefined;
+        }
+
+        const at = await getMousePosition(view);
+
+        return { x: at.x / window.devicePixelRatio + mouseSize / 2, y: at.y / window.devicePixelRatio + mouseSize / 2 };
+    } catch {
+        return undefined;
+    }
+};
+
 /**
  * Puts the mouse above every layer, OS-level tabs included, until the cleanup runs; `onFallback` asks for the in-page one.
  * Tabs hold no event permission, so nothing a page runs can pose as a press.
  */
-export const showMouse = (onPress: () => void, onFallback: () => void) => {
+export const showMouse = (onPress: (at: Point | undefined) => void, onFallback: () => void) => {
     let live = true;
 
     const bridge = getNativeBrowser();
@@ -227,9 +246,9 @@ export const showMouse = (onPress: () => void, onFallback: () => void) => {
             return () => undefined;
         }
 
-        window.__nuraMouse = (action) => {
+        window.__nuraMouse = (action, x, y) => {
             if (action === 'click') {
-                onPress();
+                onPress(typeof x === 'number' && typeof y === 'number' ? { x, y } : undefined);
             }
         };
 
@@ -258,7 +277,7 @@ export const showMouse = (onPress: () => void, onFallback: () => void) => {
             const stops = await Promise.all([
                 listen<unknown>('nura://mouse', (event) => {
                     if (event.payload === 'click') {
-                        onPress();
+                        void desktopCentre().then(onPress);
                     }
                 }),
                 // Told what to wear once it is listening: a change sent while it was loading reached nobody.

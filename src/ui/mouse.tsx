@@ -101,7 +101,7 @@ const clamp = ({ x, y }: Point): Point => ({
 });
 
 /** It cannot cover a browser tab, so desktop, Android and iOS draw `MouseView` or a native view where they can. */
-export default function Mouse({ icon, onPress }: { icon: MouseIcon; onPress: () => void }) {
+export default function Mouse({ icon, onPress }: { icon: MouseIcon; onPress: (at: Point) => void }) {
     const opacity = useMouseOpacity();
 
     const [place, setPlace] = useState(() => clamp(parked ?? { x: (window.innerWidth - size) / 2, y: (window.innerHeight - size) / 2 }));
@@ -125,7 +125,9 @@ export default function Mouse({ icon, onPress }: { icon: MouseIcon; onPress: () 
     }, []);
 
     const press = usePress({
-        onPress,
+        onPress: () => {
+            onPress({ x: place.x + size / 2, y: place.y + size / 2 });
+        },
         onGrab: (event) => {
             grabRef.current = { pointer: { x: event.clientX, y: event.clientY }, origin: place };
         },

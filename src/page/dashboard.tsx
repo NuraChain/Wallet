@@ -58,6 +58,7 @@ import { getDirection, T } from '../utility/language';
 import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount } from '../utility/account';
+import type { Point } from '../type/app';
 import type { Account, Vault } from '../type/wallet';
 import type { BiometricKind } from '../type/platform';
 import type { HiddenMap, TokenMap } from '../type/token';
@@ -97,6 +98,7 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [modal, setModal] = useState<Modal>('none');
     const [fullToggle, setFullToggle] = useState(0);
     const [browserFull, setBrowserFull] = useState<boolean | undefined>(undefined);
+    const [ringAt, setRingAt] = useState<Point | undefined>(undefined);
     const [searchPress, setSearchPress] = useState(0);
     const [biometric, setBiometric] = useState<{ kind: BiometricKind; on: boolean } | undefined>(undefined);
     const [link, setLink] = useState({ url: '', ticket: 0 });
@@ -182,8 +184,9 @@ function DashboardView({ vault }: { vault: Vault }) {
     const prompt = useDappPrompt();
 
     // A press can still be on its way as a dialog opens, and the ring would open over it.
-    const onMouse = () => {
+    const onMouse = (at: Point | undefined) => {
         if (modal === 'none' && prompt === undefined) {
+            setRingAt(at);
             setModal('ring');
         }
     };
@@ -240,8 +243,8 @@ function DashboardView({ vault }: { vault: Vault }) {
         }
 
         return showMouse(
-            () => {
-                onMouseEvent();
+            (at) => {
+                onMouseEvent(at);
             },
             () => {
                 setPageMouse(true);
@@ -592,6 +595,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 {modal === 'ring' && (
                     <DashboardRing
                         key='ring'
+                        at={ringAt}
                         full={tabMap[active].key === 'Browser' ? browserFull : undefined}
                         onWallet={() => {
                             onRingTab('Wallet');

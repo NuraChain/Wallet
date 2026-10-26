@@ -404,9 +404,19 @@ class BrowserBridge(
         view.y = y.coerceIn(0f, (parent.height - view.height).coerceAtLeast(0).toFloat())
     }
 
-    private fun report(action: String) {
+    // With the mouse's centre in the wallet's page, in CSS pixels, which is where the menu it opens is drawn.
+    private fun report(view: View) {
+        val mouseAt = IntArray(2)
+        val hostAt = IntArray(2)
+
+        view.getLocationInWindow(mouseAt)
+        host.getLocationInWindow(hostAt)
+
+        val x = (mouseAt[0] - hostAt[0] + view.width / 2f) / density
+        val y = (mouseAt[1] - hostAt[1] + view.height / 2f) / density
+
         host.post {
-            host.evaluateJavascript("window.__nuraMouse && window.__nuraMouse('$action')", null)
+            host.evaluateJavascript("window.__nuraMouse && window.__nuraMouse('click', $x, $y)", null)
         }
     }
 
@@ -456,7 +466,7 @@ class BrowserBridge(
                 }
 
                 MotionEvent.ACTION_UP -> if (!dragging) {
-                    report("click")
+                    report(touched)
                 }
             }
 
@@ -464,7 +474,7 @@ class BrowserBridge(
         }
 
         // Only reached through accessibility services, since the touch listener takes the rest.
-        view.setOnClickListener { report("click") }
+        view.setOnClickListener { report(it) }
 
         root.addView(view)
 

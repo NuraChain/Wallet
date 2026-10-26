@@ -462,8 +462,13 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 
 /// A press, told to the wallet and to nothing else. The host webview is the only one that hears
 /// it, and a page has no way to reach this view, so nothing a site runs can pose as one.
+/// It carries the mouse's centre in the wallet's page, where the menu it opens is drawn.
 - (void)mousePressed:(UITapGestureRecognizer *)tap {
-    [self evalOnHost:@"window.__nuraMouse && window.__nuraMouse('click')"];
+    UIView *view = tap.view;
+    CGPoint centre = [view.superview convertPoint:view.center toView:self.host];
+
+    [self evalOnHost:[NSString stringWithFormat:@"window.__nuraMouse && window.__nuraMouse('click', %f, %f)",
+                                                centre.x, centre.y]];
 }
 
 - (void)mouseDragged:(UIPanGestureRecognizer *)pan {

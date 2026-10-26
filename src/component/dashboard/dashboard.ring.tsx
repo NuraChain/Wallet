@@ -3,14 +3,18 @@ import { RingMenu } from '../../ui/ring';
 
 import { T } from '../../utility/language';
 
+import type { Point } from '../../type/app';
+
 /** What a press of the floating mouse opens. `full` is undefined where full screen does nothing: off the browser, or on its start page. */
 export default function DashboardRing({
+    at,
     full,
     onWallet,
     onBrowser,
     onFull,
     onClose
 }: {
+    at: Point | undefined;
     full: boolean | undefined;
     onWallet: () => void;
     onBrowser: () => void;
@@ -19,6 +23,7 @@ export default function DashboardRing({
 }) {
     return (
         <RingMenu
+            at={at}
             hub={<Logo size={10} />}
             hubLabel={T('App.Close')}
             onClose={onClose}
