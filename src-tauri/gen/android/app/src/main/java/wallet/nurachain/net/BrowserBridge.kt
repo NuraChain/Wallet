@@ -424,14 +424,12 @@ class BrowserBridge(
         view.translationZ = 1000f
 
         val slop = ViewConfiguration.get(activity).scaledTouchSlop
-        val wait = ViewConfiguration.getDoubleTapTimeout().toLong()
 
         var downX = 0f
         var downY = 0f
         var fromX = 0f
         var fromY = 0f
         var dragging = false
-        var pending: Runnable? = null
 
         // No gesture detector: the view follows the finger, so it would call every drag a tap.
         view.setOnTouchListener { touched, event ->
@@ -458,21 +456,7 @@ class BrowserBridge(
                 }
 
                 MotionEvent.ACTION_UP -> if (!dragging) {
-                    val waiting = pending
-
-                    if (waiting != null) {
-                        touched.removeCallbacks(waiting)
-                        pending = null
-                        report("double")
-                    } else {
-                        val single = Runnable {
-                            pending = null
-                            report("click")
-                        }
-
-                        pending = single
-                        touched.postDelayed(single, wait)
-                    }
+                    report("click")
                 }
             }
 

@@ -2,7 +2,7 @@ import { TriangleAlert } from 'lucide-react';
 
 import LogoImage from '../assets/image/logo.png';
 
-const logoMap = { 4: 'size-4', 5: 'size-5', 24: 'size-24' } as const;
+const logoMap = { 4: 'size-4', 5: 'size-5', 10: 'size-10', 24: 'size-24' } as const;
 
 export function Logo({ size }: { size: keyof typeof logoMap }) {
     return <img src={LogoImage} alt='' className={logoMap[size]} />;

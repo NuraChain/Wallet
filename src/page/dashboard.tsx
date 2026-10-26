@@ -21,6 +21,7 @@ import DashboardReceive from '../component/dashboard/dashboard.receive';
 import DashboardRequest from '../component/dashboard/dashboard.request';
 import DashboardSettings from '../component/dashboard/dashboard.settings';
 import DashboardMouse from '../component/dashboard/dashboard.mouse';
+import DashboardRing from '../component/dashboard/dashboard.ring';
 import DashboardSwap from '../component/dashboard/dashboard.swap';
 import DashboardBiometric from '../component/dashboard/dashboard.biometric';
 
@@ -57,7 +58,6 @@ import { getDirection, T } from '../utility/language';
 import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount } from '../utility/account';
-import type { MouseAction } from '../type/app';
 import type { Account, Vault } from '../type/wallet';
 import type { BiometricKind } from '../type/platform';
 import type { HiddenMap, TokenMap } from '../type/token';
@@ -66,7 +66,21 @@ import { NavAction, NavBar, NavTab } from '../ui/navbar';
 import { Horizontal, Vertical } from '../ui/stack';
 import { Block } from '../ui/wrap';
 
-type Modal = 'none' | 'send' | 'receive' | 'network' | 'language' | 'delete' | 'accounts' | 'tokens' | 'history' | 'phrase' | 'redeem' | 'mouse' | 'biometric';
+type Modal =
+    | 'none'
+    | 'send'
+    | 'receive'
+    | 'network'
+    | 'language'
+    | 'delete'
+    | 'accounts'
+    | 'tokens'
+    | 'history'
+    | 'phrase'
+    | 'redeem'
+    | 'mouse'
+    | 'ring'
+    | 'biometric';
 
 const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Swap' }, { key: 'Settings' }];
 
@@ -82,7 +96,7 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [account, setAccount] = useState(0);
     const [modal, setModal] = useState<Modal>('none');
     const [fullToggle, setFullToggle] = useState(0);
-    const [homePress, setHomePress] = useState(0);
+    const [browserFull, setBrowserFull] = useState<boolean | undefined>(undefined);
     const [searchPress, setSearchPress] = useState(0);
     const [biometric, setBiometric] = useState<{ kind: BiometricKind; on: boolean } | undefined>(undefined);
     const [link, setLink] = useState({ url: '', ticket: 0 });
@@ -167,20 +181,21 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const prompt = useDappPrompt();
 
-    const onMouse = (action: MouseAction) => {
-        if (modal !== 'none' || prompt !== undefined) {
-            return;
+    // A press can still be on its way as a dialog opens, and the ring would open over it.
+    const onMouse = () => {
+        if (modal === 'none' && prompt === undefined) {
+            setModal('ring');
         }
+    };
 
-        if (action === 'double') {
-            if (tabMap[active].key === 'Browser') {
-                setHomePress((value) => value + 1);
-            } else {
-                setModal('mouse');
-            }
-        } else if (tabMap[active].key === 'Browser') {
-            setFullToggle((value) => value + 1);
-        }
+    const onRingTab = (key: string) => {
+        closeModal();
+        goKey(key);
+    };
+
+    const onRingFull = () => {
+        closeModal();
+        setFullToggle((value) => value + 1);
     };
 
     const onMouseEvent = useEffectEvent(onMouse);
@@ -188,8 +203,9 @@ function DashboardView({ vault }: { vault: Vault }) {
     // The mouse is drawn natively to stay above browser pages; this is the in-page fallback.
     const [pageMouse, setPageMouse] = useState(false);
 
-    // The browser's own control; the nav bar is how every other tab is reached. Shown elsewhere only while its settings preview it.
-    const mouseOn = hasBrowser && (tabMap[active].key === 'Browser' || modal === 'mouse');
+    // Over every tab, and out of the way of every dialog but its own settings, which preview it. A dialog
+    // of the wallet's would otherwise sit under it, and the ring would have it floating over its hub.
+    const mouseOn = hasBrowser && prompt === undefined && (modal === 'none' || modal === 'mouse');
 
     // The browser keeps the whole height, its own close button and the mouse leading back out; settings has its own way back.
     const barOn = tabMap[active].key !== 'Browser' && tabMap[active].key !== 'Settings';
@@ -224,8 +240,8 @@ function DashboardView({ vault }: { vault: Vault }) {
         }
 
         return showMouse(
-            (action) => {
-                onMouseEvent(action);
+            () => {
+                onMouseEvent();
             },
             () => {
                 setPageMouse(true);
@@ -573,6 +589,21 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                 {modal === 'mouse' && <DashboardMouse key='mouse' onClose={closeModal} />}
 
+                {modal === 'ring' && (
+                    <DashboardRing
+                        key='ring'
+                        full={tabMap[active].key === 'Browser' ? browserFull : undefined}
+                        onWallet={() => {
+                            onRingTab('Wallet');
+                        }}
+                        onBrowser={() => {
+                            onRingTab('Browser');
+                        }}
+                        onFull={onRingFull}
+                        onClose={closeModal}
+                    />
+                )}
+
                 {modal === 'phrase' && <DashboardPhrase key='phrase' kind={vault.kind} onClose={closeModal} />}
 
                 {modal === 'biometric' && (
@@ -593,7 +624,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 )}
             </AnimatePresence>
 
-            {pageMouse && mouseOn && <Mouse icon='logo' onAction={onMouse} />}
+            {pageMouse && mouseOn && <Mouse icon='logo' onPress={onMouse} />}
 
             <Vertical fill='both'>
                 <Horizontal dir={getDirection()} squeeze='y' grow clip>
@@ -608,8 +639,8 @@ function DashboardView({ vault }: { vault: Vault }) {
                                                 request={link.url}
                                                 ticket={link.ticket}
                                                 fullToggle={fullToggle}
-                                                homePress={homePress}
                                                 searchPress={searchPress}
+                                                onFull={setBrowserFull}
                                                 inView={index === active}
                                                 enabled={index === active && modal === 'none' && prompt === undefined}
                                                 onExit={() => {

@@ -13,11 +13,9 @@ import { layer } from './container';
 import { useMouseOpacity } from '../hook/mouse';
 import { getMousePosition, readMouseIcon, readMouseOpacity, setMousePosition } from '../core/mouse';
 
-import type { MouseAction, MouseIcon } from '../type/app';
+import type { MouseIcon } from '../type/app';
 
 const size = 40;
-
-const doubleWindow = 250;
 
 interface Point {
     x: number;
@@ -25,23 +23,15 @@ interface Point {
 }
 
 const usePress = ({
-    onAction,
+    onPress,
     onGrab,
     onDrag
 }: {
-    onAction: (action: MouseAction) => void;
+    onPress: () => void;
     onGrab: (event: PointerEvent<HTMLButtonElement>) => void;
     onDrag: (event: PointerEvent<HTMLButtonElement>) => void;
 }) => {
     const dragRef = useRef<{ id: number; pointer: Point; moved: boolean } | undefined>(undefined);
-    const pendingRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-    useEffect(
-        () => () => {
-            clearTimeout(pendingRef.current);
-        },
-        []
-    );
 
     const onUp = (event: PointerEvent<HTMLButtonElement>) => {
         const drag = dragRef.current;
@@ -52,25 +42,9 @@ const usePress = ({
 
         dragRef.current = undefined;
 
-        if (drag.moved || event.type === 'pointercancel') {
-            return;
+        if (!drag.moved && event.type !== 'pointercancel') {
+            onPress();
         }
-
-        if (pendingRef.current !== undefined) {
-            clearTimeout(pendingRef.current);
-
-            pendingRef.current = undefined;
-
-            onAction('double');
-
-            return;
-        }
-
-        pendingRef.current = setTimeout(() => {
-            pendingRef.current = undefined;
-
-            onAction('click');
-        }, doubleWindow);
     };
 
     return {
@@ -101,7 +75,7 @@ const usePress = ({
         // Enter or Space: a click with no pointer, which the pointer handlers never see.
         onClick: (event: MouseEvent<HTMLButtonElement>) => {
             if (event.detail === 0) {
-                onAction('click');
+                onPress();
             }
         }
     };
@@ -127,7 +101,7 @@ const clamp = ({ x, y }: Point): Point => ({
 });
 
 /** It cannot cover a browser tab, so desktop, Android and iOS draw `MouseView` or a native view where they can. */
-export default function Mouse({ icon, onAction }: { icon: MouseIcon; onAction: (action: MouseAction) => void }) {
+export default function Mouse({ icon, onPress }: { icon: MouseIcon; onPress: () => void }) {
     const opacity = useMouseOpacity();
 
     const [place, setPlace] = useState(() => clamp(parked ?? { x: (window.innerWidth - size) / 2, y: (window.innerHeight - size) / 2 }));
@@ -151,7 +125,7 @@ export default function Mouse({ icon, onAction }: { icon: MouseIcon; onAction: (
     }, []);
 
     const press = usePress({
-        onAction,
+        onPress,
         onGrab: (event) => {
             grabRef.current = { pointer: { x: event.clientX, y: event.clientY }, origin: place };
         },
@@ -254,8 +228,8 @@ export function MouseView({ opacity: initial, icon: worn }: { opacity: number; i
     }, []);
 
     const press = usePress({
-        onAction: (action) => {
-            void emit('nura://mouse', action);
+        onPress: () => {
+            void emit('nura://mouse', 'click');
         },
         onGrab: (event) => {
             const start = Promise.all([getMousePosition(getCurrentWebview()), room()]);

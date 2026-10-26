@@ -120,7 +120,9 @@
         },
         "Mouse": {
             "Title": "Botão flutuante",
-            "Opacity": "Opacidade"
+            "Opacity": "Opacidade",
+            "Full": "Tela cheia",
+            "Exit": "Sair da tela cheia"
         },
         "Offline": {
             "Title": "Sem conexão com a internet",

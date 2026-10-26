@@ -4,12 +4,12 @@ import { getValue, setValue } from '../utility/storage';
 import { getNativeBrowser, mouseLabel } from './browser';
 
 import type { Webview } from '@tauri-apps/api/webview';
-import type { MouseAction, MouseIcon } from '../type/app';
+import type { MouseIcon } from '../type/app';
 
 declare global {
     interface Window {
-        /** Where a native mouse, Android's or iOS's, reports a press. */
-        __nuraMouse?: (action: MouseAction) => void;
+        /** Where a native mouse, Android's or iOS's, reports a press: `click`, the only one there is. */
+        __nuraMouse?: (action: string) => void;
     }
 }
 
@@ -215,7 +215,7 @@ const openDesktop = async () => {
  * Puts the mouse above every layer, OS-level tabs included, until the cleanup runs; `onFallback` asks for the in-page one.
  * Tabs hold no event permission, so nothing a page runs can pose as a press.
  */
-export const showMouse = (onAction: (action: MouseAction) => void, onFallback: () => void) => {
+export const showMouse = (onPress: () => void, onFallback: () => void) => {
     let live = true;
 
     const bridge = getNativeBrowser();
@@ -227,7 +227,11 @@ export const showMouse = (onAction: (action: MouseAction) => void, onFallback: (
             return () => undefined;
         }
 
-        window.__nuraMouse = onAction;
+        window.__nuraMouse = (action) => {
+            if (action === 'click') {
+                onPress();
+            }
+        };
 
         void loadMouseOpacity().then((value) => {
             if (live) {
@@ -253,8 +257,8 @@ export const showMouse = (onAction: (action: MouseAction) => void, onFallback: (
 
             const stops = await Promise.all([
                 listen<unknown>('nura://mouse', (event) => {
-                    if (event.payload === 'click' || event.payload === 'double') {
-                        onAction(event.payload);
+                    if (event.payload === 'click') {
+                        onPress();
                     }
                 }),
                 // Told what to wear once it is listening: a change sent while it was loading reached nobody.

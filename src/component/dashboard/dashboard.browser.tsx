@@ -66,8 +66,8 @@ export default function DashboardBrowser({
     request,
     ticket,
     fullToggle,
-    homePress,
     searchPress,
+    onFull,
     onExit
 }: {
     network: Network;
@@ -76,12 +76,12 @@ export default function DashboardBrowser({
     enabled: boolean;
     request: string;
     ticket: number;
-    /** A counter, bumped per mouse press. */
+    /** A counter, bumped per press of the mouse menu's full screen. */
     fullToggle: number;
-    /** A counter, bumped per mouse double press. */
-    homePress: number;
     /** A counter, bumped per press of the nav bar's search: the address field takes the focus. */
     searchPress: number;
+    /** Whether the page is in full screen, or undefined on the start page, where there is none. */
+    onFull: (full: boolean | undefined) => void;
     onExit: () => void;
 }) {
     const [settings, setSettings] = useState(false);
@@ -97,7 +97,6 @@ export default function DashboardBrowser({
 
     const [fullMode, setFullMode] = useState(false);
     const [seenToggle, setSeenToggle] = useState(fullToggle);
-    const [seenHome, setSeenHome] = useState(homePress);
     const [seenSearch, setSeenSearch] = useState(searchPress);
     const [focusing, setFocusing] = useState(0);
 
@@ -144,11 +143,9 @@ export default function DashboardBrowser({
         }
     }, [focusing]);
 
-    if (homePress !== seenHome) {
-        setSeenHome(homePress);
-
-        setTabs((list) => list.map((item) => (item.id === active ? { ...item, home: true } : item)));
-    }
+    useEffect(() => {
+        onFull(start ? undefined : full);
+    }, [onFull, start, full]);
 
     // Phones only: the header and status bar wear the site's colour while this tab shows it.
     useEffect(() => {

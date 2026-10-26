@@ -466,10 +466,6 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
     [self evalOnHost:@"window.__nuraMouse && window.__nuraMouse('click')"];
 }
 
-- (void)mousePressedTwice:(UITapGestureRecognizer *)tap {
-    [self evalOnHost:@"window.__nuraMouse && window.__nuraMouse('double')"];
-}
-
 - (void)mouseDragged:(UIPanGestureRecognizer *)pan {
     UIView *view = pan.view;
     UIView *parent = view.superview;
@@ -500,19 +496,12 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
     view.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin |
                             UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
 
-    // A press waits to see whether a second follows, so a double press is never also a press.
-    UITapGestureRecognizer *twice = [[UITapGestureRecognizer alloc] initWithTarget:self
-                                                                            action:@selector(mousePressedTwice:)];
-    twice.numberOfTapsRequired = 2;
-
     UITapGestureRecognizer *once = [[UITapGestureRecognizer alloc] initWithTarget:self
                                                                            action:@selector(mousePressed:)];
-    [once requireGestureRecognizerToFail:twice];
 
     UIPanGestureRecognizer *drag = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                            action:@selector(mouseDragged:)];
 
-    [view addGestureRecognizer:twice];
     [view addGestureRecognizer:once];
     [view addGestureRecognizer:drag];
 

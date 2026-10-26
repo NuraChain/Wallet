@@ -120,7 +120,9 @@
         },
         "Mouse": {
             "Title": "Bouton flottant",
-            "Opacity": "Opacité"
+            "Opacity": "Opacité",
+            "Full": "Plein écran",
+            "Exit": "Quitter le plein écran"
         },
         "Offline": {
             "Title": "Aucune connexion internet",
