@@ -203,10 +203,9 @@ function DashboardView({ vault }: { vault: Vault }) {
     // The mouse is drawn natively to stay above browser pages; this is the in-page fallback.
     const [pageMouse, setPageMouse] = useState(false);
 
-    // Over the browser and settings only, and out of the way of every dialog but its own settings, which
-    // preview it. A dialog of the wallet's would otherwise sit under it, and the ring would have it floating over its hub.
-    const mouseOn =
-        hasBrowser && tabMap[active].key !== 'Wallet' && tabMap[active].key !== 'Swap' && prompt === undefined && (modal === 'none' || modal === 'mouse');
+    // Over the browser only, plus its own settings, which preview it. A dialog of the wallet's would
+    // otherwise sit under it, and the ring would have it floating over its hub.
+    const mouseOn = hasBrowser && prompt === undefined && (modal === 'mouse' || (modal === 'none' && tabMap[active].key === 'Browser'));
 
     // The browser keeps the whole height, its own close button and the mouse leading back out; settings has its own way back.
     const barOn = tabMap[active].key !== 'Browser' && tabMap[active].key !== 'Settings';
