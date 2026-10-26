@@ -56,4 +56,19 @@ const show = async (origin: string, title: string, body: string) => {
     }
 };
 
-export const siteNotices: SiteNotices = { allowed: getSiteNotices, show };
+// Only what will really be shown: a switch the system then refused would leave a page told `granted` for nothing.
+const allowed = async (origin: string) => {
+    if (!(await getSiteNotices(origin))) {
+        return false;
+    }
+
+    try {
+        const { isPermissionGranted } = await import('@tauri-apps/plugin-notification');
+
+        return await isPermissionGranted();
+    } catch {
+        return false;
+    }
+};
+
+export const siteNotices: SiteNotices = { allowed, show };

@@ -656,7 +656,8 @@ export const dappScript = (identity: DappIdentity) => `
     }
 
     // A WebView on a phone has no notifications of its own, so they are asked of the wallet, which shows only
-    // those a site's favourite allows. Top page only: a frame would otherwise speak with the page's name.
+    // those a site's favourite allows. Offered to the top page alone, though a frame on the same transport is
+    // stamped with the page's origin as its provider calls are.
     var shimNotices = function ()
     {
         var standing = 'default';
