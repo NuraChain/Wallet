@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.Rect
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -24,6 +25,8 @@ import android.webkit.WebViewDatabase
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.Insets
+import androidx.core.view.DisplayCutoutCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -225,7 +228,71 @@ class BrowserBridge(
         params.leftMargin = px(x)
         params.topMargin = px(y)
 
+        val last = view.layoutParams as? FrameLayout.LayoutParams
+
         view.layoutParams = params
+
+        if (last == null || last.leftMargin != params.leftMargin || last.topMargin != params.topMargin ||
+            last.width != params.width || last.height != params.height
+        ) {
+            ViewCompat.requestApplyInsets(view)
+        }
+    }
+
+    /**
+     * A tab is handed the window's insets whole, wherever it sits, and the page pads for them through
+     * `env(safe-area-inset-*)`: under the wallet's toolbar a site made room for a status bar and a
+     * cutout it was nowhere near. Each edge keeps only the part that reaches into the tab. Measured
+     * from the layout params, since insets are dispatched before the new bounds are laid out.
+     */
+    private fun overlap(view: View, insets: WindowInsetsCompat): WindowInsetsCompat {
+        val parent = view.parent as? View ?: return insets
+        val params = view.layoutParams as? FrameLayout.LayoutParams ?: return insets
+        val window = view.rootView
+
+        if (window.width == 0 || window.height == 0) {
+            return insets
+        }
+
+        val origin = IntArray(2).also { parent.getLocationInWindow(it) }
+
+        val left = origin[0] + params.leftMargin
+        val top = origin[1] + params.topMargin
+        val right = window.width - (left + params.width)
+        val bottom = window.height - (top + params.height)
+
+        fun clip(edges: Insets) = Insets.of(
+            (edges.left - left).coerceAtLeast(0),
+            (edges.top - top).coerceAtLeast(0),
+            (edges.right - right).coerceAtLeast(0),
+            (edges.bottom - bottom).coerceAtLeast(0)
+        )
+
+        val builder = WindowInsetsCompat.Builder(insets)
+
+        for (type in listOf(
+            WindowInsetsCompat.Type.systemBars(),
+            WindowInsetsCompat.Type.displayCutout(),
+            WindowInsetsCompat.Type.tappableElement(),
+            WindowInsetsCompat.Type.systemGestures(),
+            WindowInsetsCompat.Type.mandatorySystemGestures()
+        )) {
+            builder.setInsets(type, clip(insets.getInsets(type)))
+        }
+
+        // The page reads a cutout from the cutout itself, not from its inset.
+        val cutout = insets.displayCutout
+
+        if (cutout != null) {
+            val safe = clip(Insets.of(cutout.safeInsetLeft, cutout.safeInsetTop, cutout.safeInsetRight, cutout.safeInsetBottom))
+
+            builder.setDisplayCutout(
+                if (safe == Insets.NONE) null
+                else DisplayCutoutCompat(Rect(safe.left, safe.top, safe.right, safe.bottom), cutout.boundingRects)
+            )
+        }
+
+        return builder.build()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -254,6 +321,10 @@ class BrowserBridge(
         CookieManager.getInstance().setAcceptThirdPartyCookies(view, true)
 
         view.addJavascriptInterface(Provider(id, view), "__nuraEthereum")
+
+        ViewCompat.setOnApplyWindowInsetsListener(view) { target, insets ->
+            ViewCompat.onApplyWindowInsets(target, overlap(target, insets))
+        }
 
         applyScript(id, view)
 
