@@ -36,26 +36,6 @@ Keys never leave the device: the vault is Argon2id + AES-GCM at rest, and the un
 held in memory (in the extension, in `chrome.storage.session`). Treat every change near key
 material as security-critical.
 
-## Repository map
-
-| Path | Holds |
-| --- | --- |
-| `src/page/` | Route-level screens (`intro`, `unlock`, `dashboard`) |
-| `src/component/` | Screen-specific composites (`dashboard/*`, `intro/*`) |
-| `src/ui/` | The design system — **the only place markup is written** |
-| `src/layout/` | The router's shell: root layout, error boundary, route error |
-| `src/core/` | Domain logic: vault, session, networks, tokens, dApp provider, caches |
-| `src/hook/` | React bindings over `core` and `utility` singletons |
-| `src/utility/` | Framework-free helpers: `cn`, storage, language, theme, format |
-| `src/platform/` | The host seam — one implementation per target behind `#platform-impl` |
-| `src/type/` | Every shared type, one file per area; `global.d.ts` for ambient ones |
-| `src/test/` | Every test, named for the file it covers (`dapp.bridge.test.ts`) |
-| `src/assets/lang/` | UI strings for all ten languages |
-| `src-extension/` | The extension's worker, content and in-page scripts, and its popup |
-| `src-tauri/` | Rust shell, commands, per-platform config and capabilities |
-
-Build output goes to `.dist/` and `.dist-extension/`; both are ignored.
-
 ## Commands
 
 ```bash
@@ -109,16 +89,15 @@ These are checked by tests in `src/test/`; a violation fails `npm test`.
 - **dApp provider:** a request's origin is stamped by the transport, never read from the page.
 - **Version:** written twice, as `version` in `src-tauri/Cargo.toml` and in
   `src-tauri/tauri.conf.json`. A bump edits both, plus `Cargo.lock`; the release workflow fails
-  when they differ. The `tauri` skill says why.
+  when they differ.
 
 ## Verifying a change
 
 1. `npm test`, `npx tsc --noEmit -p .`, `npm run lint`, `npm run format:check`. `npm run lint`
    currently exits non-zero on a pre-existing `prefer-math-min-max` error in `src/ui/webview.tsx`;
    lint the files you touched with `npx oxlint <files>` to see only your own.
-2. For anything visible, run the app and look — the `run-wallet` skill drives the web UI, the
-   desktop window and the extension, and takes screenshots. A refactor that must not change the UI
-   should leave the rendered DOM's class lists identical.
+2. For anything visible, run the app and look. A refactor that must not change the UI should leave
+   the rendered DOM's class lists identical.
 3. Say what was not exercised: a platform you could not run, a screen you could not reach.
 
 ## Commits
@@ -127,21 +106,3 @@ Conventional Commits, as in the [contributing guide](contributing.md): a short l
 imperative subject, scoped (`fix(dashboard): …`, `build: …`). One commit per change. No
 co-author, sign-off or tool trailers. Never commit `.env*` (except `.env.example`), keystores, or
 `src-tauri/gen/android/keystore.properties`.
-
-## Deeper guidance
-
-Project skills in `.claude/skills/` hold the detail; read the matching one before working in its
-area.
-
-| Skill | Read before touching |
-| --- | --- |
-| `design-system` | Any JSX that renders UI — the primitive catalog and its rules |
-| `frontend-design` | How a screen should look and behave: hierarchy, motion, states, a11y |
-| `react` | Components, hooks, state, routing, tests, lint and format rules |
-| `tailwindcss` | A class, the theme tokens, `cn`, `src/assets/style.css` |
-| `motion-swiper` | Anything animated or swipeable |
-| `wallet-security` | The vault, keys, password, session, storage, phrase export |
-| `dapp-provider` | The injected provider, bridge, approvals, RPC methods |
-| `extension` | The MV3 extension and the platform seam |
-| `tauri` | Rust, commands, capabilities, plugins, CSP, mobile targets |
-| `run-wallet` | Running, driving and screenshotting the app |
