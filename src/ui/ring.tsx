@@ -20,6 +20,8 @@ const fit = (value: number, room: number) => Math.min(Math.max(value - ring.box 
 export interface RingChoice {
     key: string;
     label: string;
+    /** Drawn in place of the label, which then only reads out. */
+    icon?: ReactNode;
     disabled?: boolean;
     onPick: () => void;
 }
@@ -86,8 +88,10 @@ export function RingMenu({
                                     style={{ left: at.x, top: at.y }}
                                     className='absolute w-20 -translate-x-1/2 -translate-y-1/2 text-center text-tiny leading-tight font-semibold'
                                 >
-                                    {choice.label}
+                                    {choice.icon ?? choice.label}
                                 </span>
+
+                                {choice.icon !== undefined && <span className='sr-only'>{choice.label}</span>}
                             </button>
                         );
                     })}

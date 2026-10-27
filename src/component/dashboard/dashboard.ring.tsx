@@ -1,5 +1,7 @@
+import { Minimize2, Wallet } from 'lucide-react';
+
 import { Logo } from '../../ui/media';
-import { RingMenu } from '../../ui/ring';
+import { RingMenu, type RingChoice } from '../../ui/ring';
 
 import { T } from '../../utility/language';
 
@@ -21,17 +23,17 @@ export default function DashboardRing({
     onFull: () => void;
     onClose: () => void;
 }) {
-    return (
-        <RingMenu
-            at={at}
-            hub={<Logo size={10} />}
-            hubLabel={T('App.Close')}
-            onClose={onClose}
-            choices={[
-                { key: 'wallet', label: T('Dashboard.Nav.Wallet'), onPick: onWallet },
-                { key: 'browser', label: T('Dashboard.Nav.Browser'), onPick: onBrowser },
-                { key: 'full', label: T(full === true ? 'Dashboard.Mouse.Exit' : 'Dashboard.Mouse.Full'), disabled: full === undefined, onPick: onFull }
-            ]}
-        />
-    );
+    const choices: RingChoice[] =
+        full === true
+            ? [
+                  { key: 'wallet', label: T('Dashboard.Nav.Wallet'), icon: <Wallet size={22} />, onPick: onWallet },
+                  { key: 'full', label: T('Dashboard.Mouse.Exit'), icon: <Minimize2 size={22} />, onPick: onFull }
+              ]
+            : [
+                  { key: 'wallet', label: T('Dashboard.Nav.Wallet'), onPick: onWallet },
+                  { key: 'browser', label: T('Dashboard.Nav.Browser'), onPick: onBrowser },
+                  { key: 'full', label: T('Dashboard.Mouse.Full'), disabled: full === undefined, onPick: onFull }
+              ];
+
+    return <RingMenu at={at} hub={<Logo size={10} />} hubLabel={T('App.Close')} onClose={onClose} choices={choices} />;
 }
