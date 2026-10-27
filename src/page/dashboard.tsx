@@ -21,7 +21,7 @@ import DashboardReceive from '../component/dashboard/dashboard.receive';
 import DashboardRequest from '../component/dashboard/dashboard.request';
 import DashboardSettings from '../component/dashboard/dashboard.settings';
 import DashboardMouse from '../component/dashboard/dashboard.mouse';
-import DashboardRing from '../component/dashboard/dashboard.ring';
+import DashboardSpeed from '../component/dashboard/dashboard.speed';
 import DashboardSwap from '../component/dashboard/dashboard.swap';
 import DashboardBiometric from '../component/dashboard/dashboard.biometric';
 
@@ -81,7 +81,7 @@ type Modal =
     | 'phrase'
     | 'redeem'
     | 'mouse'
-    | 'ring'
+    | 'speed'
     | 'biometric';
 
 const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Swap' }, { key: 'Settings' }];
@@ -99,7 +99,8 @@ function DashboardView({ vault }: { vault: Vault }) {
     const [modal, setModal] = useState<Modal>('none');
     const [fullToggle, setFullToggle] = useState(0);
     const [browserFull, setBrowserFull] = useState<boolean | undefined>(undefined);
-    const [ringAt, setRingAt] = useState<Point | undefined>(undefined);
+    const [speedAt, setSpeedAt] = useState<Point | undefined>(undefined);
+    const [speedOpen, setSpeedOpen] = useState(false);
     const [searchPress, setSearchPress] = useState(0);
     const [biometric, setBiometric] = useState<{ kind: BiometricKind; on: boolean } | undefined>(undefined);
     const [link, setLink] = useState({ url: '', ticket: 0 });
@@ -184,32 +185,45 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const prompt = useDappPrompt();
 
-    // A press can still be on its way as a dialog opens, and the ring would open over it.
+    // A press can still be on its way as a dialog opens, and the speed dial would open over it. Pressing the mouse
+    // again while the dial is open collapses it, since the mouse is what the dial is laid round.
     const onMouse = (at: Point | undefined) => {
         if (modal === 'none' && prompt === undefined) {
-            setRingAt(at);
-            setModal('ring');
+            setSpeedAt(at);
+            setSpeedOpen(true);
+            setModal('speed');
+
+            return;
+        }
+
+        if (modal === 'speed') {
+            setSpeedOpen(false);
         }
     };
 
-    const onRingTab = (key: string) => {
+    const onSpeedTab = (key: string) => {
         closeModal();
         goKey(key);
     };
 
-    const onRingFull = () => {
+    const onSpeedFull = () => {
         closeModal();
         setFullToggle((value) => value + 1);
     };
 
     const onMouseEvent = useEffectEvent(onMouse);
 
+    // Dragging the mouse away takes the dial with it, rather than leaving it round an empty spot.
+    const onMouseMove = () => {
+        setSpeedOpen(false);
+    };
+
     // The mouse is drawn natively to stay above browser pages; this is the in-page fallback.
     const [pageMouse, setPageMouse] = useState(false);
 
-    // Over the browser only, plus its own settings, which preview it. A dialog of the wallet's would
-    // otherwise sit under it, and the ring would have it floating over its hub.
-    const mouseOn = hasBrowser && prompt === undefined && (modal === 'mouse' || (modal === 'none' && tabMap[active].key === 'Browser'));
+    // Over the browser only, plus its own settings, which preview it, and the speed dial laid round it. A dialog of
+    // the wallet's would otherwise sit under it.
+    const mouseOn = hasBrowser && prompt === undefined && (modal === 'mouse' || modal === 'speed' || (modal === 'none' && tabMap[active].key === 'Browser'));
 
     // The browser keeps the whole height, its own close button and the mouse leading back out; settings has its own way back.
     const barOn = tabMap[active].key !== 'Browser' && tabMap[active].key !== 'Settings';
@@ -247,6 +261,7 @@ function DashboardView({ vault }: { vault: Vault }) {
             (at) => {
                 onMouseEvent(at);
             },
+            onMouseMove,
             () => {
                 setPageMouse(true);
             }
@@ -599,18 +614,22 @@ function DashboardView({ vault }: { vault: Vault }) {
 
                 {modal === 'mouse' && <DashboardMouse key='mouse' onClose={closeModal} />}
 
-                {modal === 'ring' && (
-                    <DashboardRing
-                        key='ring'
-                        at={ringAt}
+                {modal === 'speed' && (
+                    <DashboardSpeed
+                        key='speed'
+                        at={speedAt}
+                        open={speedOpen}
                         full={tabMap[active].key === 'Browser' ? browserFull : undefined}
                         onWallet={() => {
-                            onRingTab('Wallet');
+                            onSpeedTab('Wallet');
                         }}
                         onBrowser={() => {
-                            onRingTab('Browser');
+                            onSpeedTab('Browser');
                         }}
-                        onFull={onRingFull}
+                        onFull={onSpeedFull}
+                        onDismiss={() => {
+                            setSpeedOpen(false);
+                        }}
                         onClose={closeModal}
                     />
                 )}
@@ -635,7 +654,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                 )}
             </AnimatePresence>
 
-            {pageMouse && mouseOn && <Mouse icon='logo' onPress={onMouse} />}
+            {pageMouse && mouseOn && <Mouse icon='logo' onPress={onMouse} onMove={onMouseMove} />}
 
             <Vertical fill='both'>
                 <Horizontal dir={getDirection()} squeeze='y' grow clip>

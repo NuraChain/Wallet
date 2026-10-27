@@ -25,10 +25,12 @@ interface Point {
 const usePress = ({
     onPress,
     onGrab,
+    onStart,
     onDrag
 }: {
     onPress: () => void;
     onGrab: (event: PointerEvent<HTMLButtonElement>) => void;
+    onStart: () => void;
     onDrag: (event: PointerEvent<HTMLButtonElement>) => void;
 }) => {
     const dragRef = useRef<{ id: number; pointer: Point; moved: boolean } | undefined>(undefined);
@@ -66,7 +68,11 @@ const usePress = ({
                 return;
             }
 
-            drag.moved = true;
+            if (!drag.moved) {
+                drag.moved = true;
+
+                onStart();
+            }
 
             onDrag(event);
         },
@@ -101,7 +107,7 @@ const clamp = ({ x, y }: Point): Point => ({
 });
 
 /** It cannot cover a browser tab, so desktop, Android and iOS draw `MouseView` or a native view where they can. */
-export default function Mouse({ icon, onPress }: { icon: MouseIcon; onPress: (at: Point) => void }) {
+export default function Mouse({ icon, onPress, onMove }: { icon: MouseIcon; onPress: (at: Point) => void; onMove: () => void }) {
     const opacity = useMouseOpacity();
 
     const [place, setPlace] = useState(() => clamp(parked ?? { x: (window.innerWidth - size) / 2, y: (window.innerHeight - size) / 2 }));
@@ -131,6 +137,7 @@ export default function Mouse({ icon, onPress }: { icon: MouseIcon; onPress: (at
         onGrab: (event) => {
             grabRef.current = { pointer: { x: event.clientX, y: event.clientY }, origin: place };
         },
+        onStart: onMove,
         onDrag: (event) => {
             const grab = grabRef.current;
 
@@ -239,6 +246,9 @@ export function MouseView({ opacity: initial, icon: worn }: { opacity: number; i
             start.catch(() => undefined);
 
             grabRef.current = { screen: { x: event.screenX, y: event.screenY }, start };
+        },
+        onStart: () => {
+            void emit('nura://mouse', 'move');
         },
         // Screen coordinates, since the page moves with the webview and its own would move too.
         onDrag: (event) => {

@@ -479,6 +479,10 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
         return;
     }
 
+    if (pan.state == UIGestureRecognizerStateBegan) {
+        [self evalOnHost:@"window.__nuraMouse && window.__nuraMouse('move')"];
+    }
+
     CGPoint moved = [pan translationInView:parent];
     CGPoint from = view.frame.origin;
 

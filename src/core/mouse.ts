@@ -234,7 +234,8 @@ const desktopCentre = async (): Promise<Point | undefined> => {
  * Puts the mouse above every layer, OS-level tabs included, until the cleanup runs; `onFallback` asks for the in-page one.
  * Tabs hold no event permission, so nothing a page runs can pose as a press.
  */
-export const showMouse = (onPress: (at: Point | undefined) => void, onFallback: () => void) => {
+/** `onMove` is told once each time a drag starts, not as the mouse travels. */
+export const showMouse = (onPress: (at: Point | undefined) => void, onMove: () => void, onFallback: () => void) => {
     let live = true;
 
     const bridge = getNativeBrowser();
@@ -249,6 +250,8 @@ export const showMouse = (onPress: (at: Point | undefined) => void, onFallback: 
         window.__nuraMouse = (action, x, y) => {
             if (action === 'click') {
                 onPress(typeof x === 'number' && typeof y === 'number' ? { x, y } : undefined);
+            } else if (action === 'move') {
+                onMove();
             }
         };
 
@@ -278,6 +281,8 @@ export const showMouse = (onPress: (at: Point | undefined) => void, onFallback: 
                 listen<unknown>('nura://mouse', (event) => {
                     if (event.payload === 'click') {
                         void desktopCentre().then(onPress);
+                    } else if (event.payload === 'move') {
+                        onMove();
                     }
                 }),
                 // Told what to wear once it is listening: a change sent while it was loading reached nobody.

@@ -458,6 +458,10 @@ class BrowserBridge(
 
                     if (!dragging && Math.hypot(dx.toDouble(), dy.toDouble()) > slop) {
                         dragging = true
+
+                        host.post {
+                            host.evaluateJavascript("window.__nuraMouse && window.__nuraMouse('move')", null)
+                        }
                     }
 
                     if (dragging) {
