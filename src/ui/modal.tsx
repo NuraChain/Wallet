@@ -12,7 +12,7 @@ import ScrollBar from './scrollbar';
 import { surfacePanel } from './panel';
 import { Horizontal, Vertical } from './stack';
 import { inset, layer } from './container';
-import { blur, scale as motionScale, spring, transition } from './motion';
+import { scale, spring, transition } from './motion';
 
 const widthMap = {
     panel: 'w-80 sm:w-96 lg:w-112',
@@ -23,7 +23,6 @@ const widthMap = {
 export function Modal({
     onClose,
     scroll = false,
-    scale = motionScale.dialog,
     width = 'panel',
     padding,
     gap,
@@ -32,7 +31,6 @@ export function Modal({
 }: {
     onClose: () => void;
     scroll?: boolean;
-    scale?: number;
     width?: keyof typeof widthMap;
     padding?: 'none';
     gap?: 2;
@@ -41,25 +39,21 @@ export function Modal({
 }) {
     const { panelRef } = useDialog(onClose);
 
-    const reduced = useReducedMotion() === true;
-    const upright = width === 'full' ? 'scale(1)' : 'perspective(500px) rotateX(0deg) scale(1)';
-    const tilt = width === 'full' ? '' : 'perspective(500px) rotateX(-20deg) ';
-    const tipped = reduced ? upright : `${tilt}scale(${scale})`;
+    const shrunk = useReducedMotion() === true ? 'scale(1)' : `scale(${scale.dialog})`;
 
     const panel = (
         <motion.div
             ref={panelRef}
             role='dialog'
             tabIndex={-1}
-            initial={{ opacity: 0, filter: blur.surface, transform: tipped }}
+            initial={{ opacity: 0, transform: shrunk }}
             animate={{
                 opacity: 1,
-                filter: 'blur(0px)',
-                transform: upright,
-                transition: { ...spring.dialog, opacity: transition.dialogFade },
-                transitionEnd: { filter: 'none', transform: 'none' }
+                transform: 'scale(1)',
+                transition: { ...spring.surface, opacity: transition.reveal },
+                transitionEnd: { transform: 'none' }
             }}
-            exit={{ opacity: 0, filter: ['blur(0px)', blur.surface], transform: [upright, tipped], transition: transition.dismiss }}
+            exit={{ opacity: 0, transform: ['scale(1)', shrunk], transition: transition.dismiss }}
             className={cn(
                 surfacePanel,
                 'pointer-events-auto flex max-w-full flex-col gap-3 rounded-dialog p-5 shadow-float outline-none',

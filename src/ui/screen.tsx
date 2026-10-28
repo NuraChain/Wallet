@@ -6,16 +6,15 @@ import Spinner from './spinner';
 import { cn } from '../utility/cn';
 import { surfacePanel } from './panel';
 import { getDirection } from '../utility/language';
-import { blur, spring, transition } from './motion';
+import { spring, transition } from './motion';
 
 const useRise = () => ({
-    initial: { opacity: 0, filter: blur.surface, transform: useReducedMotion() === true ? 'translateY(0px)' : 'translateY(16px)' },
+    initial: { opacity: 0, transform: useReducedMotion() === true ? 'translateY(0px)' : 'translateY(8px)' },
     animate: {
         opacity: 1,
-        filter: 'blur(0px)',
         transform: 'translateY(0px)',
-        transition: { ...transition.reveal, transform: spring.entrance },
-        transitionEnd: { filter: 'none', transform: 'none' }
+        transition: { ...transition.reveal, transform: spring.surface },
+        transitionEnd: { transform: 'none' }
     }
 });
 

@@ -455,10 +455,6 @@ input[type='password']::-webkit-strong-password-auto-fill-button {
     display: none;
 }
 
-@theme {
-    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
-}
-
 @utility press {
     transition-property: color, background-color, border-color, scale;
     transition-duration:
