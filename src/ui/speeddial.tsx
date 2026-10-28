@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react';
-import type { ReactNode } from 'react';
+import { Globe, Maximize2, Minimize2, Wallet } from 'lucide-react';
 
 import { cn } from '../utility/cn';
 import { focusRing } from './token';
@@ -7,15 +7,13 @@ import { useDismiss } from './dialog';
 import { layer } from './container';
 import { transition } from './motion';
 
-import type { Point } from '../type/app';
+import type { MouseGlyph, MouseMenuItem, Point } from '../type/app';
 
-export interface SpeedAction {
-    key: string;
-    label: string;
-    icon: ReactNode;
-    disabled?: boolean;
+export interface SpeedAction extends MouseMenuItem {
     onPick: () => void;
 }
+
+const glyphMap = { wallet: Wallet, browser: Globe, full: Maximize2, exit: Minimize2 } as const satisfies Record<MouseGlyph, unknown>;
 
 const size = 48;
 
@@ -26,9 +24,12 @@ const hub = 40;
 
 const gap = 10;
 
-const radius = hub / 2 + gap + half;
+export const speedRadius = hub / 2 + gap + half;
 
 const edge = 8;
+
+/** How far the ring reaches from its centre, margin included: half the side of the box it needs. */
+export const speedReach = speedRadius + half + edge;
 
 const clamp = (value: number, low: number, high: number) => Math.min(Math.max(value, low), Math.max(high, low));
 
@@ -36,7 +37,7 @@ const clamp = (value: number, low: number, high: number) => Math.min(Math.max(va
 const spot = (index: number, count: number): Point => {
     const angle = -Math.PI / 2 + (index * Math.PI * 2) / count;
 
-    return { x: Math.cos(angle) * radius, y: Math.sin(angle) * radius };
+    return { x: Math.cos(angle) * speedRadius, y: Math.sin(angle) * speedRadius };
 };
 
 interface Stagger {
@@ -65,26 +66,11 @@ const buttonMotion = {
     })
 };
 
-// Each label sits outward from its button, so it never lies over the mouse or another button.
-const labelMap = {
-    start: 'inset-s-full top-1/2 ms-3 -translate-y-1/2',
-    end: 'inset-e-full top-1/2 me-3 -translate-y-1/2',
-    above: 'bottom-full start-1/2 mb-3 -translate-x-1/2 rtl:translate-x-1/2',
-    below: 'top-full start-1/2 mt-3 -translate-x-1/2 rtl:translate-x-1/2'
-} as const;
-
-const labelSide = ({ x, y }: Point): keyof typeof labelMap => {
-    if (Math.abs(x) < 4) {
-        return y < 0 ? 'above' : 'below';
-    }
-
-    return x > 0 ? 'start' : 'end';
-};
-
 /**
  * Buttons laid on a circle round a point, with the point left clear for whatever is drawn there: the floating mouse.
  * Opening and collapsing are the parent's to say, through `open`; a press outside or Escape asks for it through
  * `onDismiss`, and `onClosed` runs once the collapse has finished, so a parent that unmounts on it sees the menu leave.
+ * A button's name shows as the system's own tooltip, which no edge of a small webview can cut off.
  */
 export function SpeedDial({
     actions,
@@ -106,9 +92,8 @@ export function SpeedDial({
     const centre = at ?? { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
     // The whole ring stays on screen; a mouse at the very edge therefore sits a little off the ring's middle.
-    const reach = radius + half + edge;
-    const left = clamp(centre.x, reach, window.innerWidth - reach);
-    const top = clamp(centre.y, reach, window.innerHeight - reach);
+    const left = clamp(centre.x, speedReach, window.innerWidth - speedReach);
+    const top = clamp(centre.y, speedReach, window.innerHeight - speedReach);
 
     return (
         <>
@@ -117,6 +102,8 @@ export function SpeedDial({
             <div style={{ left, top }} className={cn('fixed size-0', layer.dialog)}>
                 {actions.map((action, index) => {
                     const target = spot(index, actions.length);
+
+                    const Glyph = glyphMap[action.glyph];
 
                     return (
                         <motion.div
@@ -131,23 +118,17 @@ export function SpeedDial({
                         >
                             <button
                                 type='button'
+                                title={action.label}
                                 disabled={action.disabled}
                                 onClick={action.onPick}
                                 className={cn(
                                     focusRing,
-                                    'group relative flex size-12 cursor-pointer items-center justify-center rounded-full border border-line bg-base-2 text-txt-normal shadow-float transition-colors duration-(--duration-fast) outline-none enabled:hover:bg-btn-primary enabled:hover:text-txt-on-primary enabled:focus-visible:bg-btn-primary enabled:focus-visible:text-txt-on-primary disabled:cursor-default disabled:text-txt-muted/60'
+                                    'flex size-12 cursor-pointer items-center justify-center rounded-full border border-line bg-base-2 text-txt-normal shadow-float transition-colors duration-(--duration-fast) outline-none enabled:hover:bg-btn-primary enabled:hover:text-txt-on-primary enabled:focus-visible:bg-btn-primary enabled:focus-visible:text-txt-on-primary disabled:cursor-default disabled:text-txt-muted/60'
                                 )}
                             >
-                                {action.icon}
+                                <Glyph size={22} />
 
-                                <span
-                                    className={cn(
-                                        'pointer-events-none absolute rounded-control border border-line bg-base-2 px-2 py-1 text-tiny leading-tight font-semibold whitespace-nowrap text-txt-normal opacity-0 shadow-float transition-opacity duration-(--duration-fast) group-hover:opacity-100 group-focus-visible:opacity-100',
-                                        labelMap[labelSide(target)]
-                                    )}
-                                >
-                                    {action.label}
-                                </span>
+                                <span className='sr-only'>{action.label}</span>
                             </button>
                         </motion.div>
                     );

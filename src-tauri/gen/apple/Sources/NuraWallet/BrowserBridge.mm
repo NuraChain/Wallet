@@ -47,6 +47,11 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 @property (nonatomic, strong) UIImageView *mouse;
 @property (nonatomic, strong) NSString *mouseIcon;
 
+/// The mouse's menu while it is open: a layer over every page, just under the mouse, holding its
+/// buttons. A press on the layer outside them closes it, and the page under it is never touched.
+@property (nonatomic, strong) UIView *menu;
+@property (nonatomic, strong) NSArray<NSString *> *menuKeys;
+
 @end
 
 @implementation NuraBrowserBridge
@@ -283,7 +288,10 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
             [container addSubview:view];
 
             // UIKit hands a touch to whichever view was added last, so a page added after the
-            // mouse would cover it and take its presses too. The mouse goes back on top.
+            // mouse would cover it and take its presses too. The mouse, and a menu open under it, go back on top.
+            if (self.menu.superview == container) {
+                [container bringSubviewToFront:self.menu];
+            }
             if (self.mouse.superview == container) {
                 [container bringSubviewToFront:self.mouse];
             }
@@ -462,8 +470,14 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 
 /// A press, told to the wallet and to nothing else. The host webview is the only one that hears
 /// it, and a page has no way to reach this view, so nothing a site runs can pose as one.
-/// It carries the mouse's centre in the wallet's page, where the menu it opens is drawn.
+/// It carries the mouse's centre in the wallet's page, which the wallet's own menu is drawn round.
+/// A press while the menu is open only closes it.
 - (void)mousePressed:(UITapGestureRecognizer *)tap {
+    if (self.menu != nil) {
+        [self closeMenu];
+        return;
+    }
+
     UIView *view = tap.view;
     CGPoint centre = [view.superview convertPoint:view.center toView:self.host];
 
@@ -480,6 +494,7 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
     }
 
     if (pan.state == UIGestureRecognizerStateBegan) {
+        [self closeMenu];
         [self evalOnHost:@"window.__nuraMouse && window.__nuraMouse('move')"];
     }
 
@@ -548,8 +563,243 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 
 - (void)hideMouse {
     dispatch_async(dispatch_get_main_queue(), ^{
+        [self dropMenu];
+
         self.mouse.hidden = YES;
     });
+}
+
+#pragma mark - mouse menu
+
+static UIColor *NuraColour(id value) {
+    if (![value isKindOfClass:NSString.class]) {
+        return UIColor.grayColor;
+    }
+
+    NSString *hex = [(NSString *)value stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"#"]];
+    unsigned int rgb = 0;
+
+    if (hex.length != 6 || ![[NSScanner scannerWithString:hex] scanHexInt:&rgb]) {
+        return UIColor.grayColor;
+    }
+
+    return [UIColor colorWithRed:((rgb >> 16) & 0xFF) / 255.0 green:((rgb >> 8) & 0xFF) / 255.0 blue:(rgb & 0xFF) / 255.0 alpha:1];
+}
+
+/// The system's nearest match for each of lucide's icons in glyphMap in src/ui/speeddial.tsx.
+- (NSString *)symbolOf:(NSString *)glyph {
+    if ([glyph isEqualToString:@"wallet"]) {
+        return @"wallet.pass";
+    }
+    if ([glyph isEqualToString:@"browser"]) {
+        return @"globe";
+    }
+    if ([glyph isEqualToString:@"full"]) {
+        return @"arrow.up.left.and.arrow.down.right";
+    }
+    return @"arrow.down.right.and.arrow.up.left";
+}
+
+- (UIImage *)disc:(UIColor *)fill line:(UIColor *)line side:(CGFloat)side {
+    UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(side, side)];
+
+    return [renderer imageWithActions:^(UIGraphicsImageRendererContext *context) {
+        UIBezierPath *circle = [UIBezierPath bezierPathWithOvalInRect:CGRectMake(0.5, 0.5, side - 1, side - 1)];
+
+        [fill setFill];
+        [circle fill];
+
+        if (line != nil) {
+            circle.lineWidth = 1;
+            [line setStroke];
+            [circle stroke];
+        }
+    }];
+}
+
+/// Where a button starts from and goes back to: part-way toward the mouse's centre, and smaller.
+static CGAffineTransform NuraTucked(CGPoint spoke) {
+    return CGAffineTransformScale(CGAffineTransformMakeTranslation(-spoke.x * 0.6, -spoke.y * 0.6), 0.5, 0.5);
+}
+
+/// Lays the menu round the mouse's centre, as src/ui/speeddial.tsx does on the desktop: the first
+/// button at twelve o'clock and the rest clockwise, each 10pt clear of the mouse. A mouse too near
+/// an edge for the ring steps in until it fits, and stays there.
+- (void)openMenu:(NSDictionary *)spec {
+    [self dropMenu];
+
+    UIImageView *mouse = self.mouse;
+    UIView *container = mouse.superview;
+
+    NSArray *items = [spec[@"items"] isKindOfClass:NSArray.class] ? spec[@"items"] : @[];
+    NSDictionary *colors = [spec[@"colors"] isKindOfClass:NSDictionary.class] ? spec[@"colors"] : @{};
+
+    if (mouse == nil || container == nil || mouse.hidden || items.count == 0) {
+        return;
+    }
+
+    UIColor *surface = NuraColour(colors[@"surface"]);
+    UIColor *line = NuraColour(colors[@"line"]);
+    UIColor *ink = NuraColour(colors[@"ink"]);
+    UIColor *accent = NuraColour(colors[@"accent"]);
+    UIColor *onAccent = NuraColour(colors[@"onAccent"]);
+    UIColor *muted = [NuraColour(colors[@"muted"]) colorWithAlphaComponent:0.6];
+
+    CGFloat button = 48;
+    CGFloat radius = kMouseSize / 2 + 10 + button / 2;
+    CGFloat reach = radius + button / 2 + 8;
+
+    CGSize room = container.bounds.size;
+    CGFloat cx = MIN(MAX(mouse.center.x, reach), MAX(room.width - reach, reach));
+    CGFloat cy = MIN(MAX(mouse.center.y, reach), MAX(room.height - reach, reach));
+
+    mouse.center = CGPointMake(cx, cy);
+
+    UIView *layer = [[UIView alloc] initWithFrame:container.bounds];
+
+    layer.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    layer.backgroundColor = UIColor.clearColor;
+
+    // A button's own tap wins over this one, which only hears the presses that miss them all.
+    [layer addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(menuMissed:)]];
+
+    [container insertSubview:layer belowSubview:mouse];
+
+    UIImageSymbolConfiguration *weight = [UIImageSymbolConfiguration configurationWithPointSize:18
+                                                                                         weight:UIImageSymbolWeightMedium];
+
+    UIImage *rest = [self disc:surface line:line side:button];
+    UIImage *pressed = [self disc:accent line:nil side:button];
+
+    NSMutableArray<NSString *> *keys = [NSMutableArray array];
+    NSUInteger count = items.count;
+
+    for (NSUInteger index = 0; index < count; index++) {
+        NSDictionary *item = [items[index] isKindOfClass:NSDictionary.class] ? items[index] : @{};
+
+        NSString *key = [item[@"key"] isKindOfClass:NSString.class] ? item[@"key"] : @"";
+        NSString *label = [item[@"label"] isKindOfClass:NSString.class] ? item[@"label"] : @"";
+        NSString *glyph = [item[@"glyph"] isKindOfClass:NSString.class] ? item[@"glyph"] : @"";
+        BOOL disabled = [item[@"disabled"] isKindOfClass:NSNumber.class] && [item[@"disabled"] boolValue];
+
+        double angle = -M_PI_2 + index * 2 * M_PI / count;
+        CGPoint spoke = CGPointMake(cos(angle) * radius, sin(angle) * radius);
+
+        UIButton *view = [UIButton buttonWithType:UIButtonTypeCustom];
+        UIImage *symbol = [UIImage systemImageNamed:[self symbolOf:glyph] withConfiguration:weight];
+
+        view.frame = CGRectMake(cx + spoke.x - button / 2, cy + spoke.y - button / 2, button, button);
+        view.tag = (NSInteger)index;
+
+        [view setBackgroundImage:rest forState:UIControlStateNormal];
+        [view setBackgroundImage:pressed forState:UIControlStateHighlighted];
+        [view setBackgroundImage:rest forState:UIControlStateDisabled];
+
+        [view setImage:[symbol imageWithTintColor:ink renderingMode:UIImageRenderingModeAlwaysOriginal] forState:UIControlStateNormal];
+        [view setImage:[symbol imageWithTintColor:onAccent renderingMode:UIImageRenderingModeAlwaysOriginal]
+              forState:UIControlStateHighlighted];
+        [view setImage:[symbol imageWithTintColor:muted renderingMode:UIImageRenderingModeAlwaysOriginal]
+              forState:UIControlStateDisabled];
+
+        view.layer.shadowColor = UIColor.blackColor.CGColor;
+        view.layer.shadowOpacity = 0.18;
+        view.layer.shadowRadius = 6;
+        view.layer.shadowOffset = CGSizeMake(0, 2);
+        view.layer.shadowPath = [UIBezierPath bezierPathWithOvalInRect:view.bounds].CGPath;
+        [view.layer setValue:[NSValue valueWithCGPoint:spoke] forKey:@"nuraSpoke"];
+
+        view.accessibilityLabel = label;
+        view.enabled = !disabled;
+
+        [view addTarget:self action:@selector(menuPicked:) forControlEvents:UIControlEventTouchUpInside];
+
+        [keys addObject:key];
+        [layer addSubview:view];
+
+        // Out from part-way toward the centre, one after another clockwise.
+        view.alpha = 0;
+        view.transform = NuraTucked(spoke);
+
+        [UIView animateWithDuration:0.3
+                              delay:index * 0.04
+                            options:UIViewAnimationOptionCurveEaseOut | UIViewAnimationOptionAllowUserInteraction
+                         animations:^{
+                             view.alpha = 1;
+                             view.transform = CGAffineTransformIdentity;
+                         }
+                         completion:nil];
+    }
+
+    self.menu = layer;
+    self.menuKeys = keys;
+}
+
+/// Back the way the buttons came, the last one first; the layer lets every touch through as soon as
+/// it starts.
+- (void)closeMenu {
+    UIView *layer = self.menu;
+
+    if (layer == nil) {
+        return;
+    }
+
+    self.menu = nil;
+    self.menuKeys = nil;
+
+    layer.userInteractionEnabled = NO;
+
+    NSArray<UIView *> *views = layer.subviews;
+    NSUInteger count = views.count;
+
+    if (count == 0) {
+        [layer removeFromSuperview];
+        return;
+    }
+
+    for (NSUInteger index = 0; index < count; index++) {
+        UIView *view = views[index];
+        CGPoint spoke = [[view.layer valueForKey:@"nuraSpoke"] CGPointValue];
+
+        [UIView animateWithDuration:0.2
+            delay:(count - 1 - index) * 0.03
+            options:UIViewAnimationOptionCurveEaseIn | UIViewAnimationOptionBeginFromCurrentState
+            animations:^{
+                view.alpha = 0;
+                view.transform = NuraTucked(spoke);
+            }
+            completion:^(BOOL finished) {
+                if (index == 0) {
+                    [layer removeFromSuperview];
+                }
+            }];
+    }
+}
+
+/// At once, with no collapse: for a hidden mouse or a new menu.
+- (void)dropMenu {
+    [self.menu removeFromSuperview];
+
+    self.menu = nil;
+    self.menuKeys = nil;
+}
+
+- (void)menuMissed:(UITapGestureRecognizer *)tap {
+    [self closeMenu];
+}
+
+/// Told to the wallet alone, as a press is; it acts only on a button it offered.
+- (void)menuPicked:(UIButton *)sender {
+    NSArray<NSString *> *keys = self.menuKeys;
+
+    if (keys == nil || sender.tag < 0 || (NSUInteger)sender.tag >= keys.count) {
+        return;
+    }
+
+    NSString *key = keys[(NSUInteger)sender.tag];
+
+    [self closeMenu];
+
+    [self evalOnHost:[NSString stringWithFormat:@"window.__nuraMouse && window.__nuraMouse('pick', %@)", [self quote:key]]];
 }
 
 - (void)fadeMouse:(double)opacity {
@@ -720,6 +970,19 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
         [self fadeMouse:num(0)];
     } else if ([method isEqualToString:@"setMouseIcon"]) {
         [self dressMouse:str(0)];
+    } else if ([method isEqualToString:@"showMouseMenu"]) {
+        NSData *data = [str(0) dataUsingEncoding:NSUTF8StringEncoding];
+        id spec = data == nil ? nil : [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+
+        if ([spec isKindOfClass:NSDictionary.class]) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self openMenu:(NSDictionary *)spec];
+            });
+        }
+    } else if ([method isEqualToString:@"hideMouseMenu"]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self dropMenu];
+        });
     } else if ([method isEqualToString:@"setBarInk"]) {
         [self inkBars:str(0)];
     }
@@ -820,7 +1083,8 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
     @"  var names = ['open','setBounds','close','closeAll','reload','back','forward',"
     @"               'setVisible','setDesktop','openTab','boundsTab','closeTab','visibleTab',"
     @"               'reloadTab','backTab','forwardTab','setDappScript','dappReply','dappEmit',"
-    @"               'showMouse','hideMouse','setMouseOpacity','setMouseIcon','setBarInk'];"
+    @"               'showMouse','hideMouse','setMouseOpacity','setMouseIcon','setBarInk',"
+    @"               'showMouseMenu','hideMouseMenu'];"
     @"  var bridge = {};"
     @"  names.forEach(function(name){ bridge[name] = post(name); });"
     @"  window.__nuraBrowser = bridge;"

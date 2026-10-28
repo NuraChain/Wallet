@@ -167,6 +167,10 @@ interface BrowserBridge {
     setMouseOpacity?: (opacity: number) => void;
     setMouseIcon?: (icon: string) => void;
 
+    /** Lays the menu round the mouse, over every page: JSON of `{ items, colors }`. A pick comes back through `__nuraMouse('pick', key)`. */
+    showMouseMenu?: (menu: string) => void;
+    hideMouseMenu?: () => void;
+
     /** The ink the system draws its status bar in: `dark`, `light`, or empty for its own choice. */
     setBarInk?: (ink: string) => void;
 }

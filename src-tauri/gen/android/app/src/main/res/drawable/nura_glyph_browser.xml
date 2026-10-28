@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- lucide's globe, for the mouse's menu; the button tints it. Matches glyphMap in src/ui/speeddial.tsx. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="22dp"
+    android:height="22dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:pathData="M12,2a10,10 0 1 0 0,20a10,10 0 1 0 0,-20z"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
+
+    <path
+        android:pathData="M12,2a14.5,14.5 0 0 0 0,20a14.5,14.5 0 0 0 0,-20"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
+
+    <path
+        android:pathData="M2,12h20"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2" />
+
+</vector>

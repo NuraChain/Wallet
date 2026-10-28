@@ -21,7 +21,7 @@ import DashboardReceive from '../component/dashboard/dashboard.receive';
 import DashboardRequest from '../component/dashboard/dashboard.request';
 import DashboardSettings from '../component/dashboard/dashboard.settings';
 import DashboardMouse from '../component/dashboard/dashboard.mouse';
-import DashboardSpeed from '../component/dashboard/dashboard.speed';
+import DashboardSpeed, { speedItems } from '../component/dashboard/dashboard.speed';
 import DashboardSwap from '../component/dashboard/dashboard.swap';
 import DashboardBiometric from '../component/dashboard/dashboard.biometric';
 
@@ -51,7 +51,7 @@ import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
 import { useBack } from '../hook/back';
 import { forgetSiteThemes, getSiteDevices, setSiteTheme } from '../core/browser';
-import { showMouse } from '../core/mouse';
+import { openMouseMenu, showMouse } from '../core/mouse';
 import { siteNotices } from '../core/notice';
 import Mouse from '../ui/mouse';
 
@@ -185,20 +185,30 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const prompt = useDappPrompt();
 
-    // A press can still be on its way as a dialog opens, and the speed dial would open over it. Pressing the mouse
-    // again while the dial is open collapses it, since the mouse is what the dial is laid round.
+    const speedFull = tabMap[active].key === 'Browser' ? browserFull : undefined;
+
+    // A native mouse lays its menu round itself, above the browser page, which is left exactly as it was. Only the
+    // in-page mouse needs the wallet's own, and a page has to step aside for that one, as for any dialog.
+    // A press can still be on its way as a dialog opens, and the menu would open over it. Pressing the in-page mouse
+    // again while its menu is open collapses it, since the mouse is what the menu is laid round.
     const onMouse = (at: Point | undefined) => {
-        if (modal === 'none' && prompt === undefined) {
-            setSpeedAt(at);
-            setSpeedOpen(true);
-            setModal('speed');
+        if (modal === 'speed') {
+            setSpeedOpen(false);
 
             return;
         }
 
-        if (modal === 'speed') {
-            setSpeedOpen(false);
+        if (modal !== 'none' || prompt !== undefined) {
+            return;
         }
+
+        if (!pageMouse && openMouseMenu(speedItems(speedFull))) {
+            return;
+        }
+
+        setSpeedAt(at);
+        setSpeedOpen(true);
+        setModal('speed');
     };
 
     const onSpeedTab = (key: string) => {
@@ -211,7 +221,21 @@ function DashboardView({ vault }: { vault: Vault }) {
         setFullToggle((value) => value + 1);
     };
 
+    // Only a button the menu offers, and only one it offers enabled, does anything.
+    const onSpeedPick = (key: string) => {
+        if (!speedItems(speedFull).some((item) => item.key === key && !item.disabled)) {
+            return;
+        }
+
+        if (key === 'full') {
+            onSpeedFull();
+        } else {
+            onSpeedTab(key === 'wallet' ? 'Wallet' : 'Browser');
+        }
+    };
+
     const onMouseEvent = useEffectEvent(onMouse);
+    const onPickEvent = useEffectEvent(onSpeedPick);
 
     // Dragging the mouse away takes the dial with it, rather than leaving it round an empty spot.
     const onMouseMove = () => {
@@ -257,15 +281,18 @@ function DashboardView({ vault }: { vault: Vault }) {
             return undefined;
         }
 
-        return showMouse(
-            (at) => {
+        return showMouse({
+            onPress: (at) => {
                 onMouseEvent(at);
             },
-            onMouseMove,
-            () => {
+            onMove: onMouseMove,
+            onPick: (key) => {
+                onPickEvent(key);
+            },
+            onFallback: () => {
                 setPageMouse(true);
             }
-        );
+        });
     }, [mouseOn]);
 
     const native = useBalance(address, network);
@@ -619,14 +646,8 @@ function DashboardView({ vault }: { vault: Vault }) {
                         key='speed'
                         at={speedAt}
                         open={speedOpen}
-                        full={tabMap[active].key === 'Browser' ? browserFull : undefined}
-                        onWallet={() => {
-                            onSpeedTab('Wallet');
-                        }}
-                        onBrowser={() => {
-                            onSpeedTab('Browser');
-                        }}
-                        onFull={onSpeedFull}
+                        full={speedFull}
+                        onPick={onSpeedPick}
                         onDismiss={() => {
                             setSpeedOpen(false);
                         }}

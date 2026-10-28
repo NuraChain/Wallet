@@ -46,7 +46,6 @@ pub fn run() {
             .invoke_handler(tauri::generate_handler![
                 dapp::browser_open,
                 dapp::browser_clear,
-                #[cfg(target_os = "linux")]
                 dapp::browser_place,
                 #[cfg(target_os = "linux")]
                 dapp::browser_position,

@@ -265,7 +265,6 @@ pub async fn browser_clear<R: Runtime>(
         .map_err(|cause| cause.to_string())
 }
 
-#[cfg(target_os = "linux")]
 fn placed<R: Runtime>(
     app: &AppHandle<R>,
     caller: &Webview<R>,
@@ -285,8 +284,9 @@ fn placed<R: Runtime>(
         .ok_or_else(|| "that webview is gone".to_string())
 }
 
-/// Linux only: Tauri's own position and size calls do nothing to a child webview there.
-#[cfg(target_os = "linux")]
+/// Moves and sizes a webview in one step, in logical pixels, so it is never drawn halfway between the
+/// two; the mouse grows round its own centre this way to hold its menu. On Linux, Tauri's own position
+/// and size calls do nothing to a child webview at all.
 #[tauri::command]
 pub async fn browser_place<R: Runtime>(
     app: AppHandle<R>,
@@ -299,8 +299,16 @@ pub async fn browser_place<R: Runtime>(
 ) -> Result<(), String> {
     let target = placed(&app, &webview, &label)?;
 
-    crate::stage::place(&target, label == MOUSE_LABEL, x, y, width, height)
-        .map_err(|cause| cause.to_string())
+    #[cfg(target_os = "linux")]
+    let placing = crate::stage::place(&target, label == MOUSE_LABEL, x, y, width, height);
+
+    #[cfg(not(target_os = "linux"))]
+    let placing = target.set_bounds(tauri::Rect {
+        position: tauri::LogicalPosition::new(x, y).into(),
+        size: tauri::LogicalSize::new(width, height).into(),
+    });
+
+    placing.map_err(|cause| cause.to_string())
 }
 
 /// Linux only: Tauri reads every child webview back as sitting at the window's corner.

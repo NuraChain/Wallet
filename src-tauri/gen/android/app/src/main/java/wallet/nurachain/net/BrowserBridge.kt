@@ -4,12 +4,19 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.StateListDrawable
+import android.os.Build
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.webkit.CookieManager
 import android.webkit.GeolocationPermissions
@@ -61,6 +68,10 @@ class BrowserBridge(
 
     // Kept apart from the view: the first request for an icon can come before the view exists.
     private var mouseIcon: String = "logo"
+
+    // The mouse's menu while it is open: a layer over every page, just under the mouse, holding its buttons.
+    // A press on the layer outside them closes it, and the page under it is never touched.
+    private var menu: FrameLayout? = null
 
     // The system's own status-bar ink, captured once so leaving a site restores it exactly.
     private var systemBarInk: Boolean? = null
@@ -404,7 +415,16 @@ class BrowserBridge(
         view.y = y.coerceIn(0f, (parent.height - view.height).coerceAtLeast(0).toFloat())
     }
 
-    // With the mouse's centre in the wallet's page, in CSS pixels, which is where the menu it opens is drawn.
+    // A press while the menu is open only closes it.
+    private fun press(view: View) {
+        if (menu != null) {
+            closeMenu()
+        } else {
+            report(view)
+        }
+    }
+
+    // With the mouse's centre in the wallet's page, in CSS pixels, which the wallet's own menu is drawn round.
     private fun report(view: View) {
         val mouseAt = IntArray(2)
         val hostAt = IntArray(2)
@@ -421,6 +441,194 @@ class BrowserBridge(
     }
 
     private fun mouseImage() = if (mouseIcon == "browser") R.drawable.nura_browser else R.drawable.nura_logo
+
+    private fun glyphOf(glyph: String) = when (glyph) {
+        "wallet" -> R.drawable.nura_glyph_wallet
+        "browser" -> R.drawable.nura_glyph_browser
+        "full" -> R.drawable.nura_glyph_full
+        else -> R.drawable.nura_glyph_exit
+    }
+
+    private fun disc(fill: Int, line: Int?) = GradientDrawable().apply {
+        shape = GradientDrawable.OVAL
+        setColor(fill)
+
+        if (line != null) {
+            setStroke(px(1.0).coerceAtLeast(1), line)
+        }
+    }
+
+    // Each button's offset from the mouse's centre, which it slides out along and back in.
+    private class Spoke(val dx: Float, val dy: Float)
+
+    /**
+     * Lays the menu round the mouse's centre, as src/ui/speeddial.tsx does on the desktop: the first button at
+     * twelve o'clock and the rest clockwise, each 10dp clear of the mouse. A mouse too near an edge for the ring
+     * steps in until it fits, and stays there.
+     */
+    private fun openMenu(spec: JSONObject) {
+        val mouse = mouse ?: return
+        val root = mouse.parent as? ViewGroup ?: return
+
+        dropMenu()
+
+        val items = spec.optJSONArray("items") ?: return
+        val colors = spec.optJSONObject("colors") ?: JSONObject()
+
+        if (mouse.visibility != View.VISIBLE || items.length() == 0) {
+            return
+        }
+
+        fun colour(name: String) = runCatching { Color.parseColor(colors.getString(name)) }.getOrDefault(Color.GRAY)
+
+        val surface = colour("surface")
+        val line = colour("line")
+        val ink = colour("ink")
+        val accent = colour("accent")
+        val onAccent = colour("onAccent")
+        val muted = colour("muted")
+
+        val size = px(40.0)
+        val button = px(48.0)
+        val radius = 54.0 * density
+        val reach = ((54.0 + 24.0 + 8.0) * density).toFloat()
+
+        val cx = (mouse.x + size / 2f).coerceIn(reach, (root.width - reach).coerceAtLeast(reach))
+        val cy = (mouse.y + size / 2f).coerceIn(reach, (root.height - reach).coerceAtLeast(reach))
+
+        mouse.x = cx - size / 2f
+        mouse.y = cy - size / 2f
+
+        val layer = FrameLayout(activity)
+
+        layer.layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+        layer.translationZ = 999f
+        layer.setOnClickListener { closeMenu() }
+
+        val count = items.length()
+
+        for (index in 0 until count) {
+            val item = items.optJSONObject(index) ?: continue
+            val key = item.optString("key")
+            val label = item.optString("label")
+
+            val angle = -Math.PI / 2 + index * 2 * Math.PI / count
+            val spoke = Spoke((Math.cos(angle) * radius).toFloat(), (Math.sin(angle) * radius).toFloat())
+
+            val view = ImageView(activity)
+
+            // LEFT, not START: the ring is laid out on the screen, the same whichever way the text runs.
+            view.layoutParams = FrameLayout.LayoutParams(button, button, Gravity.TOP or Gravity.LEFT).apply {
+                leftMargin = (cx + spoke.dx - button / 2f).toInt()
+                topMargin = (cy + spoke.dy - button / 2f).toInt()
+            }
+
+            view.tag = spoke
+            view.scaleType = ImageView.ScaleType.CENTER
+            view.setImageResource(glyphOf(item.optString("glyph")))
+            view.background = StateListDrawable().apply {
+                addState(intArrayOf(android.R.attr.state_pressed, android.R.attr.state_enabled), disc(accent, null))
+                addState(intArrayOf(), disc(surface, line))
+            }
+            view.imageTintList = ColorStateList(
+                arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf(android.R.attr.state_pressed), intArrayOf()),
+                intArrayOf(Color.argb(153, Color.red(muted), Color.green(muted), Color.blue(muted)), onAccent, ink)
+            )
+            view.elevation = px(6.0).toFloat()
+            view.contentDescription = label
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                view.tooltipText = label
+            }
+
+            view.setOnClickListener { pick(key) }
+            view.isEnabled = !item.optBoolean("disabled")
+
+            // Out from part-way toward the centre, one after another clockwise.
+            view.alpha = 0f
+            view.scaleX = 0.5f
+            view.scaleY = 0.5f
+            view.translationX = -spoke.dx * 0.6f
+            view.translationY = -spoke.dy * 0.6f
+
+            view.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationX(0f)
+                .translationY(0f)
+                .setStartDelay(index * 40L)
+                .setDuration(300L)
+                .setInterpolator(DecelerateInterpolator(2f))
+                .start()
+
+            layer.addView(view)
+        }
+
+        root.addView(layer)
+
+        menu = layer
+    }
+
+    // Back the way the buttons came, the last one first; the layer lets every touch through as soon as it starts.
+    private fun closeMenu() {
+        val layer = menu ?: return
+
+        menu = null
+
+        layer.setOnClickListener(null)
+        layer.isClickable = false
+
+        val count = layer.childCount
+
+        if (count == 0) {
+            (layer.parent as? ViewGroup)?.removeView(layer)
+
+            return
+        }
+
+        for (index in 0 until count) {
+            val view = layer.getChildAt(index)
+            val spoke = view.tag as? Spoke ?: Spoke(0f, 0f)
+
+            view.isClickable = false
+            view.animate().cancel()
+
+            val leaving = view.animate()
+                .alpha(0f)
+                .scaleX(0.5f)
+                .scaleY(0.5f)
+                .translationX(-spoke.dx * 0.6f)
+                .translationY(-spoke.dy * 0.6f)
+                .setStartDelay((count - 1 - index) * 30L)
+                .setDuration(200L)
+                .setInterpolator(AccelerateInterpolator())
+
+            if (index == 0) {
+                leaving.withEndAction { (layer.parent as? ViewGroup)?.removeView(layer) }
+            }
+
+            leaving.start()
+        }
+    }
+
+    // At once, with no collapse: for a hidden mouse, a new menu, or a screen that changed shape under it.
+    private fun dropMenu() {
+        val layer = menu ?: return
+
+        menu = null
+
+        (layer.parent as? ViewGroup)?.removeView(layer)
+    }
+
+    // Told to the wallet alone, as a press is; it acts only on a button it offered.
+    private fun pick(key: String) {
+        closeMenu()
+
+        host.post {
+            host.evaluateJavascript("window.__nuraMouse && window.__nuraMouse('pick', ${JSONObject.quote(key)})", null)
+        }
+    }
 
     // A raised Z keeps the mouse over tabs added later, for drawing and touches, with no re-stacking.
     @SuppressLint("ClickableViewAccessibility")
@@ -459,6 +667,8 @@ class BrowserBridge(
                     if (!dragging && Math.hypot(dx.toDouble(), dy.toDouble()) > slop) {
                         dragging = true
 
+                        closeMenu()
+
                         host.post {
                             host.evaluateJavascript("window.__nuraMouse && window.__nuraMouse('move')", null)
                         }
@@ -470,7 +680,7 @@ class BrowserBridge(
                 }
 
                 MotionEvent.ACTION_UP -> if (!dragging) {
-                    report(touched)
+                    press(touched)
                 }
             }
 
@@ -478,12 +688,19 @@ class BrowserBridge(
         }
 
         // Only reached through accessibility services, since the touch listener takes the rest.
-        view.setOnClickListener { report(it) }
+        view.setOnClickListener { press(it) }
 
         root.addView(view)
 
-        // Kept on screen through resizes: in full screen it is the only way back out.
-        root.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> place(view, view.x, view.y) }
+        // Kept on screen through resizes: in full screen it is the only way back out. A ring laid out for the old
+        // shape would no longer sit round it, so a menu goes with the resize.
+        root.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                dropMenu()
+            }
+
+            place(view, view.x, view.y)
+        }
 
         root.post { place(view, (root.width - size) / 2f, (root.height - size) / 2f) }
 
@@ -502,7 +719,23 @@ class BrowserBridge(
 
     @JavascriptInterface
     fun hideMouse() {
-        activity.runOnUiThread { mouse?.visibility = View.GONE }
+        activity.runOnUiThread {
+            dropMenu()
+
+            mouse?.visibility = View.GONE
+        }
+    }
+
+    @JavascriptInterface
+    fun showMouseMenu(payload: String) {
+        val spec = runCatching { JSONObject(payload) }.getOrNull() ?: return
+
+        activity.runOnUiThread { openMenu(spec) }
+    }
+
+    @JavascriptInterface
+    fun hideMouseMenu() {
+        activity.runOnUiThread { dropMenu() }
     }
 
     @JavascriptInterface
