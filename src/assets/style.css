@@ -392,12 +392,17 @@
     -webkit-user-drag: none;
     -webkit-user-select: none;
     -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
 }
 
+/* The shell never rubber-bands or pulls to refresh; a list inside still scrolls on its own. */
 html,
 body {
     background: var(--base-bg);
     font-family: var(--font-sans);
+    overscroll-behavior: none;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
 }
 
 html:lang(fa) body,
