@@ -13,6 +13,13 @@ const WALLET_LABEL: &str = "main";
 
 const MOUSE_LABEL: &str = "nura-mouse";
 
+const MOUSE_MENU_LABEL: &str = "nura-mouse-menu";
+
+/// The mouse and its menu, which float over every page and may each place themselves.
+fn is_floating(label: &str) -> bool {
+    label == MOUSE_LABEL || label == MOUSE_MENU_LABEL
+}
+
 const REPLY_TIMEOUT: Duration = Duration::from_secs(600);
 
 #[derive(Default)]
@@ -234,10 +241,13 @@ pub async fn browser_open<R: Runtime>(
         let _ = crate::stage::place(&page, false, x, y, width, height);
     }
 
-    // A later child draws over the mouse; re-parenting it puts it back on top.
+    // A later child draws over the mouse; re-parenting it puts it back on top. Its menu goes first, so the
+    // mouse stays over the menu laid round it.
     #[cfg(not(target_os = "linux"))]
-    if let Some(mouse) = app.get_webview(MOUSE_LABEL) {
-        let _ = mouse.reparent(&window);
+    for floating in [MOUSE_MENU_LABEL, MOUSE_LABEL] {
+        if let Some(view) = app.get_webview(floating) {
+            let _ = view.reparent(&window);
+        }
     }
 
     Ok(())
@@ -270,13 +280,13 @@ fn placed<R: Runtime>(
     caller: &Webview<R>,
     label: &str,
 ) -> Result<Webview<R>, String> {
-    let floating = label == MOUSE_LABEL;
+    let floating = is_floating(label);
 
     if !floating && !is_page(label) {
         return Err("that webview is not one the wallet places".into());
     }
 
-    if caller.label() != WALLET_LABEL && !(floating && caller.label() == MOUSE_LABEL) {
+    if caller.label() != WALLET_LABEL && !(floating && caller.label() == label) {
         return Err("only the wallet may place a webview".into());
     }
 
@@ -300,7 +310,7 @@ pub async fn browser_place<R: Runtime>(
     let target = placed(&app, &webview, &label)?;
 
     #[cfg(target_os = "linux")]
-    let placing = crate::stage::place(&target, label == MOUSE_LABEL, x, y, width, height);
+    let placing = crate::stage::place(&target, is_floating(&label), x, y, width, height);
 
     #[cfg(not(target_os = "linux"))]
     let placing = target.set_bounds(tauri::Rect {

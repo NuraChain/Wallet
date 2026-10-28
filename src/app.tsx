@@ -2,7 +2,7 @@ import { RouterProvider } from 'react-router';
 import { createRoot } from 'react-dom/client';
 
 import ErrorBoundary from './layout/boundary';
-import { MouseView } from './ui/mouse';
+import { MouseMenuView, MouseView } from './ui/mouse';
 
 import { router } from './router';
 import { initTheme } from './utility/theme';
@@ -61,6 +61,8 @@ const mouseHash = /^#mouse=(?<opacity>[\d.]+)(?:&icon=(?<icon>[a-z]+))?$/u.exec(
 
 if (mouseHash !== null && mouseElement !== null) {
     createRoot(mouseElement).render(<MouseView opacity={readMouseOpacity(mouseHash.groups?.opacity)} icon={readMouseIcon(mouseHash.groups?.icon)} />);
+} else if (location.hash === '#mouse-menu' && mouseElement !== null) {
+    createRoot(mouseElement).render(<MouseMenuView />);
 } else if (rootElement) {
     await startup();
 

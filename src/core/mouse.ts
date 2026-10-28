@@ -2,7 +2,7 @@ import { getPlatform } from '../utility/platform';
 import { getTheme } from '../utility/theme';
 import { getValue, setValue } from '../utility/storage';
 
-import { getNativeBrowser, mouseLabel } from './browser';
+import { getNativeBrowser, mouseLabel, mouseMenuLabel } from './browser';
 
 import type { Webview } from '@tauri-apps/api/webview';
 import type { MouseGlyph, MouseIcon, MouseMenuColors, MouseMenuItem, Point } from '../type/app';
@@ -110,15 +110,25 @@ export const setMouseOpacity = async (value: number) => {
     await setValue('App.Mouse', String(value));
 };
 
-/**
- * Moves and sizes the mouse's webview in one step, in CSS pixels, so it never shows halfway between the two; the
- * menu grows it round its own centre this way. On Linux, which lays child webviews out itself, it is the only way.
- */
-export const placeMouse = async (x: number, y: number, width = mouseSize, height = mouseSize) => {
+/** The menu's ring: 48px buttons whose edges stand 10px clear of the 40px mouse, with 8px to spare round them. */
+export const menuButton = 48;
+
+export const menuRadius = mouseSize / 2 + 10 + menuButton / 2;
+
+/** From the ring's centre to the edge of the box it is drawn in. */
+export const menuReach = menuRadius + menuButton / 2 + 8;
+
+/** Moves and sizes a webview of the mouse's in one step, in CSS pixels. On Linux, which lays child webviews out itself, it is the only way. */
+const placeFloating = async (label: string, x: number, y: number, width: number, height: number) => {
     const { invoke } = await import('@tauri-apps/api/core');
 
-    await invoke('browser_place', { label: mouseLabel, x, y, width, height });
+    await invoke('browser_place', { label, x, y, width, height });
 };
+
+export const placeMouse = async (x: number, y: number) => placeFloating(mouseLabel, x, y, mouseSize, mouseSize);
+
+/** The menu's webview, round a centre in CSS pixels. */
+export const placeMouseMenu = async (centre: Point) => placeFloating(mouseMenuLabel, centre.x - menuReach, centre.y - menuReach, menuReach * 2, menuReach * 2);
 
 /** In physical pixels. */
 export const getMousePosition = async (view: Webview): Promise<{ x: number; y: number }> => {
@@ -161,6 +171,8 @@ const queue = (task: () => Promise<void>) => {
 const closeDesktop = async () => {
     const { Webview } = await import('@tauri-apps/api/webview');
 
+    await (await Webview.getByLabel(mouseMenuLabel))?.close();
+
     const view = await Webview.getByLabel(mouseLabel);
 
     if (view === null) {
@@ -176,6 +188,17 @@ const closeDesktop = async () => {
     await view.close();
 };
 
+const created = async (view: Webview) =>
+    new Promise<void>((resolve, reject) => {
+        void view.once('tauri://created', () => {
+            resolve();
+        });
+
+        void view.once('tauri://error', (event) => {
+            reject(new Error(String(event.payload)));
+        });
+    });
+
 const openDesktop = async () => {
     const { emit } = await import('@tauri-apps/api/event');
     const { Webview, getCurrentWebview } = await import('@tauri-apps/api/webview');
@@ -188,6 +211,27 @@ const openDesktop = async () => {
 
     const x = clamp(parked?.x ?? (window.innerWidth - mouseSize) / 2, window.innerWidth);
     const y = clamp(parked?.y ?? (window.innerHeight - mouseSize) / 2, window.innerHeight);
+
+    // The menu first, so the mouse, made after it, is drawn over it and keeps every press on itself. It waits
+    // hidden, already loaded, and places itself before it shows: growing or moving a webview that is on screen
+    // draws its old picture in the new place for a frame, which is the flicker this keeps out of sight.
+    const menu = new Webview(getCurrentWindow(), mouseMenuLabel, {
+        url: 'index.html#mouse-menu',
+        x: 0,
+        y: 0,
+        width: menuReach * 2,
+        height: menuReach * 2,
+        transparent: true,
+        focus: false,
+        dragDropEnabled: false
+    });
+
+    await created(menu);
+    await menu.hide();
+
+    if (getPlatform() === 'linux') {
+        await placeMouseMenu({ x: menuReach, y: menuReach });
+    }
 
     // The fragment carries the start state because a query never reaches the asset protocol.
     const view = new Webview(getCurrentWindow(), mouseLabel, {
@@ -202,15 +246,7 @@ const openDesktop = async () => {
     });
 
     // Settled before the queue moves on, so a close behind it finds the webview to close.
-    await new Promise<void>((resolve, reject) => {
-        void view.once('tauri://created', () => {
-            resolve();
-        });
-
-        void view.once('tauri://error', (event) => {
-            reject(new Error(String(event.payload)));
-        });
-    });
+    await created(view);
 
     // Linux ignores the position asked for above.
     if (getPlatform() === 'linux') {
@@ -253,21 +289,33 @@ const readItem = (value: unknown): MouseMenuItem | undefined => {
     return { key, label, glyph: glyph as MouseGlyph, disabled: disabled === true };
 };
 
-/** The menu as the desktop mouse's webview is sent it, or undefined for anything else. */
-export const readMouseMenu = (value: unknown): { items: MouseMenuItem[]; theme: 'light' | 'dark' } | undefined => {
+const readPoint = (value: unknown): Point | undefined => {
     if (typeof value !== 'object' || value === null) {
         return undefined;
     }
 
-    const { items, theme } = value as Record<string, unknown>;
+    const { x, y } = value as Record<string, unknown>;
 
-    if (!Array.isArray(items) || (theme !== 'light' && theme !== 'dark')) {
+    return typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y) ? { x, y } : undefined;
+};
+
+/** The menu as the desktop menu's webview is sent it, with the centre to lay it round, or undefined for anything else. */
+export const readMouseMenu = (value: unknown): { items: MouseMenuItem[]; theme: 'light' | 'dark'; centre: Point } | undefined => {
+    if (typeof value !== 'object' || value === null) {
+        return undefined;
+    }
+
+    const { items, theme, centre } = value as Record<string, unknown>;
+
+    const point = readPoint(centre);
+
+    if (!Array.isArray(items) || (theme !== 'light' && theme !== 'dark') || point === undefined) {
         return undefined;
     }
 
     const read = items.map((item) => readItem(item));
 
-    return read.every((item) => item !== undefined) && read.length > 0 ? { items: read, theme } : undefined;
+    return read.every((item) => item !== undefined) && read.length > 0 ? { items: read, theme, centre: point } : undefined;
 };
 
 const tokenMap = {
@@ -318,11 +366,12 @@ const readColors = (): MouseMenuColors => {
 let desktopLive = false;
 
 /**
- * Lays the menu round the native mouse, above the browser and without touching it: the mouse closes it again when a
- * button is picked, when it is pressed or dragged, or on a press anywhere else. False where only the in-page mouse is
- * drawn, whose menu the wallet draws itself.
+ * Lays the menu round the native mouse, whose centre `at` is, above the browser and without touching it. It closes
+ * again when a button is picked, when the mouse is pressed or dragged, or on a press anywhere else; on the desktop a
+ * press while it is open reaches here again, and closes it. False where only the in-page mouse is drawn, whose menu the
+ * wallet draws itself.
  */
-export const openMouseMenu = (items: MouseMenuItem[]) => {
+export const openMouseMenu = (items: MouseMenuItem[], at: Point | undefined) => {
     const bridge = getNativeBrowser();
 
     if (bridge !== undefined) {
@@ -335,13 +384,46 @@ export const openMouseMenu = (items: MouseMenuItem[]) => {
         return true;
     }
 
-    if (!desktopLive) {
+    if (!desktopLive || at === undefined) {
         return false;
     }
 
-    void import('@tauri-apps/api/event').then(async ({ emit }) => emit('nura://mouse-menu', { items, theme: getTheme() })).catch(() => undefined);
+    // The wallet's own webview fills the window from its corner, so its size is the room the ring has.
+    const fit = (value: number, room: number) => Math.min(Math.max(value, menuReach), Math.max(room - menuReach, menuReach));
+
+    const centre = { x: fit(at.x, window.innerWidth), y: fit(at.y, window.innerHeight) };
+
+    const run = async () => {
+        const { emit } = await import('@tauri-apps/api/event');
+
+        // A mouse too near an edge for the ring steps in until it fits, and stays there. Moving it is no flicker:
+        // only a webview that changes size is drawn a frame late.
+        if (centre.x !== at.x || centre.y !== at.y) {
+            const { Webview } = await import('@tauri-apps/api/webview');
+
+            const view = await Webview.getByLabel(mouseLabel);
+            const ratio = window.devicePixelRatio;
+
+            if (view !== null) {
+                await setMousePosition(view, { x: Math.round((centre.x - mouseSize / 2) * ratio), y: Math.round((centre.y - mouseSize / 2) * ratio) });
+            }
+        }
+
+        await emit('nura://mouse-menu', { items, theme: getTheme(), centre });
+    };
+
+    void run().catch(() => undefined);
 
     return true;
+};
+
+/** Collapses the desktop menu, as a drag of the mouse starts; a native one closes itself on a drag. */
+export const closeMouseMenu = () => {
+    if (getNativeBrowser() !== undefined || !desktopLive) {
+        return;
+    }
+
+    void import('@tauri-apps/api/event').then(async ({ emit }) => emit('nura://mouse-menu-close')).catch(() => undefined);
 };
 
 /**

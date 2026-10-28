@@ -6,6 +6,7 @@ import { focusRing } from './token';
 import { useDismiss } from './dialog';
 import { layer } from './container';
 import { transition } from './motion';
+import { menuButton, menuRadius, menuReach } from '../core/mouse';
 
 import type { MouseGlyph, MouseMenuItem, Point } from '../type/app';
 
@@ -15,21 +16,7 @@ export interface SpeedAction extends MouseMenuItem {
 
 const glyphMap = { wallet: Wallet, browser: Globe, full: Maximize2, exit: Minimize2 } as const satisfies Record<MouseGlyph, unknown>;
 
-const size = 48;
-
-const half = size / 2;
-
-// The floating mouse is 40px on every platform; each button's edge stands this far from its edge.
-const hub = 40;
-
-const gap = 10;
-
-export const speedRadius = hub / 2 + gap + half;
-
-const edge = 8;
-
-/** How far the ring reaches from its centre, margin included: half the side of the box it needs. */
-export const speedReach = speedRadius + half + edge;
+const half = menuButton / 2;
 
 const clamp = (value: number, low: number, high: number) => Math.min(Math.max(value, low), Math.max(high, low));
 
@@ -37,7 +24,7 @@ const clamp = (value: number, low: number, high: number) => Math.min(Math.max(va
 const spot = (index: number, count: number): Point => {
     const angle = -Math.PI / 2 + (index * Math.PI * 2) / count;
 
-    return { x: Math.cos(angle) * speedRadius, y: Math.sin(angle) * speedRadius };
+    return { x: Math.cos(angle) * menuRadius, y: Math.sin(angle) * menuRadius };
 };
 
 interface Stagger {
@@ -92,8 +79,8 @@ export function SpeedDial({
     const centre = at ?? { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
     // The whole ring stays on screen; a mouse at the very edge therefore sits a little off the ring's middle.
-    const left = clamp(centre.x, speedReach, window.innerWidth - speedReach);
-    const top = clamp(centre.y, speedReach, window.innerHeight - speedReach);
+    const left = clamp(centre.x, menuReach, window.innerWidth - menuReach);
+    const top = clamp(centre.y, menuReach, window.innerHeight - menuReach);
 
     return (
         <>

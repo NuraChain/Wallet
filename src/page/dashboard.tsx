@@ -51,7 +51,7 @@ import { useBalance, useTokens } from '../hook/balance';
 import { useHasBrowser } from '../hook/platform';
 import { useBack } from '../hook/back';
 import { forgetSiteThemes, getSiteDevices, setSiteTheme } from '../core/browser';
-import { openMouseMenu, showMouse } from '../core/mouse';
+import { closeMouseMenu, openMouseMenu, showMouse } from '../core/mouse';
 import { siteNotices } from '../core/notice';
 import Mouse from '../ui/mouse';
 
@@ -202,7 +202,7 @@ function DashboardView({ vault }: { vault: Vault }) {
             return;
         }
 
-        if (!pageMouse && openMouseMenu(speedItems(speedFull))) {
+        if (!pageMouse && openMouseMenu(speedItems(speedFull), at)) {
             return;
         }
 
@@ -240,6 +240,7 @@ function DashboardView({ vault }: { vault: Vault }) {
     // Dragging the mouse away takes the dial with it, rather than leaving it round an empty spot.
     const onMouseMove = () => {
         setSpeedOpen(false);
+        closeMouseMenu();
     };
 
     // The mouse is drawn natively to stay above browser pages; this is the in-page fallback.

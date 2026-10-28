@@ -13,6 +13,9 @@ export const frameLabel = (id: number) => `nura-browser-${id}`;
 /** Not a page, so outside `nura-browser-*`. */
 export const mouseLabel = 'nura-mouse';
 
+/** The desktop mouse's menu: a webview of its own, under the mouse and over every page. */
+export const mouseMenuLabel = 'nura-mouse-menu';
+
 const defaultFavorites: BrowserFavorite[] = config.favorites;
 
 const historyLimit = 40;
@@ -204,7 +207,11 @@ export const closeBrowserLayers = () => {
 
             const views = await getAllWebviews();
 
-            await Promise.all(views.filter((view) => view.label.startsWith('nura-browser-') || view.label === mouseLabel).map(async (view) => view.close()));
+            await Promise.all(
+                views
+                    .filter((view) => view.label.startsWith('nura-browser-') || view.label === mouseLabel || view.label === mouseMenuLabel)
+                    .map(async (view) => view.close())
+            );
         } catch {
             // Outside Tauri there is nothing to close.
         }
