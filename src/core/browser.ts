@@ -10,6 +10,14 @@ export const atBrowserStart = (tab: BrowserTab) => tab.home || tab.index < 0;
 
 export const frameLabel = (id: number) => `nura-browser-${id}`;
 
+const watchPrefix = 'nura-browser-watch-';
+
+/** A favourite kept loaded out of sight so its notifications arrive. Still a page to Rust, so it gets the one command pages get. */
+export const watchLabel = (id: string) => `${watchPrefix}${id.replaceAll(/[^\w-]/gu, '_')}`;
+
+/** A page nobody can see: it may notify and read, and is refused anything the user would have to answer. */
+export const isWatchLabel = (label: string) => label.startsWith(watchPrefix);
+
 /** Not a page, so outside `nura-browser-*`. */
 export const mouseLabel = 'nura-mouse';
 
@@ -98,7 +106,7 @@ export const getBrowserFavorites = async (): Promise<BrowserFavorite[]> => {
 
 export const setBrowserFavorites = async (list: BrowserFavorite[]) => setValue('Browser.Favorites', JSON.stringify(list));
 
-const originOf = (url: string) => {
+export const originOf = (url: string) => {
     try {
         return new URL(url).origin;
     } catch {

@@ -243,6 +243,43 @@ describe('connecting', () => {
     });
 });
 
+describe('a page kept loaded out of sight for its notifications', () => {
+    const watch = { label: 'nura-browser-watch-dapp' };
+
+    it('is still told what the wallet already knows, and may read the chain', async () => {
+        await grantConnection(origin);
+
+        await expect(answerDapp(call('eth_chainId', [], watch))).resolves.toEqual({ id: 'test-1', result: '0x3fc' });
+        await expect(answerDapp(call('eth_accounts', [], watch))).resolves.toEqual({ id: 'test-1', result: [wallet.address] });
+
+        const reply = await answerDapp(call('eth_blockNumber', [], watch));
+
+        expect(reply.error).toBeUndefined();
+    });
+
+    it('raises no prompt at all, connected or not', async () => {
+        const unasked = await answerDapp(call('eth_requestAccounts', [], watch));
+
+        await grantConnection(origin);
+
+        const replies = await Promise.all([
+            answerDapp(call('personal_sign', ['0x68690a', wallet.address], watch)),
+            answerDapp(call('eth_sendTransaction', [{ from: wallet.address, to: stranger, value: '0x1' }], watch)),
+            answerDapp(call('wallet_switchEthereumChain', [{ chainId: '0x1' }], watch)),
+            answerDapp(call('wallet_revokePermissions', [{ eth_accounts: {} }], watch))
+        ]);
+
+        for (const reply of [unasked, ...replies]) {
+            expect(reply.error?.code).toBe(4100);
+        }
+
+        expect(getDappPrompt()).toBeUndefined();
+
+        // The grant it could not revoke still stands for the page in view.
+        await expect(answerDapp(call('eth_accounts'))).resolves.toEqual({ id: 'test-1', result: [wallet.address] });
+    });
+});
+
 describe('signing', () => {
     it('will not sign for a site that never connected', async () => {
         const reply = await answerDapp(call('personal_sign', ['0x68690a', wallet.address]));

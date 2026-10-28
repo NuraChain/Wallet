@@ -2,6 +2,7 @@ import { platform } from '../platform';
 
 import { dappLog } from './dapp.log';
 
+import { isWatchLabel } from './browser';
 import { dappError, siteOrigin } from './dapp';
 import type { SiteDevice } from '../type/browser';
 import type { DappEnvelope, DappLinkHandler, DappPage, DappReply, SiteNotices } from '../type/dapp';
@@ -183,10 +184,13 @@ export const startDappBridge = (
             accept(envelope, call.respond);
         },
 
-        (url) => {
+        (url, label) => {
             dappLog('Bridge', 'link offered by a page', { scheme: linkScheme(url) });
 
-            onLink?.(url);
+            // A page kept out of sight may not open another app or the wallet's own screens.
+            if (!isWatchLabel(label)) {
+                onLink?.(url);
+            }
         },
 
         (ask) => {
@@ -196,8 +200,9 @@ export const startDappBridge = (
 
             dappLog('Bridge', 'devices asked for by a page', { origin, kinds: ask.kinds.join(',') });
 
-            // One answer covers every kind asked for, so an unknown device, a non-site origin or nobody to decide refuses the lot.
-            if (origin.length === 0 || wanted.length === 0 || wanted.length !== ask.kinds.length || onDevices === undefined) {
+            // One answer covers every kind asked for, so an unknown device, a non-site origin, a page out of sight or nobody to
+            // decide refuses the lot.
+            if (origin.length === 0 || isWatchLabel(ask.label) || wanted.length === 0 || wanted.length !== ask.kinds.length || onDevices === undefined) {
                 ask.respond(false);
 
                 return;

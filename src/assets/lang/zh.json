@@ -476,6 +476,7 @@
             "Microphone": "麦克风",
             "Camera": "摄像头",
             "Notifications": "通知",
+            "NotificationsNote": "钱包打开期间在后台保持此网站加载，以便收到它的通知。会消耗一些电量。",
             "Url": "网址"
         }
     }

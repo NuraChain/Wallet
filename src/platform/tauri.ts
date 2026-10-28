@@ -29,7 +29,7 @@ declare global {
     interface Window {
         __nuraExport?: AndroidBridge;
         __nuraDappRequest?: (payload: string) => void;
-        __nuraDappLink?: (url: string) => void;
+        __nuraDappLink?: (url: string, label?: unknown) => void;
 
         __nuraPermission?: (payload: string) => boolean;
     }
@@ -183,9 +183,9 @@ const nativeDapp: PlatformDapp = {
                 });
             };
 
-            window.__nuraDappLink = (incoming: string) => {
+            window.__nuraDappLink = (incoming: string, label?: unknown) => {
                 if (typeof incoming === 'string' && incoming.length > 0) {
-                    onLink?.(incoming);
+                    onLink?.(incoming, typeof label === 'string' ? label : '');
                 }
             };
 
@@ -218,7 +218,7 @@ const nativeDapp: PlatformDapp = {
 
         void listen<{ label: string; url: string }>('nura://dapp-link', (event) => {
             if (event.payload.url.length > 0) {
-                onLink?.(event.payload.url);
+                onLink?.(event.payload.url, event.payload.label);
             }
         }).then(hold, lost('nura://dapp-link'));
 

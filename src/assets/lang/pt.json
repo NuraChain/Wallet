@@ -476,6 +476,7 @@
             "Microphone": "Microfone",
             "Camera": "Câmera",
             "Notifications": "Notificações",
+            "NotificationsNote": "Mantém este site carregado em segundo plano enquanto a carteira está aberta, para que as notificações dele cheguem até você. Gasta um pouco de bateria.",
             "Url": "Endereço web"
         }
     }

@@ -476,6 +476,7 @@
             "Microphone": "Micrófono",
             "Camera": "Cámara",
             "Notifications": "Notificaciones",
+            "NotificationsNote": "Mantiene este sitio cargado en segundo plano mientras la billetera está abierta, para que te lleguen sus notificaciones. Consume algo de batería.",
             "Url": "Dirección web"
         }
     }

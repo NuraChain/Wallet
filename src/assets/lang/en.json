@@ -476,6 +476,7 @@
             "Microphone": "Microphone",
             "Camera": "Camera",
             "Notifications": "Notifications",
+            "NotificationsNote": "Keeps this site loaded in the background while the wallet is open, so its notifications reach you. Uses some battery.",
             "Url": "Web address"
         }
     }

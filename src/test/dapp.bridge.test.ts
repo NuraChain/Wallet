@@ -48,8 +48,8 @@ const settled = async () => {
     });
 };
 
-const wants = (kinds: unknown[], origin = 'https://voice.example', ticket = 'seven') =>
-    window.__nuraPermission?.(JSON.stringify({ ticket, label: 'nura-browser-1', origin, kinds }));
+const wants = (kinds: unknown[], origin = 'https://voice.example', ticket = 'seven', label = 'nura-browser-1') =>
+    window.__nuraPermission?.(JSON.stringify({ ticket, label, origin, kinds }));
 
 afterEach(() => {
     replies.length = 0;
@@ -189,6 +189,24 @@ describe('links a page cannot open itself', () => {
 
         expect(window.__nuraDappLink).toBeUndefined();
     });
+
+    it('drops one from a page kept loaded out of sight, which may not open another app', () => {
+        const links: string[] = [];
+
+        const stop = startDappBridge(
+            async (envelope) => ({ id: envelope.id, result: null }),
+            (url) => {
+                links.push(url);
+            }
+        );
+
+        window.__nuraDappLink?.('tg://resolve?domain=example', 'nura-browser-watch-chat');
+        window.__nuraDappLink?.('wc:pairing@2', 'nura-browser-1');
+
+        expect(links).toEqual(['wc:pairing@2']);
+
+        stop();
+    });
 });
 
 describe('a page asking for a device', () => {
@@ -229,6 +247,25 @@ describe('a page asking for a device', () => {
 
         expect(asked).toHaveLength(0);
         expect(verdicts).toEqual([{ ticket: 'seven', allowed: false }]);
+
+        stop();
+    });
+
+    it('is refused without a question when the page is kept loaded out of sight', async () => {
+        const asked: string[] = [];
+
+        const stop = startDappBridge(quiet, undefined, async (origin) => {
+            asked.push(origin);
+
+            return true;
+        });
+
+        wants(['camera'], 'https://voice.example', 'eight', 'nura-browser-watch-voice');
+
+        await settled();
+
+        expect(asked).toHaveLength(0);
+        expect(verdicts).toEqual([{ ticket: 'eight', allowed: false }]);
 
         stop();
     });

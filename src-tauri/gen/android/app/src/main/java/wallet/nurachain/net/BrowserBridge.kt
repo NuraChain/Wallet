@@ -358,9 +358,10 @@ class BrowserBridge(
 
                 // A non-web scheme (WalletConnect pairing, wallet deep link) is offered to the wallet.
                 val literal = JSONObject.quote(request.url.toString())
+                val tab = JSONObject.quote(id)
 
                 host.post {
-                    host.evaluateJavascript("window.__nuraDappLink && window.__nuraDappLink($literal)", null)
+                    host.evaluateJavascript("window.__nuraDappLink && window.__nuraDappLink($literal, $tab)", null)
                 }
 
                 return true

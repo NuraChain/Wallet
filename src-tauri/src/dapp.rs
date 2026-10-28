@@ -183,6 +183,7 @@ pub async fn browser_open<R: Runtime>(
     y: f64,
     width: f64,
     height: f64,
+    visible: bool,
 ) -> Result<(), String> {
     if webview.label() != WALLET_LABEL {
         return Err("only the wallet may open a browser page".into());
@@ -239,6 +240,13 @@ pub async fn browser_open<R: Runtime>(
     #[cfg(target_os = "linux")]
     if let Some(page) = app.get_webview(&label) {
         let _ = crate::stage::place(&page, false, x, y, width, height);
+    }
+
+    // Hidden in the same turn it is made, so a page opened out of sight never paints over the wallet.
+    if !visible {
+        if let Some(page) = app.get_webview(&label) {
+            let _ = page.hide();
+        }
     }
 
     // A later child draws over the mouse; re-parenting it puts it back on top. Its menu goes first, so the

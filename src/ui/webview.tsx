@@ -314,7 +314,8 @@ export default function WebFrame({
                     x: rect.x,
                     y: rect.y,
                     width: rect.width,
-                    height: rect.height
+                    height: rect.height,
+                    visible: enabledRef.current
                 });
             } catch (cause) {
                 failure = cause instanceof Error ? cause.message : String(cause);

@@ -476,6 +476,7 @@
             "Microphone": "Mikrofon",
             "Camera": "Kamera",
             "Notifications": "Bildirimler",
+            "NotificationsNote": "Cüzdan açıkken bu siteyi arka planda yüklü tutar, böylece bildirimleri size ulaşır. Biraz pil harcar.",
             "Url": "Web adresi"
         }
     }

@@ -28,11 +28,15 @@ import {
     getBrowserView,
     getNativeBrowser,
     getNativeTab,
+    nativeHoldsTabs,
     onNativeBrowserState,
+    originOf,
     setBrowserFavorites,
     setBrowserView,
-    showSiteTheme
+    showSiteTheme,
+    watchLabel
 } from '../../core/browser';
+import { getPlatform } from '../../utility/platform';
 import { useHasStatusBar } from '../../hook/platform';
 import { Vertical } from '../../ui/stack';
 import type { Network } from '../../type/network';
@@ -40,6 +44,9 @@ import type { BrowserFavorite, BrowserState, BrowserTab, BrowserView, BrowserVis
 import { Block } from '../../ui/wrap';
 import Text from '../../ui/text';
 import { LoadStrip } from '../../ui/progress';
+
+// Only where a page stays loaded while hidden: desktop's child webviews and Android's bridge that holds several tabs.
+const keepsPages = () => nativeHoldsTabs() || (getNativeBrowser() === undefined && ['windows', 'macos', 'linux'].includes(getPlatform()));
 
 const toUrl = (value: string) => {
     const trimmed = value.trim();
@@ -364,6 +371,12 @@ export default function DashboardBrowser({
         onFavorites(favorites.filter((item) => item.id !== id));
     };
 
+    // A favourite allowed to notify stays loaded out of sight, so its notifications arrive without opening it. Not while the
+    // tab in front shows it: two copies of one site would share its session, and the gap between notifications drops one.
+    const frontOrigin = start ? '' : originOf(current);
+
+    const watched = keepsPages() ? favorites.filter((item) => item.notifications === true && originOf(item.url) !== frontOrigin) : [];
+
     return (
         <Vertical relative squeeze='y' grow>
             {!full && (
@@ -475,6 +488,18 @@ export default function DashboardBrowser({
                         </WebFrame>
                     );
                 })}
+
+                {watched.map((item) => (
+                    <WebFrame
+                        key={item.id}
+                        url={item.url}
+                        label={watchLabel(item.id)}
+                        enabled={false}
+                        desktop={view === 'desktop'}
+                        script={script}
+                        front={false}
+                    />
+                ))}
             </Block>
 
             <AnimatePresence>

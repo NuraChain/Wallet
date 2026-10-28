@@ -6,6 +6,7 @@ import { dappLog } from './dapp.log';
 import { vaultManager } from './vault';
 import { httpRequest } from './request';
 import { getProvider } from './network.provider';
+import { isWatchLabel } from './browser';
 import { emitDappEvent, getDappPages } from './dapp.bridge';
 import { addNetwork, getNetwork, getNetworks, setNetwork } from './network';
 import { DappError, clearConnections, dappError, failure, getConnections, grantConnection, isConnected, revokeConnection } from './dapp';
@@ -46,6 +47,9 @@ const readMethods = new Set([
     'net_peerCount',
     'web3_sha3'
 ]);
+
+// Answered from what the wallet already knows, never by asking: all a page kept loaded out of sight may call beside the reads.
+const quietMethods = new Set(['eth_chainId', 'net_version', 'eth_accounts', 'eth_coinbase', 'wallet_getPermissions', 'web3_clientVersion']);
 
 let activeAddress = '';
 let activeAccount = 0;
@@ -586,6 +590,11 @@ const route = async (envelope: DappEnvelope): Promise<unknown> => {
 
     if (origin.length === 0) {
         throw failure(dappError.unauthorized, 'Nura Wallet does not serve this page');
+    }
+
+    // By method, not by connection: a connected site could otherwise raise a signing prompt from a page nobody is looking at.
+    if (isWatchLabel(envelope.label) && !quietMethods.has(method) && !readMethods.has(method)) {
+        throw failure(dappError.unauthorized, 'A page kept in the background cannot ask the wallet for this');
     }
 
     switch (method) {

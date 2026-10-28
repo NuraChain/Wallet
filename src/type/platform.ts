@@ -42,7 +42,7 @@ export interface PlatformSiteAsk {
 }
 
 export interface PlatformDapp {
-    serve: (accept: (call: PlatformDappCall) => void, onLink?: (url: string) => void, onAsk?: (ask: PlatformSiteAsk) => void) => () => void;
+    serve: (accept: (call: PlatformDappCall) => void, onLink?: (url: string, label: string) => void, onAsk?: (ask: PlatformSiteAsk) => void) => () => void;
     emit: (label: string, body: string) => void;
 }
 

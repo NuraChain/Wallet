@@ -130,6 +130,8 @@ export default function SiteForm({
                         setNotifications(!notifications);
                     }}
                 />
+
+                {notifications && <Text leading='snug' text={T('Dashboard.Site.NotificationsNote')} />}
             </Vertical>
 
             <ModalActions>

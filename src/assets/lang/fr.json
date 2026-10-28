@@ -476,6 +476,7 @@
             "Microphone": "Microphone",
             "Camera": "Caméra",
             "Notifications": "Notifications",
+            "NotificationsNote": "Garde ce site chargé en arrière-plan tant que le portefeuille est ouvert, pour que ses notifications vous parviennent. Consomme un peu de batterie.",
             "Url": "Adresse web"
         }
     }
