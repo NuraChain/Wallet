@@ -701,11 +701,6 @@ static CGAffineTransform NuraTucked(CGPoint spoke) {
         [view setImage:[symbol imageWithTintColor:muted renderingMode:UIImageRenderingModeAlwaysOriginal]
               forState:UIControlStateDisabled];
 
-        view.layer.shadowColor = UIColor.blackColor.CGColor;
-        view.layer.shadowOpacity = 0.18;
-        view.layer.shadowRadius = 6;
-        view.layer.shadowOffset = CGSizeMake(0, 2);
-        view.layer.shadowPath = [UIBezierPath bezierPathWithOvalInRect:view.bounds].CGPath;
         [view.layer setValue:[NSValue valueWithCGPoint:spoke] forKey:@"nuraSpoke"];
 
         view.accessibilityLabel = label;

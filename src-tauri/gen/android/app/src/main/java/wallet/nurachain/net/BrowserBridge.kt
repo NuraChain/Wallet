@@ -535,7 +535,6 @@ class BrowserBridge(
                 arrayOf(intArrayOf(-android.R.attr.state_enabled), intArrayOf(android.R.attr.state_pressed), intArrayOf()),
                 intArrayOf(Color.argb(153, Color.red(muted), Color.green(muted), Color.blue(muted)), onAccent, ink)
             )
-            view.elevation = px(6.0).toFloat()
             view.contentDescription = label
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
