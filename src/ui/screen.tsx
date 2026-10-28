@@ -38,10 +38,10 @@ export function EntryCard({ children }: { children: ReactNode }) {
     );
 }
 
-export function Track({ index, children }: { index: number; children: ReactNode }) {
+export function Track({ index, instant = false, children }: { index: number; instant?: boolean; children: ReactNode }) {
     return (
         <div
-            className='flex size-full transition-transform duration-(--duration-slide) ease-(--ease-slide)'
+            className={cn('flex size-full', !instant && 'transition-transform duration-(--duration-slide) ease-(--ease-slide)')}
             style={{ transform: `translateX(${getDirection() === 'rtl' ? index * 100 : index * -100}%)` }}
         >
             {children}

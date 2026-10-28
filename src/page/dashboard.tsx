@@ -126,15 +126,23 @@ function DashboardView({ vault }: { vault: Vault }) {
     // No in-app browser on iOS or in the extension popup; index into this, not navMap.
     const tabMap = useMemo(() => (hasBrowser ? navMap : navMap.filter((item) => item.key !== 'Browser')), [hasBrowser]);
 
+    const [instant, setInstant] = useState(false);
+
     const goKey = useCallback(
         (key: string) => {
             const index = tabMap.findIndex((item) => item.key === key);
 
-            if (index !== -1) {
-                setActive(index);
+            if (index === -1) {
+                return;
             }
+
+            const browser = tabMap.findIndex((item) => item.key === 'Browser');
+
+            // An open page is a native view that can only trail the slide a step behind, so switching to or from it is instant.
+            setInstant(browserFull !== undefined && (index === browser || active === browser));
+            setActive(index);
         },
-        [tabMap]
+        [tabMap, browserFull, active]
     );
 
     const closeModal = useCallback(() => {
@@ -681,7 +689,7 @@ function DashboardView({ vault }: { vault: Vault }) {
             <Vertical fill='both'>
                 <Horizontal dir={getDirection()} squeeze='y' grow clip>
                     <Block squeeze='x' grow clip>
-                        <Track index={active}>
+                        <Track index={active} instant={instant}>
                             {tabMap.map((item, index) => (
                                 <Block key={item.key} fill shrink={false}>
                                     {item.key === 'Browser' ? (

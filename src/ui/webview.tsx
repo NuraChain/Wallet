@@ -380,15 +380,29 @@ export default function WebFrame({
                     return;
                 }
 
-                await (enabled ? view.show() : view.hide());
+                if (!enabled) {
+                    await view.hide();
+
+                    return;
+                }
+
+                // Placed before it shows, so it never appears for a frame where it last stood.
+                const rect = frameRef.current?.getBoundingClientRect();
+
+                if (rect !== undefined && rect.width >= 1 && rect.height >= 1) {
+                    await applyBounds(view, rect);
+                }
+
+                await view.show();
             } catch {}
         });
 
         return undefined;
     }, [isLive, enabled, label, url, reload, queue]);
 
+    // A hidden page is left where it is; it is placed again on its way back.
     useEffect(() => {
-        if (!isLive || getNativeBrowser() !== undefined) {
+        if (!isLive || !enabled || getNativeBrowser() !== undefined) {
             return undefined;
         }
 
