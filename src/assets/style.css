@@ -92,9 +92,13 @@
     --font-sans: 'Inter', 'Vazirmatn', ui-sans-serif, system-ui, sans-serif;
 
     --text-tiny: 12px;
-    --text-small: 14px;
-    --text-medium: 16px;
-    --text-large: 18px;
+    --text-tiny--line-height: 16px;
+    --text-small: 15px;
+    --text-small--line-height: 20px;
+    --text-medium: 17px;
+    --text-medium--line-height: 22px;
+    --text-large: 20px;
+    --text-large--line-height: 25px;
 
     --text-display: 32px;
     --text-display--line-height: 40px;
