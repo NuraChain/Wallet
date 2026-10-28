@@ -110,7 +110,7 @@ export function SpeedDial({
                                 onClick={action.onPick}
                                 className={cn(
                                     focusRing,
-                                    'flex size-12 cursor-pointer items-center justify-center rounded-full border border-line bg-base-2 text-txt-normal shadow-float transition-colors duration-(--duration-fast) outline-none enabled:hover:bg-btn-primary enabled:hover:text-txt-on-primary enabled:focus-visible:bg-btn-primary enabled:focus-visible:text-txt-on-primary disabled:cursor-default disabled:text-txt-muted/60'
+                                    'flex size-12 press cursor-pointer items-center justify-center rounded-full border border-line bg-base-2 text-txt-normal shadow-float outline-none enabled:hover:bg-btn-primary enabled:hover:text-txt-on-primary enabled:focus-visible:bg-btn-primary enabled:focus-visible:text-txt-on-primary disabled:cursor-default disabled:text-txt-muted/60'
                                 )}
                             >
                                 <Glyph size={22} />

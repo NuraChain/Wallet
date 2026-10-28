@@ -20,7 +20,7 @@ const fillChip = `cursor-pointer ${focusRing} border border-line bg-base-2 text-
 
 const fillTint = `cursor-pointer ${focusRing} bg-current/10 press [--press-tint:var(--duration-base)] hover:bg-current/15 active:bg-current/20`;
 
-const tabBase = `relative h-10 cursor-pointer px-3 text-small font-medium transition-colors duration-(--duration-fast)`;
+const tabBase = `relative h-10 cursor-pointer px-3 text-small font-medium press`;
 
 const optionBase = 'flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2';
 
@@ -40,19 +40,19 @@ const fillMap = {
 
 const bareMap = {
     bare: focusRing,
-    plain: `${focusRing} cursor-pointer`,
-    logo: `${focusRing} cursor-pointer rounded-surface`,
-    row: `${focusRing} flex cursor-pointer items-center gap-3 text-start`,
-    rowTight: `${focusRing} flex cursor-pointer items-center gap-1.5`,
+    plain: `${focusRing} cursor-pointer press`,
+    logo: `${focusRing} cursor-pointer rounded-surface press`,
+    row: `${focusRing} press press-row flex cursor-pointer items-center gap-3 text-start`,
+    rowTight: `${focusRing} press flex cursor-pointer items-center gap-1.5`,
     listRow: `${focusRing} press press-row flex items-center gap-3 p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-muted-hover`,
-    inlineRow: `${focusRing} flex cursor-pointer items-center gap-2`,
-    inlineSubtle: `${focusRing} flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal`,
+    inlineRow: `${focusRing} press flex cursor-pointer items-center gap-2`,
+    inlineSubtle: `${focusRing} press flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal`,
     /** A link inside running text: it flows with the sentence instead of starting a row. */
     link: `${focusRing} inline cursor-pointer rounded-control font-medium text-txt-accent underline underline-offset-2 hover:text-txt-normal`,
     tab: `${focusRing} ${tabBase} text-txt-muted hover:text-txt-normal`,
     tabOn: `${focusRing} ${tabBase} text-txt-accent`,
     /** A tab of the dashboard's bottom bar; the pill under the one in view belongs to the bar, so it can slide between them. */
-    nav: `${focusRing} relative flex cursor-pointer items-center justify-center text-txt-muted transition-colors duration-(--duration-fast) hover:text-txt-normal`,
+    nav: `${focusRing} press relative flex cursor-pointer items-center justify-center text-txt-muted hover:text-txt-normal`,
     navOn: `${focusRing} relative flex cursor-default items-center justify-center text-txt-normal transition-colors duration-(--duration-fast)`,
     option: `${focusRing} ${optionBase} press press-row hover:bg-btn-muted-hover`,
     optionOn: `${focusRing} ${optionBase} transition-colors duration-(--duration-fast) ${selectedTint}`,
