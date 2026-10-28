@@ -1,8 +1,10 @@
 .kilo/
 
-.claude/settings.local.json
+.claude/
 
 .playwright-mcp
+
+graphify-out/
 
 node_modules/
 target/
