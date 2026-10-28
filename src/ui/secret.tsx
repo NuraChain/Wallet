@@ -9,7 +9,7 @@ const veiled = 'pointer-events-none blur-sm select-none';
 
 export function SecretKey({ revealed, children }: { revealed: boolean; children: ReactNode }) {
     return (
-        <div dir='ltr' className={cn('rounded-control bg-base-1 px-3 py-2.5 transition-[filter] duration-(--duration-fast)', !revealed && veiled)}>
+        <div dir='ltr' className={cn('rounded-control bg-base-1 px-3 py-3 transition-[filter] duration-(--duration-fast)', !revealed && veiled)}>
             {children}
         </div>
     );
@@ -18,7 +18,7 @@ export function SecretKey({ revealed, children }: { revealed: boolean; children:
 /** Two columns before `sm` and no `truncate`: a clipped word is written down clipped and the wallet is lost. */
 export function SecretWords({ revealed, children }: { revealed: boolean; children: ReactNode }) {
     return (
-        <div dir='ltr' className={cn('grid grid-cols-2 gap-1.5 transition-[filter] duration-(--duration-fast) sm:grid-cols-3', !revealed && veiled)}>
+        <div dir='ltr' className={cn('grid grid-cols-2 gap-2 transition-[filter] duration-(--duration-fast) sm:grid-cols-3', !revealed && veiled)}>
             {children}
         </div>
     );
@@ -36,7 +36,7 @@ export function PhraseInput({ words, onEnter }: { words: string[]; onEnter: (ind
     };
 
     return (
-        <div dir='ltr' className='grid grid-cols-2 gap-1.5 sm:grid-cols-3'>
+        <div dir='ltr' className='grid grid-cols-2 gap-2 sm:grid-cols-3'>
             {words.map((word, index) => (
                 // Keyed by word, the box would remount on every keystroke and lose the caret.
                 // oxlint-disable-next-line react/no-array-index-key
@@ -86,7 +86,7 @@ export function PhraseInput({ words, onEnter }: { words: string[]; onEnter: (ind
                                 onEnter(index, text);
                             }
                         }}
-                        className={cn(fieldSurface, 'h-9 w-full min-w-0 rounded-control ps-8 pe-2 font-mono text-small')}
+                        className={cn(fieldSurface, 'h-8 w-full min-w-0 rounded-control ps-8 pe-2 font-mono text-small')}
                     />
                 </label>
             ))}
@@ -96,7 +96,7 @@ export function PhraseInput({ words, onEnter }: { words: string[]; onEnter: (ind
 
 export function SecretWord({ index, word }: { index: number; word: string }) {
     return (
-        <div className='flex items-baseline gap-1.5 rounded-control bg-base-1 px-2 py-1.5'>
+        <div className='flex items-baseline gap-2 rounded-control bg-base-1 px-2 py-2'>
             <Text shrink={false} tabular text={String(index + 1)} />
 
             <Text variant='captionStrong' mono text={word} />

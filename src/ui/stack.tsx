@@ -3,7 +3,7 @@ import type { ComponentPropsWithRef, ReactNode } from 'react';
 import { cn } from '../utility/cn';
 import { placement, splitPlacement, type Placement } from './place';
 
-const gapMap = { 0.5: 'gap-0.5', 1: 'gap-1', 1.5: 'gap-1.5', 2: 'gap-2', 3: 'gap-3', 4: 'gap-4' } as const;
+const gapMap = { 0.5: 'gap-0.5', 1: 'gap-1', 2: 'gap-2', 3: 'gap-3', 4: 'gap-4' } as const;
 
 const alignMap = { center: 'items-center', end: 'items-end', baseline: 'items-baseline' } as const;
 

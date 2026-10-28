@@ -87,7 +87,7 @@ export function TextField({
                     className={cn(
                         fieldSurface,
                         'w-full rounded-surface px-3 text-small',
-                        size === 'regular' ? 'h-11' : 'h-9',
+                        size === 'regular' ? 'h-11' : 'h-8',
                         invalid && fieldInvalid,
                         truncate && 'truncate',
                         room !== undefined && roomMap[room],

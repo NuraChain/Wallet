@@ -22,7 +22,7 @@ export default function Toolbar({ children }: { children: ReactNode }) {
         <div
             style={tinted ? { backgroundColor: tint } : undefined}
             className={cn(
-                'flex shrink-0 items-center gap-1.5 border-b border-line bg-base-1 p-2 transition-[background-color,border-color] duration-(--duration-base)',
+                'flex shrink-0 items-center gap-2 border-b border-line bg-base-1 p-2 transition-[background-color,border-color] duration-(--duration-base)',
                 tinted && 'border-transparent',
                 tinted && ringMap[inkOn(tint)]
             )}

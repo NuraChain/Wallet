@@ -9,7 +9,7 @@ import { fieldSurface } from './token';
 
 export default function Checkbox({ checked, text, onToggle, children }: { checked: boolean; text?: string; onToggle: () => void; children?: ReactNode }) {
     return (
-        <label className='flex min-h-10 cursor-pointer items-center gap-2 py-1'>
+        <label className='flex min-h-11 cursor-pointer items-center gap-2 py-1'>
             <button
                 type='button'
                 role='checkbox'

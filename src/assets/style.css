@@ -440,7 +440,7 @@ input[type='password']::-webkit-strong-password-auto-fill-button {
 .swiper-pagination-bullet {
     width: 10px;
     height: 10px;
-    border-radius: var(--radius-xs);
+    border-radius: 9999px;
     transition: transform var(--duration-surface);
     background: var(--color-btn-primary);
 }

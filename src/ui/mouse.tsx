@@ -91,7 +91,7 @@ const usePress = ({
 function MouseFace({ icon }: { icon: MouseIcon }) {
     if (icon === 'browser') {
         return (
-            <span className='pointer-events-none flex size-full items-center justify-center rounded-lg bg-logo-tile text-logo-ink'>
+            <span className='pointer-events-none flex size-full items-center justify-center rounded-control bg-logo-tile text-logo-ink'>
                 <Globe size={24} />
             </span>
         );

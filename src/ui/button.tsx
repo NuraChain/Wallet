@@ -20,7 +20,7 @@ const fillChip = `cursor-pointer ${focusRing} border border-line bg-base-2 text-
 
 const fillTint = `cursor-pointer ${focusRing} bg-current/10 press [--press-tint:var(--duration-base)] hover:bg-current/15 active:bg-current/20`;
 
-const tabBase = `relative h-10 cursor-pointer px-3 text-small font-medium press`;
+const tabBase = `relative h-11 cursor-pointer px-3 text-small font-medium press`;
 
 const optionBase = 'flex w-full cursor-pointer items-center gap-3 rounded-control border border-transparent p-2';
 
@@ -43,7 +43,7 @@ const bareMap = {
     plain: `${focusRing} cursor-pointer press`,
     logo: `${focusRing} cursor-pointer rounded-surface press`,
     row: `${focusRing} press press-row flex cursor-pointer items-center gap-3 text-start`,
-    rowTight: `${focusRing} press flex cursor-pointer items-center gap-1.5`,
+    rowTight: `${focusRing} press flex cursor-pointer items-center gap-1`,
     listRow: `${focusRing} press press-row flex items-center gap-3 p-3 text-start not-disabled:cursor-pointer not-disabled:hover:bg-btn-muted-hover`,
     inlineRow: `${focusRing} press flex cursor-pointer items-center gap-2`,
     inlineSubtle: `${focusRing} press flex cursor-pointer items-center gap-1 text-tiny text-txt-muted hover:text-txt-normal`,
@@ -71,20 +71,19 @@ const sizeMap = {
     cta: 'mx-auto h-11 w-full rounded-surface text-small sm:w-fit sm:px-8',
     ctaWide: 'mx-auto h-11 w-full rounded-surface text-small sm:w-fit sm:min-w-40 sm:px-8',
     icon: `relative ${tapArea} size-8 rounded-control`,
-    iconChip: `relative ${tapArea} size-9 rounded-surface`,
-    iconChipSmall: `relative ${tapArea} size-8 rounded-surface`,
-    iconLarge: `relative ${tapArea} size-10 rounded-control`,
+    iconChip: `relative ${tapArea} size-8 rounded-surface`,
+    iconLarge: `relative ${tapArea} size-11 rounded-control`,
     nav: 'h-full min-w-0 flex-1 rounded-full',
     navAction: 'size-14 shrink-0 rounded-full',
-    selector: 'h-9 gap-1.5 rounded-surface ps-1 pe-2.5 text-tiny',
+    selector: 'h-8 gap-1 rounded-surface ps-1 pe-2 text-tiny',
     tile: 'h-16 w-20 flex-col gap-1 rounded-surface',
     segment: 'h-8 rounded-control text-tiny',
     menu: 'h-12 gap-3 rounded-surface px-3',
-    emoji: 'h-10 w-full rounded-control text-medium',
+    emoji: 'h-11 w-full rounded-control text-medium',
     entry: 'h-12 rounded-control p-2',
-    picker: 'h-10 w-fit justify-start rounded-control p-2',
-    siteRow: 'h-12 gap-2.5 rounded-surface px-2.5 text-start',
-    siteCard: 'h-16 justify-start gap-2.5 rounded-surface px-3 text-start',
+    picker: 'h-11 w-fit justify-start rounded-control p-2',
+    siteRow: 'h-12 gap-3 rounded-surface px-3 text-start',
+    siteCard: 'h-16 justify-start gap-3 rounded-surface px-3 text-start',
     siteAdd: 'h-16 items-center justify-center gap-2 rounded-surface border-dashed px-3 text-txt-muted hover:text-txt-normal'
 } as const;
 

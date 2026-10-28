@@ -169,7 +169,7 @@ export default function DashboardWallet({
 
             <DashboardBackup kind={kind} onOpen={onBackup} />
 
-            <Vertical align='center' gap={1.5} py={2}>
+            <Vertical align='center' gap={2} py={2}>
                 <Text dir='ltr' variant='display' align='center' breaks='all' text={headline()} />
 
                 <CopyButton trailing value={address} subtle>
