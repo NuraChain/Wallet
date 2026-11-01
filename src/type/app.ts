@@ -28,3 +28,26 @@ export interface Point {
 }
 
 export type LanguageType = 'en' | 'fa' | 'ar' | 'es' | 'pt' | 'hi' | 'zh' | 'ru' | 'fr' | 'tr';
+
+/** The dialog the dashboard has open over its tab. */
+export type DashboardModal =
+    | 'none'
+    | 'send'
+    | 'receive'
+    | 'network'
+    | 'language'
+    | 'delete'
+    | 'accounts'
+    | 'tokens'
+    | 'history'
+    | 'phrase'
+    | 'redeem'
+    | 'mouse'
+    | 'speed'
+    | 'biometric';
+
+/** Where the dashboard stands, which is all of it Discord is told, and only as one of a few fixed descriptions. */
+export interface PresenceScreen {
+    tab: string;
+    modal: DashboardModal;
+}

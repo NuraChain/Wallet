@@ -18,6 +18,7 @@ import { clearSiteIcons } from '../../core/site.icon';
 import { getConnections } from '../../core/dapp';
 import { disconnectAllDapps } from '../../core/dapp.rpc';
 import { dappIdentity, dappScript } from '../../core/dapp.script';
+import { setPresenceSite } from '../../core/presence';
 import {
     addBrowserVisit,
     atBrowserStart,
@@ -153,6 +154,17 @@ export default function DashboardBrowser({
     useEffect(() => {
         onFull(start ? undefined : full);
     }, [onFull, start, full]);
+
+    // A link followed inside the page is reported by the native view, not entered here.
+    const page = start ? '' : (state?.url ?? '') || current;
+
+    useEffect(() => {
+        setPresenceSite(page);
+
+        return () => {
+            setPresenceSite('');
+        };
+    }, [page]);
 
     // Phones only: the header and status bar wear the site's colour while this tab shows it.
     useEffect(() => {

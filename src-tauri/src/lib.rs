@@ -1,6 +1,9 @@
 #[cfg(desktop)]
 mod dapp;
 
+#[cfg(desktop)]
+mod presence;
+
 #[cfg(target_os = "linux")]
 mod camera;
 
@@ -43,6 +46,7 @@ pub fn run() {
 
         builder = builder
             .manage(dapp::DappState::default())
+            .manage(presence::PresenceState::default())
             .invoke_handler(tauri::generate_handler![
                 dapp::browser_open,
                 dapp::browser_clear,
@@ -52,6 +56,7 @@ pub fn run() {
                 dapp::dapp_request,
                 dapp::dapp_respond,
                 dapp::dapp_emit,
+                presence::presence_set,
                 #[cfg(target_os = "macos")]
                 keychain::biometric_seal,
                 #[cfg(target_os = "macos")]
@@ -101,7 +106,14 @@ pub fn run() {
 
     builder = builder.plugin(tauri_plugin_notification::init());
 
-    builder
-        .run(tauri::generate_context!())
+    let app = builder
+        .build(tauri::generate_context!())
         .expect("Application Failed");
+
+    app.run(|_handle, _event| {
+        #[cfg(desktop)]
+        if let tauri::RunEvent::Exit = _event {
+            presence::close(_handle);
+        }
+    });
 }
