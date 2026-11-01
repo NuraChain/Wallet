@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet } from 'react-router';
+import { Outlet, useLocation } from 'react-router';
 import { TrayIcon } from '@tauri-apps/api/tray';
 import { defaultWindowIcon } from '@tauri-apps/api/app';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -8,6 +8,7 @@ import { Menu, type MenuOptions } from '@tauri-apps/api/menu';
 import TitleBar from '../ui/titlebar';
 
 import { T } from '../utility/language';
+import { setPresencePath } from '../core/presence';
 import { useIsWindows } from '../hook/platform';
 import { useLanguage } from '../hook/language';
 import { Horizontal } from '../ui/stack';
@@ -21,6 +22,12 @@ export default function RootLayout() {
     const isWindows = useIsWindows();
 
     const language = useLanguage();
+
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+        setPresencePath(pathname);
+    }, [pathname]);
 
     useEffect(() => {
         if (!isWindows) {

@@ -52,6 +52,7 @@ import { useHasBrowser } from '../hook/platform';
 import { useBack } from '../hook/back';
 import { forgetSiteThemes, getSiteDevices, setSiteTheme } from '../core/browser';
 import { closeMouseMenu, openMouseMenu, showMouse } from '../core/mouse';
+import { setPresenceScreen } from '../core/presence';
 import { siteNotices } from '../core/notice';
 import Mouse from '../ui/mouse';
 
@@ -59,7 +60,7 @@ import { getDirection, T } from '../utility/language';
 import { discoverTokens, hideToken, loadHiddenTokens, loadTokens, readToken, saveHiddenTokens, saveTokens, unhideToken } from '../core/token';
 import { discoveryDue, discoveryKey, markDiscovered } from '../core/token.cache';
 import { accountFirst, defaultAccountName, loadAccounts, saveAccounts, saveActiveAccount } from '../utility/account';
-import type { Point } from '../type/app';
+import type { DashboardModal, Point } from '../type/app';
 import type { Account, Vault } from '../type/wallet';
 import type { BiometricKind } from '../type/platform';
 import type { HiddenMap, TokenMap } from '../type/token';
@@ -67,22 +68,6 @@ import { Screen, Track } from '../ui/screen';
 import { NavAction, NavBar, NavTab } from '../ui/navbar';
 import { Horizontal, Vertical } from '../ui/stack';
 import { Block } from '../ui/wrap';
-
-type Modal =
-    | 'none'
-    | 'send'
-    | 'receive'
-    | 'network'
-    | 'language'
-    | 'delete'
-    | 'accounts'
-    | 'tokens'
-    | 'history'
-    | 'phrase'
-    | 'redeem'
-    | 'mouse'
-    | 'speed'
-    | 'biometric';
 
 const navMap: { key: string }[] = [{ key: 'Wallet' }, { key: 'Browser' }, { key: 'Swap' }, { key: 'Settings' }];
 
@@ -96,7 +81,7 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const [active, setActive] = useState(0);
     const [account, setAccount] = useState(0);
-    const [modal, setModal] = useState<Modal>('none');
+    const [modal, setModal] = useState<DashboardModal>('none');
     const [fullToggle, setFullToggle] = useState(0);
     const [browserFull, setBrowserFull] = useState<boolean | undefined>(undefined);
     const [speedAt, setSpeedAt] = useState<Point | undefined>(undefined);
@@ -273,6 +258,16 @@ function DashboardView({ vault }: { vault: Vault }) {
 
         return true;
     });
+
+    const tab = tabMap[active].key;
+
+    useEffect(() => {
+        setPresenceScreen({ tab, modal });
+
+        return () => {
+            setPresenceScreen(undefined);
+        };
+    }, [tab, modal]);
 
     const barTabs = tabMap.flatMap((item) => {
         const icon = navIcons[item.key];

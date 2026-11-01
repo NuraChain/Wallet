@@ -9,6 +9,7 @@ fn main() {
                 "dapp_request",
                 "dapp_respond",
                 "dapp_emit",
+                "presence_set",
                 "biometric_seal",
                 "biometric_open",
                 "biometric_forget",
