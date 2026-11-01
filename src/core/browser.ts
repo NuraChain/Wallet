@@ -139,7 +139,7 @@ export const getSiteDevices = async (origin: string): Promise<SiteDevice[]> => {
 export const getSiteNotices = async (origin: string): Promise<boolean> =>
     origin.length > 0 && (await getBrowserFavorites().catch(() => [])).some((item) => originOf(item.url) === origin && item.notifications === true);
 
-/** Only Android's bridge brings a page's device requests to the wallet. */
+/** Android's and iOS's bridges bring a page's device requests to the wallet; the desktop's does not. */
 export const managesSiteDevices = () => window.__nuraBrowser?.permissionReply !== undefined;
 
 interface BrowserBridge {

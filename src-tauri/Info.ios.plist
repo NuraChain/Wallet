@@ -3,7 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>NSCameraUsageDescription</key>
-    <string>Nura Wallet uses the camera to scan a recipient's QR code.</string>
+    <string>Nura Wallet uses the camera to scan a recipient's QR code. Sites opened in its browser can use it too.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Sites opened in Nura Wallet's browser can use the microphone once you allow it, for example to record a voice message.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Nura Wallet uses Face ID to unlock your wallet.</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>

@@ -42,6 +42,11 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 @property (nonatomic, strong) NSString *dappScript;
 @property (nonatomic, assign) BOOL desktop;
 
+/// A page's request for the camera or the microphone while the wallet decides, by ticket: the tab
+/// it came from and WebKit's decision handler, which has to be called exactly once whatever happens.
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSDictionary *> *asks;
+@property (nonatomic, assign) NSInteger askCount;
+
 /// The floating mouse, once something has asked for it, and what it wears. The two are kept apart
 /// because the wallet says what it wears before it asks for it to be shown.
 @property (nonatomic, strong) UIImageView *mouse;
@@ -69,6 +74,7 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
     self = [super init];
     if (self) {
         _pages = [NSMutableDictionary dictionary];
+        _asks = [NSMutableDictionary dictionary];
         _dappScript = @"";
         _desktop = NO;
         _mouseIcon = @"logo";
@@ -327,6 +333,12 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
         [view removeFromSuperview];
 
         [self.pages removeObjectForKey:identifier];
+
+        for (NSString *ticket in self.asks.allKeys) {
+            if ([self.asks[ticket][@"tab"] isEqualToString:identifier]) {
+                [self answer:ticket allowed:NO];
+            }
+        }
     });
 }
 
@@ -393,6 +405,23 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
         NSString *script = [NSString stringWithFormat:
             @"window.__nuraWalletReply && window.__nuraWalletReply(%@)", [self quote:payload]];
         [view evaluateJavaScript:script completionHandler:nil];
+    });
+}
+
+/// Main thread only. A ticket already answered, or never asked, is ignored.
+- (void)answer:(NSString *)ticket allowed:(BOOL)allowed {
+    void (^handler)(WKPermissionDecision) = (void (^)(WKPermissionDecision))self.asks[ticket][@"handler"];
+
+    [self.asks removeObjectForKey:ticket];
+
+    if (handler != nil) {
+        handler(allowed ? WKPermissionDecisionGrant : WKPermissionDecisionDeny);
+    }
+}
+
+- (void)permissionReply:(NSString *)ticket allowed:(BOOL)allowed {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self answer:ticket allowed:allowed];
     });
 }
 
@@ -955,6 +984,8 @@ static CGAffineTransform NuraTucked(CGPoint spoke) {
         [self setDappScript:str(0)];
     } else if ([method isEqualToString:@"dappReply"]) {
         [self dappReply:str(0) payload:str(1)];
+    } else if ([method isEqualToString:@"permissionReply"]) {
+        [self permissionReply:str(0) allowed:flag(1)];
     } else if ([method isEqualToString:@"dappEmit"]) {
         [self dappEmit:str(0) payload:str(1)];
     } else if ([method isEqualToString:@"showMouse"]) {
@@ -1035,16 +1066,57 @@ static CGAffineTransform NuraTucked(CGPoint spoke) {
     return nil;
 }
 
-/// A page asking for the camera or the microphone is refused, here and without a question. The
-/// bundle names a use for the camera because the wallet's own scanner needs one, and with that in
-/// place WebKit would put a question of its own to the user for any site that asked. Android lets a
-/// site through only where a favourite was switched on for it; there is no such switch here yet.
+/// A page asking for the camera or the microphone is put to the wallet, as BrowserBridge.kt does: a
+/// favourite switched on for it is let through, the microphone may be asked for, and the rest is
+/// refused. The origin is WebKit's, never the page's word. No listener (a locked wallet) is a no now
+/// rather than a page left waiting. iOS's own question about the device comes after a yes here.
 - (void)webView:(WKWebView *)view
     requestMediaCapturePermissionForOrigin:(WKSecurityOrigin *)origin
                           initiatedByFrame:(WKFrameInfo *)frame
                                       type:(WKMediaCaptureType)type
                            decisionHandler:(void (^)(WKPermissionDecision))decisionHandler {
-    decisionHandler(WKPermissionDecisionDeny);
+    NSURLComponents *parts = [[NSURLComponents alloc] init];
+    parts.scheme = origin.protocol;
+    parts.host = origin.host;
+    if (origin.port != 0) {
+        parts.port = @(origin.port);
+    }
+
+    NSString *source = [self originOf:parts.URL];
+    NSString *tab = [self identifierOf:view];
+    WKWebView *host = self.host;
+
+    NSArray<NSString *> *kinds = @[];
+    if (type == WKMediaCaptureTypeCamera) {
+        kinds = @[@"camera"];
+    } else if (type == WKMediaCaptureTypeMicrophone) {
+        kinds = @[@"microphone"];
+    } else if (type == WKMediaCaptureTypeCameraAndMicrophone) {
+        kinds = @[@"camera", @"microphone"];
+    }
+
+    if (host == nil || source.length == 0 || tab.length == 0 || kinds.count == 0) {
+        decisionHandler(WKPermissionDecisionDeny);
+        return;
+    }
+
+    self.askCount += 1;
+
+    NSString *ticket = [NSString stringWithFormat:@"%ld", (long)self.askCount];
+
+    self.asks[ticket] = @{ @"tab": tab, @"handler": [decisionHandler copy] };
+
+    NSDictionary *message = @{ @"ticket": ticket, @"label": tab, @"origin": source, @"kinds": kinds };
+
+    NSString *script = [NSString stringWithFormat:
+        @"window.__nuraPermission ? window.__nuraPermission(%@) === true : false",
+        [self quote:[self encode:message]]];
+
+    [host evaluateJavaScript:script completionHandler:^(id taken, NSError *error) {
+        if (![taken isKindOfClass:NSNumber.class] || ![taken boolValue]) {
+            [self answer:ticket allowed:NO];
+        }
+    }];
 }
 
 - (void)observeValueForKeyPath:(NSString *)path
@@ -1079,7 +1151,7 @@ static CGAffineTransform NuraTucked(CGPoint spoke) {
     @"               'setVisible','setDesktop','openTab','boundsTab','closeTab','visibleTab',"
     @"               'reloadTab','backTab','forwardTab','setDappScript','dappReply','dappEmit',"
     @"               'showMouse','hideMouse','setMouseOpacity','setMouseIcon','setBarInk',"
-    @"               'showMouseMenu','hideMouseMenu'];"
+    @"               'showMouseMenu','hideMouseMenu','permissionReply'];"
     @"  var bridge = {};"
     @"  names.forEach(function(name){ bridge[name] = post(name); });"
     @"  window.__nuraBrowser = bridge;"
