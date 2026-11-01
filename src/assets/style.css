@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* iOS sits its controls a step larger, nearer its 44pt touch size; app.tsx stamps the host on <html>. */
+@custom-variant ios (&:where([data-host='ios'] *));
+
 @font-face {
     font-style: normal;
     font-display: swap;

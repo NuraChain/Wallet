@@ -39,6 +39,9 @@ document.addEventListener('contextmenu', (event) => {
 });
 
 const startup = async () => {
+    // Read by style.css's `ios:` variant, which sizes controls for iOS.
+    document.documentElement.dataset.host = platform.host();
+
     initInsets();
 
     void preloadLanguageFlags();
