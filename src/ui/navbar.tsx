@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { CSSProperties, ReactNode, Ref } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 
 import Button from './button';
@@ -9,10 +9,23 @@ import { transition } from './motion';
 /**
  * The dashboard's bottom bar: a pill of tabs with one round action beside it.
  * It sits in the flow under the pages rather than over them, because a browser tab is a native view that no overlay reaches;
- * so it also owns the bottom inset the pages above it would otherwise pad for. Put it in an `AnimatePresence` with a key, and it
- * drops out of sight as it leaves and rises back as it returns.
+ * so it also owns the bottom inset the pages above it would otherwise pad for. Put it in an `AnimatePresence` with a key and
+ * `mode='popLayout'`, and it drops out of sight as it leaves and rises back as it returns; popped out of the flow as it leaves, it
+ * hands the pages their full height at once rather than when it has gone.
  */
-export function NavBar({ action, count, selected, children }: { action?: ReactNode; count: number; selected: number; children: ReactNode }) {
+export function NavBar({
+    ref,
+    action,
+    count,
+    selected,
+    children
+}: {
+    ref?: Ref<HTMLDivElement>;
+    action?: ReactNode;
+    count: number;
+    selected: number;
+    children: ReactNode;
+}) {
     // Under reduced motion it only fades.
     const reduced = useReducedMotion() === true;
 
@@ -21,6 +34,7 @@ export function NavBar({ action, count, selected, children }: { action?: ReactNo
 
     return (
         <motion.div
+            ref={ref}
             initial={reduced ? { opacity: 0 } : { transform: 'translateY(100%)', opacity: 0 }}
             animate={reduced ? { opacity: 1 } : { transform: 'translateY(0%)', opacity: 1, transitionEnd: { transform: 'none' } }}
             exit={reduced ? { opacity: 0 } : { transform: ['translateY(0%)', 'translateY(100%)'], opacity: 0 }}

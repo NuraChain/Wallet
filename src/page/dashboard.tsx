@@ -814,7 +814,7 @@ function DashboardView({ vault }: { vault: Vault }) {
                     </Block>
                 </Horizontal>
 
-                <AnimatePresence initial={false}>
+                <AnimatePresence initial={false} mode='popLayout'>
                     {barOn && (
                         <NavBar
                             key='nav'
