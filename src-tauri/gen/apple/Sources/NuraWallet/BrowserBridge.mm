@@ -244,6 +244,11 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
     view.backgroundColor = UIColor.whiteColor;
     view.allowsBackForwardNavigationGestures = YES;
 
+    // The wallet already runs the page down to the home indicator on purpose (initInsets clears the
+    // bar inset). Left automatic, UIKit insets the page by the same inset again, and a site that does
+    // not cover the safe area itself gets an empty strip under its content.
+    view.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
+
     [self applyAgent:view];
 
     [view addObserver:self forKeyPath:@"estimatedProgress" options:NSKeyValueObservingOptionNew context:nil];
