@@ -445,6 +445,8 @@
             "ExportDanger": "Saving your phrase outside the app is dangerous. Photo galleries sync to the cloud and any app with media or storage access can read these files. Move the backup somewhere offline and delete the copy as soon as you have.",
             "ExportSavedImage": "Saved to Pictures/Nura Wallet. Delete it once your backup is safe.",
             "ExportSavedText": "Saved to Downloads. Delete it once your backup is safe.",
+            "ExportSavedPhotos": "Saved to Photos. Delete it once your backup is safe.",
+            "ExportSavedFiles": "Saved to Files. Delete it once your backup is safe.",
             "ExportFailed": "Could not save the file",
             "ExportUnsupported": "This device is too old to save files this way",
             "ExportImageTitle": "Nura Wallet recovery phrase",

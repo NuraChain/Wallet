@@ -445,6 +445,8 @@
             "ExportDanger": "İfadenizi uygulamanın dışına kaydetmek tehlikelidir. Fotoğraf galerileri buluta eşitlenir ve medya ya da depolama erişimi olan her uygulama bu dosyaları okuyabilir. Yedeği çevrimdışı bir yere taşıyın ve taşır taşımaz bu kopyayı silin.",
             "ExportSavedImage": "Pictures/Nura Wallet klasörüne kaydedildi. Yedeğiniz güvende olur olmaz silin.",
             "ExportSavedText": "Downloads klasörüne kaydedildi. Yedeğiniz güvende olur olmaz silin.",
+            "ExportSavedPhotos": "Photos uygulamasına kaydedildi. Yedeğiniz güvende olur olmaz silin.",
+            "ExportSavedFiles": "Files uygulamasına kaydedildi. Yedeğiniz güvende olur olmaz silin.",
             "ExportFailed": "Dosya kaydedilemedi",
             "ExportUnsupported": "Bu cihaz dosyaları bu şekilde kaydedemeyecek kadar eski",
             "ExportImageTitle": "Nura Wallet kurtarma ifadesi",

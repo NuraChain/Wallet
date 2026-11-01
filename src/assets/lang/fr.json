@@ -445,6 +445,8 @@
             "ExportDanger": "Enregistrer votre phrase en dehors de l'application est dangereux. Les galeries photo se synchronisent avec le cloud et toute appli ayant accès aux médias ou au stockage peut lire ces fichiers. Mettez la sauvegarde hors ligne et supprimez cette copie dès que c'est fait.",
             "ExportSavedImage": "Enregistré dans Pictures/Nura Wallet. Supprimez-le dès que votre sauvegarde est en sécurité.",
             "ExportSavedText": "Enregistré dans Downloads. Supprimez-le dès que votre sauvegarde est en sécurité.",
+            "ExportSavedPhotos": "Enregistré dans Photos. Supprimez-le dès que votre sauvegarde est en sécurité.",
+            "ExportSavedFiles": "Enregistré dans Files. Supprimez-le dès que votre sauvegarde est en sécurité.",
             "ExportFailed": "Impossible d'enregistrer le fichier",
             "ExportUnsupported": "Cet appareil est trop ancien pour enregistrer des fichiers de cette façon",
             "ExportImageTitle": "Phrase de récupération Nura Wallet",

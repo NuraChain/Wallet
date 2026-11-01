@@ -6,6 +6,8 @@
     <string>Nura Wallet uses the camera to scan a recipient's QR code. Sites opened in its browser can use it too.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Sites opened in Nura Wallet's browser can use the microphone once you allow it, for example to record a voice message.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Nura Wallet saves your recovery phrase backup as a picture in Photos when you ask it to.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Nura Wallet uses Face ID to unlock your wallet.</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>

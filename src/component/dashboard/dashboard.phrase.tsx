@@ -8,6 +8,7 @@ import { PasswordField } from '../../ui/field';
 import { Modal, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
+import { getPlatform } from '../../utility/platform';
 import { passwordCheck } from '../../core/password';
 import { getExporter, phraseToPng } from '../../core/export';
 import { getValueEncrypted } from '../../utility/storage';
@@ -56,8 +57,17 @@ export default function DashboardPhrase({ kind, onClose }: { kind: VaultKind; on
                 ? await bridge.saveImage(phraseToPng(words, T('Dashboard.Phrase.ExportImageTitle'), T('Dashboard.Phrase.ExportImageWarning')), `${name}.png`)
                 : await bridge.saveText(body, `${name}.txt`);
 
+        // Closing iOS's save sheet is the user's own choice, not a failure.
+        if (failure === 'cancelled') {
+            return;
+        }
+
         if (failure.length === 0) {
-            setNotice({ ok: true, text: format === 'image' ? T('Dashboard.Phrase.ExportSavedImage') : T('Dashboard.Phrase.ExportSavedText') });
+            const ios = getPlatform() === 'ios';
+
+            const place = { image: ios ? 'Photos' : 'Image', text: ios ? 'Files' : 'Text' };
+
+            setNotice({ ok: true, text: T(`Dashboard.Phrase.ExportSaved${place[format]}`) });
 
             return;
         }

@@ -32,6 +32,9 @@ declare global {
         __nuraDappLink?: (url: string, label?: unknown) => void;
 
         __nuraPermission?: (payload: string) => boolean;
+
+        /** How iOS's bridge answers a save: the ticket it was given, and empty for saved or else the reason. */
+        __nuraExportDone?: (ticket: unknown, outcome: unknown) => void;
     }
 }
 
@@ -71,10 +74,50 @@ const desktopExporter: PlatformExporter = {
     }
 };
 
-// iOS has no export bridge and the fs plugin is desktop-only; 'unsupported' matches Android's refusal.
-const unsupportedExporter: PlatformExporter = {
-    saveImage: async () => 'unsupported',
-    saveText: async () => 'unsupported'
+const exportsWaiting = new Map<string, (outcome: string) => void>();
+
+let exportCount = 0;
+
+// The fs plugin is desktop-only, so iOS saves through the browser bridge; one older than this page cannot, as Android's refusal says.
+const iosSave = async (send: ((ticket: string) => void) | undefined) => {
+    if (send === undefined) {
+        return 'unsupported';
+    }
+
+    window.__nuraExportDone ??= (ticket, outcome) => {
+        const done = typeof ticket === 'string' ? exportsWaiting.get(ticket) : undefined;
+
+        if (done !== undefined && typeof ticket === 'string') {
+            exportsWaiting.delete(ticket);
+
+            done(typeof outcome === 'string' ? outcome : 'failed');
+        }
+    };
+
+    exportCount += 1;
+
+    const ticket = String(exportCount);
+
+    return new Promise<string>((resolve) => {
+        exportsWaiting.set(ticket, resolve);
+
+        send(ticket);
+    });
+};
+
+/** A picture goes to Photos and text to wherever the user saves it in Files; closing that sheet answers `cancelled`. */
+const iosExporter: PlatformExporter = {
+    saveImage: async (base64Png: string) => {
+        const save = window.__nuraBrowser?.saveImage;
+
+        return iosSave(save === undefined ? undefined : (ticket) => save(ticket, base64Png));
+    },
+
+    saveText: async (text: string, name: string) => {
+        const save = window.__nuraBrowser?.saveText;
+
+        return iosSave(save === undefined ? undefined : (ticket) => save(ticket, text, name));
+    }
 };
 
 const inertSession: PlatformSession = {
@@ -400,7 +443,7 @@ export const platform: Platform = {
         const bridge = window.__nuraExport;
 
         if (bridge === undefined) {
-            return platform.host() === 'ios' ? unsupportedExporter : desktopExporter;
+            return platform.host() === 'ios' ? iosExporter : desktopExporter;
         }
 
         return {

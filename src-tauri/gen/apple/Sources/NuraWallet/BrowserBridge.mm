@@ -35,7 +35,7 @@ static NSString *NuraLogo(void);
 /// the answer it gives the root view controller reads it.
 static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 
-@interface NuraBrowserBridge : NSObject <WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate>
+@interface NuraBrowserBridge : NSObject <WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate, UIDocumentPickerDelegate>
 
 @property (nonatomic, weak) WKWebView *host;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, WKWebView *> *pages;
@@ -46,6 +46,11 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 /// it came from and WebKit's decision handler, which has to be called exactly once whatever happens.
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSDictionary *> *asks;
 @property (nonatomic, assign) NSInteger askCount;
+
+/// The save sheet open for a text export: the wallet's ticket for it, and the copy it was handed,
+/// which holds a secret and is deleted however the sheet is closed.
+@property (nonatomic, strong) NSString *exportTicket;
+@property (nonatomic, strong) NSURL *exportFile;
 
 /// The floating mouse, once something has asked for it, and what it wears. The two are kept apart
 /// because the wallet says what it wears before it asks for it to be shown.
@@ -884,6 +889,102 @@ static CGAffineTransform NuraTucked(CGPoint spoke) {
     });
 }
 
+#pragma mark - export
+
+// Android's ExportBridge.kt writes the recovery phrase to Pictures and Downloads. iOS has no such
+// folders open to an app, so a picture goes to Photos and text to wherever the user saves it in
+// Files. The answer comes back through __nuraExportDone: empty for saved, otherwise the reason.
+
+- (void)finishExport:(NSString *)ticket reason:(NSString *)reason {
+    NSString *script = [NSString stringWithFormat:
+        @"window.__nuraExportDone && window.__nuraExportDone(%@, %@)", [self quote:ticket], [self quote:reason]];
+
+    [self evalOnHost:script];
+}
+
+- (UIViewController *)presenter {
+    UIViewController *top = self.host.window.rootViewController;
+
+    while (top.presentedViewController != nil) {
+        top = top.presentedViewController;
+    }
+
+    return top;
+}
+
+- (void)saveImage:(NSString *)ticket base64:(NSString *)base64 {
+    NSData *data = [[NSData alloc] initWithBase64EncodedString:base64 options:0];
+    UIImage *image = data == nil ? nil : [UIImage imageWithData:data];
+
+    if (image == nil) {
+        [self finishExport:ticket reason:@"failed"];
+        return;
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIImageWriteToSavedPhotosAlbum(image, self, @selector(image:didFinishSavingWithError:contextInfo:),
+                                       (__bridge_retained void *)ticket);
+    });
+}
+
+- (void)image:(UIImage *)image didFinishSavingWithError:(NSError *)error contextInfo:(void *)context {
+    NSString *ticket = (__bridge_transfer NSString *)context;
+
+    [self finishExport:ticket reason:error == nil ? @"" : @"failed"];
+}
+
+- (void)saveText:(NSString *)ticket text:(NSString *)text name:(NSString *)name {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIViewController *presenter = [self presenter];
+
+        if (self.exportTicket != nil || presenter == nil) {
+            [self finishExport:ticket reason:@"failed"];
+            return;
+        }
+
+        NSString *file = name.lastPathComponent.length > 0 ? name.lastPathComponent : @"nura-wallet.txt";
+        NSURL *url = [NSURL fileURLWithPath:[NSTemporaryDirectory() stringByAppendingPathComponent:file]];
+        NSData *data = [text dataUsingEncoding:NSUTF8StringEncoding];
+
+        if (![data writeToURL:url options:NSDataWritingAtomic | NSDataWritingFileProtectionComplete error:nil]) {
+            [self finishExport:ticket reason:@"failed"];
+            return;
+        }
+
+        self.exportTicket = ticket;
+        self.exportFile = url;
+
+        UIDocumentPickerViewController *picker =
+            [[UIDocumentPickerViewController alloc] initForExportingURLs:@[url] asCopy:YES];
+        picker.delegate = self;
+
+        [presenter presentViewController:picker animated:YES completion:nil];
+    });
+}
+
+- (void)endTextExport:(NSString *)reason {
+    if (self.exportFile != nil) {
+        [NSFileManager.defaultManager removeItemAtURL:self.exportFile error:nil];
+    }
+
+    NSString *ticket = self.exportTicket;
+
+    self.exportTicket = nil;
+    self.exportFile = nil;
+
+    if (ticket != nil) {
+        [self finishExport:ticket reason:reason];
+    }
+}
+
+- (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
+    [self endTextExport:@""];
+}
+
+- (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)controller {
+    [self endTextExport:@"cancelled"];
+}
+
 #pragma mark - messages
 
 - (void)userContentController:(WKUserContentController *)controller
@@ -989,6 +1090,10 @@ static CGAffineTransform NuraTucked(CGPoint spoke) {
         [self setDappScript:str(0)];
     } else if ([method isEqualToString:@"dappReply"]) {
         [self dappReply:str(0) payload:str(1)];
+    } else if ([method isEqualToString:@"saveImage"]) {
+        [self saveImage:str(0) base64:str(1)];
+    } else if ([method isEqualToString:@"saveText"]) {
+        [self saveText:str(0) text:str(1) name:str(2)];
     } else if ([method isEqualToString:@"permissionReply"]) {
         [self permissionReply:str(0) allowed:flag(1)];
     } else if ([method isEqualToString:@"dappEmit"]) {
@@ -1156,7 +1261,7 @@ static CGAffineTransform NuraTucked(CGPoint spoke) {
     @"               'setVisible','setDesktop','openTab','boundsTab','closeTab','visibleTab',"
     @"               'reloadTab','backTab','forwardTab','setDappScript','dappReply','dappEmit',"
     @"               'showMouse','hideMouse','setMouseOpacity','setMouseIcon','setBarInk',"
-    @"               'showMouseMenu','hideMouseMenu','permissionReply'];"
+    @"               'showMouseMenu','hideMouseMenu','permissionReply','saveImage','saveText'];"
     @"  var bridge = {};"
     @"  names.forEach(function(name){ bridge[name] = post(name); });"
     @"  window.__nuraBrowser = bridge;"

@@ -445,6 +445,8 @@
             "ExportDanger": "Guardar tu frase fuera de la app es peligroso. Las galerías de fotos se sincronizan con la nube y cualquier app con acceso a medios o almacenamiento puede leer estos archivos. Lleva la copia de seguridad a un lugar sin conexión y borra el archivo en cuanto lo hayas hecho.",
             "ExportSavedImage": "Guardado en Pictures/Nura Wallet. Bórralo cuando tu copia de seguridad esté a salvo.",
             "ExportSavedText": "Guardado en Downloads. Bórralo cuando tu copia de seguridad esté a salvo.",
+            "ExportSavedPhotos": "Guardado en Photos. Bórralo cuando tu copia de seguridad esté a salvo.",
+            "ExportSavedFiles": "Guardado en Files. Bórralo cuando tu copia de seguridad esté a salvo.",
             "ExportFailed": "No se pudo guardar el archivo",
             "ExportUnsupported": "Este dispositivo es demasiado antiguo para guardar archivos de esta forma",
             "ExportImageTitle": "Frase de recuperación de Nura Wallet",

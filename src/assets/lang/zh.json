@@ -445,6 +445,8 @@
             "ExportDanger": "把助记词保存到应用之外很危险。相册会同步到云端，任何拥有媒体或存储权限的应用都能读取这些文件。请把备份转移到离线的地方，完成后立即删除这份副本。",
             "ExportSavedImage": "已保存到 Pictures/Nura Wallet。备份妥当后请立即删除。",
             "ExportSavedText": "已保存到 Downloads。备份妥当后请立即删除。",
+            "ExportSavedPhotos": "已保存到 Photos。备份妥当后请立即删除。",
+            "ExportSavedFiles": "已保存到 Files。备份妥当后请立即删除。",
             "ExportFailed": "无法保存文件",
             "ExportUnsupported": "此设备版本过旧，无法以这种方式保存文件",
             "ExportImageTitle": "Nura 钱包助记词",

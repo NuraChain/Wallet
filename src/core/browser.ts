@@ -184,6 +184,10 @@ interface BrowserBridge {
 
     /** The ink the system draws its status bar in: `dark`, `light`, or empty for its own choice. */
     setBarInk?: (ink: string) => void;
+
+    /** iOS only, answered through `__nuraExportDone(ticket, outcome)`: a picture into Photos, text through the Files save sheet. */
+    saveImage?: (ticket: string, base64Png: string) => void;
+    saveText?: (ticket: string, text: string, name: string) => void;
 }
 
 declare global {
