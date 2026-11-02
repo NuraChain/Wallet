@@ -6,6 +6,7 @@ fn main() {
                 "browser_clear",
                 "browser_place",
                 "browser_position",
+                "browser_url",
                 "dapp_request",
                 "dapp_respond",
                 "dapp_emit",

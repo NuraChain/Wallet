@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { presenceDetails, presenceSite, presenceState } from '../core/presence';
+import { presenceDetails, presencePlace, presenceSite, presenceState } from '../core/presence';
 
 import type { DashboardModal } from '../type/app';
 
@@ -72,12 +72,64 @@ describe('the activity Discord is shown', () => {
         expect(presenceSite('data:text/html,hi')).toBeUndefined();
     });
 
-    it('shows the site only while the browser is what is described', () => {
-        expect(presenceDetails(at('Browser'), 'baziche.com')).toBe('baziche.com');
-        expect(presenceDetails(at('Browser', 'speed'), 'baziche.com')).toBe('baziche.com');
-        expect(presenceDetails(at('Browser', 'send'), 'baziche.com')).toBeUndefined();
-        expect(presenceDetails(at('Wallet'), 'baziche.com')).toBeUndefined();
-        expect(presenceDetails(presenceState('/unlock', undefined), 'baziche.com')).toBeUndefined();
+    it('shows the place only while the browser is what is described', () => {
+        const baziche = presencePlace('https://baziche.com');
+
+        expect(presenceDetails(at('Browser'), baziche)).toBe('baziche.com');
+        expect(presenceDetails(at('Browser', 'speed'), baziche)).toBe('baziche.com');
+        expect(presenceDetails(at('Browser', 'send'), baziche)).toBeUndefined();
+        expect(presenceDetails(at('Wallet'), baziche)).toBeUndefined();
+        expect(presenceDetails(presenceState('/unlock', undefined), baziche)).toBeUndefined();
         expect(presenceDetails(at('Browser'), undefined)).toBeUndefined();
+        expect(presenceDetails(at('Wallet'), presencePlace('https://baziche.com/app/games/chess'))).toBeUndefined();
+    });
+});
+
+describe('the game Baziche is showing', () => {
+    const line = (url: string, before?: string) => presenceDetails(at('Browser'), presencePlace(url, before === undefined ? undefined : presencePlace(before)));
+
+    it('names each game by its page', () => {
+        expect(line('https://baziche.com/app/games/hokm')).toBe('Hokm · baziche.com');
+        expect(line('https://baziche.com/app/games/poker')).toBe('Poker · baziche.com');
+        expect(line('https://baziche.com/app/games/backgammon')).toBe('Backgammon · baziche.com');
+        expect(line('https://baziche.com/app/games/ludo')).toBe('Ludo · baziche.com');
+        expect(line('https://www.baziche.com/app/games/Chess/create?seats=2#top')).toBe('Chess · baziche.com');
+    });
+
+    it('carries the game to the table it leads to, and to the next table', () => {
+        expect(line('https://baziche.com/app/play/7f3a', 'https://baziche.com/app/games/backgammon/create')).toBe('Playing Backgammon · baziche.com');
+        const lobby = presencePlace('https://baziche.com/app/games/ludo');
+        const first = presencePlace('https://baziche.com/app/play/7f3a', lobby);
+        const second = presencePlace('https://baziche.com/app/play/9c1d', first);
+
+        expect(presenceDetails(at('Browser'), second)).toBe('Playing Ludo · baziche.com');
+    });
+
+    it('names no game at a table reached any other way', () => {
+        expect(line('https://baziche.com/app/play/7f3a')).toBe('In a game · baziche.com');
+        expect(line('https://baziche.com/app/play/7f3a', 'https://baziche.com/join/AB12')).toBe('In a game · baziche.com');
+        expect(line('https://baziche.com/app/play/7f3a', 'https://baziche.com/app')).toBe('In a game · baziche.com');
+        expect(line('https://baziche.com/app/play/7f3a', 'https://swap.nurachain.net/app/games/chess')).toBe('In a game · baziche.com');
+    });
+
+    it('leaves every other page of the site at its host', () => {
+        expect(line('https://baziche.com/app/games')).toBe('baziche.com');
+        expect(line('https://baziche.com/app/play')).toBe('baziche.com');
+        expect(line('https://baziche.com/app/me/wallet', 'https://baziche.com/app/games/chess')).toBe('baziche.com');
+        expect(line('https://baziche.com/app/people/someone')).toBe('baziche.com');
+        expect(line('https://baziche.com/games/chess')).toBe('baziche.com');
+    });
+
+    it('names a game only from its own list', () => {
+        expect(line('https://baziche.com/app/games/constructor')).toBe('baziche.com');
+        expect(line('https://baziche.com/app/games/__proto__')).toBe('baziche.com');
+        expect(line('https://baziche.com/app/games/0x70997970C51812dc3A010C7d01b50e0d17dc79C8')).toBe('baziche.com');
+        expect(line('https://baziche.com/app/games/%3Cscript%3E')).toBe('baziche.com');
+    });
+
+    it('reads game paths on Baziche alone', () => {
+        expect(line('https://swap.nurachain.net/app/games/chess')).toBe('swap.nurachain.net');
+        expect(line('https://example.com/app/games/chess')).toBeUndefined();
+        expect(line('https://baziche.com.example.com/app/games/chess')).toBeUndefined();
     });
 });

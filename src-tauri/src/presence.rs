@@ -27,7 +27,7 @@ pub struct PresenceButton {
 }
 
 /// Everything shown comes from the wallet's own page: the state line is one of its fixed descriptions and the details line at most a
-/// website's host name, never wallet data.
+/// website's host name and a game from a fixed list, never wallet data.
 #[derive(Clone, Deserialize, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct PresenceActivity {

@@ -283,6 +283,31 @@ pub async fn browser_clear<R: Runtime>(
         .map_err(|cause| cause.to_string())
 }
 
+/// The address a page is on now, a link followed inside it or a history entry it pushed included. It is read from the webview,
+/// never asked of the page, so a site cannot claim to be another.
+#[tauri::command]
+pub async fn browser_url<R: Runtime>(
+    app: AppHandle<R>,
+    webview: Webview<R>,
+    label: String,
+) -> Result<String, String> {
+    if webview.label() != WALLET_LABEL {
+        return Err("only the wallet may read a page's address".into());
+    }
+
+    if !is_page(&label) {
+        return Err("that label is not a browser page".into());
+    }
+
+    let page = app
+        .get_webview(&label)
+        .ok_or_else(|| "that webview is gone".to_string())?;
+
+    page.url()
+        .map(|url| url.to_string())
+        .map_err(|cause| cause.to_string())
+}
+
 fn placed<R: Runtime>(
     app: &AppHandle<R>,
     caller: &Webview<R>,

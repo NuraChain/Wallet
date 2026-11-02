@@ -18,7 +18,7 @@ import { clearSiteIcons } from '../../core/site.icon';
 import { getConnections } from '../../core/dapp';
 import { disconnectAllDapps } from '../../core/dapp.rpc';
 import { dappIdentity, dappScript } from '../../core/dapp.script';
-import { setPresenceSite } from '../../core/presence';
+import { setPresenceSite, watchPresencePage } from '../../core/presence';
 import {
     addBrowserVisit,
     atBrowserStart,
@@ -160,11 +160,23 @@ export default function DashboardBrowser({
 
     useEffect(() => {
         setPresenceSite(page);
-
-        return () => {
-            setPresenceSite('');
-        };
     }, [page]);
+
+    // Cleared only on the way out, so a game's page and the table it leads to are seen one after the other.
+    useEffect(
+        () => () => {
+            setPresenceSite('');
+        },
+        []
+    );
+
+    useEffect(() => {
+        if (native || start || !inView) {
+            return undefined;
+        }
+
+        return watchPresencePage(frameLabel(tab.id));
+    }, [native, start, inView, tab.id, page]);
 
     // Phones only: the header and status bar wear the site's colour while this tab shows it.
     useEffect(() => {

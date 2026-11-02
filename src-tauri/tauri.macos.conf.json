@@ -75,6 +75,7 @@
                         "allow-browser-open",
                         "allow-browser-clear",
                         "allow-browser-place",
+                        "allow-browser-url",
                         "allow-dapp-respond",
                         "allow-dapp-emit",
                         "allow-presence-set",

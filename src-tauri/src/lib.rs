@@ -51,6 +51,7 @@ pub fn run() {
                 dapp::browser_open,
                 dapp::browser_clear,
                 dapp::browser_place,
+                dapp::browser_url,
                 #[cfg(target_os = "linux")]
                 dapp::browser_position,
                 dapp::dapp_request,

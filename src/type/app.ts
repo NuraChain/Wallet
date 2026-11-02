@@ -51,3 +51,10 @@ export interface PresenceScreen {
     tab: string;
     modal: DashboardModal;
 }
+
+/** The built-in dApp a page is on, and on a game site the game, named from a fixed list. */
+export interface PresencePlace {
+    site: string;
+    game?: string;
+    table: boolean;
+}
