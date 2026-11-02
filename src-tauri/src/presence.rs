@@ -3,21 +3,29 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use discord_rich_presence::activity::{Activity, Assets, Button, Timestamps};
-use discord_rich_presence::{DiscordIpc, DiscordIpcClient};
 use serde::Deserialize;
 use tauri::Manager;
 
-/// How long to wait before dialling Discord again once it is closed or has gone away.
-const RETRY: Duration = Duration::from_secs(5);
+// The desktop reaches the Discord app over its local IPC pipe; a phone has none, and Discord's Social SDK reaches the app instead.
+#[cfg(desktop)]
+mod ipc;
+
+#[cfg(desktop)]
+use ipc::Link;
+
+#[cfg(target_os = "android")]
+mod sdk;
+
+#[cfg(target_os = "android")]
+use sdk::Link;
 
 /// Discord takes five activity updates in twenty seconds, so updates closer together than this are folded into the last.
 const GAP: Duration = Duration::from_secs(4);
 
-/// The activity is sent again this often: a broken pipe only shows on a write, and this is how a restarted Discord is found.
+/// The activity is sent again this often: a broken link only shows on a write, and this is how a restarted Discord is found.
 const KEEP: Duration = Duration::from_secs(20);
 
-/// How long the exit waits for the presence to be cleared; Discord drops it anyway once the pipe closes.
+/// How long the exit waits for the presence to be cleared; Discord drops it anyway once the link closes.
 const FAREWELL: Duration = Duration::from_secs(1);
 
 #[derive(Clone, Deserialize, PartialEq)]
@@ -64,70 +72,22 @@ impl Default for PresenceState {
     }
 }
 
-struct Link {
-    client: DiscordIpcClient,
+struct Open {
+    link: Link,
     app_id: String,
     shown: Option<PresenceActivity>,
     at: Instant,
 }
 
-fn build<'a>(activity: &'a PresenceActivity, started: i64) -> Activity<'a> {
-    let assets = Assets::new()
-        .large_image(activity.large_image.as_str())
-        .large_text(activity.large_text.as_str());
-
-    let buttons = activity
-        .buttons
-        .iter()
-        .take(2)
-        .map(|button| Button::new(button.label.as_str(), button.url.as_str()))
-        .collect();
-
-    let built = Activity::new()
-        .assets(assets)
-        .timestamps(Timestamps::new().start(started))
-        .buttons(buttons);
-
-    let built = match &activity.state {
-        Some(state) => built.state(state.as_str()),
-        None => built,
-    };
-
-    match &activity.details {
-        Some(details) => built.details(details.as_str()),
-        None => built,
-    }
-}
-
-fn send(link: &mut Link, activity: &PresenceActivity, started: i64) -> bool {
-    if link.client.set_activity(build(activity, started)).is_err() {
-        return false;
-    }
-
-    // Discord answers every command; left unread, the answers would pile up in the pipe.
-    matches!(link.client.recv(), Ok((1, _)))
-}
-
-// Closing on Windows leaves the pipe's handle open, so the client is dropped as well.
-fn hang_up(mut link: Link) {
-    let _ = link.client.clear_activity();
-    let _ = link.client.close();
-}
-
-fn connect(app_id: &str) -> Option<DiscordIpcClient> {
-    let mut client = DiscordIpcClient::new(app_id);
-
-    client.connect().ok().map(|()| client)
-}
-
-/// Owns the one connection to Discord. Its IO blocks, so it lives on a thread of its own rather than on Tauri's runtime.
+/// Owns the one link to Discord. Its IO blocks, so it lives on a thread of its own rather than on Tauri's runtime.
 fn run(receiver: &Receiver<Message>, started: i64, first: PresenceActivity) {
     let mut wanted = first;
-    let mut link: Option<Link> = None;
+    let mut open: Option<Open> = None;
     let mut retry = Instant::now();
+    let mut failures = 0;
 
     loop {
-        let due = match &link {
+        let due = match &open {
             None => retry,
             Some(open) if open.shown.as_ref() == Some(&wanted) => open.at + KEEP,
             Some(open) if open.shown.is_none() => open.at,
@@ -149,36 +109,39 @@ fn run(receiver: &Receiver<Message>, started: i64, first: PresenceActivity) {
 
         let activity = &wanted;
 
-        if link.as_ref().is_some_and(|open| open.app_id != activity.app_id) {
-            if let Some(open) = link.take() {
-                hang_up(open);
+        if open.as_ref().is_some_and(|current| current.app_id != activity.app_id) {
+            if let Some(current) = open.take() {
+                current.link.hang_up();
             }
         }
 
-        if link.is_none() {
-            let Some(client) = connect(&activity.app_id) else {
-                retry = Instant::now() + RETRY;
+        if open.is_none() {
+            let Some(link) = Link::connect(&activity.app_id) else {
+                failures += 1;
+                retry = Instant::now() + Link::retry(failures);
 
                 continue;
             };
 
-            link = Some(Link { client, app_id: activity.app_id.clone(), shown: None, at: Instant::now() });
+            open = Some(Open { link, app_id: activity.app_id.clone(), shown: None, at: Instant::now() });
         }
 
-        if let Some(open) = link.as_mut() {
-            if send(open, activity, started) {
-                open.shown = Some(activity.clone());
-                open.at = Instant::now();
+        if let Some(current) = open.as_mut() {
+            if current.link.send(activity, started) {
+                current.shown = Some(activity.clone());
+                current.at = Instant::now();
+                failures = 0;
             } else {
-                // Discord has gone; dial again shortly and show the activity afresh.
-                link = None;
-                retry = Instant::now() + RETRY;
+                // Discord has gone, or was never there; dial again later and show the activity afresh.
+                open = None;
+                failures += 1;
+                retry = Instant::now() + Link::retry(failures);
             }
         }
     }
 
-    if let Some(open) = link.take() {
-        hang_up(open);
+    if let Some(current) = open.take() {
+        current.link.hang_up();
     }
 }
 

@@ -47,6 +47,7 @@
                         "os:allow-family",
                         "os:allow-locale",
                         "os:allow-arch",
+                        "allow-presence-set",
                         {
                             "identifier": "http:default",
                             "allow": [

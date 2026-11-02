@@ -1,7 +1,7 @@
 #[cfg(desktop)]
 mod dapp;
 
-#[cfg(desktop)]
+#[cfg(any(desktop, target_os = "android"))]
 mod presence;
 
 #[cfg(target_os = "linux")]
@@ -90,6 +90,14 @@ pub fn run() {
         ]);
     }
 
+    // Android's only command; a handler set on desktop above would be replaced by a second.
+    #[cfg(target_os = "android")]
+    {
+        builder = builder
+            .manage(presence::PresenceState::default())
+            .invoke_handler(tauri::generate_handler![presence::presence_set]);
+    }
+
     #[cfg(any(target_os = "android", target_os = "ios", target_os = "macos"))]
     {
         builder = builder.plugin(tauri_plugin_biometric::init());
@@ -112,7 +120,7 @@ pub fn run() {
         .expect("Application Failed");
 
     app.run(|_handle, _event| {
-        #[cfg(desktop)]
+        #[cfg(any(desktop, target_os = "android"))]
         if let tauri::RunEvent::Exit = _event {
             presence::close(_handle);
         }

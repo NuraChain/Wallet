@@ -39,6 +39,20 @@ class MainActivity : TauriActivity() {
     )
 
     super.onCreate(savedInstanceState)
+
+    giveDiscordActivity()
+  }
+
+  // Discord's SDK loads its library and reaches the Discord app through the activity it is handed. It is in a build only when its
+  // AAR was supplied (see build.gradle.kts), hence the reflection; without it, Rich Presence is simply off.
+  private fun giveDiscordActivity() {
+    try {
+      Class.forName("com.discord.socialsdk.DiscordSocialSdkInit")
+        .getMethod("setEngineActivity", android.app.Activity::class.java)
+        .invoke(null, this)
+    } catch (_: ReflectiveOperationException) {
+    } catch (_: LinkageError) {
+    }
   }
 
   @SuppressLint("JavascriptInterface")

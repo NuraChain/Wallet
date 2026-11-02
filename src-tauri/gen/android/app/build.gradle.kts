@@ -166,6 +166,14 @@ dependencies {
     implementation("androidx.activity:activity-ktx:1.10.1")
     implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.lifecycle:lifecycle-process:2.10.0")
+
+    // Discord's Social SDK, for Rich Presence through the Discord app. It is Discord's to distribute, not ours, so it is git-ignored
+    // and supplied by hand or by the release workflow; a build without it has no Rich Presence and nothing else missing.
+    val discordSdk = file("libs/discord_partner_sdk.aar")
+
+    if (discordSdk.exists()) {
+        implementation(files(discordSdk))
+    }
 }
 
 apply(from = "tauri.build.gradle.kts")

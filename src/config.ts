@@ -86,7 +86,7 @@ export default {
         nura: 'https://raw.githubusercontent.com/NuraChain/Asset/refs/heads/main',
         trustWallet: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains'
     },
-    /* Rich Presence through the Discord app on the desktop. The id is the application's on the Discord Developer Portal, where the
+    /* Rich Presence through the Discord app on the desktop and on Android. The id is the application's on the Discord Developer Portal, where the
        image is uploaded under `largeImage` as a Rich Presence art asset; left empty, Discord is never contacted. */
     discord: {
         appId: '1566529215103373532',

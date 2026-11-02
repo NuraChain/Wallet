@@ -25,6 +25,10 @@ src-tauri/gen/android/tauri.settings.gradle
 src-tauri/gen/android/proguard-tauri.pro
 src-tauri/gen/android/local.properties
 
+# Discord's Social SDK: Discord distributes it, not this repository.
+discord_social_sdk/
+src-tauri/gen/android/app/libs/discord_partner_sdk.aar
+
 src-tauri/gen/apple/*
 !src-tauri/gen/apple/Sources
 src-tauri/gen/apple/Sources/*

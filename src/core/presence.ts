@@ -133,13 +133,14 @@ export const presenceDetails = (state: string | undefined, place: PresencePlace 
 
 let supported: boolean | undefined;
 
-// Discord's IPC is the desktop app's; there is none to reach from a phone or an extension. Whether the activity is shared is the
-// user's choice in Discord itself.
+/* The desktop reaches the Discord app over its IPC pipe and Android through Discord's SDK, when the build carries it; iOS lets no app
+   publish presence without the user signing in to Discord, and an extension has nothing to reach it with. Whether the activity is shared
+   is the user's choice in Discord itself. */
 const presenceSupported = () => {
     if (supported === undefined) {
         const host = getPlatform();
 
-        supported = config.discord.appId.length > 0 && (host === 'windows' || host === 'macos' || host === 'linux');
+        supported = config.discord.appId.length > 0 && (host === 'windows' || host === 'macos' || host === 'linux' || host === 'android');
     }
 
     return supported;

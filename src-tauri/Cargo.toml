@@ -29,8 +29,13 @@ tauri-plugin-fs = "2"
 
 tokio = { version = "1", features = [ "sync", "time" ] }
 
-# Discord Rich Presence over the local Discord client's IPC pipe (src/presence.rs).
+# Discord Rich Presence over the local Discord client's IPC pipe (src/presence/ipc.rs).
 discord-rich-presence = "1.1"
+
+# Discord's Social SDK, for Rich Presence on Android (src/presence/sdk.rs). It is in a build only when its AAR was supplied, so its
+# library is opened at run time rather than linked.
+[target.'cfg(target_os = "android")'.dependencies]
+libloading = "0.8"
 
 # Biometric unlock. Android keeps the password under a Keystore key that only a biometric opens (the plugin's
 # cipher); iOS and macOS keep it in the Keychain behind Face ID or Touch ID (src/keychain.rs).
