@@ -379,6 +379,11 @@ class BrowserBridge(
                 publish(id, view, false, 100)
             }
 
+            // A page that moves on through its own history loads nothing, so neither callback above sees it.
+            override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
+                publish(id, view, view.progress < 100, view.progress)
+            }
+
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (request.isForMainFrame) {
                     publish(id, view, false, 100)
