@@ -268,6 +268,12 @@ jobs:
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      # Discord's Social SDK AAR, for Rich Presence, is too large for a secret and not ours to publish, so it is fetched from wherever
+      # DISCORD_SDK_URL points (with DISCORD_SDK_TOKEN as the bearer, if set). Pinned: a different file fails the build. Without the URL
+      # the APK simply has no Rich Presence.
+      DISCORD_SDK_URL: ${{ secrets.DISCORD_SDK_URL }}
+      DISCORD_SDK_TOKEN: ${{ secrets.DISCORD_SDK_TOKEN }}
+      DISCORD_SDK_SHA256: b1b2491f1e1848c79fd6f1986d5aa1e0c8019e88a6e62c7be06b89e8e4870933
 
     steps:
       - name: Require a keystore for a tagged build
@@ -311,6 +317,19 @@ jobs:
 
       - name: Restore generated Android scaffolding
         run: npm run tauri android init
+
+      - name: Supply Discord's Social SDK
+        if: env.DISCORD_SDK_URL != ''
+        working-directory: src-tauri/gen/android/app
+        run: |
+          mkdir -p libs
+          auth=()
+          if [ -n "$DISCORD_SDK_TOKEN" ]; then
+            auth=(-H "Authorization: Bearer $DISCORD_SDK_TOKEN")
+          fi
+          curl --fail --silent --show-error --location "${auth[@]}" -H "Accept: application/octet-stream" \
+            -o libs/discord_partner_sdk.aar "$DISCORD_SDK_URL"
+          echo "$DISCORD_SDK_SHA256  libs/discord_partner_sdk.aar" | sha256sum --check
 
       - name: Configure release signing
         if: env.ANDROID_KEYSTORE != ''
