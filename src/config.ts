@@ -8,7 +8,6 @@ const favorites: BrowserFavorite[] = [
     { id: 'baziche', name: 'BaziChe', url: 'https://baziche.com' },
     { id: 'swap', name: 'Swap', url: 'https://swap.nurachain.net' },
     { id: 'ashbringer', name: 'Ashbringer', url: 'https://ashbringer.org' },
-    { id: 'goman', name: 'Goman', url: 'https://goman.online' },
     { id: 'nurachain', name: 'Nura Chain', url: 'https://nurachain.net' },
     { id: 'discord', name: 'Discord', url: 'https://discord.gg/vxyzMY8yFy' },
     { id: 'telegram', name: 'Nura Telegram', url: 'https://t.me/nurachain' }
