@@ -86,10 +86,12 @@ export default {
         trustWallet: 'https://raw.githubusercontent.com/trustwallet/assets/master/blockchains'
     },
     /* Rich Presence through the Discord app on the desktop and on Android. The id is the application's on the Discord Developer Portal, where the
-       image is uploaded under `largeImage` as a Rich Presence art asset; left empty, Discord is never contacted. */
+       image is uploaded under `largeImage` as a Rich Presence art asset; left empty, Discord is never contacted. Discord on a phone draws no
+       image for an uploaded asset's key, so Android is handed the wallet's own mark by its address under `largeImageAddress` instead. */
     discord: {
         appId: '1566529215103373532',
         largeImage: 'nura_wallet',
+        largeImageAddress: 'https://raw.githubusercontent.com/NuraChain/Wallet/master/src-tauri/icons/icon.png',
         largeText: 'Nura Wallet',
         buttons: [
             { label: 'Baziche', url: 'https://baziche.com' },

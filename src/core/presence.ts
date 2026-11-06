@@ -165,11 +165,14 @@ const publish = async () => {
         return;
     }
 
-    const { appId, largeImage, largeText, buttons } = config.discord;
+    const { appId, largeImage, largeImageAddress, largeText, buttons } = config.discord;
 
     const state = presenceState(path, screen);
 
-    const activity = { appId, state: state ?? null, details: presenceDetails(state, place) ?? null, largeImage, largeText, buttons };
+    // Discord on a phone draws no image for an uploaded asset's key, which leaves the activity bare there; Android is given its address instead.
+    const image = getPlatform() === 'android' ? largeImageAddress : largeImage;
+
+    const activity = { appId, state: state ?? null, details: presenceDetails(state, place) ?? null, largeImage: image, largeText, buttons };
 
     const next = JSON.stringify(activity);
 
