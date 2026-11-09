@@ -95,7 +95,7 @@ export default {
         largeText: 'Nura Wallet',
         buttons: [
             { label: 'Baziche', url: 'https://baziche.com' },
-            { label: 'Nura Wallet', url: 'https://nurawallet.app' }
+            { label: 'Discord', url: 'https://discord.gg/WKJxPpz9nV' }
         ]
     }
 };
