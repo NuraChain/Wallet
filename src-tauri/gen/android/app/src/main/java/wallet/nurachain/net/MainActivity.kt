@@ -1,11 +1,14 @@
 package wallet.nurachain.net
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.webkit.WebView
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 
 class MainActivity : TauriActivity() {
@@ -29,6 +32,39 @@ class MainActivity : TauriActivity() {
 
     if (deviceAsks.size == 1) {
       launchNext()
+    }
+  }
+
+  // One picker at a time, each request queued behind the last: a page waiting on a file has to be
+  // answered once, with what was picked or with nothing at all.
+  private val fileAsks = ArrayDeque<Pair<Intent, (ActivityResult?) -> Unit>>()
+
+  private val files = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    fileAsks.removeFirstOrNull()?.second?.invoke(result)
+
+    launchNextFile()
+  }
+
+  private fun launchNextFile() {
+    val next = fileAsks.firstOrNull() ?: return
+
+    try {
+      files.launch(next.first)
+    } catch (_: ActivityNotFoundException) {
+      // Nothing on the phone picked up what the page asked for; the page hears of it as a cancel.
+      fileAsks.removeFirst()
+
+      next.second(null)
+
+      launchNextFile()
+    }
+  }
+
+  private fun chooseFile(intent: Intent, answer: (ActivityResult?) -> Unit) {
+    fileAsks.addLast(intent to answer)
+
+    if (fileAsks.size == 1) {
+      launchNextFile()
     }
   }
 
@@ -59,7 +95,7 @@ class MainActivity : TauriActivity() {
   override fun onWebViewCreate(webView: WebView) {
     val insets = InsetBridge(webView)
 
-    webView.addJavascriptInterface(BrowserBridge(this, webView, ::askAndroid), "__nuraBrowser")
+    webView.addJavascriptInterface(BrowserBridge(this, webView, ::askAndroid, ::chooseFile), "__nuraBrowser")
     webView.addJavascriptInterface(ExportBridge(this), "__nuraExport")
     webView.addJavascriptInterface(insets, "__nuraInset")
 

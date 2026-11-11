@@ -9,7 +9,9 @@
 // and answers it, so the browser tab the dashboard already knows how to draw simply appears.
 
 #import <Foundation/Foundation.h>
+#import <PhotosUI/PhotosUI.h>
 #import <UIKit/UIKit.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 #import <WebKit/WebKit.h>
 #import <objc/runtime.h>
 
@@ -35,7 +37,7 @@ static NSString *NuraLogo(void);
 /// the answer it gives the root view controller reads it.
 static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 
-@interface NuraBrowserBridge : NSObject <WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate, UIDocumentPickerDelegate>
+@interface NuraBrowserBridge : NSObject <WKScriptMessageHandler, WKNavigationDelegate, WKUIDelegate, UIDocumentPickerDelegate, PHPickerViewControllerDelegate>
 
 @property (nonatomic, weak) WKWebView *host;
 @property (nonatomic, strong) NSMutableDictionary<NSString *, WKWebView *> *pages;
@@ -51,6 +53,13 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
 /// which holds a secret and is deleted however the sheet is closed.
 @property (nonatomic, strong) NSString *exportTicket;
 @property (nonatomic, strong) NSURL *exportFile;
+
+/// The file input a page is waiting on: WebKit's answer, which is called once and only once, and the
+/// tab it came from. Every copy a page is handed lives in one folder, emptied at the next pick.
+@property (nonatomic, copy) void (^uploadAnswer)(NSArray<NSURL *> *urls);
+@property (nonatomic, strong) NSString *uploadTab;
+@property (nonatomic, assign) BOOL uploadMultiple;
+@property (nonatomic, weak) UIViewController *uploadHost;
 
 /// The floating mouse, once something has asked for it, and what it wears. The two are kept apart
 /// because the wallet says what it wears before it asks for it to be shown.
@@ -348,6 +357,11 @@ static UIStatusBarStyle NuraBarStyle = UIStatusBarStyleDefault;
             if ([self.asks[ticket][@"tab"] isEqualToString:identifier]) {
                 [self answer:ticket allowed:NO];
             }
+        }
+
+        // A page gone with its picker open still owes WebKit an answer, or the sheet answers nothing.
+        if (self.uploadAnswer != nil && [self.uploadTab isEqualToString:identifier]) {
+            [self finishUpload:nil];
         }
     });
 }
@@ -889,6 +903,210 @@ static CGAffineTransform NuraTucked(CGPoint spoke) {
     });
 }
 
+#pragma mark - file upload
+
+/// Where the copies a page is handed are kept. WebKit reads them from this folder, and works their
+/// type out from the name each still carries.
+static NSString *NuraUploadFolder(void) {
+    return [NSTemporaryDirectory() stringByAppendingPathComponent:@"nura-upload"];
+}
+
+/// A page that asks for a file is answered out of this folder, so last pick's copies go first: they
+/// are the page's to read for as long as it is on screen, and no longer.
+- (void)clearUploads {
+    [NSFileManager.defaultManager removeItemAtPath:NuraUploadFolder() error:nil];
+}
+
+/// The picker's own URL is good only while its answer runs, so the file is copied out first, into a
+/// folder of its own so two files of one name cannot overwrite each other.
+- (NSURL *)keepUpload:(NSURL *)url {
+    if (url == nil) {
+        return nil;
+    }
+
+    NSString *name = url.lastPathComponent.length > 0 ? url.lastPathComponent : @"file";
+    NSString *folder = [NuraUploadFolder() stringByAppendingPathComponent:[[NSUUID UUID] UUIDString]];
+
+    if (![NSFileManager.defaultManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil]) {
+        return nil;
+    }
+
+    NSURL *copy = [NSURL fileURLWithPath:[folder stringByAppendingPathComponent:name]];
+
+    return [NSFileManager.defaultManager copyItemAtURL:url toURL:copy error:nil] ? copy : nil;
+}
+
+/// The one answer owed to a page, given once. Nothing picked, or a cancelled sheet, is nil: WebKit
+/// reads that as the user changing their mind, and the page is left as it was.
+- (void)finishUpload:(NSArray<NSURL *> *)urls {
+    void (^answer)(NSArray<NSURL *> *) = self.uploadAnswer;
+
+    self.uploadAnswer = nil;
+    self.uploadTab = nil;
+
+    if (answer != nil) {
+        answer(urls.count > 0 ? urls : nil);
+    }
+}
+
+/// A page's file input. WebKit says how many files it will take and nothing of what kind, so the
+/// choice is put to the user: the photo library, where a picture is, or Files, for anything else.
+- (void)webView:(WKWebView *)view
+    runOpenPanelWithParameters:(WKOpenPanelParameters *)parameters
+              initiatedByFrame:(WKFrameInfo *)frame
+             completionHandler:(void (^)(NSArray<NSURL *> *urls))completionHandler {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // A page may ask again before the last sheet is done with; only one can be open.
+        if (self.uploadAnswer != nil) {
+            completionHandler(nil);
+            return;
+        }
+
+        [self clearUploads];
+
+        self.uploadAnswer = [completionHandler copy];
+        self.uploadTab = [self identifierOf:view];
+        self.uploadMultiple = parameters.allowsMultipleSelection;
+
+        [self askUploadSource];
+    });
+}
+
+- (void)askUploadSource {
+    UIViewController *presenter = [self presenter];
+
+    if (presenter == nil) {
+        [self finishUpload:nil];
+        return;
+    }
+
+    UIAlertController *sheet = [UIAlertController alertControllerWithTitle:nil
+                                                                   message:nil
+                                                            preferredStyle:UIAlertControllerStyleActionSheet];
+
+    __weak NuraBrowserBridge *bridge = self;
+
+    [sheet addAction:[UIAlertAction actionWithTitle:@"Photos"
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction *action) {
+                                                [bridge openPhotos];
+                                            }]];
+
+    [sheet addAction:[UIAlertAction actionWithTitle:@"Browse"
+                                              style:UIAlertActionStyleDefault
+                                            handler:^(UIAlertAction *action) {
+                                                [bridge openFiles];
+                                            }]];
+
+    [sheet addAction:[UIAlertAction actionWithTitle:@"Cancel"
+                                              style:UIAlertActionStyleCancel
+                                            handler:^(UIAlertAction *action) {
+                                                [bridge finishUpload:nil];
+                                            }]];
+
+    // An action sheet on a tablet is a popover, which needs somewhere to point.
+    UIView *anchor = self.host != nil ? self.host : presenter.view;
+
+    sheet.popoverPresentationController.sourceView = anchor;
+    sheet.popoverPresentationController.sourceRect = anchor.bounds;
+
+    self.uploadHost = presenter;
+
+    [presenter presentViewController:sheet animated:YES completion:nil];
+}
+
+/// The sheet has to be gone before a picker can come up, so it is dismissed first and the picker
+/// presented from the controller that held it, once UIKit says it is clear.
+- (void)presentPicker:(void (^)(UIViewController *host))present {
+    UIViewController *host = self.uploadHost;
+
+    if (host == nil) {
+        [self finishUpload:nil];
+        return;
+    }
+
+    [host dismissViewControllerAnimated:NO
+                             completion:^{
+                                 if (host.presentedViewController != nil) {
+                                     [self finishUpload:nil];
+                                     return;
+                                 }
+
+                                 present(host);
+                             }];
+}
+
+/// The photo library, out of process: no permission of the wallet's own is asked for, and the user
+/// still picks the picture itself.
+- (void)openPhotos {
+    [self presentPicker:^(UIViewController *host) {
+        PHPickerConfiguration *configuration = [[PHPickerConfiguration alloc] init];
+
+        configuration.filter = [PHPickerFilter imagesFilter];
+        configuration.selectionLimit = self.uploadMultiple ? 0 : 1;
+
+        PHPickerViewController *picker = [[PHPickerViewController alloc] initWithConfiguration:configuration];
+
+        picker.delegate = self;
+
+        [host presentViewController:picker animated:YES completion:nil];
+    }];
+}
+
+- (void)openFiles {
+    [self presentPicker:^(UIViewController *host) {
+        UIDocumentPickerViewController *picker =
+            [[UIDocumentPickerViewController alloc] initForOpeningContentTypes:@[ UTTypeItem ] asCopy:YES];
+
+        picker.allowsMultipleSelection = self.uploadMultiple;
+        picker.delegate = self;
+
+        [host presentViewController:picker animated:YES completion:nil];
+    }];
+}
+
+/// The pictures are handed over one at a time, each only good while its own answer runs, so every
+/// one is copied out before the page is told. A pick that yields nothing is a cancel.
+- (void)picker:(PHPickerViewController *)picker didFinishPicking:(NSArray<PHPickerResult *> *)results {
+    [picker dismissViewControllerAnimated:YES completion:nil];
+
+    if (results.count == 0) {
+        [self finishUpload:nil];
+        return;
+    }
+
+    dispatch_group_t group = dispatch_group_create();
+
+    NSMutableArray<NSURL *> *kept = [NSMutableArray array];
+
+    for (PHPickerResult *result in results) {
+        NSItemProvider *provider = result.itemProvider;
+
+        if (![provider hasItemConformingToTypeIdentifier:[UTTypeImage identifier]]) {
+            continue;
+        }
+
+        dispatch_group_enter(group);
+
+        [provider loadFileRepresentationForTypeIdentifier:[UTTypeImage identifier]
+                                        completionHandler:^(NSURL *url, NSError *error) {
+                                            NSURL *copy = error == nil ? [self keepUpload:url] : nil;
+
+                                            @synchronized (kept) {
+                                                if (copy != nil) {
+                                                    [kept addObject:copy];
+                                                }
+                                            }
+
+                                            dispatch_group_leave(group);
+                                        }];
+    }
+
+    dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+        [self finishUpload:kept];
+    });
+}
+
 #pragma mark - export
 
 // Android's ExportBridge.kt writes the recovery phrase to Pictures and Downloads. iOS has no such
@@ -978,10 +1196,31 @@ static CGAffineTransform NuraTucked(CGPoint spoke) {
 }
 
 - (void)documentPicker:(UIDocumentPickerViewController *)controller didPickDocumentsAtURLs:(NSArray<NSURL *> *)urls {
+    // The same sheet opens for a page's file input and for the wallet's text export.
+    if (self.uploadAnswer != nil) {
+        NSMutableArray<NSURL *> *kept = [NSMutableArray array];
+
+        for (NSURL *url in urls) {
+            NSURL *copy = [self keepUpload:url];
+
+            if (copy != nil) {
+                [kept addObject:copy];
+            }
+        }
+
+        [self finishUpload:kept];
+        return;
+    }
+
     [self endTextExport:@""];
 }
 
 - (void)documentPickerWasCancelled:(UIDocumentPickerViewController *)controller {
+    if (self.uploadAnswer != nil) {
+        [self finishUpload:nil];
+        return;
+    }
+
     [self endTextExport:@"cancelled"];
 }
 

@@ -3,12 +3,14 @@ package wallet.nurachain.net
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
+import android.net.Uri
 import android.os.Build
 import android.view.Gravity
 import android.view.MotionEvent
@@ -22,6 +24,7 @@ import android.webkit.CookieManager
 import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
 import android.webkit.PermissionRequest
+import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -32,6 +35,7 @@ import android.webkit.WebViewClient
 import android.webkit.WebViewDatabase
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.activity.result.ActivityResult
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.Insets
 import androidx.core.view.DisplayCutoutCompat
@@ -47,7 +51,8 @@ import org.json.JSONObject
 class BrowserBridge(
     private val activity: Activity,
     private val host: WebView,
-    private val askAndroid: (Array<String>, (Boolean) -> Unit) -> Unit
+    private val askAndroid: (Array<String>, (Boolean) -> Unit) -> Unit,
+    private val chooseAndroid: (Intent, (ActivityResult?) -> Unit) -> Unit
 ) {
 
     private val pages = LinkedHashMap<String, WebView>()
@@ -55,6 +60,9 @@ class BrowserBridge(
     private class Ask(val tab: String, val request: PermissionRequest)
 
     private val asks = LinkedHashMap<String, Ask>()
+
+    // A page waiting on the system's file picker, by tab: the webview takes its answer once and once only.
+    private val choosers = LinkedHashMap<String, ValueCallback<Array<Uri?>?>>()
 
     private var askCount = 0
 
@@ -211,6 +219,31 @@ class BrowserBridge(
 
             ask.request.deny()
         }
+    }
+
+    /**
+     * A file input in a page, put to the system picker with what the page accepts. The answer is the
+     * picker's result, or nothing at all if the user backs out; a tab that asks again, or goes away,
+     * gets the answer still owed to it rather than leaving the page waiting.
+     */
+    private fun choose(tab: String, callback: ValueCallback<Array<Uri?>?>, params: WebChromeClient.FileChooserParams): Boolean {
+        choosers.remove(tab)?.onReceiveValue(null)
+
+        val intent = params.createIntent()
+
+        if (params.mode == WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE) {
+            intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+        }
+
+        choosers[tab] = callback
+
+        chooseAndroid(intent) { result ->
+            choosers.remove(tab)?.onReceiveValue(
+                WebChromeClient.FileChooserParams.parseResult(result?.resultCode ?: Activity.RESULT_CANCELED, result?.data)
+            )
+        }
+
+        return true
     }
 
     private fun applyAgent(view: WebView) {
@@ -399,6 +432,12 @@ class BrowserBridge(
             override fun onPermissionRequest(request: PermissionRequest) {
                 ask(id, request)
             }
+
+            override fun onShowFileChooser(
+                view: WebView,
+                filePathCallback: ValueCallback<Array<Uri?>?>,
+                fileChooserParams: WebChromeClient.FileChooserParams
+            ): Boolean = choose(id, filePathCallback, fileChooserParams)
 
             override fun onPermissionRequestCanceled(request: PermissionRequest) {
                 asks.entries.removeAll { it.value.request === request }
@@ -856,6 +895,12 @@ class BrowserBridge(
 
             dropAsks { false }
 
+            for (callback in choosers.values) {
+                callback.onReceiveValue(null)
+            }
+
+            choosers.clear()
+
             for ((_, view) in pages) {
                 (view.parent as? ViewGroup)?.removeView(view)
 
@@ -891,6 +936,8 @@ class BrowserBridge(
             scripts.remove(id)
 
             dropAsks { it.tab != id }
+
+            choosers.remove(id)?.onReceiveValue(null)
 
             pages.remove(id)?.let { view ->
                 (view.parent as? ViewGroup)?.removeView(view)
