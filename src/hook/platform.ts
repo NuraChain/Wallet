@@ -30,6 +30,17 @@ export const useHasBrowser = (): boolean => {
     return hasBrowser;
 };
 
+/** App Review counts any swap, decentralised or not, as an exchange that needs a licence (guideline 3.1.5(iii)), and iOS ships only through the App Store. */
+export const useHasSwap = (): boolean => {
+    const [hasSwap] = useState(() => {
+        const host = getPlatform();
+
+        return host !== 'ios';
+    });
+
+    return hasSwap;
+};
+
 /**
  * Each host asks for the camera its own way (on Linux `camera.rs` enables capture); an extension cannot show the prompt, so it is left out.
  * A webview with the camera off, or that does not take the page as secure, lacks the interface altogether.
