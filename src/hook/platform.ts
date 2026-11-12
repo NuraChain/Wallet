@@ -41,6 +41,17 @@ export const useHasSwap = (): boolean => {
     return hasSwap;
 };
 
+/** A redeem code is bought with money and pays out Nura Coin, which App Review reads as selling a cryptocurrency (guideline 3.1.5(iii)). */
+export const useHasRedeem = (): boolean => {
+    const [hasRedeem] = useState(() => {
+        const host = getPlatform();
+
+        return host !== 'ios';
+    });
+
+    return hasRedeem;
+};
+
 /**
  * Each host asks for the camera its own way (on Linux `camera.rs` enables capture); an extension cannot show the prompt, so it is left out.
  * A webview with the camera off, or that does not take the page as secure, lacks the interface altogether.
