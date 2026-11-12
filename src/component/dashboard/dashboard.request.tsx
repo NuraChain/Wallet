@@ -17,7 +17,7 @@ import { Horizontal, Vertical } from '../../ui/stack';
 import { Modal, ModalActions, ModalBody, ModalHeader } from '../../ui/modal';
 
 import { T } from '../../utility/language';
-import { latinDigits, shortAddress } from '../../utility/format';
+import { groupDigits, latinDigits, shortAddress } from '../../utility/format';
 import { getNativeLogo } from '../../core/price';
 import { readCalldata } from '../../core/calldata';
 import { resolveDappPrompt } from '../../core/dapp.rpc';
@@ -46,6 +46,9 @@ const isolate = (value: string) => `\u2068${value}\u2069`;
 
 // Only the trailing ".0" goes; nothing is rounded, since hidden dust is what a drainer counts on.
 const exact = (value: string) => value.replace(/\.0(?=\s|$)/u, '');
+
+// Not for the gas fields: they are typed into and parsed back.
+const shown = (value: string) => groupDigits(exact(value));
 
 const gwei = (wei: string) => exact(formatUnits(wei, 'gwei'));
 
@@ -193,7 +196,7 @@ export default function DashboardRequest({
     let amount = '';
 
     if (call?.amount !== undefined) {
-        amount = subject === undefined ? call.amount.toString() : exact(formatUnits(call.amount, subject.decimals));
+        amount = subject === undefined ? groupDigits(call.amount.toString()) : shown(formatUnits(call.amount, subject.decimals));
     }
 
     // Nothing a site gets to name (a chain it adds, a token symbol) goes in the headline.
@@ -246,7 +249,7 @@ export default function DashboardRequest({
             };
         }
 
-        return { title: T('Dashboard.Request.SendTitle', isolate(exact(transaction?.value ?? ''))), verb: T('Dashboard.Request.SendAction') };
+        return { title: T('Dashboard.Request.SendTitle', isolate(shown(transaction?.value ?? ''))), verb: T('Dashboard.Request.SendAction') };
     };
 
     const { title, verb } = ask();
@@ -277,7 +280,7 @@ export default function DashboardRequest({
                     ? [
                           {
                               label: T('Dashboard.Request.FeeCustom'),
-                              value: `${exact(formatUnits(BigInt(custom.limit) * BigInt(custom.price), suggested.decimals))} ${suggested.symbol}`,
+                              value: `${shown(formatUnits(BigInt(custom.limit) * BigInt(custom.price), suggested.decimals))} ${suggested.symbol}`,
                               mono: true
                           }
                       ]

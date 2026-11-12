@@ -61,13 +61,16 @@ export const latinDigits = (value: string) =>
         return String(code >= 0x06f0 ? code - 0x06f0 : code - 0x0660);
     });
 
+// Display only: a grouped amount no longer parses back into a number.
+export const groupDigits = (amount: string) => amount.replace(/^[-+]?\d+/u, (whole) => whole.replaceAll(/(?<=\d)(?=(?:\d{3})+$)/gu, ','));
+
 export const trimAmount = (amount: string, max = 6) => {
     if (!amount.includes('.')) {
-        return amount;
+        return groupDigits(amount);
     }
 
     const [whole, fraction] = amount.split('.');
     const cut = fraction.slice(0, max).replace(/0+$/, '');
 
-    return cut.length > 0 ? `${whole}.${cut}` : whole;
+    return groupDigits(cut.length > 0 ? `${whole}.${cut}` : whole);
 };
