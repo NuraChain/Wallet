@@ -48,7 +48,7 @@ import { usePrices } from '../hook/price';
 import { useOnline } from '../hook/connection';
 import { useHistory } from '../hook/history';
 import { useBalance, useTokens } from '../hook/balance';
-import { useHasBrowser } from '../hook/platform';
+import { useHasBrowser, useHasSwap } from '../hook/platform';
 import { useBack } from '../hook/back';
 import { forgetSiteThemes, getSiteDevices, setSiteTheme } from '../core/browser';
 import { closeMouseMenu, openMouseMenu, showMouse } from '../core/mouse';
@@ -108,8 +108,13 @@ function DashboardView({ vault }: { vault: Vault }) {
 
     const hasBrowser = useHasBrowser();
 
-    // No in-app browser on iOS or in the extension popup; index into this, not navMap.
-    const tabMap = useMemo(() => (hasBrowser ? navMap : navMap.filter((item) => item.key !== 'Browser')), [hasBrowser]);
+    const hasSwap = useHasSwap();
+
+    // No in-app browser in the extension popup and no swap on iOS; index into this, not navMap.
+    const tabMap = useMemo(
+        () => navMap.filter((item) => (item.key !== 'Browser' || hasBrowser) && (item.key !== 'Swap' || hasSwap)),
+        [hasBrowser, hasSwap]
+    );
 
     const [instant, setInstant] = useState(false);
 

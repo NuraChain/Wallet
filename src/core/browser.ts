@@ -1,5 +1,6 @@
 import config from '../config';
 import { inkOn } from '../utility/color';
+import { getPlatform } from '../utility/platform';
 import { getValue, removeValue, setValue } from '../utility/storage';
 
 import { imageCache } from './image';
@@ -24,7 +25,8 @@ export const mouseLabel = 'nura-mouse';
 /** The desktop mouse's menu: a webview of its own, under the mouse and over every page. */
 export const mouseMenuLabel = 'nura-mouse-menu';
 
-const defaultFavorites: BrowserFavorite[] = config.favorites;
+/** App Review took the preset sites, a swap among them, for the app offering an exchange (guideline 3.1.5(iii)), so an iPhone starts with none. */
+const defaultFavorites = (): BrowserFavorite[] => (getPlatform() === 'ios' ? [] : config.favorites);
 
 const historyLimit = 40;
 
@@ -87,7 +89,7 @@ export const getBrowserFavorites = async (): Promise<BrowserFavorite[]> => {
     const stored = await getValue('Browser.Favorites');
 
     if (stored === undefined) {
-        return defaultFavorites;
+        return defaultFavorites();
     }
 
     try {

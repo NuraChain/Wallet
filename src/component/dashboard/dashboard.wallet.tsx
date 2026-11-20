@@ -16,6 +16,7 @@ import ListCard from '../../ui/list';
 import StatusBlock from '../../ui/state';
 
 import { T } from '../../utility/language';
+import { useHasRedeem } from '../../hook/platform';
 import { getNativeCoinId, getNativeLogo, getTokenCoinId, getTokenLogo } from '../../core/price';
 import { formatUsd, shortAddress, trimAmount } from '../../utility/format';
 import { Horizontal, Vertical } from '../../ui/stack';
@@ -83,6 +84,8 @@ export default function DashboardWallet({
 }) {
     const [tab, setTab] = useState<TabKey>('token');
 
+    const hasRedeem = useHasRedeem();
+
     const totalKnown = native.at > 0 && totalAt > 0;
 
     const headline = () => {
@@ -123,7 +126,7 @@ export default function DashboardWallet({
         { key: 'Dashboard.Send.Title', icon: ArrowUpRight, primary: true, onClick: onSend },
         { key: 'Dashboard.Receive.Title', icon: ArrowDownLeft, primary: false, onClick: onReceive },
         { key: 'Dashboard.Redeem.Title', icon: Gift, primary: false, onClick: onRedeem }
-    ];
+    ].filter((item) => item.key !== 'Dashboard.Redeem.Title' || hasRedeem);
 
     const rowPrice = (coinId: string) => {
         const price = prices[coinId];
